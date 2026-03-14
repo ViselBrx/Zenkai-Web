@@ -1,6 +1,6 @@
 # 🎬 Meu Player Local - RedeCanais
 
-> ⚠️ **Aviso**: Este repositório é estritamente para uso pessoal e educacional. Por faovor, não o compartilhe pelo bem dos direitos autorais.
+> ⚠️ **Aviso**: Este repositório é estritamente para uso privado. Não será permitido o acesso compartilhado.
 
 ## 📋 Sobre
 
