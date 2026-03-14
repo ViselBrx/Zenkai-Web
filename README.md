@@ -1,10 +1,10 @@
 # 🎬 Meu Player Local - RedeCanais
 
-> ⚠️ **Aviso**: Este repositório é estritamente para uso pessoal e educacional. Não compartilhe publicamente.
+> ⚠️ **Aviso**: Este repositório é estritamente para uso pessoal e educacional. Por faovor, não o compartilhe pelo bem dos direitos autorais.
 
 ## 📋 Sobre
 
-Player HTML simples para assistir conteúdo do RedeCanais localmente, sem necessidade de acessar o site diretamente.
+Player HTML, CSS e JavaScript simples para assistir conteúdo do RedeCanais localmente, sem necessidade de acessar o site diretamente.
 
 ## 🚀 Como usar
 
