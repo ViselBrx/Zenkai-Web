@@ -11,3 +11,7 @@ Player HTML, CSS e JavaScript simples para assistir conteúdo do RedeCanais loca
 1. Clone o repositório:
 ```bash
 git clone https://github.com/ViselBrx/Videos-redecanais.git
+
+2. Abra a pasta clonada localmente com o VsCode:
+
+3. Tete para ver se está tudo correto.
