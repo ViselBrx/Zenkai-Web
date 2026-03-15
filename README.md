@@ -15,4 +15,8 @@ git clone https://github.com/ViselBrx/Videos-redecanais.git
 ```
 2. Abra a pasta clonada localmente com o VsCode:
 
-3. Tete para ver se está tudo correto.
+3. Inicie o servidor local:
+```bash 
+node server.js
+```
+4. Abra no navegador e teste o site.
