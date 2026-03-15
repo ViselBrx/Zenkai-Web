@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Mangás</title>
+  <meta name="description" content="Links de download de mangás favoritos." />
+  <link rel="icon" type="image/jpeg" href="assets/red x.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/red x.jpg" alt="Mascote" style="height:48px;width:48px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(233,69,96,0.7));" />
+    <span>Anime</span>House
+  </div>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="index.html"><span class="nav-icon">🎬</span> Desenhos</a></li>
+    <li><a href="animes.html"><span class="nav-icon">🌸</span> Animes</a></li>
+    <li><a href="cadastro.html"><span class="nav-icon">📋</span> Cad. Desenhos</a></li>
+    <li><a href="cadastro-animes.html"><span class="nav-icon">📋</span> Cad. Animes</a></li>
+    <li><a href="desenhos.html"><span class="nav-icon">▶️</span> Eps. Desenhos</a></li>
+    <li><a href="anime-episodios.html"><span class="nav-icon">▶️</span> Eps. Animes</a></li>
+    <li><a href="mangas.html"><span class="nav-icon">📖</span> Mangás</a></li>
+    <li><a href="agradecimento.html"><span class="nav-icon">💖</span> Agradecimento</a></li>
+  </ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main class="container" style="max-width:900px;">
+  <div class="page-header">
+    <h1>📖 Seção de Mangás</h1>
+    <p>Adicione e organize links de download ou leitura dos seus mangás favoritos</p>
+  </div>
+
+  <div class="search-bar" style="margin-bottom:1.5rem">
+    <input id="searchManga" type="text" placeholder="🔍  Buscar por nome..." style="flex:1" />
+    <button class="btn btn-primary" id="addMangaBtn">✚ Adicionar Mangá</button>
+  </div>
+
+  <div id="mangaList" class="manga-list"></div>
+
+  <div id="emptyMangaState" class="empty-state" style="display:none;">
+    <div class="empty-icon">📂</div>
+    <p>Nenhum mangá na lista. Clique em <strong>Adicionar Mangá</strong>.</p>
+  </div>
+</main>
+
+<!-- MODAL ADD/EDIT -->
+<div class="modal-overlay" id="mangaModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="mangaTitle">Novo Link de Mangá</h2>
+      <button class="modal-close" id="mangaClose">✕</button>
+    </div>
+    <form id="mangaForm" novalidate>
+      <input type="hidden" id="mangaId" />
+      <div class="form-group">
+        <label>Nome do Mangá *</label>
+        <input id="mNome" class="form-control" type="text" required />
+      </div>
+      <div class="form-group">
+        <label>URL de Download/Leitura *</label>
+        <input id="mUrl" class="form-control" type="url" placeholder="https://..." required />
+      </div>
+      <div class="form-group">
+        <label>Volume/Capítulo Opcional</label>
+        <input id="mVol" class="form-control" type="text" placeholder="Ex: Cap 1 ~ 20" />
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" id="mangaCancel">Cancelar</button>
+        <button type="submit" class="btn btn-primary">💾 Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/db.js"></script>
+<script src="js/mangas.js"></script>
+</body>
+</html>

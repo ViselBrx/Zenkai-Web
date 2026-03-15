@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Agradecimento</title>
+  <meta name="description" content="Agradecimento especial ao RedeCanais por disponibilizar iframes gratuitos de desenhos e animes." />
+  <link rel="icon" type="image/jpeg" href="assets/red x.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .thanks-bg {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(233,69,96,.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(124,58,237,.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 60% 80%, rgba(245,166,35,.08) 0%, transparent 50%);
+    }
+    .heart-pulse {
+      display: inline-block;
+      animation: pulse 1.2s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.18); }
+    }
+    .features-list {
+      list-style: none;
+      margin: 1.5rem 0;
+      text-align: left;
+      display: inline-block;
+    }
+    .features-list li {
+      padding: 6px 0;
+      color: var(--text-muted);
+      font-size: .98rem;
+    }
+    .features-list li::before { content: '✅  '; }
+    .divider-gradient {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent);
+      margin: 1.5rem auto;
+      width: 60%;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/red x.jpg" alt="Mascote" style="height:48px;width:48px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(233,69,96,0.7));" />
+    <span>Anime</span>House
+  </div>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="index.html"><span class="nav-icon">🎬</span> Desenhos</a></li>
+    <li><a href="animes.html"><span class="nav-icon">🌸</span> Animes</a></li>
+    <li><a href="cadastro.html"><span class="nav-icon">📋</span> Cad. Desenhos</a></li>
+    <li><a href="cadastro-animes.html"><span class="nav-icon">📋</span> Cad. Animes</a></li>
+    <li><a href="desenhos.html"><span class="nav-icon">▶️</span> Eps. Desenhos</a></li>
+    <li><a href="anime-episodios.html"><span class="nav-icon">▶️</span> Eps. Animes</a></li>
+    <li><a href="mangas.html"><span class="nav-icon">📖</span> Mangás</a></li>
+    <li><a href="agradecimento.html"><span class="nav-icon">💖</span> Agradecimento</a></li>
+  </ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="thanks-bg">
+  <div class="thanks-card">
+    <div class="big-icon"><span class="heart-pulse">💖</span></div>
+    <h2>Obrigado, RedeCanais!</h2>
+    <div class="divider-gradient"></div>
+    <p>
+      Este projeto só é possível graças ao incrível trabalho do
+      <strong style="color:var(--accent)">RedeCanais</strong>, que disponibiliza
+      <em>gratuitamente</em> iframes de incorporação de episódios de dezenas de
+      desenhos e animes para toda a comunidade.
+    </p>
+    <ul class="features-list">
+      <li>Iframes gratuitos para incorporação de episódios</li>
+      <li>Vasta biblioteca de desenhos e animes em português</li>
+      <li>Serviço acessível para todos, sem custo algum</li>
+      <li>Atualizações constantes com novos episódios</li>
+    </ul>
+    <div class="divider-gradient"></div>
+    <p style="font-size:.95rem;">
+      Se você curtiu o conteúdo, acesse o site do RedeCanais e apoie o projeto! ❤️
+    </p>
+    <a class="site-link" href="https://redecanais.ooo" target="_blank" rel="noopener">
+      🌐 Visitar RedeCanais
+    </a>
+    <p style="margin-top:1.5rem;font-size:.8rem;color:var(--text-muted);">
+      Este site é um catálogo pessoal e não possui fins comerciais.
+      Todo o crédito pelos vídeos vai ao RedeCanais.
+    </p>
+  </div>
+</div>
+
+<script src="js/db.js"></script>
+</body>
+</html>

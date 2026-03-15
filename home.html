@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Bem-vindo(a) Portal Ninja</title>
+  <meta name="description" content="Seu portal nipônico e mundo de animações!" />
+  <link rel="icon" type="image/jpeg" href="assets/red x.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/red x.jpg" alt="Mascote" style="height:48px;width:48px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(99, 102, 241,0.5));" />
+    <span>Anime</span>House
+  </div>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="home.html" class="active"><span class="nav-icon">🏠</span> Início</a></li>
+    <li><a href="index.html"><span class="nav-icon">📺</span> Desenhos</a></li>
+    <li><a href="animes.html"><span class="nav-icon">⛩️</span> Animes</a></li>
+    <li><a href="cadastro.html"><span class="nav-icon">⚙️</span> Cadastros</a></li>
+    <li><a href="mangas.html"><span class="nav-icon">📚</span> Mangás</a></li>
+  </ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main class="container">
+  
+  <div class="home-banner">
+    <h2>Bem-vindo à Anime House</h2>
+    <p>Selecione um dos nossos catálogos para começar a explorar sua coleção nipônica e pop.</p>
+  </div>
+
+  <div class="home-grid">
+    <a href="index.html" class="home-card">
+      <div class="home-icon">📺</div>
+      <h3>Desenhos Clássicos</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis ocidentais.</p>
+      <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
+    </a>
+    
+    <a href="animes.html" class="home-card">
+      <div class="home-icon" style="background:rgba(168, 85, 247, 0.1);color:var(--accent)">⛩️</div>
+      <h3 style="color:var(--accent)">Universo Animes</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.</p>
+      <span class="btn btn-accent" style="margin-top:auto">Acessar Catálogo</span>
+    </a>
+
+    <a href="mangas.html" class="home-card">
+      <div class="home-icon" style="background:rgba(16, 185, 129, 0.1);color:var(--success)">📚</div>
+      <h3 style="color:var(--success)">Leitura de Mangás</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">PDFs, links de Drive e capítulos salvos para ler depois.</p>
+      <span class="btn btn-success" style="margin-top:auto">Acessar Links</span>
+    </a>
+    
+    <a href="cadastro.html" class="home-card">
+      <div class="home-icon" style="background:rgba(239, 68, 68, 0.1);color:var(--danger)">⚙️</div>
+      <h3 style="color:var(--danger)">Administração (CRUD)</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Área restrita de controle para inserir, editar e excluir títulos e episódios.</p>
+      <span class="btn btn-danger" style="margin-top:auto">Entrar no Painel</span>
+    </a>
+  </div>
+
+</main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const burger = document.getElementById('navBurger');
+    const menu   = document.getElementById('navLinks');
+    if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
+  });
+</script>
+</body>
+</html>

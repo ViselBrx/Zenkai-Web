@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Assistir</title>
+  <meta name="description" content="Assista aos episódios dos seus desenhos favoritos por temporada." />
+  <link rel="icon" type="image/jpeg" href="assets/red x.jpg" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .cartoon-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .7rem;
+      margin-bottom: 2rem;
+    }
+    .cartoon-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .88rem;
+      color: var(--text-muted);
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .cartoon-pill img {
+      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+    }
+    .cartoon-pill:hover, .cartoon-pill.active {
+      background: rgba(233,69,96,0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .season-ep-tools {
+      display: flex; gap: .7rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center;
+    }
+    .ep-form-row {
+      display: flex; gap: .7rem; flex-wrap: wrap; align-items: flex-end;
+    }
+    .ep-form-row .form-group { margin-bottom: 0; flex: 1; min-width: 120px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/red x.jpg" alt="Mascote" style="height:48px;width:48px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(233,69,96,0.7));" />
+    <span>Anime</span>House
+  </div>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="index.html"><span class="nav-icon">🎬</span> Desenhos</a></li>
+    <li><a href="animes.html"><span class="nav-icon">🌸</span> Animes</a></li>
+    <li><a href="cadastro.html"><span class="nav-icon">📋</span> Cad. Desenhos</a></li>
+    <li><a href="cadastro-animes.html"><span class="nav-icon">📋</span> Cad. Animes</a></li>
+    <li><a href="desenhos.html"><span class="nav-icon">▶️</span> Eps. Desenhos</a></li>
+    <li><a href="anime-episodios.html"><span class="nav-icon">▶️</span> Eps. Animes</a></li>
+    <li><a href="mangas.html"><span class="nav-icon">📖</span> Mangás</a></li>
+    <li><a href="agradecimento.html"><span class="nav-icon">💖</span> Agradecimento</a></li>
+  </ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main class="container">
+  <div class="page-header">
+    <h1>▶️ Assistir Episódios</h1>
+    <p>Selecione um desenho e adicione/assista aos episódios por temporada</p>
+  </div>
+
+  <!-- SELETOR DE DESENHO -->
+  <div id="cartoonPills" class="cartoon-selector"></div>
+
+  <!-- ÁREA PRINCIPAL -->
+  <div id="noCartoonMsg" class="select-cartoon-prompt" style="display:none;">
+    🎬 Selecione um desenho acima para gerenciar e assistir episódios.
+  </div>
+  <div id="noCartoonRegistered" class="select-cartoon-prompt" style="display:none;">
+    📭 Nenhum desenho cadastrado. <a href="cadastro.html" style="color:var(--primary)">Cadastre um agora.</a>
+  </div>
+
+  <div id="episodePanel" style="display:none;">
+    <!-- ADICIONAR EPISÓDIO -->
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
+      <h3 style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--accent);margin-bottom:1rem;letter-spacing:1px;">➕ Adicionar Episódio</h3>
+      <div class="ep-form-row">
+        <div class="form-group">
+          <label>Temporada *</label>
+          <input id="epSeason" class="form-control" type="number" min="1" value="1" placeholder="1" />
+        </div>
+        <div class="form-group">
+          <label>Nº Episódio *</label>
+          <input id="epNumber" class="form-control" type="number" min="1" value="1" placeholder="1" />
+        </div>
+        <div class="form-group" style="flex:2;min-width:200px;">
+          <label>Título (opcional)</label>
+          <input id="epTitle" class="form-control" type="text" placeholder="Ex: O Começo de Tudo" />
+        </div>
+        <div class="form-group" style="flex:3;min-width:260px;">
+          <label>Código de Incorporação (iframe) ou URL *</label>
+          <input id="epIframe" class="form-control" type="text" placeholder='&lt;iframe src="..."&gt;&lt;/iframe&gt; ou https://...' />
+        </div>
+        <div class="form-group" style="min-width:fit-content;">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" id="addEpBtn">Adicionar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEMPORADAS E EPISÓDIOS -->
+    <div id="seasonsContainer"></div>
+  </div>
+</main>
+
+<!-- MODAL VER EPISÓDIO -->
+<div class="modal-overlay" id="watchModal">
+  <div class="modal" style="max-width:860px;">
+    <div class="modal-header">
+      <h2 id="watchTitle">—</h2>
+      <button class="modal-close" id="watchClose">✕</button>
+    </div>
+    <div id="watchFrame" style="width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;"></div>
+    <div class="form-actions" style="margin-top:1rem;">
+      <button class="btn btn-danger btn-sm" id="watchDeleteBtn">🗑️ Remover Episódio</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/db.js"></script>
+<script src="js/desenhos.js"></script>
+</body>
+</html>
