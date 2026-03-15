@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="episode-label" style="justify-content:space-between">
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
+            <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
           </div>
         `;
         grid.appendChild(card);
@@ -131,6 +132,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let editingEpId = null;
+  let editingSeason = null;
+
+  window.editEpisode = (e, epId, seasonNum) => {
+    e.stopPropagation();
+    const sEps = DB.getEpisodesFor(activeCartoonId)[seasonNum];
+    const ep = sEps.find(x => x.id === epId);
+    if (!ep) return;
+
+    editingEpId = epId;
+    editingSeason = seasonNum;
+
+    epSeason.value = seasonNum;
+    epNumber.value = ep.epNumber;
+    epTitle.value = ep.title || '';
+    epIframe.value = ep.iframe;
+
+    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.classList.replace('btn-primary', 'btn-accent');
+    
+    // Rolar para cima para o formulário
+    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    
+    // Adicionar botão cancelar se não existir
+    if(!document.getElementById('cancelEditBtn')) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'cancelEditBtn';
+        cancelBtn.className = 'btn btn-ghost';
+        cancelBtn.style.marginLeft = '10px';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.onclick = resetEpForm;
+        addEpBtn.parentNode.appendChild(cancelBtn);
+    }
+  };
+
+  function resetEpForm() {
+    editingEpId = null;
+    editingSeason = null;
+    epTitle.value = '';
+    epIframe.value = '';
+    addEpBtn.textContent = 'Adicionar';
+    addEpBtn.classList.replace('btn-accent', 'btn-primary');
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if(cancelBtn) cancelBtn.remove();
+  }
+
   addEpBtn.addEventListener('click', () => {
     if (!activeCartoonId) return showToast('Selecione um desenho primeiro', 'error');
     
@@ -140,21 +187,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!s || !e || !i) return showToast('Preencha temporada, número e iframe/URL', 'error');
 
-    // Se for só link (https://), converte em iframe
     if (i.startsWith('http') && !i.includes('<iframe')) {
       i = `<iframe src="${i}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
     }
 
-    DB.addEpisode(activeCartoonId, s, {
+    const epData = {
       epNumber: e,
       title: epTitle.value.trim(),
       iframe: i
-    });
+    };
 
-    showToast(`Adicionado: Temp ${s} - Ep ${e}`);
-    epNumber.value = e + 1; 
-    epTitle.value = '';
-    epIframe.value = '';
+    if (editingEpId) {
+        DB.updateEpisode(activeCartoonId, editingSeason, editingEpId, epData);
+        showToast('Episódio atualizado!');
+        resetEpForm();
+    } else {
+        DB.addEpisode(activeCartoonId, s, epData);
+        showToast(`Adicionado: Temp ${s} - Ep ${e}`);
+        epNumber.value = e + 1; 
+        epTitle.value = '';
+        epIframe.value = '';
+    }
+
     renderSeasons();
   });
 
@@ -163,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirm(`Excluir toda a Temporada ${seasonNum}?`)) {
       DB.deleteSeason(activeCartoonId, seasonNum);
       showToast('Temporada excluída');
+      if(editingSeason === seasonNum) resetEpForm();
       renderSeasons();
     }
   };

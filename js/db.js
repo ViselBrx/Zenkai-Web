@@ -5,7 +5,7 @@
 
 const API_BASE = 'http://localhost:3000';
 
-const _DEFAULT = { cartoons: [], episodes: {}, animes: [], animeEpisodes: {}, mangas: [] };
+const _DEFAULT = { cartoons: [], episodes: {}, animes: [], animeEpisodes: {}, mangas: [], aiConfig: {} };
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
 
 (function loadFromServer() {
@@ -70,6 +70,12 @@ const DB = {
     const item = { id: 'e_' + Date.now(), ...epData };
     _store.episodes[cId][season].push(item); _persist(); return item;
   },
+  updateEpisode(cId, season, epId, data) {
+    if (_store.episodes[cId]?.[season]) {
+      _store.episodes[cId][season] = _store.episodes[cId][season].map(e => e.id === epId ? { ...e, ...data } : e);
+      _persist();
+    }
+  },
   deleteEpisode(cId, season, epId) {
     if (_store.episodes[cId]?.[season]) {
       _store.episodes[cId][season] = _store.episodes[cId][season].filter(e => e.id !== epId);
@@ -108,6 +114,12 @@ const DB = {
     const item = { id: 'ae_' + Date.now(), ...epData };
     _store.animeEpisodes[aId][season].push(item); _persist(); return item;
   },
+  updateAnimeEpisode(aId, season, epId, data) {
+    if (_store.animeEpisodes[aId]?.[season]) {
+      _store.animeEpisodes[aId][season] = _store.animeEpisodes[aId][season].map(e => e.id === epId ? { ...e, ...data } : e);
+      _persist();
+    }
+  },
   deleteAnimeEpisode(aId, season, epId) {
     if (_store.animeEpisodes[aId]?.[season]) {
       _store.animeEpisodes[aId][season] = _store.animeEpisodes[aId][season].filter(e => e.id !== epId);
@@ -130,7 +142,11 @@ const DB = {
   },
   deleteManga(id) {
     _store.mangas = _store.mangas.filter(m => m.id !== id); _persist();
-  }
+  },
+  
+  /* IA Config */
+  getAIConfig() { return { ..._store.aiConfig }; },
+  saveAIConfig(config) { _store.aiConfig = { ..._store.aiConfig, ...config }; _persist(); }
 };
 
 /* Globals */

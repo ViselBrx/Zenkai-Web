@@ -125,6 +125,22 @@
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer08&subfolder=ondemand&vid=MTNTSREXT01EP01\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         }
       ]
+    },
+    "c_1773537259304": {
+      "1": [
+        {
+          "id": "e_1773573735116",
+          "epNumber": 1,
+          "title": "E Então Eram 10",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer05&subfolder=ondemand&vid=BEN10EP01\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773585948908",
+          "epNumber": 2,
+          "title": "Washington A.C.",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer05&subfolder=ondemand&vid=BEN10EP02\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ]
     }
   },
   "animes": [
@@ -157,6 +173,34 @@
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer12&subfolder=ondemand&vid=ATQDSTITST01EP01\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         }
       ]
+    },
+    "a_1773537962071": {
+      "1": [
+        {
+          "id": "ae_1773586129323",
+          "epNumber": 1,
+          "title": "Qualquer Lugar Menos Aqui",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=VNLNDSGAT01EP01\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "ae_1773586186933",
+          "epNumber": 2,
+          "title": "A Espada",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=VNLNDSGAT01EP02\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "ae_1773586270085",
+          "epNumber": 3,
+          "title": "Troll",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=VNLNDSGAT01EP03\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "ae_1773591887011",
+          "epNumber": 4,
+          "title": "Um Guerreiro de Verdade",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=VNLNDSGAT01EP04\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ]
     }
   },
   "mangas": [
@@ -178,5 +222,9 @@
       "url": "https://mega.nz/folder/hGAjxLDL#QTEuNjtFQw_A6VMgNSEfpg",
       "volume": "42, 200"
     }
-  ]
+  ],
+  "aiConfig": {
+    "groqKey": "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",
+    "provider": "groq"
+  }
 }

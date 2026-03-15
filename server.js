@@ -8,6 +8,7 @@ const http = require('http');
 const fs   = require('fs');
 const path = require('path');
 const url  = require('url');
+const https = require('https');
 
 const PORT      = 3000;
 const ROOT      = __dirname;
@@ -106,6 +107,73 @@ const server = http.createServer(async (req, res) => {
     } catch(e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
+  // AI Proxy Route
+  if (req.method === 'POST' && pathname === '/api/ai/proxy') {
+    try {
+      const data = await getBody(req);
+      const { target, method, headers, body } = data;
+      const config = readData().aiConfig || {};
+      
+      console.log(`[AI Proxy] Alvo: ${target} | Método: ${method || 'POST'}`);
+      
+      let apiUrl = '';
+      let apiKey = '';
+
+      if (target === 'groq') {
+        apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+        apiKey = config.groqKey;
+      } else if (target === 'zimage') {
+        apiUrl = 'https://api.z-image.com/v1/generate';
+        apiKey = config.zimageKey;
+      } else if (target === 'magichour') {
+        apiUrl = 'https://api.magichour.ai/v1/video';
+        apiKey = config.magichourKey;
+      }
+
+      console.log(`[AI Proxy] Chave encontrada? ${!!apiKey} | URL: ${apiUrl}`);
+
+      if (!apiUrl || !apiKey) {
+        console.error(`[AI Proxy] Erro Crítico: Alvo '${target}' não configurado corretamente.`);
+        return sendJSON(res, 400, { error: 'Configuração de IA ausente no data.json' });
+      }
+
+      console.log(`[AI Proxy] Chamando API externa: ${apiUrl}`);
+
+      const options = {
+        method: method || 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          ...(headers || {})
+        }
+      };
+
+      const requestBody = body ? JSON.stringify(body) : null;
+      if (requestBody) {
+        options.headers['Content-Length'] = Buffer.byteLength(requestBody);
+      }
+
+      const proxyReq = https.request(apiUrl, options, (proxyRes) => {
+        let resBody = '';
+        console.log(`[AI Proxy] Resposta recebida: ${proxyRes.statusCode}`);
+        proxyRes.on('data', (d) => { resBody += d; });
+        proxyRes.on('end', () => {
+          console.log(`[AI Proxy] Resposta Final (Primeiros 100 caracteres): ${resBody.substring(0, 100)}...`);
+          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          res.end(resBody);
+        });
+      });
+
+      proxyReq.on('error', (e) => {
+        sendJSON(res, 500, { error: 'Falha no Proxy da IA: ' + e.message });
+      });
+
+      if (requestBody) proxyReq.write(requestBody);
+      proxyReq.end();
+      return;
+    } catch (e) { return sendJSON(res, 500, { error: e.message }); }
+  }
+
   // ── ARQUIVOS ESTÁTICOS ──
   let filePath = path.join(ROOT, pathname === '/' ? 'index.html' : pathname);
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Proibido'); }
@@ -124,16 +192,24 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log('\x1b[35m%s\x1b[0m', '======================================================');
-  console.log('\x1b[36m%s\x1b[0m', '      🈯  A N I M E   H O U S E   O N L I N E  🎬');
-  console.log('\x1b[35m%s\x1b[0m', '======================================================');
+
+  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
+  console.log('\x1b[36m%s\x1b[0m', '           ANIME HOUSE - SISTEMA ONLINE');
+  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
   console.log('');
-  console.log('\x1b[32m%s\x1b[0m', '  ✅ Banco de Dados Local Conectado (data.json)!');
-  console.log('\x1b[32m%s\x1b[0m', '  ✅ Uploads de Capas Imagens (/uploads)!');
+
+  console.log('\x1b[32m%s\x1b[0m', '  ✔ Sistema inicializado com sucesso');
+  console.log('\x1b[32m%s\x1b[0m', '  ✔ Banco local carregado (data.json)');
+  console.log('\x1b[32m%s\x1b[0m', '  ✔ Diretório de capas ativo (/uploads)');
   console.log('');
-  console.log('\x1b[33m%s\x1b[0m', `  🚀 Acesse agora: http://localhost:${PORT}`);
+
+  console.log('\x1b[33m%s\x1b[0m', `  🌐 Servidor disponível em: http://localhost:${PORT}`);
   console.log('');
-  console.log('\x1b[90m%s\x1b[0m', '  [Aviso: Mantenha esta janela preta aberta para');
-  console.log('\x1b[90m%s\x1b[0m', '   garantir que seus animes e capas sejam salvos!]');
-  console.log('\x1b[35m%s\x1b[0m', '======================================================');
+
+  console.log('\x1b[90m%s\x1b[0m', '  ⚠ Não feche este terminal.');
+  console.log('\x1b[90m%s\x1b[0m', '  ⚠ Ele mantém o sistema e os salvamentos ativos.');
+  console.log('');
+
+  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
+
 });

@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="episode-label" style="justify-content:space-between">
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
+            <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
           </div>
         `;
         grid.appendChild(card);
@@ -130,6 +131,50 @@ document.addEventListener('DOMContentLoaded', () => {
       sec.appendChild(grid);
       seasonsContainer.appendChild(sec);
     });
+  }
+
+  let editingEpId = null;
+  let editingSeason = null;
+
+  window.editEpisode = (e, epId, seasonNum) => {
+    e.stopPropagation();
+    const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[seasonNum];
+    const ep = sEps.find(x => x.id === epId);
+    if (!ep) return;
+
+    editingEpId = epId;
+    editingSeason = seasonNum;
+
+    epSeason.value = seasonNum;
+    epNumber.value = ep.epNumber;
+    epTitle.value = ep.title || '';
+    epIframe.value = ep.iframe;
+
+    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.style.background = 'var(--primary)';
+    
+    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    
+    if(!document.getElementById('cancelEditBtn')) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.id = 'cancelEditBtn';
+        cancelBtn.className = 'btn btn-ghost';
+        cancelBtn.style.marginLeft = '10px';
+        cancelBtn.textContent = 'Cancelar';
+        cancelBtn.onclick = resetEpForm;
+        addEpBtn.parentNode.appendChild(cancelBtn);
+    }
+  };
+
+  function resetEpForm() {
+    editingEpId = null;
+    editingSeason = null;
+    epTitle.value = '';
+    epIframe.value = '';
+    addEpBtn.textContent = 'Adicionar';
+    addEpBtn.style.background = 'var(--accent2)';
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if(cancelBtn) cancelBtn.remove();
   }
 
   addEpBtn.addEventListener('click', () => {
@@ -145,16 +190,24 @@ document.addEventListener('DOMContentLoaded', () => {
       i = `<iframe src="${i}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
     }
 
-    DB.addAnimeEpisode(activeAnimeId, s, {
+    const epData = {
       epNumber: e,
       title: epTitle.value.trim(),
       iframe: i
-    });
+    };
 
-    showToast(`Adicionado: Temp ${s} - Ep ${e}`);
-    epNumber.value = e + 1; 
-    epTitle.value = '';
-    epIframe.value = '';
+    if (editingEpId) {
+        DB.updateAnimeEpisode(activeAnimeId, editingSeason, editingEpId, epData);
+        showToast('Episódio atualizado!');
+        resetEpForm();
+    } else {
+        DB.addAnimeEpisode(activeAnimeId, s, epData);
+        showToast(`Adicionado: Temp ${s} - Ep ${e}`);
+        epNumber.value = e + 1; 
+        epTitle.value = '';
+        epIframe.value = '';
+    }
+
     renderSeasons();
   });
 
@@ -163,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirm(`Excluir toda a Temporada ${seasonNum}?`)) {
       DB.deleteAnimeSeason(activeAnimeId, seasonNum);
       showToast('Temporada excluída');
+      if(editingSeason === seasonNum) resetEpForm();
       renderSeasons();
     }
   };

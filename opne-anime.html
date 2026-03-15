@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — OpneAnIme Agent</title>
+  <meta name="description" content="OpneAnIme - O Agente IA definitivo para Animes e Desenhos." />
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    :root {
+      --ai-purple: #8b5cf6;
+      --ai-cyan: #06b6d4;
+      --ai-bg: #0f172a;
+    }
+
+    .ai-container {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+      height: calc(100vh - 120px);
+      margin-top: 20px;
+    }
+
+    /* Sidebar / Config */
+    .ai-sidebar {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .ai-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .ai-card h3 {
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      color: var(--ai-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Main Area / Chat */
+    .ai-main {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .ai-chat-window {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--radius);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: relative;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 15px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .msg.bot {
+      align-self: flex-start;
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 3px solid var(--ai-purple);
+      color: var(--text-main);
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+    }
+
+    .ai-input-area {
+      display: flex;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.8);
+      padding: 15px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .ai-input-area input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    /* Tabs */
+    .ai-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .ai-tab {
+      padding: 8px 15px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: 0.3s;
+      border: 1px solid transparent;
+    }
+
+    .ai-tab.active {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--ai-purple);
+      color: var(--ai-purple);
+    }
+
+    /* Comparison & Tools */
+    .tool-panel {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .tool-panel.active { display: block; }
+
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .vs-circle {
+      width: 40px; height: 40px;
+      background: var(--ai-purple);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.8rem;
+    }
+
+    /* Glow Effect */
+    .glow-text {
+      text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;filter:drop-shadow(0 0 6px rgba(99, 102, 241, 0.6));" />
+    <span>Opne</span>AnIme
+  </div>
+  <ul class="navbar-links" id="navLinks">
+    <li><a href="home.html"><span class="nav-icon">🏠</span> Início</a></li>
+    <li><a href="index.html"><span class="nav-icon">🎬</span> Desenhos</a></li>
+    <li><a href="animes.html"><span class="nav-icon">🌸</span> Animes</a></li>
+    <li><a href="opne-anime.html" class="active"><span class="nav-icon">🤖</span> OpneAnIme</a></li>
+  </ul>
+</nav>
+
+<main class="container">
+  <div class="ai-container">
+    
+    <!-- SIDEBAR: CONFIGS & INFO -->
+    <aside class="ai-sidebar">
+      <div class="ai-card">
+        <h3><span class="nav-icon">⚙️</span> Configuração de IA</h3>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">Provedor ativo: <strong>Groq Cloud (GRÁTIS)</strong></p>
+        <div id="config-groq" class="provider-config">
+          <div class="form-group">
+            <label>Groq API Key (Llama 3)</label>
+            <input type="password" id="groqKey" class="form-control" placeholder="gsk_..." />
+          </div>
+        </div>
+        <button class="btn btn-primary w-100" id="saveApiKeys">💾 Salvar Chave</button>
+      </div>
+
+      <div class="ai-card">
+        <h3><span class="nav-icon">ℹ️</span> Sobre o OpneAnIme</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.4;">
+          Seu assistente inteligente para explorar o mundo dos animes. 
+          Use o chat para recomendações ou as ferramentas ao lado para criar conteúdos mágicos.
+        </p>
+      </div>
+    </aside>
+
+    <!-- MAIN: CHAT & TOOLS -->
+    <section class="ai-main">
+      
+      <div class="ai-tabs">
+        <div class="ai-tab active" data-tab="chat">💬 Chat Cérebro</div>
+        <div class="ai-tab" data-tab="vision">👁️ Visão (OCR)</div>
+        <div class="ai-tab" data-tab="compare">⚖️ Comparar</div>
+      </div>
+
+      <!-- TAB: CHAT -->
+      <div id="tab-chat" class="tool-panel active" style="height: 100%; display: flex; flex-direction: column;">
+        <div class="ai-chat-window" id="chatWindow">
+          <div class="msg bot">
+            Olá! Eu sou o **OpneAnIme**. Como posso ajudar você hoje? 
+            Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!
+          </div>
+        </div>
+        <div class="ai-input-area">
+          <input type="text" id="chatInput" placeholder="Pergunte qualquer coisa sobre animes..." />
+          <button class="btn btn-primary" id="sendChat">Enviar</button>
+        </div>
+      </div>
+
+      <!-- TAB: VISION -->
+      <div id="tab-vision" class="tool-panel">
+        <div class="ai-card">
+          <h3>Reconhecimento de Texto em Imagens</h3>
+          <p style="margin-bottom:15px">Faça upload de um print de anime para extrair legendas ou nomes.</p>
+          <input type="file" id="visionUpload" class="form-control" accept="image/*" />
+          <div id="visionOutput" style="margin-top:20px; padding:15px; background:rgba(0,0,0,0.3); border-radius:10px; font-family:monospace; min-height:100px;">
+            Aguardando imagem...
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: COMPARE -->
+      <div id="tab-compare" class="tool-panel">
+        <div class="ai-card">
+          <h3>⚖️ Comparador de Personagens</h3>
+          <div class="comp-grid">
+            <input type="text" id="char1" class="form-control" placeholder="Personagem 1 (ex: Goku)" />
+            <div class="vs-circle">VS</div>
+            <input type="text" id="char2" class="form-control" placeholder="Personagem 2 (ex: Naruto)" />
+          </div>
+          <button class="btn btn-primary w-100" style="margin-top:15px;" id="compareBtn">Analisar Duelo</button>
+          <div id="compareResult" class="msg bot" style="margin-top:20px; display:none;"></div>
+        </div>
+      </div>
+
+
+
+    </section>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/tesseract.min.js"></script>
+<script src="js/db.js"></script>
+<script src="js/opne-anime.js"></script>
+</body>
+</html>
