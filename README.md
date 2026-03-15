@@ -23,7 +23,7 @@ node server.js
 ```
 5. Copie este código acima (pode ser mudado através de script npm).
 
-6. Abra o terminal do VsCode (Prompt de Comando, CMD)
+6. Abra o terminal do VsCode ``` CTRL + SHIFT + ' ``` (Prompt de Comando, CMD)
 
 7. Cole o comando usando ``` CTRL + V ```
 
