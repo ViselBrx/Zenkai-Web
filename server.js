@@ -129,6 +129,7 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log('\x1b[35m%s\x1b[0m', '======================================================');
   console.log('');
   console.log('\x1b[32m%s\x1b[0m', '  ✅ Banco de Dados Local Conectado (data.json)!');
+  console.log('\x1b[32m%s\x1b[0m', '  ✅ Uploads de Capas Imagens (/uploads)!');
   console.log('');
   console.log('\x1b[33m%s\x1b[0m', `  🚀 Acesse agora: http://localhost:${PORT}`);
   console.log('');
