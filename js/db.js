@@ -169,6 +169,48 @@ function showToast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3000);
 }
 
+/**
+ * showUndoToast - Mostra uma barra com contador e botão de desfazer
+ * @param {string} msg Mensagem a exibir
+ * @param {function} onComplete Chamada quando o tempo acaba (exclui de verdade)
+ * @param {function} onUndo Chamada se o usuário clicar em desfazer
+ */
+function showUndoToast(msg, onComplete, onUndo) {
+  const container = document.getElementById('toast');
+  if (!container) return;
+
+  const el = document.createElement('div');
+  el.className = 'undo-toast';
+  el.innerHTML = `
+    <div class="undo-content">
+      <span>${msg}</span>
+      <button class="btn-undo">DESFAZER (7s)</button>
+    </div>
+    <div class="undo-progress"></div>
+  `;
+  container.appendChild(el);
+
+  let timeLeft = 7;
+  const btn = el.querySelector('.btn-undo');
+  const timer = setInterval(() => {
+    timeLeft--;
+    btn.textContent = `DESFAZER (${timeLeft}s)`;
+    if (timeLeft <= 0) {
+      clearInterval(timer);
+      el.classList.add('fade-out');
+      setTimeout(() => el.remove(), 500);
+      onComplete();
+    }
+  }, 1000);
+
+  btn.onclick = () => {
+    clearInterval(timer);
+    el.remove();
+    onUndo();
+    showToast('Ação cancelada!');
+  };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const links = document.querySelectorAll('.navbar-links a');
   const path  = location.pathname.split('/').pop() || 'index.html';

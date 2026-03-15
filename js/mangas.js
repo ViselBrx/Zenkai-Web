@@ -12,7 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderList() {
     const term = searchManga.value.toLowerCase();
     const mangas = DB.getMangas();
-    const filtered = mangas.filter(m => m.nome.toLowerCase().includes(term));
+    const filtered = mangas.filter(m => {
+      if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return false;
+      return m.nome.toLowerCase().includes(term);
+    });
 
     mangaListEl.innerHTML = '';
     if (filtered.length === 0) {
@@ -83,11 +86,28 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.deleteManga = (id) => {
-    if (confirm('Tem certeza que deseja excluir este mangá?')) {
-      DB.deleteManga(id);
-      showToast('Mangá removido.');
-      renderList();
-    }
+    const list = DB.getMangas();
+    const m = list.find(x => x.id === id);
+    if (!m) return;
+
+    const idToHide = id;
+    if (!window.pendingDeletions) window.pendingDeletions = new Set();
+    window.pendingDeletions.add(idToHide);
+    renderList();
+
+    showUndoToast(`Excluindo mangá "${m.nome}"...`, 
+      () => {
+        if (window.pendingDeletions.has(idToHide)) {
+          DB.deleteManga(idToHide);
+          window.pendingDeletions.delete(idToHide);
+          renderList();
+        }
+      },
+      () => {
+        window.pendingDeletions.delete(idToHide);
+        renderList();
+      }
+    );
   };
 
   searchManga.addEventListener('input', renderList);

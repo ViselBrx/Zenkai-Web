@@ -78,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     seasons.forEach(seasonNum => {
+      const seasonKey = `s_${activeAnimeId}_${seasonNum}`;
+      if (window.pendingDeletions && window.pendingDeletions.has(seasonKey)) return;
       const eps = allEps[seasonNum].sort((a,b) => Number(a.epNumber) - Number(b.epNumber));
       
       const sec = document.createElement('div');
@@ -108,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       eps.forEach(ep => {
+        if (window.pendingDeletions && window.pendingDeletions.has(ep.id)) return;
         const card = document.createElement('div');
         card.className = 'episode-card';
         card.innerHTML = `
@@ -213,12 +216,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteSeason = (e, seasonNum) => {
     e.stopPropagation();
-    if (confirm(`Excluir toda a Temporada ${seasonNum}?`)) {
-      DB.deleteAnimeSeason(activeAnimeId, seasonNum);
-      showToast('Temporada excluída');
-      if(editingSeason === seasonNum) resetEpForm();
-      renderSeasons();
-    }
+    
+    const seasonKey = `s_${activeAnimeId}_${seasonNum}`;
+    if (!window.pendingDeletions) window.pendingDeletions = new Set();
+    window.pendingDeletions.add(seasonKey);
+    renderSeasons();
+
+    showUndoToast(`Excluindo Temporada ${seasonNum} e todos os seus episódios...`, 
+      () => {
+        if (window.pendingDeletions.has(seasonKey)) {
+          DB.deleteAnimeSeason(activeAnimeId, seasonNum);
+          window.pendingDeletions.delete(seasonKey);
+          if(editingSeason === seasonNum) resetEpForm();
+          renderSeasons();
+        }
+      },
+      () => {
+        window.pendingDeletions.delete(seasonKey);
+        renderSeasons();
+      }
+    );
   };
 
   window.openWatchModal = (epId, seasonNum) => {
@@ -241,12 +258,32 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('watchClose').addEventListener('click', closeWatch);
 
   watchDeleteBtn.addEventListener('click', () => {
-    if (confirm('Remover este episódio?')) {
-      DB.deleteAnimeEpisode(activeAnimeId, activeSeasonForWatch, activeEpisodeId);
-      showToast('Episódio removido');
-      closeWatch();
-      renderSeasons();
-    }
+    const epId = activeEpisodeId;
+    const season = activeSeasonForWatch;
+    closeWatch();
+
+    const idToHide = epId;
+    const eps = DB.getAnimeEpisodesFor(activeAnimeId)[season] || [];
+    const ep = eps.find(x => x.id === idToHide);
+    const epName = ep ? `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}` : 'episódio';
+
+    if (!window.pendingDeletions) window.pendingDeletions = new Set();
+    window.pendingDeletions.add(idToHide);
+    renderSeasons();
+
+    showUndoToast(`Excluindo "${epName}"...`, 
+      () => {
+        if (window.pendingDeletions.has(idToHide)) {
+          DB.deleteAnimeEpisode(activeAnimeId, season, idToHide);
+          window.pendingDeletions.delete(idToHide);
+          renderSeasons();
+        }
+      },
+      () => {
+        window.pendingDeletions.delete(idToHide);
+        renderSeasons();
+      }
+    );
   });
 
   loadAnimes();

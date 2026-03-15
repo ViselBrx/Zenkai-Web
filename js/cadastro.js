@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTable() {
     const list = DB.getCartoons();
     const filtered = list.filter(c => {
+      if (window.pendingDeletions && window.pendingDeletions.has(c.id)) return false;
       const matchName = c.nome.toLowerCase().includes(currentFilter.term);
       const matchProd = currentFilter.prod === '' || c.produtora === currentFilter.prod;
       return matchName && matchProd;
@@ -125,9 +126,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
     if (deletingId) {
-      DB.deleteCartoon(deletingId);
-      showToast('Desenho excluído com sucesso!');
-      initFilters(); renderTable(); closeDelete();
+      const cartoonName = document.getElementById('deleteCartoonName').textContent;
+      closeDelete();
+      
+      // Armazenar temporariamente para desfazer
+      const idToHide = deletingId;
+      
+      if (!window.pendingDeletions) window.pendingDeletions = new Set();
+      window.pendingDeletions.add(idToHide);
+      renderTable();
+
+      showUndoToast(`Excluindo "${cartoonName}"...`, 
+        // onComplete: Excluir de verdade
+        () => {
+          if (window.pendingDeletions.has(idToHide)) {
+            DB.deleteCartoon(idToHide);
+            window.pendingDeletions.delete(idToHide);
+            initFilters();
+            renderTable();
+          }
+        },
+        // onUndo: Restaurar
+        () => {
+          window.pendingDeletions.delete(idToHide);
+          renderTable();
+        }
+      );
     }
   });
 

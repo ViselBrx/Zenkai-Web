@@ -141,4 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 100);
   });
 
+  // Clear comparison entries on load
+  char1Inp.value = '';
+  char2Inp.value = '';
+  if (compareResult) {
+    compareResult.innerHTML = '';
+    compareResult.style.display = 'none';
+  }
+
 });

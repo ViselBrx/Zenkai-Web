@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderTable() {
     const list = DB.getAnimes();
     const filtered = list.filter(a => {
+      if (window.pendingDeletions && window.pendingDeletions.has(a.id)) return false;
       const matchName = a.nome.toLowerCase().includes(currentFilter.term);
       const matchEst = currentFilter.est === '' || a.estudio === currentFilter.est;
       return matchName && matchEst;
@@ -127,9 +128,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
     if (deletingId) {
-      DB.deleteAnime(deletingId);
-      showToast('Anime excluído com sucesso!');
-      initFilters(); renderTable(); closeDelete();
+      const animeName = document.getElementById('deleteAnimeName').textContent;
+      closeDelete();
+      
+      const idToHide = deletingId;
+      if (!window.pendingDeletions) window.pendingDeletions = new Set();
+      window.pendingDeletions.add(idToHide);
+      renderTable();
+
+      showUndoToast(`Excluindo "${animeName}"...`, 
+        () => {
+          if (window.pendingDeletions.has(idToHide)) {
+            DB.deleteAnime(idToHide);
+            window.pendingDeletions.delete(idToHide);
+            initFilters();
+            renderTable();
+          }
+        },
+        () => {
+          window.pendingDeletions.delete(idToHide);
+          renderTable();
+        }
+      );
     }
   });
 
