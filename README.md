@@ -21,7 +21,7 @@ git clone https://github.com/ViselBrx/Videos-redecanais.git
 ```bash 
 node server.js
 ```
-5. Copie o código acima do servidor.
+5. Copie este código acima do nosso servidor.
 
 6. Abra o terminal do VsCode (Prompt de Comando, CMD)
 
