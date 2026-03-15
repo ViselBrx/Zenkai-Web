@@ -2,7 +2,7 @@
   "cartoons": [
     {
       "id": "c_1773516858557",
-      "nome": "Os Jovens Titãs",
+      "nome": "Os Jovens Titãs Clássico",
       "produtora": "Warner Bros. Animation",
       "temporadas": 5,
       "capa": "https://cdn2.solojavirtual.com/loja/arquivos_loja/70935/Fotos/thumbs3/produto_Foto2_15038366.jpg?cache=20230326050643",
@@ -15,6 +15,14 @@
       "temporadas": 3,
       "capa": "https://http2.mlstatic.com/D_NQ_NP_990834-MLB26945546310_032018-O.webp",
       "createdAt": 1773520211106
+    },
+    {
+      "id": "c_1773537259304",
+      "nome": "Ben 10 Clássico",
+      "produtora": "Warner Bros. Animation",
+      "temporadas": 4,
+      "capa": "http://localhost:3000/uploads/capa_1773537457513.webp",
+      "createdAt": 1773537259304
     }
   ],
   "episodes": {
@@ -31,6 +39,80 @@
           "epNumber": 2,
           "title": "Irmãs",
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP02\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773534804897",
+          "epNumber": 3,
+          "title": "Separar e Conquistar",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP03\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773534998006",
+          "epNumber": 4,
+          "title": "Força da Natureza",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP04\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535185307",
+          "epNumber": 5,
+          "title": "Minha Melhor Parte",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP05\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535235858",
+          "epNumber": 6,
+          "title": "Nunca Mais",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP06\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535306123",
+          "epNumber": 7,
+          "title": "A Troca",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP07\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535355374",
+          "epNumber": 8,
+          "title": "No Fundo do Mar",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP08\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535414055",
+          "epNumber": 9,
+          "title": "Máscaras",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP09\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535487525",
+          "epNumber": 10,
+          "title": "A Escala",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP10\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535544513",
+          "epNumber": 11,
+          "title": "Aprendiz (Parte 1)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP11\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535592867",
+          "epNumber": 12,
+          "title": "Aprendiz (Parte 2)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP12\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773535637257",
+          "epNumber": 13,
+          "title": "O Carro",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP13\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ],
+      "2": [
+        {
+          "id": "e_1773535739314",
+          "epNumber": 1,
+          "title": "Quanto Tempo é Para Sempre?",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP14\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         }
       ]
     },
@@ -54,6 +136,15 @@
       "temporadas": 4,
       "capa": "https://img.elo7.com.br/product/zoom/2C15140/big-poster-anime-attack-on-titan-lo004-tamanho-90x60-cm-attack-on-titan.jpg",
       "createdAt": 1773517524335
+    },
+    {
+      "id": "a_1773537962071",
+      "nome": "Vinland Saga",
+      "estudio": "Wit Studio & MAPPA",
+      "genero": "Seinen",
+      "temporadas": 2,
+      "capa": "https://br.web.img2.acsta.net/c_310_420/pictures/19/09/16/17/09/4903250.jpg",
+      "createdAt": 1773537962071
     }
   ],
   "animeEpisodes": {
@@ -74,6 +165,18 @@
       "nome": "Vinland Saga",
       "url": "https://drive.google.com/drive/folders/1KiQwuh1fJ3i7wetN7iy8UpdkG2zlWs7R",
       "volume": "28, 213"
+    },
+    {
+      "id": "m_1773538152482",
+      "nome": "Vagabond",
+      "url": "https://drive.google.com/drive/folders/1MOLCsBE8_MidkcBEH271AKVT8I0Cjg-6",
+      "volume": "37, 320"
+    },
+    {
+      "id": "m_1773538337938",
+      "nome": "Berserk",
+      "url": "https://mega.nz/folder/hGAjxLDL#QTEuNjtFQw_A6VMgNSEfpg",
+      "volume": "42, 200"
     }
   ]
 }
