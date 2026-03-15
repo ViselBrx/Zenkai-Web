@@ -27,6 +27,6 @@ node server.js
 
 7. Cole o comando usando ``` CTRL + V ```
 
-8. Direcione o link do ## LocalHost:3000 ## para a página web.
+8. Direcione o link do ## Localhost:3000 ## para a página web.
 
 9. Teste para ver a funcionalidade do site.
