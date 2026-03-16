@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const epNumber = document.getElementById('epNumber');
   const epTitle = document.getElementById('epTitle');
   const epIframe = document.getElementById('epIframe');
+  const entryType = document.getElementById('entryType');
+  const groupSeason = document.getElementById('groupSeason');
+  const groupNumber = document.getElementById('groupNumber');
+  const labelTitle = document.getElementById('labelTitle');
+  const formActionTitle = document.getElementById('formActionTitle');
+  const moviesContainer = document.getElementById('moviesContainer');
 
   const watchModal = document.getElementById('watchModal');
   const watchTitle = document.getElementById('watchTitle');
@@ -17,8 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const watchDeleteBtn = document.getElementById('watchDeleteBtn');
 
   let activeAnimeId = null;
+  const epForm = document.getElementById('epForm');
   let activeEpisodeId = null;
   let activeSeasonForWatch = null;
+  let activeTypeForWatch = 'episode'; // 'episode' ou 'movie'
 
   function loadAnimes() {
     const list = DB.getAnimes();
@@ -36,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.className = 'cartoon-pill';
       btn.innerHTML = a.capa 
         ? `<img src="${a.capa}" onerror="this.src='';this.style.background='var(--accent2)'"> ${a.nome}`
-        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">🌸</div> ${a.nome}`;
+        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">⛩️</div> ${a.nome}`;
       
       btn.onclick = () => selectAnime(a.id, btn);
       pillsContainer.appendChild(btn);
@@ -52,6 +60,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Reforço para Enter
+  [epSeason, epNumber, epTitle, epIframe].forEach(input => {
+    if (input) {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          epForm.requestSubmit();
+        }
+      });
+    }
+  });
+
+  if (entryType) {
+    entryType.addEventListener('change', () => {
+      const isMovie = entryType.value === 'movie';
+      if (groupSeason) groupSeason.style.display = isMovie ? 'none' : 'block';
+      if (groupNumber) groupNumber.style.display = isMovie ? 'none' : 'block';
+      if (labelTitle) labelTitle.textContent = isMovie ? 'Título do Filme *' : 'Título (opcional)';
+      if (formActionTitle) formActionTitle.textContent = isMovie ? '➕ Adicionar Filme' : '➕ Adicionar Episódio';
+      if (editingEpId || editingMovieId) resetEpForm();
+    });
+  }
+
   function selectAnime(id, btnElement) {
     document.querySelectorAll('.cartoon-pill').forEach(b => b.classList.remove('active'));
     if (btnElement) btnElement.classList.add('active');
@@ -62,7 +93,59 @@ document.addEventListener('DOMContentLoaded', () => {
     panel.style.display = 'block';
     
     epSeason.value = 1; epNumber.value = 1; epTitle.value = ''; epIframe.value = '';
+    renderContent();
+  }
+
+  function renderContent() {
+    renderMovies();
     renderSeasons();
+  }
+
+  function renderMovies() {
+    if (!moviesContainer) return;
+    moviesContainer.innerHTML = '';
+    if (!activeAnimeId) return;
+
+    const movies = DB.getAnimeMoviesFor(activeAnimeId);
+    if (movies.length === 0) return;
+
+    const sec = document.createElement('div');
+    sec.className = 'season-section';
+    sec.innerHTML = `
+      <div class="season-header open" style="cursor:default;">
+        <div style="display:flex;align-items:center;gap:15px;">
+          <h3>🎬 Filmes</h3>
+          <span class="badge-pill badge-accent">${movies.length} Filme${movies.length > 1 ? 's' : ''}</span>
+        </div>
+      </div>
+    `;
+
+    const grid = document.createElement('div');
+    grid.className = 'episodes-grid open';
+    
+    movies.forEach(m => {
+      if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return;
+      const card = document.createElement('div');
+      card.className = 'episode-card';
+      card.innerHTML = `
+        <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${m.id}', 'movie')">
+          <div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
+            <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
+          </div>
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
+            FILME
+          </div>
+        </div>
+        <div class="episode-label" style="justify-content:space-between">
+          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${m.title}">${m.title}</span>
+          <button class="btn btn-ghost btn-sm" onclick="editMovie(event, '${m.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    sec.appendChild(grid);
+    moviesContainer.appendChild(sec);
   }
 
   function renderSeasons() {
@@ -72,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const allEps = DB.getAnimeEpisodesFor(activeAnimeId);
     const seasons = Object.keys(allEps).map(Number).sort((a,b) => a-b);
 
-    if (seasons.length === 0) {
-      seasonsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum episódio cadastrado.</p>';
+    if (seasons.length === 0 && DB.getAnimeMoviesFor(activeAnimeId).length === 0) {
+      seasonsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum conteúdo cadastrado.</p>';
       return;
     }
 
@@ -87,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const head = document.createElement('div');
       head.className = 'season-header';
-      // Style update for anime
       head.innerHTML = `
         <div style="display:flex;align-items:center;gap:15px;">
           <h3 style="color:#a78bfa">Temporada ${seasonNum}</h3>
@@ -138,12 +220,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let editingEpId = null;
   let editingSeason = null;
+  let editingMovieId = null;
 
   window.editEpisode = (e, epId, seasonNum) => {
     e.stopPropagation();
     const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[seasonNum];
     const ep = sEps.find(x => x.id === epId);
     if (!ep) return;
+
+    resetEpForm();
+    entryType.value = 'episode';
+    entryType.dispatchEvent(new Event('change'));
 
     editingEpId = epId;
     editingSeason = seasonNum;
@@ -155,9 +242,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     addEpBtn.textContent = 'Salvar Alterações';
     addEpBtn.style.background = 'var(--primary)';
+    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Episódio';
     
     document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
-    
+    showCancelBtn();
+  };
+
+  window.editMovie = (e, mId) => {
+    e.stopPropagation();
+    const movie = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === mId);
+    if (!movie) return;
+
+    resetEpForm();
+    entryType.value = 'movie';
+    entryType.dispatchEvent(new Event('change'));
+
+    editingMovieId = mId;
+    epTitle.value = movie.title;
+    epIframe.value = movie.iframe;
+
+    addEpBtn.textContent = 'Salvar Filme';
+    addEpBtn.style.background = 'var(--primary)';
+    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Filme';
+
+    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    showCancelBtn();
+  };
+
+  function showCancelBtn() {
     if(!document.getElementById('cancelEditBtn')) {
         const cancelBtn = document.createElement('button');
         cancelBtn.id = 'cancelEditBtn';
@@ -167,87 +279,114 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelBtn.onclick = resetEpForm;
         addEpBtn.parentNode.appendChild(cancelBtn);
     }
-  };
+  }
 
   function resetEpForm() {
     editingEpId = null;
     editingSeason = null;
+    editingMovieId = null;
     epTitle.value = '';
     epIframe.value = '';
     addEpBtn.textContent = 'Adicionar';
     addEpBtn.style.background = 'var(--accent2)';
+    if (formActionTitle) formActionTitle.textContent = entryType.value === 'movie' ? '➕ Adicionar Filme' : '➕ Adicionar Episódio';
     const cancelBtn = document.getElementById('cancelEditBtn');
     if(cancelBtn) cancelBtn.remove();
   }
 
-  addEpBtn.addEventListener('click', () => {
-    if (!activeAnimeId) return showToast('Selecione um anime primeiro', 'error');
-    
-    const s = parseInt(epSeason.value);
-    const e = parseInt(epNumber.value);
-    let i = epIframe.value.trim();
+  if (epForm) {
+    epForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!activeAnimeId) return showToast('Selecione um anime primeiro', 'error');
+      
+      const type = entryType.value;
+      const title = epTitle.value.trim();
+      let iframe = epIframe.value.trim();
 
-    if (!s || !e || !i) return showToast('Preencha temporada, número e iframe/URL', 'error');
+      if (!iframe || (type === 'movie' && !title)) {
+        return showToast('Preencha os campos obrigatórios (*)', 'error');
+      }
 
-    if (i.startsWith('http') && !i.includes('<iframe')) {
-      i = `<iframe src="${i}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
-    }
+      if (iframe.startsWith('http') && !iframe.includes('<iframe')) {
+        iframe = `<iframe src="${iframe}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
+      }
 
-    const epData = {
-      epNumber: e,
-      title: epTitle.value.trim(),
-      iframe: i
-    };
+      if (type === 'episode') {
+        const s = parseInt(epSeason.value);
+        const num = parseInt(epNumber.value);
+        if (!s || !num) return showToast('Preencha temporada e número', 'error');
+        
+        const epData = { epNumber: num, title, iframe };
 
-    if (editingEpId) {
-        DB.updateAnimeEpisode(activeAnimeId, editingSeason, editingEpId, epData);
-        showToast('Episódio atualizado!');
-        resetEpForm();
-    } else {
-        DB.addAnimeEpisode(activeAnimeId, s, epData);
-        showToast(`Adicionado: Temp ${s} - Ep ${e}`);
-        epNumber.value = e + 1; 
-        epTitle.value = '';
-        epIframe.value = '';
-    }
+        if (editingEpId) {
+          DB.updateAnimeEpisode(activeAnimeId, editingSeason, s, editingEpId, epData);
+          showToast('Episódio atualizado!');
+          resetEpForm();
+        } else {
+          DB.addAnimeEpisode(activeAnimeId, s, epData);
+          showToast(`Adicionado: Temp ${s} - Ep ${num}`);
+          epNumber.value = num + 1;
+          epTitle.value = '';
+          epIframe.value = '';
+        }
+      } else {
+        const movieData = { title, iframe };
+        if (editingMovieId) {
+          DB.updateAnimeMovie(activeAnimeId, editingMovieId, movieData);
+          showToast('Filme atualizado!');
+          resetEpForm();
+        } else {
+          DB.addAnimeMovie(activeAnimeId, movieData);
+          showToast('Filme adicionado!');
+          epTitle.value = '';
+          epIframe.value = '';
+        }
+      }
 
-    renderSeasons();
-  });
+      renderContent();
+    });
+  }
 
   window.deleteSeason = (e, seasonNum) => {
     e.stopPropagation();
-    
     const seasonKey = `s_${activeAnimeId}_${seasonNum}`;
     if (!window.pendingDeletions) window.pendingDeletions = new Set();
     window.pendingDeletions.add(seasonKey);
-    renderSeasons();
+    renderContent();
 
-    showUndoToast(`Excluindo Temporada ${seasonNum} e todos os seus episódios...`, 
+    showUndoToast(`Excluindo Temporada ${seasonNum} e episódios...`, 
       () => {
         if (window.pendingDeletions.has(seasonKey)) {
           DB.deleteAnimeSeason(activeAnimeId, seasonNum);
           window.pendingDeletions.delete(seasonKey);
           if(editingSeason === seasonNum) resetEpForm();
-          renderSeasons();
+          renderContent();
         }
       },
       () => {
         window.pendingDeletions.delete(seasonKey);
-        renderSeasons();
+        renderContent();
       }
     );
   };
 
-  window.openWatchModal = (epId, seasonNum) => {
-    const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[seasonNum];
-    const ep = sEps.find(x => x.id === epId);
-    if (!ep) return;
-
-    activeEpisodeId = epId;
-    activeSeasonForWatch = seasonNum;
+  window.openWatchModal = (id, typeOrSeason) => {
+    let item;
+    if (typeOrSeason === 'movie') {
+      item = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === id);
+      activeTypeForWatch = 'movie';
+    } else {
+      const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[typeOrSeason];
+      item = sEps.find(x => x.id === id);
+      activeTypeForWatch = 'episode';
+      activeSeasonForWatch = typeOrSeason;
+    }
     
-    watchTitle.textContent = `T${seasonNum}:E${ep.epNumber} - ${ep.title || 'Assistir'}`;
-    watchFrame.innerHTML = ep.iframe;
+    if (!item) return;
+    activeEpisodeId = id;
+    
+    watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
+    watchFrame.innerHTML = item.iframe;
     watchModal.classList.add('open');
   };
 
@@ -258,30 +397,38 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('watchClose').addEventListener('click', closeWatch);
 
   watchDeleteBtn.addEventListener('click', () => {
-    const epId = activeEpisodeId;
-    const season = activeSeasonForWatch;
+    const id = activeEpisodeId;
     closeWatch();
 
-    const idToHide = epId;
-    const eps = DB.getAnimeEpisodesFor(activeAnimeId)[season] || [];
-    const ep = eps.find(x => x.id === idToHide);
-    const epName = ep ? `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}` : 'episódio';
-
     if (!window.pendingDeletions) window.pendingDeletions = new Set();
-    window.pendingDeletions.add(idToHide);
-    renderSeasons();
+    window.pendingDeletions.add(id);
+    renderContent();
 
-    showUndoToast(`Excluindo "${epName}"...`, 
+    let itemName = activeTypeForWatch === 'movie' ? 'Filme' : 'Episódio';
+    if (activeTypeForWatch === 'movie') {
+      const m = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === id);
+      if (m) itemName = `Filme: ${m.title}`;
+    } else {
+      const eps = DB.getAnimeEpisodesFor(activeAnimeId)[activeSeasonForWatch] || [];
+      const ep = eps.find(x => x.id === id);
+      if (ep) itemName = `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}`;
+    }
+
+    showUndoToast(`Excluindo "${itemName}"...`, 
       () => {
-        if (window.pendingDeletions.has(idToHide)) {
-          DB.deleteAnimeEpisode(activeAnimeId, season, idToHide);
-          window.pendingDeletions.delete(idToHide);
-          renderSeasons();
+        if (window.pendingDeletions.has(id)) {
+          if (activeTypeForWatch === 'movie') {
+            DB.deleteAnimeMovie(activeAnimeId, id);
+          } else {
+            DB.deleteAnimeEpisode(activeAnimeId, activeSeasonForWatch, id);
+          }
+          window.pendingDeletions.delete(id);
+          renderContent();
         }
       },
       () => {
-        window.pendingDeletions.delete(idToHide);
-        renderSeasons();
+        window.pendingDeletions.delete(id);
+        renderContent();
       }
     );
   });

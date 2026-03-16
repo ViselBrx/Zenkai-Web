@@ -89,19 +89,25 @@
 
   <div id="episodePanel" style="display:none;">
     <!-- ADICIONAR EPISÓDIO -->
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
-      <h3 style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--accent);margin-bottom:1rem;letter-spacing:1px;">➕ Adicionar Episódio</h3>
+    <form id="epForm" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <h3 id="formActionTitle" style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--accent);letter-spacing:1px;margin:0;">➕ Adicionar Episódio</h3>
+        <select id="entryType" class="form-control" style="width:auto;min-width:140px;height:35px;padding:2px 10px;">
+          <option value="episode">Episódio</option>
+          <option value="movie">Filme</option>
+        </select>
+      </div>
       <div class="ep-form-row">
-        <div class="form-group">
+        <div class="form-group" id="groupSeason">
           <label>Temporada *</label>
           <input id="epSeason" class="form-control" type="number" min="1" value="1" placeholder="1" />
         </div>
-        <div class="form-group">
+        <div class="form-group" id="groupNumber">
           <label>Nº Episódio *</label>
           <input id="epNumber" class="form-control" type="number" min="1" value="1" placeholder="1" />
         </div>
         <div class="form-group" style="flex:2;min-width:200px;">
-          <label>Título (opcional)</label>
+          <label id="labelTitle">Título (opcional)</label>
           <input id="epTitle" class="form-control" type="text" placeholder="Ex: O Começo de Tudo" />
         </div>
         <div class="form-group" style="flex:3;min-width:260px;">
@@ -110,10 +116,13 @@
         </div>
         <div class="form-group" style="min-width:fit-content;">
           <label>&nbsp;</label>
-          <button class="btn btn-primary" id="addEpBtn">Adicionar</button>
+          <button type="submit" class="btn btn-primary" id="addEpBtn">Adicionar</button>
         </div>
       </div>
-    </div>
+    </form>
+
+    <!-- FILMES -->
+    <div id="moviesContainer" style="margin-bottom:2rem;"></div>
 
     <!-- TEMPORADAS E EPISÓDIOS -->
     <div id="seasonsContainer"></div>

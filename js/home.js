@@ -96,6 +96,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   searchInput.addEventListener('input', render);
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchInput.blur();
+    }
+  });
   filterProd.addEventListener('change', render);
   filterTemp.addEventListener('change', render);
 

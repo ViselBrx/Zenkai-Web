@@ -13,21 +13,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Enter to send
+  // Elementos do Chat e Ferramentas
   const chatInput = document.getElementById('chatInput');
   const char1Inp = document.getElementById('char1');
   const char2Inp = document.getElementById('char2');
 
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') document.getElementById('sendChat').click();
+  // Atalhos Enter
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('sendChat').click();
+    }
   });
 
-  char1Inp.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') char2Inp.focus();
+  char1Inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      char2Inp.focus();
+    }
   });
 
-  char2Inp.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') document.getElementById('compareBtn').click();
+  char2Inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('compareBtn').click();
+    }
+  });
+
+  // Enter na chave API
+  document.getElementById('groqKey').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.getElementById('saveApiKeys').click();
+    }
   });
 
   // Config & API Keys
@@ -83,7 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function formatAIRonse(text) {
+  function formatAIResponse(text) {
+    if (!text) return '';
     return text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
@@ -92,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function appendMsg(text, type) {
     const div = document.createElement('div');
     div.className = `msg ${type}`;
-    div.innerHTML = formatAIRonse(text);
+    div.innerHTML = formatAIResponse(text);
     chatWindow.appendChild(div);
     
     // Forçar scroll para baixo com atraso para renderização

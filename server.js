@@ -193,23 +193,14 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
 
-  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
-  console.log('\x1b[36m%s\x1b[0m', '           ANIME HOUSE - SISTEMA ONLINE');
-  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
-  console.log('');
+  console.log('\n\x1b[36m%s\x1b[0m', '🎌 ANIME HOUSE - SISTEMA ONLINE\n');
 
-  console.log('\x1b[32m%s\x1b[0m', '  ✔ Sistema inicializado com sucesso');
-  console.log('\x1b[32m%s\x1b[0m', '  ✔ Banco local carregado (data.json)');
-  console.log('\x1b[32m%s\x1b[0m', '  ✔ Diretório de capas ativo (/uploads)');
-  console.log('');
+  console.log('\x1b[32m%s\x1b[0m', '✔ Sistema iniciado');
+  console.log('\x1b[32m%s\x1b[0m', '✔ Banco carregado (data.json)');
+  console.log('\x1b[32m%s\x1b[0m', '✔ Capas ativas (/uploads)');
 
-  console.log('\x1b[33m%s\x1b[0m', `  🌐 Servidor disponível em: http://localhost:${PORT}`);
-  console.log('');
+  console.log('\n\x1b[33m%s\x1b[0m', `🌐 http://localhost:${PORT}\n`);
 
-  console.log('\x1b[90m%s\x1b[0m', '  ⚠ Não feche este terminal.');
-  console.log('\x1b[90m%s\x1b[0m', '  ⚠ Ele mantém o sistema e os salvamentos ativos.');
-  console.log('');
-
-  console.log('\x1b[31m%s\x1b[0m', '🈯━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━🈯');
+  console.log('\x1b[90m%s\x1b[0m', '⚠ Não feche este terminal\n');
 
 });

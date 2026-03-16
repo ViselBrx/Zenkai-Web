@@ -2,7 +2,7 @@
   "cartoons": [
     {
       "id": "c_1773516858557",
-      "nome": "Os Jovens Titãs Clássico",
+      "nome": "Os Jovens Titãs: Clássico",
       "produtora": "Warner Bros. Animation",
       "temporadas": 5,
       "capa": "https://cdn2.solojavirtual.com/loja/arquivos_loja/70935/Fotos/thumbs3/produto_Foto2_15038366.jpg?cache=20230326050643",
@@ -18,11 +18,51 @@
     },
     {
       "id": "c_1773537259304",
-      "nome": "Ben 10 Clássico",
+      "nome": "Ben 10: Clássico",
       "produtora": "Warner Bros. Animation",
       "temporadas": 4,
       "capa": "http://localhost:3000/uploads/capa_1773537457513.webp",
       "createdAt": 1773537259304
+    },
+    {
+      "id": "c_1773605948048",
+      "nome": "Apenas um Show",
+      "produtora": "Cartoon Network Studios",
+      "temporadas": 8,
+      "capa": "https://i.pinimg.com/736x/29/b2/1b/29b21bb89be6c702546693232d056cdd.jpg",
+      "createdAt": 1773605948048
+    },
+    {
+      "id": "c_1773606040066",
+      "nome": "Ben 10: Força Alienígina",
+      "produtora": "Warner Bros. Animation",
+      "temporadas": 3,
+      "capa": "https://m.media-amazon.com/images/M/MV5BODI5YjEzMTUtMTBlNy00MDUxLTkxNzEtODZiNGIyMjg3Yjc3XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+      "createdAt": 1773606040066
+    },
+    {
+      "id": "c_1773606183515",
+      "nome": "Ben 10: Supremacia Alienígina",
+      "produtora": "Warner Bros. Animation",
+      "temporadas": 2,
+      "capa": "https://preview.redd.it/did-you-know-ben-10-ultimate-alien-and-generator-rex-were-v0-ix7waff6c2rf1.jpg?width=640&crop=smart&auto=webp&s=05df95dad0520caeb4d15f4c81742512b2829e38",
+      "createdAt": 1773606183515
+    },
+    {
+      "id": "c_1773606933988",
+      "nome": "Ben 10: Omniverse",
+      "produtora": "Warner Bros. Animation",
+      "temporadas": 8,
+      "capa": "https://m.media-amazon.com/images/M/MV5BYjE1N2EzYzQtMWExOC00N2FjLWEwYjMtNjdlNWUwYzQwMzEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+      "createdAt": 1773606933988
+    },
+    {
+      "id": "c_1773607654965",
+      "nome": "Invencível",
+      "produtora": "Amazon Studios & Skybound Entertainment,",
+      "temporadas": 4,
+      "capa": "https://www.univision.com/_next/image?url=https%3A%2F%2Fuvn-brightspot.s3.amazonaws.com%2Fassets%2Fvixes%2Fbtg%2Fcomics.batanga.com%2Ffiles%2FQuien-es-Invincible_0.jpg&w=1280&q=75",
+      "createdAt": 1773607654965
     }
   ],
   "episodes": {
@@ -113,6 +153,318 @@
           "epNumber": 1,
           "title": "Quanto Tempo é Para Sempre?",
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP14\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773611329598",
+          "epNumber": 2,
+          "title": "Todo Cão Tem Seu DIa",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP15\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773612905426",
+          "epNumber": 3,
+          "title": "Terra",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP16\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614187798",
+          "epNumber": 4,
+          "title": "Apenas Humano",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP17\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614283638",
+          "epNumber": 5,
+          "title": "Medo em Si",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP18\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614337022",
+          "epNumber": 6,
+          "title": "Encontro Com o Destino",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP19\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614397747",
+          "epNumber": 7,
+          "title": "Transformação",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP20\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614438011",
+          "epNumber": 8,
+          "title": "A Nova Titã",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP21\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614563057",
+          "epNumber": 9,
+          "title": "O Vencedor Leva Tudo",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP22\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614632833",
+          "epNumber": 10,
+          "title": "Traição",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP23\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614709467",
+          "epNumber": 11,
+          "title": "Fraturado",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP24\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614760496",
+          "epNumber": 12,
+          "title": "Após o Tremor (Parte 1)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP25\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614796316",
+          "epNumber": 13,
+          "title": "Após o Tremo (Parte 2)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP26\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ],
+      "3": [
+        {
+          "id": "e_1773614854500",
+          "epNumber": 1,
+          "title": "Farsa",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP27\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614926040",
+          "epNumber": 2,
+          "title": "Red X",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP28\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773614992841",
+          "epNumber": 3,
+          "title": "O Prometido",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP29\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615020509",
+          "epNumber": 4,
+          "title": "Pane",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP30\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615073485",
+          "epNumber": 5,
+          "title": "Assombração",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP31\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615146607",
+          "epNumber": 6,
+          "title": "Enfeitiçado",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP32\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615197375",
+          "epNumber": 7,
+          "title": "Revolução",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP33\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615715445",
+          "epNumber": 8,
+          "title": "Ondas",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP34\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615224624",
+          "epNumber": 9,
+          "title": "A Fera Interior",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP35\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615274235",
+          "epNumber": 10,
+          "title": "Posso Ficar Com Ele?",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP36\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615349181",
+          "epNumber": 11,
+          "title": "A Coelha Ravena ou Como Fazer Um Titanimal Desaparecer",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP37\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615500498",
+          "epNumber": 12,
+          "title": "Titãs Da Costa Leste (Parte 1)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP38\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773615819653",
+          "epNumber": 12,
+          "title": "Titãs Da Costa Leste (Parte 2)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP39\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ],
+      "4": [
+        {
+          "id": "e_1773615999476",
+          "epNumber": 1,
+          "title": "Não Toque Nesse Botão.",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP40\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616054706",
+          "epNumber": 2,
+          "title": "A Busca",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP41\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616115456",
+          "epNumber": 3,
+          "title": "Marca De Nascença",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP42\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616168608",
+          "epNumber": 4,
+          "title": "Cyborg, o Bárbaro",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP43\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616273064",
+          "epNumber": 5,
+          "title": "Funcionario Do Mês",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP44\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616309330",
+          "epNumber": 6,
+          "title": "Troq",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP45\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616360264",
+          "epNumber": 7,
+          "title": "A Profecia",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP46\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616441275",
+          "epNumber": 8,
+          "title": "Encrencados",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP47\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616490642",
+          "epNumber": 9,
+          "title": "A Todo  Vapor",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP48\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616533383",
+          "epNumber": 10,
+          "title": "Mamãe, Posso Ir",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP49\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616633148",
+          "epNumber": 11,
+          "title": "O Fim (Parte 1)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP50\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616701915",
+          "epNumber": 12,
+          "title": "O Fim (Parte 2)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP51\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616750881",
+          "epNumber": 13,
+          "title": "O Fim (Parte 3)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP52\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        }
+      ],
+      "5": [
+        {
+          "id": "e_1773616818169",
+          "epNumber": 1,
+          "title": "A Volta Para a Casa (Parte 1)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP53\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616884948",
+          "epNumber": 2,
+          "title": "A Volta Para a Casa (Parte 2)",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP54\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616928076",
+          "epNumber": 3,
+          "title": "Confiança",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP55\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773616965395",
+          "epNumber": 4,
+          "title": "De Verdade",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP56\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617000489",
+          "epNumber": 5,
+          "title": "Neve",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP57\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617051854",
+          "epNumber": 6,
+          "title": "Kole",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP58\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617090066",
+          "epNumber": 7,
+          "title": "Esconde-Esconde",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP59\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617140227",
+          "epNumber": 8,
+          "title": "Velocidade Da Luz",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP60\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617171670",
+          "epNumber": 9,
+          "title": "Acelerado",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP61\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617245284",
+          "epNumber": 10,
+          "title": "Atacar!",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP62\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617340272",
+          "epNumber": 11,
+          "title": "Chamando Todos os Titãs",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP63\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617406341",
+          "epNumber": 12,
+          "title": "Titãs Juntos",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP64\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773617498869",
+          "epNumber": 13,
+          "title": "As Coisas Mudaram",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP65\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         }
       ]
     },
@@ -142,6 +494,16 @@
         }
       ]
     }
+  },
+  "movies": {
+    "c_1773537259304": [],
+    "c_1773516858557": [
+      {
+        "id": "m_c_1773620046681",
+        "title": "Os Jovens Titãs: Missão Tóquio",
+        "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCFServer3&subfolder=ondemand&vid=OSJVNSTTNSMSTQ\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+      }
+    ]
   },
   "animes": [
     {
@@ -469,6 +831,7 @@
       ]
     }
   },
+  "animeMovies": {},
   "mangas": [
     {
       "id": "m_1773518028503",

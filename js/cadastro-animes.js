@@ -191,6 +191,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   searchInput.addEventListener('input', e => { currentFilter.term = e.target.value.toLowerCase(); renderTable(); });
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      searchInput.blur();
+    }
+  });
   filterEstudio.addEventListener('change', e => { currentFilter.est = e.target.value; renderTable(); });
 
   initFilters(); renderTable();

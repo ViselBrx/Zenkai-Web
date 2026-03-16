@@ -111,5 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   searchManga.addEventListener('input', renderList);
+  searchManga.addEventListener('keydown', e => {
+    if (e.key === 'Enter') searchManga.blur();
+  });
   renderList();
 });

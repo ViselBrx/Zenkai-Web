@@ -5,7 +5,7 @@
 
 const API_BASE = 'http://localhost:3000';
 
-const _DEFAULT = { cartoons: [], episodes: {}, animes: [], animeEpisodes: {}, mangas: [], aiConfig: {} };
+const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], aiConfig: {} };
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
 
 (function loadFromServer() {
@@ -70,9 +70,23 @@ const DB = {
     const item = { id: 'e_' + Date.now(), ...epData };
     _store.episodes[cId][season].push(item); _persist(); return item;
   },
-  updateEpisode(cId, season, epId, data) {
-    if (_store.episodes[cId]?.[season]) {
-      _store.episodes[cId][season] = _store.episodes[cId][season].map(e => e.id === epId ? { ...e, ...data } : e);
+  updateEpisode(cId, oldSeason, newSeason, epId, data) {
+    if (_store.episodes[cId]?.[oldSeason]) {
+      const epIndex = _store.episodes[cId][oldSeason].findIndex(e => e.id === epId);
+      if (epIndex === -1) return;
+      
+      const ep = { ..._store.episodes[cId][oldSeason][epIndex], ...data };
+      
+      if (oldSeason !== newSeason) {
+        // Mover para nova temporada
+        _store.episodes[cId][oldSeason].splice(epIndex, 1);
+        if (_store.episodes[cId][oldSeason].length === 0) delete _store.episodes[cId][oldSeason];
+        
+        if (!_store.episodes[cId][newSeason]) _store.episodes[cId][newSeason] = [];
+        _store.episodes[cId][newSeason].push(ep);
+      } else {
+        _store.episodes[cId][oldSeason][epIndex] = ep;
+      }
       _persist();
     }
   },
@@ -85,6 +99,26 @@ const DB = {
   },
   deleteSeason(cId, season) {
     if (_store.episodes[cId]) { delete _store.episodes[cId][season]; _persist(); }
+  },
+
+  /* Cartoons: Filmes */
+  getMoviesFor(cId) { return _store.movies[cId] || []; },
+  addMovie(cId, movieData) {
+    if (!_store.movies[cId]) _store.movies[cId] = [];
+    const item = { id: 'm_c_' + Date.now(), ...movieData };
+    _store.movies[cId].push(item); _persist(); return item;
+  },
+  updateMovie(cId, mId, data) {
+    if (_store.movies[cId]) {
+      _store.movies[cId] = _store.movies[cId].map(m => m.id === mId ? { ...m, ...data } : m);
+      _persist();
+    }
+  },
+  deleteMovie(cId, mId) {
+    if (_store.movies[cId]) {
+      _store.movies[cId] = _store.movies[cId].filter(m => m.id !== mId);
+      _persist();
+    }
   },
 
   /* Animes */
@@ -114,9 +148,23 @@ const DB = {
     const item = { id: 'ae_' + Date.now(), ...epData };
     _store.animeEpisodes[aId][season].push(item); _persist(); return item;
   },
-  updateAnimeEpisode(aId, season, epId, data) {
-    if (_store.animeEpisodes[aId]?.[season]) {
-      _store.animeEpisodes[aId][season] = _store.animeEpisodes[aId][season].map(e => e.id === epId ? { ...e, ...data } : e);
+  updateAnimeEpisode(aId, oldSeason, newSeason, epId, data) {
+    if (_store.animeEpisodes[aId]?.[oldSeason]) {
+      const epIndex = _store.animeEpisodes[aId][oldSeason].findIndex(e => e.id === epId);
+      if (epIndex === -1) return;
+
+      const ep = { ..._store.animeEpisodes[aId][oldSeason][epIndex], ...data };
+
+      if (oldSeason !== newSeason) {
+        // Mover para nova temporada
+        _store.animeEpisodes[aId][oldSeason].splice(epIndex, 1);
+        if (_store.animeEpisodes[aId][oldSeason].length === 0) delete _store.animeEpisodes[aId][oldSeason];
+
+        if (!_store.animeEpisodes[aId][newSeason]) _store.animeEpisodes[aId][newSeason] = [];
+        _store.animeEpisodes[aId][newSeason].push(ep);
+      } else {
+        _store.animeEpisodes[aId][oldSeason][epIndex] = ep;
+      }
       _persist();
     }
   },
@@ -129,6 +177,26 @@ const DB = {
   },
   deleteAnimeSeason(aId, season) {
     if (_store.animeEpisodes[aId]) { delete _store.animeEpisodes[aId][season]; _persist(); }
+  },
+
+  /* Animes: Filmes */
+  getAnimeMoviesFor(aId) { return _store.animeMovies[aId] || []; },
+  addAnimeMovie(aId, movieData) {
+    if (!_store.animeMovies[aId]) _store.animeMovies[aId] = [];
+    const item = { id: 'm_a_' + Date.now(), ...movieData };
+    _store.animeMovies[aId].push(item); _persist(); return item;
+  },
+  updateAnimeMovie(aId, mId, data) {
+    if (_store.animeMovies[aId]) {
+      _store.animeMovies[aId] = _store.animeMovies[aId].map(m => m.id === mId ? { ...m, ...data } : m);
+      _persist();
+    }
+  },
+  deleteAnimeMovie(aId, mId) {
+    if (_store.animeMovies[aId]) {
+      _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
+      _persist();
+    }
   },
 
   /* Mangás */

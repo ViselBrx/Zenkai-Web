@@ -56,14 +56,27 @@ input, textarea, select, button { font-family: inherit; }
 }
 
 /* Scrollbar da Navbar (Horizontal) */
-.navbar::-webkit-scrollbar { height: 1px; }
-.navbar::-webkit-scrollbar-track { background: transparent; }
-.navbar::-webkit-scrollbar-thumb { 
-  background: rgba(0, 242, 255, 0.2);
-  border-radius: 10px; 
+.navbar::-webkit-scrollbar,
+.navbar-links::-webkit-scrollbar { 
+  height: 4px; 
 }
-.navbar:hover::-webkit-scrollbar-thumb {
-  background: var(--primary);
+.navbar::-webkit-scrollbar-track,
+.navbar-links::-webkit-scrollbar-track { 
+  background: rgba(0, 0, 0, 0.2); 
+}
+.navbar::-webkit-scrollbar-thumb,
+.navbar-links::-webkit-scrollbar-thumb { 
+  background: var(--accent); /* Azul Neon */
+  border-radius: 10px; 
+  box-shadow: 0 0 10px var(--accent);
+}
+.navbar:hover::-webkit-scrollbar-thumb,
+.navbar-links:hover::-webkit-scrollbar-thumb {
+  background: var(--primary); /* Ciano ao passar o mouse */
+}
+.navbar, .navbar-links {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
 }
 
 /* Corpo Principal */
@@ -384,6 +397,33 @@ body {
   font-size: 0.8rem;
   font-weight: 600;
   align-self: flex-start;
+}
+
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.badge-accent {
+  background: rgba(0, 242, 255, 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(0, 242, 255, 0.3);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+}
+
+/* Variante para Animes (Púrpura) */
+.anime-context .badge-accent {
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  box-shadow: 0 0 10px rgba(167, 139, 250, 0.1);
 }
 
 /* ===== TABELA (CADASTRO) ===== */
