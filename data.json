@@ -25,14 +25,6 @@
       "createdAt": 1773537259304
     },
     {
-      "id": "c_1773605948048",
-      "nome": "Apenas um Show",
-      "produtora": "Cartoon Network Studios",
-      "temporadas": 8,
-      "capa": "https://i.pinimg.com/736x/29/b2/1b/29b21bb89be6c702546693232d056cdd.jpg",
-      "createdAt": 1773605948048
-    },
-    {
       "id": "c_1773606040066",
       "nome": "Ben 10: Força Alienígina",
       "produtora": "Warner Bros. Animation",
@@ -59,10 +51,34 @@
     {
       "id": "c_1773607654965",
       "nome": "Invencível",
-      "produtora": "Amazon Studios & Skybound Entertainment,",
+      "produtora": "Amazon Studios & Skybound Entertainment",
       "temporadas": 4,
       "capa": "https://www.univision.com/_next/image?url=https%3A%2F%2Fuvn-brightspot.s3.amazonaws.com%2Fassets%2Fvixes%2Fbtg%2Fcomics.batanga.com%2Ffiles%2FQuien-es-Invincible_0.jpg&w=1280&q=75",
       "createdAt": 1773607654965
+    },
+    {
+      "id": "c_1773703328538",
+      "nome": "Apenas um Show",
+      "produtora": "Cartoon Network Studios",
+      "temporadas": 8,
+      "capa": "https://i.pinimg.com/736x/29/b2/1b/29b21bb89be6c702546693232d056cdd.jpg",
+      "createdAt": 1773703328538
+    },
+    {
+      "id": "c_1773703442684",
+      "nome": "O Incrível Mundo De Gumball",
+      "produtora": "Cartoon Network Studios",
+      "temporadas": 6,
+      "capa": "https://i.pinimg.com/736x/e9/b1/ea/e9b1eac2b533a10621281f32e0699bdb.jpg",
+      "createdAt": 1773703442684
+    },
+    {
+      "id": "c_1773703554484",
+      "nome": "Hora De Aventura",
+      "produtora": "Cartoon Network Studios & Frederator Studios",
+      "temporadas": 10,
+      "capa": "https://i.pinimg.com/736x/03/31/86/03318682da7f0fab3df4b4ff9d84e438.jpg",
+      "createdAt": 1773703554484
     }
   ],
   "episodes": {
@@ -311,7 +327,7 @@
         {
           "id": "e_1773615999476",
           "epNumber": 1,
-          "title": "Não Toque Nesse Botão.",
+          "title": "Não Toque Nesse Botão",
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer10&subfolder=ondemand&vid=OSJVNSTASEP40\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         },
         {
@@ -523,6 +539,15 @@
       "temporadas": 2,
       "capa": "https://br.web.img2.acsta.net/c_310_420/pictures/19/09/16/17/09/4903250.jpg",
       "createdAt": 1773537962071
+    },
+    {
+      "id": "a_1773703796134",
+      "nome": "Jojo Bizarre Adventure",
+      "estudio": "David Production",
+      "genero": "Aventura",
+      "temporadas": 6,
+      "capa": "https://static.jojowiki.com/images/thumb/0/0a/latest/20191015215318/Diamond-is-unbreakable-kv.jpg/400px-Diamond-is-unbreakable-kv.jpg",
+      "createdAt": 1773703796134
     }
   ],
   "animeEpisodes": {
