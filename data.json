@@ -537,7 +537,7 @@
       "estudio": "Wit Studio & MAPPA",
       "genero": "Seinen",
       "temporadas": 2,
-      "capa": "https://br.web.img2.acsta.net/c_310_420/pictures/19/09/16/17/09/4903250.jpg",
+      "capa": "https://m.media-amazon.com/images/I/91NEsmEa3bL._AC_UF1000,1000_QL80_.jpg",
       "createdAt": 1773537962071
     },
     {
@@ -1048,6 +1048,6 @@
     "provider": "groq"
   },
   "siteConfig": {
-    "theme": "theme-mutant-rex"
+    "theme": "theme-vinland"
   }
 }
