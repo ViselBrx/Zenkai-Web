@@ -1,0 +1,45 @@
+╔════════════════════════════════════════════════════════════════╗
+║                    ANIME HOUSE - GUIA RÁPIDO                   ║
+╚════════════════════════════════════════════════════════════════╝
+
+🚀 COMO USAR:
+
+   1. Execute: iniciar.bat
+   2. Abra: http://localhost:3000
+   3. Pronto!
+
+═══════════════════════════════════════════════════════════════
+
+📺 EPISÓDIOS LEGENDADOS:
+
+   1. Vá para: Episódios de Animes
+   2. Selecione um anime
+   3. Preencha: Temporada 1, Episódio 1
+   4. Selecione: Legendado
+   5. Cole o iframe do Redecanais
+   6. Clique: Adicionar
+
+═══════════════════════════════════════════════════════════════
+
+🌐 ACESSAR:
+
+   Site: http://localhost:3000
+
+═══════════════════════════════════════════════════════════════
+
+📂 ARQUIVOS:
+
+   iniciar.bat  ← Inicia o servidor
+   server.js    ← Servidor principal
+   data.json    ← Seus dados (animes, episódios)
+   uploads/     ← Capas dos animes
+
+═══════════════════════════════════════════════════════════════
+
+❓ PROBLEMAS?
+
+   • Servidor não inicia?
+     → Verifique se Node.js está instalado
+     → Feche outras instâncias do servidor
+
+═══════════════════════════════════════════════════════════════

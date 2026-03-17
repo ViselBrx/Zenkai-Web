@@ -1,35 +1,141 @@
 /* ===== FONTES ===== */
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&display=swap');
 
-/* ===== VARIÁVEIS (CLEAN BLUE/PURPLE) ===== */
+/* ===== VARIÁVEIS (AZUL CLARO MARINHO) ===== */
 :root {
-  --bg-dark:       #0f172a; /* Slate 900 */
-  --bg-card:       #1e293b; /* Slate 800 */
-  --bg-surface:    #334155; /* Slate 700 */
-  --primary:       #00f2ff; /* Neon Cyan */
-  --primary-hover: #00d7e3; /* Cyan Darker */
-  --accent:        #0088ff; /* Neon Blue */
-  --accent2:       #7000ff; /* Neon Purple */
-  --text-main:     #f8fafc; /* Slate 50 */
-  --text-muted:    #94a3b8; /* Slate 400 */
-  --border:        #334155; /* Slate 700 */
+  --bg-dark:       #050f1f; /* Azul marinho muito escuro */
+  --bg-card:       #0a192f; /* Azul marinho escuro */
+  --bg-surface:    #112240; /* Azul marinho médio */
+  --primary:       #72FFFF; /* Azul claro marinho predominante */
+  --primary-rgb:   114, 255, 255; /* para rgba(...) em neons */
+  --primary-hover: #5ce6e6; /* Azul claro marinho mais escuro */
+  --accent:        #7fffd4; /* Azul ciano */
+  --accent2:       #00ced1; /* Azul marinho escuro */
+  --text-main:     #e0f7fa; /* Branco azulado */
+  --text-muted:    #64b5f6; /* Azul claro */
+  --border:        #112240; /* Azul marinho médio */
   --success:       #10b981; /* Emerald 500 */
   --danger:        #ef4444; /* Red 500 */
   --radius:        16px;
-  --shadow-neon:   0 0 15px var(--primary);
-  --shadow-neon-h: 0 0 30px var(--primary), 0 0 10px var(--accent);
+  --shadow-neon:   0 0 20px rgba(114, 255, 255, 0.5);
+  --shadow-neon-h: 0 0 40px rgba(114, 255, 255, 0.7), 0 0 15px rgba(114, 255, 255, 0.3);
   --transition:    0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== TEMA DEFAULT (AZUL CLARO MARINHO) ===== */
+.theme-default {
+  --bg-dark:       #050f1f;
+  --bg-card:       #0a192f;
+  --bg-surface:    #112240;
+  --primary:       #72FFFF;
+  --primary-rgb:   114, 255, 255;
+  --primary-hover: #5ce6e6;
+  --accent:        #7fffd4;
+  --accent2:       #00ced1;
+  --text-main:     #e0f7fa;
+  --text-muted:    #64b5f6;
+  --border:        #112240;
+  --shadow-neon:   0 0 20px rgba(114, 255, 255, 0.5);
+  --shadow-neon-h: 0 0 40px rgba(114, 255, 255, 0.7), 0 0 15px rgba(114, 255, 255, 0.3);
+}
+
+/* ===== TEMA BEN 10 (OMNITRIX NEON VIBRANT) ===== */
+.theme-ben10 {
+  --bg-dark:       #020617; 
+  --bg-card:       #0f172a; /* Slate 900 para contraste */
+  --bg-surface:    #1e293b; 
+  --primary:       #00ff00; /* Neon Lime Puro */
+  --primary-rgb:   0, 255, 0;
+  --primary-hover: #39ff14; /* Alien Green */
+  --accent:        #adff2f; 
+  --accent2:       #00ff41;
+  --text-main:     #f0fff0;
+  --text-muted:    #4ade80;
+  --border:        #22c55e;
+  --shadow-neon:   0 0 25px rgba(0, 255, 0, 0.8), 0 0 10px rgba(0, 255, 0, 0.4);
+  --shadow-neon-h: 0 0 45px rgba(0, 255, 0, 1), 0 0 20px #39ff14;
+}
+
+/* ===== TEMA VINLAND SAGA (VIKING GOLD GLOW) ===== */
+.theme-vinland {
+  --bg-dark:       #0c0a09; 
+  --bg-card:       #1c1917; 
+  --bg-surface:    #292524; 
+  --primary:       #ffcc00; /* Gold Puro */
+  --primary-rgb:   255, 204, 0;
+  --primary-hover: #ffdb4d;
+  --accent:        #fffbeb; 
+  --accent2:       #d97706; 
+  --text-main:     #fffdfa;
+  --text-muted:    #fbbf24;
+  --border:        #fbbf24;
+  --shadow-neon:   0 0 25px rgba(255, 204, 0, 0.7);
+  --shadow-neon-h: 0 0 45px rgba(255, 204, 0, 0.9), 0 0 20px #ffdb4d;
+}
+
+/* ===== TEMA ATTACK ON TITAN (COLOSSAL RADIANCE) ===== */
+.theme-aot {
+  --bg-dark:       #050505; 
+  --bg-card:       #1a0b0b; 
+  --bg-surface:    #2a0d0d; 
+  --primary:       #ff0000; /* Pure Blood Red */
+  --primary-rgb:   255, 0, 0;
+  --primary-hover: #ff4d4d;
+  --accent:        #ffffff; 
+  --accent2:       #b91c1c;
+  --text-main:     #fff5f5;
+  --text-muted:    #ef4444;
+  --border:        #ff0000;
+  --shadow-neon:   0 0 25px rgba(255, 0, 0, 0.8);
+  --shadow-neon-h: 0 0 45px rgba(255, 0, 0, 1), 0 0 20px #ff4d4d;
+}
+
+/* ===== TEMA JOVENS TITÃS CLÁSSICO (DOMINANT PURPLE) ===== */
+.theme-tt-classic {
+  --bg-dark:       #0a0015;
+  --bg-card:       #150028;
+  --bg-surface:    #220040;
+  --primary:       #8b00ff; /* Dominant Purple */
+  --primary-rgb:   139, 0, 255;
+  --primary-hover: #a020f0;
+  --accent:        #c77dff; /* Light Purple */
+  --accent2:       #6a0dad;
+  --text-main:     #f0e6ff;
+  --text-muted:    #b565f5;
+  --border:        #8b00ff;
+  --shadow-neon:   0 0 25px rgba(139, 0, 255, 0.9), 0 0 10px rgba(139, 0, 255, 0.5);
+  --shadow-neon-h: 0 0 45px rgba(139, 0, 255, 1), 0 0 20px #a020f0;
+}
+
+/* ===== TEMA MUTANTE REX (DOMINANT ORANGE) ===== */
+.theme-mutant-rex {
+  --bg-dark:       #0d0600;
+  --bg-card:       #1a0f00;
+  --bg-surface:    #2d1800;
+  --primary:       #ff6600; /* Dominant Orange */
+  --primary-rgb:   255, 102, 0;
+  --primary-hover: #ff7722;
+  --accent:        #ffaa33; /* Light Orange */
+  --accent2:       #ff5500;
+  --text-main:     #fff5e6;
+  --text-muted:    #ffaa33;
+  --border:        #ff6600;
+  --shadow-neon:   0 0 25px rgba(255, 102, 0, 0.9), 0 0 10px rgba(255, 102, 0, 0.5);
+  --shadow-neon-h: 0 0 45px rgba(255, 102, 0, 1), 0 0 20px #ff7722;
 }
 
 /* ===== RESET ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+html, body { scrollbar-gutter: stable; }
 
 body {
   font-family: 'Poppins', 'Nunito', sans-serif;
-  background: #05080f; /* Fundo mais escuro para destacar o neon */
+  background: var(--bg-dark);
   color: var(--text-main);
   min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto !important; /* Garantir que o scroll vertical exista sempre */
 }
 
 a { color: inherit; text-decoration: none; }
@@ -42,41 +148,70 @@ input, textarea, select, button { font-family: inherit; }
   --shadow-sm:     0 2px 8px rgba(0,0,0,0.2);
   --shadow-md:     0 10px 30px rgba(0,0,0,0.4);
   --shadow-deep:   0 20px 50px rgba(0,0,0,0.5);
-  --glow-primary:  0 0 20px rgba(0, 242, 255, 0.4);
+  --glow-primary:  0 0 20px rgba(var(--primary-rgb), 0.45);
 }
 
-/* ===== SCROLLBARS DIFERENCIADAS ===== */
-/* Scrollbar da Página (Vertical) */
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-track { background: transparent; }
+/* ===== SCROLLBARS GLOBAIS VIBRANTES (UNIFICADAS POR TEMA) ===== */
+::-webkit-scrollbar { 
+  width: 14px; 
+  height: 12px; 
+}
+::-webkit-scrollbar-track { 
+  background: rgba(0, 0, 0, 0.3) !important; 
+  border-radius: 10px;
+}
 ::-webkit-scrollbar-thumb { 
-  background: var(--primary);
-  border-radius: 20px;
-  opacity: 0.3;
+  background: var(--primary) !important;
+  border-radius: 50px;
+  border: 3px solid var(--bg-dark) !important;
+  box-shadow: 0 0 20px var(--primary) !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover) !important;
+  box-shadow: 0 0 30px var(--primary) !important;
 }
 
-/* Scrollbar da Navbar (Horizontal) */
-.navbar::-webkit-scrollbar,
-.navbar-links::-webkit-scrollbar { 
-  height: 4px; 
+/* Fix: seletores WebKit corretos (Chrome/Edge) */
+::-webkit-scrollbar { 
+  width: 14px; 
+  height: 12px; 
 }
-.navbar::-webkit-scrollbar-track,
-.navbar-links::-webkit-scrollbar-track { 
-  background: rgba(0, 0, 0, 0.2); 
+::-webkit-scrollbar-track { 
+  background: rgba(0, 0, 0, 0.3) !important; 
+  border-radius: 10px;
 }
-.navbar::-webkit-scrollbar-thumb,
-.navbar-links::-webkit-scrollbar-thumb { 
-  background: var(--accent); /* Azul Neon */
-  border-radius: 10px; 
-  box-shadow: 0 0 10px var(--accent);
+::-webkit-scrollbar-thumb { 
+  background: var(--primary) !important;
+  border-radius: 50px;
+  border: 3px solid var(--bg-dark) !important;
+  box-shadow: 0 0 20px var(--primary) !important;
 }
-.navbar:hover::-webkit-scrollbar-thumb,
-.navbar-links:hover::-webkit-scrollbar-thumb {
-  background: var(--primary); /* Ciano ao passar o mouse */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-hover) !important;
+  box-shadow: 0 0 30px var(--primary) !important;
 }
-.navbar, .navbar-links {
+
+/* Scrollbar da Navbar - VISÍVEL E TEMATIZADA */
+.navbar-links::-webkit-scrollbar {
+  display: block !important;
+  height: 10px !important; /* horizontal */
+  width: 10px !important;  /* caso algum menu gere scroll vertical */
+}
+.navbar-links::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 10px;
+}
+.navbar-links::-webkit-scrollbar-thumb {
+  background: var(--primary) !important;
+  border-radius: 50px;
+  border: 2px solid var(--bg-dark) !important;
+  box-shadow: 0 0 15px var(--primary) !important;
+}
+
+/* Scrollbar Firefox */
+* {
   scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
+  scrollbar-color: var(--primary) var(--bg-dark);
 }
 
 /* Corpo Principal */
@@ -85,9 +220,9 @@ body {
   background: var(--bg-dark);
   color: var(--text-main);
   min-height: 100vh;
-  overflow-y: auto;
   overflow-x: hidden;
 }
+
 
 /* ===== NAVBAR SUPERIOR COM SCROLL HORIZONTAL ===== */
 .navbar {
@@ -99,13 +234,25 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 4%;
-  height: 100px; /* Um pouco mais alta para o scroll */
-  background: transparent;
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 242, 255, 0.1);
-  box-shadow: 0 4px 20px rgba(0, 242, 255, 0.1);
-  overflow-x: auto;
-  overflow-y: hidden;
+  height: 100px;
+  backdrop-filter: blur(15px); /* Desfoque forte ao descer a tela */
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: none;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  overflow: visible; /* evita cortar a scrollbar do .navbar-links */
+  gap: 20px;
+}
+
+/* Indicador discreto de rolagem horizontal na navbar (sempre visível quando há overflow) */
+.navbar-scroll-indicator {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .navbar-scroll-indicator {
+    left: 18%;
+    right: 18%;
+  }
 }
 
 .navbar-brand {
@@ -119,11 +266,22 @@ body {
   flex-shrink: 0;
   margin-right: 30px;
   filter: drop-shadow(var(--glow-primary));
+  text-shadow:
+    0 0 14px rgba(var(--primary-rgb), 0.45),
+    0 0 34px rgba(var(--primary-rgb), 0.22);
+}
+
+.navbar-brand span {
+  color: var(--primary);
+  text-shadow:
+    0 0 16px rgba(var(--primary-rgb), 0.7),
+    0 0 42px rgba(var(--primary-rgb), 0.35);
 }
 
 .navbar-brand img {
   height: 50px !important;
   width: auto;
+  filter: drop-shadow(0 0 6px rgba(var(--primary-rgb), 0.65));
 }
 
 .navbar-links {
@@ -131,9 +289,15 @@ body {
   align-items: center;
   gap: 15px;
   list-style: none;
-  overflow-x: auto; /* O segredo do scroll horizontal */
-  padding-bottom: 5px; /* Espaço para a scrollbar */
+  flex-wrap: nowrap;
+  overflow-x: auto; /* Habilita a navegação horizontal */
+  overflow-y: hidden;
+  padding-bottom: 10px; /* Espaço para a barra de rolagem aparecer */
   flex: 1;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+  scroll-behavior: smooth;
 }
 
 .navbar-links li { flex-shrink: 0; }
@@ -153,7 +317,7 @@ body {
 
 .navbar-links a:hover,
 .navbar-links a.active {
-  color: #fff;
+  color: var(--primary);
   background: transparent;
   border: 1px solid var(--primary);
   box-shadow: 0 0 15px var(--primary);
@@ -173,6 +337,7 @@ body {
   min-height: calc(100vh - 100px);
   animation: fadeIn 0.8s ease;
   width: 100%;
+  position: relative; /* Para ancorar o seletor de temas */
 }
 
 @keyframes fadeIn {
@@ -240,7 +405,7 @@ body {
   background: transparent;
   padding: 1.2rem;
   border-radius: var(--radius);
-  border: 1px solid rgba(0, 242, 255, 0.2);
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
   box-shadow: var(--shadow-neon);
   animation: float 4s ease-in-out infinite;
 }
@@ -283,22 +448,22 @@ body {
 
 .btn-primary {
   background: var(--primary);
-  color: #000;
+  color: var(--bg-dark);
   font-weight: 700;
-  box-shadow: 0 4px 15px rgba(0, 242, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
 }
 .btn-primary:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 242, 255, 0.6);
+  box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.6);
 }
 
 .btn-accent {
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+  color: var(--bg-dark);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
 }
-.btn-accent:hover { background: #9333ea; transform: translateY(-2px); }
+.btn-accent:hover { background: var(--accent2); transform: translateY(-2px); }
 
 .btn-sm {
   padding: 8px 16px;
@@ -306,18 +471,18 @@ body {
   border-radius: 6px;
 }
 
-.btn-danger { background: var(--danger); color: #fff; }
-.btn-danger:hover { background: #dc2626; }
+.btn-danger { background: var(--danger); color: var(--text-main); }
+.btn-danger:hover { background: var(--danger); opacity: 0.8; }
 
-.btn-success { background: var(--success); color: #fff; }
-.btn-success:hover { background: #059669; }
+.btn-success { background: var(--success); color: var(--text-main); }
+.btn-success:hover { background: var(--success); opacity: 0.8; }
 
 .btn-ghost {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-muted);
 }
-.btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+.btn-ghost:hover { border-color: var(--primary); color: var(--primary); background: rgba(var(--primary-rgb), 0.05); }
 
 /* ===== CARDS GRID ===== */
 .cards-grid {
@@ -329,7 +494,7 @@ body {
 .card {
   background: transparent;
   border-radius: var(--radius);
-  border: 1px solid rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.1);
   overflow: hidden;
   transition: all var(--transition);
   cursor: pointer;
@@ -392,7 +557,7 @@ body {
   margin-top: 10px;
   padding: 4px 10px;
   border-radius: 6px;
-  background: rgba(99, 102, 241, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
   color: var(--primary);
   font-size: 0.8rem;
   font-weight: 600;
@@ -412,18 +577,18 @@ body {
 }
 
 .badge-accent {
-  background: rgba(0, 242, 255, 0.15);
+  background: rgba(var(--primary-rgb), 0.15);
   color: var(--primary);
-  border: 1px solid rgba(0, 242, 255, 0.3);
-  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.1);
 }
 
 /* Variante para Animes (Púrpura) */
 .anime-context .badge-accent {
-  background: rgba(167, 139, 250, 0.15);
-  color: #a78bfa;
-  border: 1px solid rgba(167, 139, 250, 0.3);
-  box-shadow: 0 0 10px rgba(167, 139, 250, 0.1);
+  background: rgba(var(--primary-rgb), 0.15);
+  color: var(--primary);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.1);
 }
 
 /* ===== TABELA (CADASTRO) ===== */
@@ -566,7 +731,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   user-select: none;
   transition: background var(--transition);
 }
-.season-header:hover { background: rgba(99, 102, 241, 0.1); }
+.season-header:hover { background: rgba(var(--primary-rgb), 0.1); }
 .season-header h3 {
   font-family: 'Bangers', cursive;
   font-size: 1.5rem;
@@ -589,9 +754,12 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
-.episode-card:hover { border-color: var(--primary); }
+.episode-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.35), 0 0 18px var(--primary);
+}
 
 .episode-card iframe {
   width: 100%;
@@ -685,7 +853,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   border-radius: 8px;
   font-weight: 600;
   font-size: 0.95rem;
-  color: #fff;
+  color: var(--text-main);
   box-shadow: var(--shadow);
   animation: toastIn 0.3s ease;
   display: flex;
@@ -709,7 +877,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   overflow: hidden;
   position: relative;
   min-width: 300px;
-  box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+  box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.3);
   animation: toastIn 0.3s ease;
 }
 
@@ -727,7 +895,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 
 .btn-undo {
-  background: rgba(0, 242, 255, 0.1);
+  background: rgba(var(--primary-rgb), 0.1);
   border: 1px solid var(--primary);
   color: var(--primary);
   padding: 6px 14px;
@@ -742,7 +910,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 .btn-undo:hover {
   background: var(--primary);
-  color: #000;
+  color: var(--bg-dark);
   box-shadow: 0 0 15px var(--primary);
 }
 
@@ -752,6 +920,156 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   width: 100%;
   animation: progressUndo 7s linear forwards;
   box-shadow: 0 0 10px var(--primary);
+}
+
+/* Seletor de Temas FIXO (igual em todas as páginas e sem atrapalhar a UI) */
+.theme-switcher-wrapper {
+  position: fixed;
+  right: 20px;
+  top: 110px; /* abaixo da navbar (100px) */
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .theme-switcher-wrapper {
+    right: 12px;
+    top: 100px;
+  }
+  .theme-main-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.theme-main-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(var(--primary-rgb), 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4), var(--shadow-neon);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Mini “dot” mostrando a cor do tema atual */
+.theme-main-btn::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  border: 1px solid rgba(255,255,255,0.45);
+  z-index: 3;
+}
+
+.theme-main-btn::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, var(--primary), transparent 30%);
+  animation: rotateGlow 4s linear infinite;
+  opacity: 0.3;
+}
+
+@keyframes rotateGlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.theme-main-btn span {
+  position: relative;
+  z-index: 2;
+}
+
+.theme-main-btn:hover {
+  transform: scale(1.15) rotate(10deg);
+  background: var(--primary);
+  color: var(--bg-dark);
+  box-shadow: 0 0 30px var(--primary);
+}
+
+.theme-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-card);
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-deep);
+  transform: translateY(-10px);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+.theme-switcher-wrapper.active .theme-options {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+.theme-opt-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: var(--transition);
+  position: relative;
+}
+.theme-opt-btn:hover {
+  transform: scale(1.2);
+}
+.theme-opt-btn[data-theme=""] { background: #72FFFF; color: #050f1f; }
+.theme-opt-btn[data-theme="theme-ben10"] { background: #00ff00; color: #020617; }
+.theme-opt-btn[data-theme="theme-vinland"] { background: #ffcc00; color: #0c0a09; }
+.theme-opt-btn[data-theme="theme-aot"] { background: #ff0000; color: #050505; }
+.theme-opt-btn[data-theme="theme-tt-classic"] { background: #8b00ff; color: #0a0015; }
+.theme-opt-btn[data-theme="theme-mutant-rex"] { background: #ff6600; color: #0d0600; }
+
+.theme-opt-btn::after {
+  content: attr(title);
+  position: absolute;
+  right: 50px;
+  background: var(--bg-dark);
+  color: var(--text-main);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: 0.2s;
+  border: 1px solid var(--border);
+}
+.theme-opt-btn.active {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary);
+  transform: scale(1.1);
 }
 
 @keyframes progressUndo {
@@ -767,8 +1085,8 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 
 /* ===== HOME LINKS E GLOBAIS ===== */
 .home-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--primary-rgb), 0.05) 100%);
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
   border-radius: var(--radius);
   padding: 3rem;
   text-align: center;
@@ -793,7 +1111,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 .home-card {
   background: transparent;
-  border: 1px solid rgba(0, 242, 255, 0.1);
+  border: 1px solid rgba(var(--primary-rgb), 0.1);
   border-radius: var(--radius);
   padding: 2.5rem 2rem;
   text-align: center;
@@ -815,9 +1133,9 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(0, 242, 255, 0.4)); }
-  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(0, 242, 255, 0.8)); }
-  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(0, 242, 255, 0.4)); }
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(var(--primary-rgb), 0.4)); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(var(--primary-rgb), 0.8)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(var(--primary-rgb), 0.4)); }
 }
 .home-icon {
   font-size: 3.5rem;
@@ -846,7 +1164,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   text-transform: uppercase;
   transition: all 0.3s ease;
   user-select: none;
-  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.5);
 }
 
 body:hover .watermark {

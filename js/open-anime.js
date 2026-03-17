@@ -66,6 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast('Chave Groq salva com sucesso!');
   });
 
+  
+  // Histórico do Chat
+  let chatHistory = [
+    { role: "system", content: "Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa." }
+  ];
+
   // Chat UI Elements
   const chatWindow = document.getElementById('chatWindow');
   const sendBtn = document.getElementById('sendChat');
@@ -77,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const model = "llama-3.3-70b-versatile";
 
     try {
+      chatHistory.push({ role: "user", content: prompt });
+      
       const res = await fetch('/api/ai/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -84,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
           target,
           body: {
             model: model,
-            messages: [{ role: "user", content: prompt }],
+            messages: chatHistory,
             stream: false
           }
         })
@@ -94,9 +102,13 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(errData.error || `Erro HTTP ${res.status}`);
       }
       const data = await res.json();
-      return data.choices[0].message.content;
+      const aiResponse = data.choices[0].message.content;
+      chatHistory.push({ role: "assistant", content: aiResponse });
+      return aiResponse;
     } catch (e) {
       console.error(e);
+      // Remove o último prompt do usuário se falhar para não poluir o histórico com erros
+      chatHistory.pop();
       return `⚠️ Falha: ${e.message}. Verifique o terminal do servidor para mais detalhes.`;
     }
   }

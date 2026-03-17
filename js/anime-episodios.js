@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const watchFrame = document.getElementById('watchFrame');
   const watchDeleteBtn = document.getElementById('watchDeleteBtn');
 
+  const activeAudioForm = document.getElementById('activeAudioForm');
+  const audioTabs = document.querySelectorAll('.audio-tab');
+  let activeAudio = 'dublado';
+
   let activeAnimeId = null;
   const epForm = document.getElementById('epForm');
   let activeEpisodeId = null;
@@ -82,6 +86,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (editingEpId || editingMovieId) resetEpForm();
     });
   }
+
+  audioTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      audioTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeAudio = tab.dataset.audio;
+      activeAudioForm.value = activeAudio;
+      renderSeasons();
+    });
+  });
+
+  activeAudioForm.addEventListener('change', () => {
+    // Ao mudar no form, opcionalmente muda a aba para facilitar a visão
+    const targetTab = [...audioTabs].find(t => t.dataset.audio === activeAudioForm.value);
+    if (targetTab) targetTab.click();
+  });
 
   function selectAnime(id, btnElement) {
     document.querySelectorAll('.cartoon-pill').forEach(b => b.classList.remove('active'));
@@ -152,7 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
     seasonsContainer.innerHTML = '';
     if (!activeAnimeId) return;
 
-    const allEps = DB.getAnimeEpisodesFor(activeAnimeId);
+    // Animação de entrada
+    seasonsContainer.classList.remove('content-animate');
+    void seasonsContainer.offsetWidth; // Trigger reflow
+    seasonsContainer.classList.add('content-animate');
+
+    const allEps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio);
     const seasons = Object.keys(allEps).map(Number).sort((a,b) => a-b);
 
     if (seasons.length === 0 && DB.getAnimeMoviesFor(activeAnimeId).length === 0) {
@@ -172,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
       head.className = 'season-header';
       head.innerHTML = `
         <div style="display:flex;align-items:center;gap:15px;">
-          <h3 style="color:#a78bfa">Temporada ${seasonNum}</h3>
+          <h3 style="color:#a78bfa">Temporada ${seasonNum} (${activeAudio.charAt(0).toUpperCase() + activeAudio.slice(1)})</h3>
           <span class="badge-pill badge-purple">${eps.length} Eps</span>
         </div>
         <div style="display:flex;align-items:center;gap:15px;">
@@ -239,6 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
     epNumber.value = ep.epNumber;
     epTitle.value = ep.title || '';
     epIframe.value = ep.iframe;
+    activeAudioForm.value = activeAudio;
 
     addEpBtn.textContent = 'Salvar Alterações';
     addEpBtn.style.background = 'var(--primary)';
@@ -319,12 +345,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const epData = { epNumber: num, title, iframe };
 
         if (editingEpId) {
-          DB.updateAnimeEpisode(activeAnimeId, editingSeason, s, editingEpId, epData);
+          DB.updateAnimeEpisode(activeAnimeId, activeAudioForm.value, editingSeason, s, editingEpId, epData);
           showToast('Episódio atualizado!');
           resetEpForm();
         } else {
-          DB.addAnimeEpisode(activeAnimeId, s, epData);
-          showToast(`Adicionado: Temp ${s} - Ep ${num}`);
+          DB.addAnimeEpisode(activeAnimeId, activeAudioForm.value, s, epData);
+          showToast(`Adicionado: ${activeAudioForm.value.toUpperCase()} - Temp ${s} - Ep ${num}`);
           epNumber.value = num + 1;
           epTitle.value = '';
           epIframe.value = '';
@@ -357,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showUndoToast(`Excluindo Temporada ${seasonNum} e episódios...`, 
       () => {
         if (window.pendingDeletions.has(seasonKey)) {
-          DB.deleteAnimeSeason(activeAnimeId, seasonNum);
+          DB.deleteAnimeSeason(activeAnimeId, activeAudio, seasonNum);
           window.pendingDeletions.delete(seasonKey);
           if(editingSeason === seasonNum) resetEpForm();
           renderContent();
@@ -420,7 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (activeTypeForWatch === 'movie') {
             DB.deleteAnimeMovie(activeAnimeId, id);
           } else {
-            DB.deleteAnimeEpisode(activeAnimeId, activeSeasonForWatch, id);
+            DB.deleteAnimeEpisode(activeAnimeId, activeAudio, activeSeasonForWatch, id);
           }
           window.pendingDeletions.delete(id);
           renderContent();

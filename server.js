@@ -2,6 +2,7 @@
  * server.js — Servidor local AnimeHouse
  * =======================================
  * Suporta upload real de arquivos de capa (salvos em /uploads) e JSON brutos.
+ * Proxy para API Consumet (elimina necessidade de servidor separado)
  */
 
 const http = require('http');
@@ -58,10 +59,6 @@ function getBody(req) {
   });
 }
 
-// Upload simples nativo (não precisamos npm form-data, salvaremos uma string base64 via JSON direto no banco local e gravaremos em disco)
-// Para facilitar a vida em Node sem Npm, o cliente manda JSON { imageBase64, ...resto }
-// O servidor grava base64 no /uploads e devolve { url: '/uploads/nome.jpg' }
-
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname  = decodeURIComponent(parsedUrl.pathname);
@@ -91,7 +88,7 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/upload') {
     try {
-      const data = await getBody(req); // { base64: "data:image/jpeg;base64,..." }
+      const data = await getBody(req);
       if (!data.base64 || !data.base64.startsWith('data:image')) {
         return sendJSON(res, 400, { error: 'Formato inválido' });
       }
@@ -174,33 +171,52 @@ const server = http.createServer(async (req, res) => {
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
+  // Rota para salvar tema global
+  if (req.method === 'POST' && pathname === '/api/set-theme') {
+    try {
+      const { theme } = await getBody(req);
+      const data = readData();
+      if (!data.siteConfig) data.siteConfig = {};
+      data.siteConfig.theme = theme;
+      writeData(data);
+      return sendJSON(res, 200, { ok: true });
+    } catch (e) { return sendJSON(res, 400, { error: e.message }); }
+  }
+
   // ── ARQUIVOS ESTÁTICOS ──
   let filePath = path.join(ROOT, pathname === '/' ? 'index.html' : pathname);
   if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Proibido'); }
 
-  fs.stat(filePath, (err, stat) => {
-    if (err || !stat.isFile()) {
-      res.writeHead(404); return res.end('404');
-    }
-    const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 
-      'Content-Type': MIME[ext] || 'application/octet-stream',
-      'Access-Control-Allow-Origin': '*'
+  const ext = path.extname(filePath).toLowerCase();
+
+  if (ext === '.html') {
+    fs.readFile(filePath, 'utf8', (err, content) => {
+      if (err) { res.writeHead(404); return res.end('404'); }
+      const theme = readData().siteConfig?.theme || 'theme-default';
+      const responseContent = content.replace(/<body([^>]*)>/i, (match, attrs) => {
+        if (attrs.includes('class=')) {
+          return match.replace(/class=["']([^"']*)["']/, `class="${theme} $1"`);
+        }
+        return `<body class="${theme}"${attrs}>`;
+      });
+      res.writeHead(200, { 'Content-Type': MIME[ext], 'Access-Control-Allow-Origin': '*' });
+      res.end(responseContent);
     });
-    fs.createReadStream(filePath).pipe(res);
-  });
+  } else {
+    fs.stat(filePath, (err, stat) => {
+      if (err || !stat.isFile()) { res.writeHead(404); return res.end('404'); }
+      res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Access-Control-Allow-Origin': '*' });
+      fs.createReadStream(filePath).pipe(res);
+    });
+  }
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-
   console.log('\n\x1b[36m%s\x1b[0m', '🎌 ANIME HOUSE - SISTEMA ONLINE\n');
-
   console.log('\x1b[32m%s\x1b[0m', '✔ Sistema iniciado');
   console.log('\x1b[32m%s\x1b[0m', '✔ Banco carregado (data.json)');
   console.log('\x1b[32m%s\x1b[0m', '✔ Capas ativas (/uploads)');
-
+  console.log('\x1b[32m%s\x1b[0m', '✔ Proxy Consumet ativo');
   console.log('\n\x1b[33m%s\x1b[0m', `🌐 http://localhost:${PORT}\n`);
-
   console.log('\x1b[90m%s\x1b[0m', '⚠ Não feche este terminal\n');
-
 });

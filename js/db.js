@@ -11,7 +11,7 @@ let _store = JSON.parse(JSON.stringify(_DEFAULT));
 (function loadFromServer() {
   try {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', API_BASE + '/api/data?_t=' + Date.now(), false); // Sync garante que a interface renderize com os dados
+    xhr.open('GET', API_BASE + '/api/data?_t=' + Date.now(), false);
     xhr.send();
     if (xhr.status === 200) {
       _store = { ..._DEFAULT, ...JSON.parse(xhr.responseText) };
@@ -141,42 +141,49 @@ const DB = {
   },
 
   /* Animes: Episódios */
-  getAnimeEpisodesFor(aId) { return _store.animeEpisodes[aId] || {}; },
-  addAnimeEpisode(aId, season, epData) {
-    if (!_store.animeEpisodes[aId]) _store.animeEpisodes[aId] = {};
-    if (!_store.animeEpisodes[aId][season]) _store.animeEpisodes[aId][season] = [];
-    const item = { id: 'ae_' + Date.now(), ...epData };
-    _store.animeEpisodes[aId][season].push(item); _persist(); return item;
+  getAnimeEpisodesFor(aId, audio = 'dublado') { 
+    if (!_store.animeEpisodes[aId]) return {};
+    return _store.animeEpisodes[aId][audio] || {};
   },
-  updateAnimeEpisode(aId, oldSeason, newSeason, epId, data) {
-    if (_store.animeEpisodes[aId]?.[oldSeason]) {
-      const epIndex = _store.animeEpisodes[aId][oldSeason].findIndex(e => e.id === epId);
+  addAnimeEpisode(aId, audio, season, epData) {
+    if (!_store.animeEpisodes[aId]) _store.animeEpisodes[aId] = { dublado: {}, legendado: {} };
+    if (!_store.animeEpisodes[aId][audio]) _store.animeEpisodes[aId][audio] = {};
+    if (!_store.animeEpisodes[aId][audio][season]) _store.animeEpisodes[aId][audio][season] = [];
+    
+    const item = { id: 'ae_' + Date.now(), ...epData };
+    _store.animeEpisodes[aId][audio][season].push(item); _persist(); return item;
+  },
+  updateAnimeEpisode(aId, audio, oldSeason, newSeason, epId, data) {
+    if (_store.animeEpisodes[aId]?.[audio]?.[oldSeason]) {
+      const epIndex = _store.animeEpisodes[aId][audio][oldSeason].findIndex(e => e.id === epId);
       if (epIndex === -1) return;
 
-      const ep = { ..._store.animeEpisodes[aId][oldSeason][epIndex], ...data };
+      const ep = { ..._store.animeEpisodes[aId][audio][oldSeason][epIndex], ...data };
 
       if (oldSeason !== newSeason) {
-        // Mover para nova temporada
-        _store.animeEpisodes[aId][oldSeason].splice(epIndex, 1);
-        if (_store.animeEpisodes[aId][oldSeason].length === 0) delete _store.animeEpisodes[aId][oldSeason];
+        _store.animeEpisodes[aId][audio][oldSeason].splice(epIndex, 1);
+        if (_store.animeEpisodes[aId][audio][oldSeason].length === 0) delete _store.animeEpisodes[aId][audio][oldSeason];
 
-        if (!_store.animeEpisodes[aId][newSeason]) _store.animeEpisodes[aId][newSeason] = [];
-        _store.animeEpisodes[aId][newSeason].push(ep);
+        if (!_store.animeEpisodes[aId][audio][newSeason]) _store.animeEpisodes[aId][audio][newSeason] = [];
+        _store.animeEpisodes[aId][audio][newSeason].push(ep);
       } else {
-        _store.animeEpisodes[aId][oldSeason][epIndex] = ep;
+        _store.animeEpisodes[aId][audio][oldSeason][epIndex] = ep;
       }
       _persist();
     }
   },
-  deleteAnimeEpisode(aId, season, epId) {
-    if (_store.animeEpisodes[aId]?.[season]) {
-      _store.animeEpisodes[aId][season] = _store.animeEpisodes[aId][season].filter(e => e.id !== epId);
-      if (_store.animeEpisodes[aId][season].length === 0) delete _store.animeEpisodes[aId][season];
+  deleteAnimeEpisode(aId, audio, season, epId) {
+    if (_store.animeEpisodes[aId]?.[audio]?.[season]) {
+      _store.animeEpisodes[aId][audio][season] = _store.animeEpisodes[aId][audio][season].filter(e => e.id !== epId);
+      if (_store.animeEpisodes[aId][audio][season].length === 0) delete _store.animeEpisodes[aId][audio][season];
       _persist();
     }
   },
-  deleteAnimeSeason(aId, season) {
-    if (_store.animeEpisodes[aId]) { delete _store.animeEpisodes[aId][season]; _persist(); }
+  deleteAnimeSeason(aId, audio, season) {
+    if (_store.animeEpisodes[aId]?.[audio]) { 
+      delete _store.animeEpisodes[aId][audio][season]; 
+      _persist(); 
+    }
   },
 
   /* Animes: Filmes */

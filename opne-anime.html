@@ -7,11 +7,12 @@
   <meta name="description" content="OpneAnIme - O Agente IA definitivo para Animes e Desenhos." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
+  <script src="js/themes.js"></script>
   <style>
     :root {
-      --ai-purple: #8b5cf6;
-      --ai-cyan: #06b6d4;
-      --ai-bg: #0f172a;
+      --ai-purple: var(--primary);
+      --ai-cyan: var(--accent);
+      --ai-bg: var(--bg-dark);
     }
 
     .ai-container {
@@ -24,9 +25,9 @@
 
     /* Sidebar / Config */
     .ai-sidebar {
-      background: rgba(30, 41, 59, 0.7);
+      background: rgba(var(--bg-card), 0.7);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
       border-radius: var(--radius);
       padding: 20px;
       display: flex;
@@ -36,8 +37,8 @@
     }
 
     .ai-card {
-      background: rgba(15, 23, 42, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(var(--bg-card), 0.5);
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
       border-radius: 12px;
       padding: 15px;
     }
@@ -45,7 +46,7 @@
     .ai-card h3 {
       font-size: 0.9rem;
       margin-bottom: 15px;
-      color: var(--ai-cyan);
+      color: var(--primary);
       display: flex;
       align-items: center;
       gap: 8px;
@@ -61,8 +62,8 @@
 
     .ai-chat-window {
       flex: 1;
-      background: rgba(30, 41, 59, 0.5);
-      border: 1px solid rgba(139, 92, 246, 0.2);
+      background: rgba(var(--bg-card), 0.5);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
       border-radius: var(--radius);
       padding: 20px;
       overflow-y: auto;
@@ -82,31 +83,31 @@
 
     .msg.bot {
       align-self: flex-start;
-      background: rgba(139, 92, 246, 0.1);
-      border-left: 3px solid var(--ai-purple);
+      background: rgba(var(--primary-rgb), 0.1);
+      border-left: 3px solid var(--primary);
       color: var(--text-main);
     }
 
     .msg.user {
       align-self: flex-end;
       background: var(--primary);
-      color: white;
+      color: var(--bg-dark);
     }
 
     .ai-input-area {
       display: flex;
       gap: 10px;
-      background: rgba(30, 41, 59, 0.8);
+      background: rgba(var(--bg-card), 0.8);
       padding: 15px;
       border-radius: var(--radius);
-      border: 1px solid rgba(139, 92, 246, 0.3);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
     }
 
     .ai-input-area input {
       flex: 1;
       background: transparent;
       border: none;
-      color: white;
+      color: var(--text-main);
       outline: none;
       font-size: 1rem;
     }
@@ -121,17 +122,18 @@
     .ai-tab {
       padding: 8px 15px;
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(var(--primary-rgb), 0.05);
       cursor: pointer;
       font-size: 0.85rem;
       transition: 0.3s;
       border: 1px solid transparent;
+      color: var(--text-muted);
     }
 
     .ai-tab.active {
-      background: rgba(139, 92, 246, 0.2);
-      border-color: var(--ai-purple);
-      color: var(--ai-purple);
+      background: rgba(var(--primary-rgb), 0.2);
+      border-color: var(--primary);
+      color: var(--primary);
     }
 
     /* Comparison & Tools */
@@ -154,15 +156,16 @@
 
     .vs-circle {
       width: 40px; height: 40px;
-      background: var(--ai-purple);
+      background: var(--primary);
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       font-weight: 800; font-size: 0.8rem;
+      color: var(--bg-dark);
     }
 
     /* Glow Effect */
     .glow-text {
-      text-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+      text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.8);
     }
   </style>
 </head>
@@ -171,14 +174,10 @@
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="navbar-brand">
-    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;filter:drop-shadow(0 0 6px rgba(99, 102, 241, 0.6));" />
+    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Opne</span>AnIme
   </div>
   <ul class="navbar-links" id="navLinks">
-    <li><a href="home.html"><span class="nav-icon">🏠</span> Início</a></li>
-    <li><a href="index.html"><span class="nav-icon">🎬</span> Desenhos</a></li>
-    <li><a href="animes.html"><span class="nav-icon">⛩️</span> Animes</a></li>
-    <li><a href="opne-anime.html" class="active"><span class="nav-icon">🤖</span> OpneAnIme</a></li>
   </ul>
 </nav>
 
