@@ -6,7 +6,10 @@
 
 // 1. INSIRA SUAS CREDENCIAIS AQUI:
 const SUPABASE_URL = 'https://bxifddhrbxbmimjkgwzr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_secret_Cr0BzLecxWabufFasf0kQg_xJtI5VsM';
+// ⚠️ ATENÇÃO: NÃO COLOQUE A 'URL SECRET' AQUI! O GitHub bloqueia chaves que começam com sb_secret!
+// O Supabase possui DUAS chaves: a "anon public" (que começa com eyJhb...) e a "service_role secret" (que começa com sb_secret)
+// Você deve colar APENAS A CHAVE ANON (PÚBLICA) AQUI, pois é seguro deixá-la no frontend.
+const SUPABASE_ANON_KEY = 'COLE_AQUI_A_SUA_CHAVE_ANON_PUBLICA_(COMECA_COM_eyJ)';
 
 // 2. Inicializa o cliente do Supabase
 let supabase;
