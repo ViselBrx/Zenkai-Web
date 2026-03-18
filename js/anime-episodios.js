@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await DB.init();
   const pillsContainer = document.getElementById('animePills');
   const seasonsContainer = document.getElementById('seasonsContainer');
   const panel = document.getElementById('episodePanel');

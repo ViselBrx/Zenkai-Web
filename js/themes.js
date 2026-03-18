@@ -73,11 +73,13 @@
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
         
         const pages = [
-            { href: 'home.html', label: '🏠 Início', icon: '🏠' },
-            { href: 'index.html', label: '🎬 Desenhos', icon: '🎬' },
+            { href: 'index.html', label: '🏠 Início', icon: '🏠' },
+            { href: 'catalogo-desenhos.html', label: '🎬 Desenhos', icon: '🎬' },
             { href: 'animes.html', label: '⛩️ Animes', icon: '⛩️' },
             { href: 'desenhos.html', label: '▶️ Eps. Desenhos', icon: '▶️' },
             { href: 'anime-episodios.html', label: '▶️ Eps. Animes', icon: '▶️' },
+            { href: 'cadastro.html', label: '📝 Cad. Desenhos', icon: '📝' },
+            { href: 'cadastro-animes.html', label: '📝 Cad. Animes', icon: '📝' },
             { href: 'mangas.html', label: '📚 Mangás', icon: '📚' },
             { href: 'agradecimento.html', label: '💖 Agradecimento', icon: '💖' },
             { href: 'open-anime.html', label: '🤖 Open AnIme', icon: '🤖' }
@@ -95,7 +97,7 @@
             link.innerHTML = `<span class="nav-icon">${page.icon}</span> ${page.label.split(' ').slice(1).join(' ')}`;
             
             // Marcar como ativo se for a página atual
-            if (currentPage === page.href || (currentPage === '' && page.href === 'index.html')) {
+            if (currentPage === page.href || (currentPage === '' && page.href === 'index.html') || (currentPage === 'index.html' && page.href === 'index.html')) {
                 link.classList.add('active');
             }
             

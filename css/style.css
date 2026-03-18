@@ -1,5 +1,5 @@
 /* ===== FONTES ===== */
-@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&family=Audiowide&display=swap');
 
 /* ===== VARIÁVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
 :root {
@@ -235,11 +235,11 @@ input, textarea, select, button { font-family: inherit; }
   background: var(--primary) !important;
   border-radius: 50px;
   border: 3px solid var(--bg-dark) !important;
-  box-shadow: 0 0 18px var(--primary) !important, inset 0 0 8px rgba(var(--primary-rgb), 0.2) !important;
+  box-shadow: 0 0 18px var(--primary), inset 0 0 8px rgba(var(--primary-rgb), 0.2) !important;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--primary-hover) !important;
-  box-shadow: 0 0 28px var(--primary) !important, inset 0 0 10px rgba(var(--primary-rgb), 0.3) !important;
+  box-shadow: 0 0 28px var(--primary), inset 0 0 10px rgba(var(--primary-rgb), 0.3) !important;
 }
 ::-webkit-scrollbar-thumb:active {
   background: var(--primary) !important;
@@ -260,11 +260,11 @@ input, textarea, select, button { font-family: inherit; }
   background: var(--primary) !important;
   border-radius: 50px;
   border: 2px solid var(--bg-dark) !important;
-  box-shadow: 0 0 18px var(--primary) !important, inset 0 0 6px rgba(var(--primary-rgb), 0.2) !important;
+  box-shadow: 0 0 18px var(--primary), inset 0 0 6px rgba(var(--primary-rgb), 0.2) !important;
 }
 .navbar-links::-webkit-scrollbar-thumb:hover {
   background: var(--primary-hover) !important;
-  box-shadow: 0 0 28px var(--primary) !important, inset 0 0 8px rgba(var(--primary-rgb), 0.3) !important;
+  box-shadow: 0 0 28px var(--primary), inset 0 0 8px rgba(var(--primary-rgb), 0.3) !important;
 }
 .navbar-links::-webkit-scrollbar-thumb:active {
   background: var(--primary) !important;
@@ -466,7 +466,7 @@ body {
 .theme-vinland .page-header h1 { font-family: 'Black Ops One', cursive; }
 .theme-aot .page-header h1 { font-family: 'Lilita One', sans-serif; }
 .theme-tt-classic .page-header h1 { font-family: 'Fredoka One', sans-serif; }
-.theme-mutant-rex .page-header h1 { font-family: 'Fredoka One', sans-serif; }
+.theme-mutant-rex .page-header h1 { font-family: 'Audiowide', cursive; }
 .page-header p {
   color: var(--text-muted);
   margin-top: 0.5rem;

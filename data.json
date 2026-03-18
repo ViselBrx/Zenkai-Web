@@ -491,6 +491,12 @@
           "epNumber": 1,
           "title": "O Dia Em Que Tudo Mudou",
           "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/player3/server.php?server=RCServer08&subfolder=ondemand&vid=MTNTSREXT01EP01\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
+        },
+        {
+          "id": "e_1773836534856",
+          "epNumber": 2,
+          "title": "Teoria Da Cordas",
+          "iframe": "<iframe name=\"Player\" src=\"//%72%65%64%65%63%61%6E%61%69%73%2E%63%61%66%65/player3/server.php?server=RCServer08&subfolder=ondemand&vid=MTNTSREXT01EP02\" frameborder=\"0\" height=\"450\" scrolling=\"no\" width=\"800\" allow=\"encrypted-media\" allowFullScreen></iframe>"
         }
       ]
     },

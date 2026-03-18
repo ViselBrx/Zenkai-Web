@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Início</title>
-  <meta name="description" content="Catálogo pessoal de desenhos e animes com visualização por temporadas e episódios." />
-  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <title>Anime House — Bem-vindo(a) Portal Ninja</title>
+  <meta name="description" content="Seu portal nipônico e mundo de animações!" />
+  <link rel="icon" type="image/jpeg" href="assets/red x.jpg" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
 </head>
@@ -24,57 +24,58 @@
   </button>
 </nav>
 
-<!-- CONTEÚDO PRINCIPAL -->
-<main class="main-content">
-  <div class="page-header">
-    <h1>🎌 Catálogo de Desenhos</h1>
-    <p>Explore sua coleção de animes e desenhos favoritos</p>
+<main class="container">
+  
+  <div class="home-banner">
+    <h2 style="color:var(--primary)">Bem-vindo à Anime House</h2>
+    <p style="color:var(--text-muted)">Selecione um dos nossos catálogos para começar a explorar sua coleção nipônica e pop.</p>
+    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+      <a href="login.html" class="btn btn-primary" style="font-size: 0.9rem;">Fazer Login</a>
+      <a href="registro.html" class="btn btn-secondary" style="font-size: 0.9rem;">Criar Conta</a>
+    </div>
   </div>
 
-  <!-- BUSCA E FILTROS -->
-  <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍  Pesquisar desenho..." />
-    <select id="filterProdutora">
-      <option value="">Todas as produtoras</option>
-    </select>
-    <select id="filterTemporadas">
-      <option value="">Qtd. de temporadas</option>
-      <option value="1">1 temporada</option>
-      <option value="2">2 temporadas</option>
-      <option value="3">3 temporadas</option>
-      <option value="4">4+</option>
-    </select>
+  <div class="home-grid">
+    <a href="catalogo-desenhos.html" class="home-card">
+      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📺</div>
+      <h3 style="color:var(--primary)">Desenhos Clássicos</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis ocidentais.</p>
+      <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
+    </a>
+    
+    <a href="animes.html" class="home-card">
+      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⛩️</div>
+      <h3 style="color:var(--primary)">Universo Animes</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.</p>
+      <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
+    </a>
+
+    <a href="mangas.html" class="home-card">
+      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📚</div>
+      <h3 style="color:var(--primary)">Leitura de Mangás</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">PDFs, links de Drive e capítulos salvos para ler depois.</p>
+      <span class="btn btn-primary" style="margin-top:auto">Acessar Links</span>
+    </a>
+    
+    <a href="cadastro.html" class="home-card">
+      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⚙️</div>
+      <h3 style="color:var(--primary)">Administração (CRUD)</h3>
+      <p style="color:var(--text-muted);font-size:0.9rem">Área restrita de controle para inserir, editar e excluir títulos e episódios.</p>
+      <span class="btn btn-danger" style="margin-top:auto">Entrar no Painel</span>
+    </a>
   </div>
 
-  <!-- GRID DE CARDS -->
-  <div id="cardsGrid" class="cards-grid"></div>
-  <div id="emptyState" class="empty-state" style="display:none;">
-    <div class="empty-icon">📭</div>
-    <p>Nenhum desenho encontrado.<br>Acesse <a href="cadastro.html" style="color:var(--primary)">Cadastro</a> para adicionar.</p>
-  </div>
 </main>
 
-<!-- MODAL DETALHES -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="detailTitle">—</h2>
-      <button class="modal-close" id="detailClose">✕</button>
-    </div>
-    <img id="detailCover" src="" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-bottom:1rem;" />
-    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;display:none;">🎬</div>
-    <p><strong>Produtora:</strong> <span id="detailProdutora">—</span></p>
-    <p style="margin-top:6px"><strong>Temporadas:</strong> <span id="detailTemporadas">—</span></p>
-    <div style="display:flex;gap:.8rem;margin-top:1.5rem;">
-      <a id="detailWatchBtn" href="desenhos.html" class="btn btn-primary" style="flex:1;justify-content:center;">▶️ Assistir Episódios</a>
-      <a href="cadastro.html" class="btn btn-ghost" style="flex:1;justify-content:center;">✏️ Editar</a>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-<script src="js/db.js"></script>
-<script src="js/home.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const burger = document.getElementById('navBurger');
+      const menu   = document.getElementById('navLinks');
+      if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
+    });
+  </script>
+  <div class="watermark">ViselBrx & DaviMoraes07 tm</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

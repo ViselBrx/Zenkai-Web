@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await DB.init();
   const mangaListEl = document.getElementById('mangaList');
   const emptyState = document.getElementById('emptyMangaState');
   const searchManga = document.getElementById('searchManga');

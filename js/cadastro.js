@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await DB.init();
   const tbody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');

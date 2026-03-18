@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await DB.init();
   // Tabs Verticais
   const tabs = document.querySelectorAll('.ai-tab-v');
   const panels = document.querySelectorAll('.tool-panel');
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const prompt = `Faça uma comparação detalhada entre os personagens de anime/desenho ${c1} e ${c2}. Analise Força, Inteligência, Habilidades Especiais e diga quem venceria em um duelo épico e por quê.`;
     const analysis = await callAI(prompt);
-    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIRonse(analysis)}`;
+    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
     
     // Scroll suave para o resultado
     setTimeout(() => {
