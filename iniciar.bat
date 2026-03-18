@@ -1,5 +1,5 @@
 @echo off
-title Server AnimeHouse
+title AnimeHouse Server
 color 0D
 echo =========================================================
 echo.
