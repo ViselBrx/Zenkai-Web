@@ -9,13 +9,20 @@ const SUPABASE_URL = 'https://bxifddhrbxbmimjkgwzr.supabase.co';
 // ⚠️ ATENÇÃO: NÃO COLOQUE A 'URL SECRET' AQUI! O GitHub bloqueia chaves que começam com sb_secret!
 // O Supabase possui DUAS chaves: a "anon public" (que começa com eyJhb...) e a "service_role secret" (que começa com sb_secret)
 // Você deve colar APENAS A CHAVE ANON (PÚBLICA) AQUI, pois é seguro deixá-la no frontend.
-const SUPABASE_ANON_KEY = 'COLE_AQUI_A_SUA_CHAVE_ANON_PUBLICA_(COMECA_COM_eyJ)';
+const SUPABASE_ANON_KEY = 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
 
 // 2. Inicializa o cliente do Supabase
-let supabase;
+let supaClient;
 if (window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabase; // Expondo para o db.js
+    try {
+        supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        window.supabaseClient = supaClient; // Expondo para o db.js
+        console.log("Supabase inicializado com sucesso.");
+    } catch (e) {
+        console.error("Erro ao criar cliente Supabase:", e);
+    }
+} else {
+    console.error("Erro: Biblioteca Supabase não encontrada! Verifique o link do CDN no HTML.");
 }
 
 // 3. Funções Utilitárias de UI (Toast/Alert)
@@ -51,17 +58,20 @@ if (loginForm) {
         submitBtn.textContent = 'Entrando...';
         errorDiv.style.display = 'none';
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        console.log("Tentando login com:", email);
+        const { data, error } = await supaClient.auth.signInWithPassword({
             email,
             password
         });
 
         if (error) {
-            errorDiv.textContent = "Email ou senha incorretos.";
+            console.error("Erro no login:", error);
+            errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
             errorDiv.style.display = 'block';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Entrar no Painel';
         } else {
+            console.log("Login realizado:", data);
             showToast('Login realizado com sucesso!');
             setTimeout(() => {
                 window.location.href = 'index.html'; // Redireciona pro DB
@@ -98,17 +108,20 @@ if (registerForm) {
         submitBtn.textContent = 'Registrando...';
         errorDiv.style.display = 'none';
 
-        const { data, error } = await supabase.auth.signUp({
+        console.log("Tentando registro com:", email);
+        const { data, error } = await supaClient.auth.signUp({
             email,
             password
         });
 
         if (error) {
-            errorDiv.textContent = error.message;
+            console.error("Erro no registro:", error);
+            errorDiv.textContent = "Erro ao registrar: " + error.message;
             errorDiv.style.display = 'block';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Criar Conta';
         } else {
+            console.log("Registro realizado:", data);
             successDiv.style.display = 'block';
             setTimeout(() => {
                 window.location.href = 'index.html';
@@ -119,9 +132,9 @@ if (registerForm) {
 
 // 6. Lógica Global: Mudar Botoes da Navbar / Proteção de Rota
 async function checkAuthStatus() {
-    if (!supabase) return;
+    if (!supaClient) return;
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supaClient.auth.getSession();
     const currentPage = window.location.pathname.split('/').pop();
 
     // Rotas protegidas (apenas logados)
@@ -142,6 +155,14 @@ async function checkAuthStatus() {
         return;
     }
 
+    // Ocultar botões de login na home se estiver logado
+    if (currentPage === 'index.html' || currentPage === '') {
+        const bannerActions = document.querySelector('.home-banner div');
+        if (bannerActions && session) {
+            bannerActions.style.display = 'none';
+        }
+    }
+
     // Nova lógica: Injetar botão de Auth FIXO na navbar
     const nav = document.querySelector('.navbar');
     const links = document.querySelector('.navbar-links');
@@ -149,7 +170,10 @@ async function checkAuthStatus() {
     if (links && !session) {
         // Usuário não logado, remove links de administração do menu sanduíche
         const adminLinks = Array.from(links.querySelectorAll('a')).filter(a => a.href.includes('cadastro.html') || a.href.includes('cadastro-animes.html'));
-        adminLinks.forEach(a => a.parentElement.remove());
+        adminLinks.forEach(a => {
+            if (a.parentElement.tagName === 'LI') a.parentElement.remove();
+            else a.remove();
+        });
     }
 
     if (nav) {
@@ -158,37 +182,37 @@ async function checkAuthStatus() {
 
         const authContainer = document.createElement('div');
         authContainer.id = 'globalAuthContainer';
-        
-        // Empurra para a direita, ao lado do botão de menu sanduíche
-        authContainer.style.cssText = 'display: flex; gap: 10px; margin-left: auto; margin-right: 20px; align-items: center; z-index: 2000;';
+
+        // Estilo: Compacto no canto
+        authContainer.style.cssText = 'display: flex; gap: 10px; margin-left: auto; margin-right: 5px; align-items: center; z-index: 2000;';
 
         if (session) {
+            // Busca dados do perfil (Avatar)
+            const { data: profile } = await supaClient
+                .from('profiles')
+                .select('avatar_url, username')
+                .eq('id', session.user.id)
+                .single();
+            
+            const avatarUrl = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
             authContainer.innerHTML = `
-                <a href="cadastro.html" class="btn btn-primary btn-sm" style="padding: 6px 12px; font-size: 0.8rem; box-shadow: none;">⚙️ Painel</a>
-                <button id="globalLogoutBtn" class="btn btn-danger btn-sm" style="padding: 6px 12px; font-size: 0.8rem; box-shadow: none;">Sair</button>
+                <a href="cadastro.html" class="btn btn-primary btn-sm" style="padding: 5px 10px; font-size: 0.75rem; box-shadow: none;">⚙️ Painel</a>
+                <a href="perfil.html" title="Meu Perfil" style="display: flex; align-items: center;">
+                    <img src="${avatarUrl}" alt="Perfil" style="width:38px; height:38px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.3); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                </a>
             `;
         } else {
             if (!authRoutes.includes(currentPage)) {
                 // Visitantes que não estão logados veem apenas o botão de Login
                 authContainer.innerHTML = `
-                    <a href="login.html" class="btn btn-ghost btn-sm" style="padding: 6px 12px; font-size: 0.8rem; border-color: var(--primary); color: var(--primary);">👤 Login / Cadastro</a>
+                    <a href="login.html" class="btn btn-ghost btn-sm" style="padding: 6px 12px; font-size: 0.8rem; border-color: var(--primary); color: var(--primary);">👤 Entrar</a>
                 `;
             }
         }
 
-        const burger = document.getElementById('navBurger');
-        if (burger) {
-            nav.insertBefore(authContainer, burger);
-        } else {
-            nav.appendChild(authContainer);
-        }
-
-        if (session) {
-            document.getElementById('globalLogoutBtn').onclick = async () => {
-                await supabase.auth.signOut();
-                window.location.reload();
-            };
-        }
+        // Coloca no final absoluto da navbar para ficar no "canto"
+        nav.appendChild(authContainer);
     }
 }
 
