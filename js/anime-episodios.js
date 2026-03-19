@@ -250,8 +250,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.editEpisode = (e, epId, seasonNum) => {
     e.stopPropagation();
-    const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[seasonNum];
-    const ep = sEps.find(x => x.id === epId);
+    const sEps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio)[seasonNum];
+    const ep = sEps ? sEps.find(x => x.id === epId) : null;
     if (!ep) return;
 
     resetEpForm();
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (epForm) {
-    epForm.addEventListener('submit', (e) => {
+    epForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!activeAnimeId) return showToast('Selecione um anime primeiro', 'error');
       
@@ -346,27 +346,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         const epData = { epNumber: num, title, iframe };
 
         if (editingEpId) {
-          DB.updateAnimeEpisode(activeAnimeId, activeAudioForm.value, editingSeason, s, editingEpId, epData);
-          showToast('Episódio atualizado!');
+          await DB.updateAnimeEpisode(activeAnimeId, activeAudioForm.value, editingSeason, s, editingEpId, epData);
+          showDarkToast('Episódio atualizado!');
           resetEpForm();
         } else {
-          DB.addAnimeEpisode(activeAnimeId, activeAudioForm.value, s, epData);
-          showToast(`Adicionado: ${activeAudioForm.value.toUpperCase()} - Temp ${s} - Ep ${num}`);
+          const newEp = await DB.addAnimeEpisode(activeAnimeId, activeAudioForm.value, s, epData);
           epNumber.value = num + 1;
           epTitle.value = '';
           epIframe.value = '';
+          showUndoToast(`Adicionado: ${activeAudioForm.value.toUpperCase()} - Temp ${s} - Ep ${num}`,
+            () => {},
+            async () => {
+              await DB.deleteAnimeEpisode(activeAnimeId, activeAudioForm.value, s, newEp.id);
+              renderContent();
+            }
+          );
         }
       } else {
         const movieData = { title, iframe };
         if (editingMovieId) {
-          DB.updateAnimeMovie(activeAnimeId, editingMovieId, movieData);
-          showToast('Filme atualizado!');
+          await DB.updateAnimeMovie(activeAnimeId, editingMovieId, movieData);
+          showDarkToast('Filme atualizado!');
           resetEpForm();
         } else {
-          DB.addAnimeMovie(activeAnimeId, movieData);
-          showToast('Filme adicionado!');
+          const newMovie = await DB.addAnimeMovie(activeAnimeId, movieData);
           epTitle.value = '';
           epIframe.value = '';
+          showUndoToast('Filme adicionado!',
+            () => {},
+            async () => {
+              await DB.deleteAnimeMovie(activeAnimeId, newMovie.id);
+              renderContent();
+            }
+          );
         }
       }
 
@@ -403,8 +415,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       item = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === id);
       activeTypeForWatch = 'movie';
     } else {
-      const sEps = DB.getAnimeEpisodesFor(activeAnimeId)[typeOrSeason];
-      item = sEps.find(x => x.id === id);
+      const sEps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio)[typeOrSeason];
+      item = sEps ? sEps.find(x => x.id === id) : null;
       activeTypeForWatch = 'episode';
       activeSeasonForWatch = typeOrSeason;
     }
@@ -436,7 +448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const m = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === id);
       if (m) itemName = `Filme: ${m.title}`;
     } else {
-      const eps = DB.getAnimeEpisodesFor(activeAnimeId)[activeSeasonForWatch] || [];
+      const eps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio)[activeSeasonForWatch] || [];
       const ep = eps.find(x => x.id === id);
       if (ep) itemName = `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}`;
     }

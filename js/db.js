@@ -4,7 +4,7 @@
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
 
-const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], aiConfig: {}, siteConfig: {} };
+const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, aiConfig: {}, siteConfig: {} };
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
 
 // Checa se o supabase está disponível (injetado via auth.js)
@@ -20,7 +20,7 @@ const DB = {
         const supa = getSupa();
         const [
             { data: cartoons }, { data: episodes }, { data: movies },
-            { data: animes }, { data: animeEps }, { data: mangas }, { data: settings }
+            { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols }, { data: settings }
         ] = await Promise.all([
             supa.from('cartoons').select('*').order('created_at', { ascending: true }),
             supa.from('episodes').select('*'),
@@ -28,6 +28,7 @@ const DB = {
             supa.from('animes').select('*').order('created_at', { ascending: true }),
             supa.from('anime_episodes').select('*'),
             supa.from('mangas').select('*').order('created_at', { ascending: true }),
+            supa.from('manga_volumes').select('*').order('volume_number', { ascending: true }),
             supa.from('settings').select('*')
         ]);
 
@@ -35,12 +36,21 @@ const DB = {
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
-        
         // Settings
         if (settings) {
             settings.forEach(s => {
                 if (s.key_name === 'siteConfig') _store.siteConfig = s.config_data;
                 if (s.key_name === 'aiConfig') _store.aiConfig = s.config_data;
+            });
+        }
+
+        // Agrupar Manga Volumes
+        if (mangaVols) {
+            mangaVols.forEach(v => {
+                if (!_store.mangaVolumes[v.manga_id]) _store.mangaVolumes[v.manga_id] = [];
+                _store.mangaVolumes[v.manga_id].push({
+                   id: v.id, volume_number: v.volume_number, title: v.title, pdf_url: v.pdf_url
+                });
             });
         }
 
@@ -96,17 +106,59 @@ const DB = {
     }
   },
 
-  // Upload local mantido (usando Node), pois o Supabase Storage precisaria de permissões extras
+  // Upload de capa via Supabase Storage (acessível de qualquer lugar)
   async uploadCapa(base64String) {
-      const API_BASE = 'http://localhost:3000';
-      const res = await fetch(API_BASE + '/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64: base64String })
-      });
-      if (!res.ok) throw new Error('Falha no upload da capa');
-      const d = await res.json();
-      return d.url;
+      const supa = getSupa();
+      
+      // Extrair extensão e dados binários do base64
+      const matches = base64String.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (!matches) throw new Error('Formato de imagem inválido');
+      
+      const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+      const base64Data = matches[2];
+      
+      // Converter base64 para Uint8Array
+      const byteCharacters = atob(base64Data);
+      const byteArray = new Uint8Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+          byteArray[i] = byteCharacters.charCodeAt(i);
+      }
+      const blob = new Blob([byteArray], { type: `image/${matches[1]}` });
+      
+      const filename = `capa_${Date.now()}.${ext}`;
+      
+      // Fazer upload para o bucket 'capas' no Supabase Storage
+      const { data, error } = await supa.storage
+          .from('capas')
+          .upload(filename, blob, { contentType: `image/${matches[1]}`, upsert: false });
+      
+      if (error) throw new Error('Falha no upload da capa: ' + error.message);
+      
+      // Retornar URL pública da imagem
+      const { data: { publicUrl } } = supa.storage
+          .from('capas')
+          .getPublicUrl(filename);
+      
+      return publicUrl;
+  },
+
+  // Upload de PDF (recebe objeto File do input text, para aguentar PDFs grandes)
+  async uploadMangaPdf(file) {
+      const supa = getSupa();
+      const ext = file.name.split('.').pop() || 'pdf';
+      const filename = `manga_vol_${Date.now()}.${ext}`;
+      
+      const { data, error } = await supa.storage
+          .from('mangas_pdfs')
+          .upload(filename, file, { contentType: file.type || 'application/pdf', upsert: false });
+      
+      if (error) throw new Error('Falha no upload do PDF: ' + error.message);
+      
+      const { data: { publicUrl } } = supa.storage
+          .from('mangas_pdfs')
+          .getPublicUrl(filename);
+      
+      return publicUrl;
   },
 
   /* Cartoons */
@@ -390,6 +442,75 @@ const DB = {
     if (error) throw new Error(error.message);
     _store.mangas = _store.mangas.filter(m => m.id !== id);
   },
+
+  getMangaVolumesFor(mangaId) {
+    return _store.mangaVolumes[mangaId] || [];
+  },
+  async addMangaVolume(mangaId, file, urlExterna, volumeData) {
+    // Fazer upload do PDF ou usar o Link direto
+    let pdfUrl = '';
+    if (file) {
+        pdfUrl = await DB.uploadMangaPdf(file);
+    } else if (urlExterna) {
+        pdfUrl = urlExterna;
+    }
+    
+    const item = {
+        id: 'mv_' + Date.now(),
+        manga_id: mangaId,
+        volume_number: volumeData.volume,
+        title: volumeData.title || '',
+        pdf_url: pdfUrl,
+        created_at: Date.now()
+    };
+    
+    const { error } = await getSupa().from('manga_volumes').insert([item]);
+    if (error) throw new Error(error.message);
+    
+    if (!_store.mangaVolumes[mangaId]) _store.mangaVolumes[mangaId] = [];
+    _store.mangaVolumes[mangaId].push({
+        id: item.id, volume_number: item.volume_number, title: item.title, pdf_url: item.pdf_url
+    });
+    // Reordenar por volume
+    _store.mangaVolumes[mangaId].sort((a,b) => a.volume_number - b.volume_number);
+    
+    return item;
+  },
+  async deleteMangaVolume(mangaId, volId) {
+    const { error } = await getSupa().from('manga_volumes').delete().eq('id', volId);
+    if (error) throw new Error(error.message);
+    
+    if (_store.mangaVolumes[mangaId]) {
+        _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].filter(v => v.id !== volId);
+    }
+  },
+  async updateMangaVolume(mangaId, volId, file, urlExterna, volumeData) {
+      let pdfUrl = '';
+      if (file) {
+          pdfUrl = await DB.uploadMangaPdf(file);
+      } else if (urlExterna) {
+          pdfUrl = urlExterna;
+      }
+      
+      const updatePayload = {
+          volume_number: volumeData.volume,
+          title: volumeData.title || ''
+      };
+      
+      if (pdfUrl) {
+          updatePayload.pdf_url = pdfUrl;
+      }
+      
+      const { error } = await getSupa().from('manga_volumes').update(updatePayload).eq('id', volId);
+      if (error) throw new Error(error.message);
+      
+      if (_store.mangaVolumes[mangaId]) {
+          _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].map(v => 
+              v.id === volId ? { ...v, ...updatePayload } : v
+          );
+          _store.mangaVolumes[mangaId].sort((a,b) => a.volume_number - b.volume_number);
+      }
+  },
   
   /* IA Config */
   getAIConfig() { return { ..._store.aiConfig }; },
@@ -412,14 +533,47 @@ function fileToBase64(file) {
   });
 }
 
-function showToast(msg, type = 'success') {
+function showToast(msg, type = 'success', ms = 3000) {
+  const container = document.getElementById('toast');
+  if (!container) return;
+  
+  const el = document.createElement('div');
+  el.className = 'undo-toast';
+  
+  const isError = type === 'error';
+  if (isError) {
+      el.style.border = '2px solid var(--danger)';
+      el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
+  }
+  
+  el.innerHTML = `
+    <div class="undo-content" style="justify-content: center;">
+      <span style="${isError ? 'color: var(--danger); font-weight: bold;' : ''}">${isError ? '⚠️ ' : ''}${msg}</span>
+    </div>
+  `;
+  
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 500);
+  }, ms);
+}
+
+function showDarkToast(msg, ms = 5000) {
   const container = document.getElementById('toast');
   if (!container) return;
   const el = document.createElement('div');
-  el.className = `toast-item ${type}`;
-  el.textContent = msg;
+  el.className = 'undo-toast';
+  el.innerHTML = `
+    <div class="undo-content" style="justify-content: center;">
+      <span>${msg}</span>
+    </div>
+  `;
   container.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+  setTimeout(() => {
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 500);
+  }, ms);
 }
 
 function showUndoToast(msg, onComplete, onUndo) {
@@ -452,9 +606,10 @@ function showUndoToast(msg, onComplete, onUndo) {
 
   btn.onclick = () => {
     clearInterval(timer);
-    el.remove();
+    el.classList.add('fade-out');
+    setTimeout(() => el.remove(), 500);
     onUndo();
-    showToast('Ação cancelada!');
+    showDarkToast('Ação cancelada!', 5000);
   };
 }
 

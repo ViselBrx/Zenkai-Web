@@ -25,18 +25,8 @@ if (window.supabase) {
     console.error("Erro: Biblioteca Supabase não encontrada! Verifique o link do CDN no HTML.");
 }
 
-// 3. Funções Utilitárias de UI (Toast/Alert)
-function showToast(msg, isError = false) {
-    const toast = document.getElementById('toast');
-    if (!toast) {
-        alert(msg);
-        return;
-    }
-    toast.textContent = msg;
-    toast.style.background = isError ? 'var(--danger)' : 'var(--success)';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
+// 3. [Removido] Usamos a função global showToast do db.js com Neon.
+
 
 // 4. Lógica de Login
 const loginForm = document.getElementById('loginForm');
@@ -66,12 +56,29 @@ if (loginForm) {
 
         if (error) {
             console.error("Erro no login:", error);
-            errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
+            
+            // Verifica se o erro é sobre email não confirmado
+            if (error.message && error.message.includes('Email not confirmed')) {
+                errorDiv.textContent = "⚠️ Email não confirmado. Verifique seu email para um link de confirmação e tente novamente.";
+            } else {
+                errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
+            }
+            
             errorDiv.style.display = 'block';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Entrar no Painel';
         } else {
             console.log("Login realizado:", data);
+            
+            // Verifica se o email foi confirmado
+            if (data.user && !data.user.email_confirmed_at) {
+                errorDiv.textContent = "⚠️ Email ainda não confirmado. Verifique seu email para o link de confirmação.";
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Entrar no Painel';
+                return;
+            }
+            
             showToast('Login realizado com sucesso!');
             setTimeout(() => {
                 window.location.href = 'index.html'; // Redireciona pro DB
@@ -122,10 +129,30 @@ if (registerForm) {
             submitBtn.textContent = 'Criar Conta';
         } else {
             console.log("Registro realizado:", data);
-            successDiv.style.display = 'block';
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
+            
+            // Mostra mensagem pedindo confirmação de email
+            if (successDiv) {
+                successDiv.innerHTML = `
+                    <div style="color: var(--success); background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--success); text-align: center;">
+                        ✅ Conta criada com sucesso!<br>
+                        <small>Verifique seu email para confirmar a conta. Depois você poderá fazer login.</small>
+                    </div>
+                `;
+            }
+            
+            if (successDiv) successDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Criar Conta';
+            
+            // Mostra seção de reenviar email
+            const resendSection = document.getElementById('resendEmailSection');
+            const resendEmailInput = document.getElementById('resendEmail');
+            if (resendSection && resendEmailInput) {
+                resendEmailInput.value = email; // Preenche com o email do cadastro
+                resendSection.style.display = 'block';
+            }
+            
+            // NÃO redireciona automaticamente para dar chance de reenviar
         }
     });
 }
@@ -220,4 +247,69 @@ async function checkAuthStatus() {
 document.addEventListener('DOMContentLoaded', () => {
     // Pequeno delay pra dar tempo do themes.js injetar os links na navbar
     setTimeout(checkAuthStatus, 100);
+    
+    // 7. Lógica de Reenviar Email de Confirmação
+    const resendBtn = document.getElementById('resendBtn');
+    if (resendBtn) {
+        resendBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resendEmail').value;
+            const errorDiv = document.getElementById('registerError');
+            
+            if (!email) {
+                errorDiv.textContent = "⚠️ Por favor, digite um email válido.";
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            resendBtn.disabled = true;
+            resendBtn.textContent = '⏳ Reenviando...';
+            errorDiv.style.display = 'none';
+            
+            try {
+                const { error } = await supaClient.auth.resend({
+                    type: 'signup',
+                    email: email
+                });
+                
+                if (error) {
+                    console.error("Erro ao reenviar:", error);
+                    errorDiv.textContent = "❌ Erro ao reenviar: " + (error.message || "Tente novamente mais tarde.");
+                    errorDiv.style.display = 'block';
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = '📧 Reenviar Email de Confirmação';
+                } else {
+                    // Sucesso!
+                    const successDiv = document.getElementById('registerSuccess');
+                    if (successDiv) {
+                        successDiv.innerHTML = `
+                            <div style="color: var(--success); background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; border: 1px solid var(--success); text-align: center;">
+                                ✅ Email de confirmação reenviado com sucesso!<br>
+                                <small>Verifique sua caixa de entrada (e pasta SPAM) em: <strong>${email}</strong></small>
+                            </div>
+                        `;
+                        successDiv.style.display = 'block';
+                    }
+                    
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = '📧 Reenviar Email de Confirmação';
+                    
+                    // Remove a seção de reenvio após 5 segundos
+                    setTimeout(() => {
+                        const resendSection = document.getElementById('resendEmailSection');
+                        if (resendSection) {
+                            resendSection.style.opacity = '0.5';
+                            resendSection.style.pointerEvents = 'none';
+                        }
+                    }, 5000);
+                }
+            } catch (err) {
+                console.error("Erro inesperado:", err);
+                errorDiv.textContent = "❌ Erro inesperado. Tente novamente.";
+                errorDiv.style.display = 'block';
+                resendBtn.disabled = false;
+                resendBtn.textContent = '📧 Reenviar Email de Confirmação';
+            }
+        });
+    }
 });

@@ -108,7 +108,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/ai/proxy') {
     try {
       const data = await getBody(req);
-      const { target, method, headers, body } = data;
+      const { target, method, headers, body, apiKey: frontendApiKey } = data;
       const config = readData().aiConfig || {};
       
       console.log(`[AI Proxy] Alvo: ${target} | Método: ${method || 'POST'}`);
@@ -118,17 +118,17 @@ const server = http.createServer(async (req, res) => {
 
       if (target === 'groq') {
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-        apiKey = config.groqKey;
+        apiKey = config.groqKey || frontendApiKey;
       } else if (target === 'zimage') {
         apiUrl = 'https://api.z-image.com/v1/generate';
-        apiKey = config.zimageKey;
+        apiKey = config.zimageKey || frontendApiKey;
       } else if (target === 'magichour') {
         apiUrl = 'https://api.magichour.ai/v1/video';
-        apiKey = config.magichourKey;
+        apiKey = config.magichourKey || frontendApiKey;
       }
-
-      console.log(`[AI Proxy] Chave encontrada? ${!!apiKey} | URL: ${apiUrl}`);
-
+      console.log(`[AI Proxy] URL: ${apiUrl}`);
+      console.log(`[AI Proxy] Chave do Frontend chegou? ${!!frontendApiKey} (Valor: ${frontendApiKey ? frontendApiKey.substring(0,6) + '...' : 'Vazio'})`);
+      console.log(`[AI Proxy] Chave defasada do data.json: ${config.groqKey ? config.groqKey.substring(0,6) + '...' : 'Vazio'}`);
       if (!apiUrl || !apiKey) {
         console.error(`[AI Proxy] Erro Crítico: Alvo '${target}' não configurado corretamente.`);
         return sendJSON(res, 400, { error: 'Configuração de IA ausente no data.json' });

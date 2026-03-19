@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (epForm) {
-    epForm.addEventListener('submit', (e) => {
+    epForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!activeCartoonId) return showToast('Selecione um desenho primeiro', 'error');
       
@@ -321,27 +321,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         const epData = { epNumber: num, title, iframe };
 
         if (editingEpId) {
-          DB.updateEpisode(activeCartoonId, editingSeason, s, editingEpId, epData);
-          showToast('Episódio atualizado!');
+          await DB.updateEpisode(activeCartoonId, editingSeason, s, editingEpId, epData);
+          showDarkToast('Episódio atualizado!');
           resetEpForm();
         } else {
-          DB.addEpisode(activeCartoonId, s, epData);
-          showToast(`Adicionado: Temp ${s} - Ep ${num}`);
+          const newEp = await DB.addEpisode(activeCartoonId, s, epData);
           epNumber.value = num + 1;
           epTitle.value = '';
           epIframe.value = '';
+          showUndoToast(`Adicionado: Temp ${s} - Ep ${num}`,
+            () => {},
+            async () => {
+              await DB.deleteEpisode(activeCartoonId, s, newEp.id);
+              renderContent();
+            }
+          );
         }
       } else {
         const movieData = { title, iframe };
         if (editingMovieId) {
-          DB.updateMovie(activeCartoonId, editingMovieId, movieData);
-          showToast('Filme atualizado!');
+          await DB.updateMovie(activeCartoonId, editingMovieId, movieData);
+          showDarkToast('Filme atualizado!');
           resetEpForm();
         } else {
-          DB.addMovie(activeCartoonId, movieData);
-          showToast('Filme adicionado!');
+          const newMovie = await DB.addMovie(activeCartoonId, movieData);
           epTitle.value = '';
           epIframe.value = '';
+          showUndoToast('Filme adicionado!',
+            () => {},
+            async () => {
+              await DB.deleteMovie(activeCartoonId, newMovie.id);
+              renderContent();
+            }
+          );
         }
       }
 

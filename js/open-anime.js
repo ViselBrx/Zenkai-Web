@@ -59,12 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   loadConfigs();
 
-  saveBtn.addEventListener('click', () => {
-    DB.saveAIConfig({
-      groqKey: groqInp.value.trim(),
-      provider: 'groq'
-    });
-    showToast('Chave Groq salva com sucesso!');
+  saveBtn.addEventListener('click', async () => {
+    try {
+      await DB.saveAIConfig({
+        groqKey: groqInp.value.trim(),
+        provider: 'groq'
+      });
+      showToast('Chave Groq salva com sucesso!');
+    } catch(e) {
+      showToast('Erro ao salvar chave: ' + e.message, 'error');
+    }
   });
 
   
@@ -91,6 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target,
+          apiKey: config.groqKey,
           body: {
             model: model,
             messages: chatHistory,
@@ -100,7 +105,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Erro HTTP ${res.status}`);
+        const erroMsg = typeof errData.error === 'object' ? errData.error.message : errData.error;
+        throw new Error(erroMsg || `Erro HTTP ${res.status}`);
       }
       const data = await res.json();
       const aiResponse = data.choices[0].message.content;

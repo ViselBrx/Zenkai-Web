@@ -177,12 +177,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       if (editingId) {
         await DB.updateAnime(editingId, data);
-        showToast('Anime atualizado!');
+        initFilters(); renderTable(); closeForm();
+        showDarkToast('Anime atualizado!');
       } else {
-        await DB.addAnime(data);
-        showToast('Anime cadastrado com sucesso!');
+        const newItem = await DB.addAnime(data);
+        initFilters(); renderTable(); closeForm();
+        showUndoToast('Anime cadastrado com sucesso!',
+          () => { /* Timer expirou, item permanece */ },
+          async () => {
+            await DB.deleteAnime(newItem.id);
+            initFilters();
+            renderTable();
+          }
+        );
       }
-      initFilters(); renderTable(); closeForm();
     } catch(err) {
       showToast('Erro ao salvar!', 'error');
     } finally {

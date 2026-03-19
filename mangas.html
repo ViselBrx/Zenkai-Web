@@ -3,13 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Mangás</title>
-  <meta name="description" content="Links de download de mangás favoritos." />
+  <title>Anime House — Leitor de Mangás</title>
+  <meta name="description" content="Leitor interativo de PDFs dos seus mangás." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
+  <style>
+    .manga-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .7rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .manga-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .88rem;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+    .manga-pill:hover, .manga-pill.active {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .reader-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .volume-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .volume-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px var(--primary-glow);
+    }
+    .vol-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .vol-title {
+      font-weight: bold;
+      color: var(--text);
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    .vol-sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .btn-del-vol {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      opacity: 0.5;
+    }
+    .volume-card:hover .btn-del-vol { opacity: 1; }
+
+    /* Modal do Leitor */
+    #readerModal .modal {
+      width: 95vw !important;
+      max-width: 1400px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    #readerFrame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      background: #333; /* fundo escuro pro leitor pdf */
+    }
+  </style>
 </head>
-<body>
+<body class="anime-context">
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -17,58 +110,118 @@
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Anime</span>House
   </div>
-  <ul class="navbar-links" id="navLinks">
-  </ul>
+  <ul class="navbar-links" id="navLinks"></ul>
   <button class="navbar-burger" id="navBurger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
-<main class="container" style="max-width:900px;">
-  <div class="page-header">
-    <h1>📖 Seção de Mangás</h1>
-    <p>Adicione e organize links de download ou leitura dos seus mangás favoritos</p>
+<main class="container">
+  <div class="page-header" style="display: flex; justify-content: space-between; align-items:flex-end; flex-wrap:wrap; gap: 1rem;">
+    <div>
+      <h1>📚 Leitor de Mangás</h1>
+      <p>Organize e leia seus mangás direto da página, separados por volumes.</p>
+    </div>
+    <div style="display:flex; gap: 10px;">
+      <input id="searchManga" class="form-control" type="text" placeholder="🔍 Buscar Mangá" style="min-width: 200px;" />
+      <button class="btn btn-primary" id="addMangaBtn">✚ Adicionar Mangá</button>
+    </div>
   </div>
 
-  <div class="search-bar" style="margin-bottom:1.5rem">
-    <input id="searchManga" type="text" placeholder="🔍  Buscar por nome..." style="flex:1" />
-    <button class="btn btn-primary" id="addMangaBtn">✚ Adicionar Mangá</button>
+  <!-- SELETOR DE MANGÁS -->
+  <div id="mangaPills" class="manga-selector"></div>
+
+  <!-- AVISO SE NADA FOI SELECIONADO -->
+  <div id="noMangaMsg" class="select-cartoon-prompt" style="display:none;">
+    📚 Selecione um mangá acima para abrir a estante de leitura.
   </div>
 
-  <div id="mangaList" class="manga-list"></div>
-
-  <div id="emptyMangaState" class="empty-state" style="display:none;">
-    <div class="empty-icon">📂</div>
-    <p>Nenhum mangá na lista. Clique em <strong>Adicionar Mangá</strong>.</p>
+  <!-- PAINEL DE VOLUMES DO MANGÁ SELECIONADO -->
+  <div id="volumesPanel" style="display:none; animation: fadeInSlide 0.4s forwards;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:1rem;">
+      <h2 id="mangaPanelTitle" style="margin:0;color:var(--primary);font-family:'Bangers';font-size:1.8rem;">Volumes</h2>
+      <button class="btn btn-primary" id="addVolumeBtn">
+        ✚ Novo Volume (PDF)
+      </button>
+    </div>
+    
+    <div id="volumesGrid" class="reader-grid"></div>
   </div>
 </main>
 
-<!-- MODAL ADD/EDIT -->
+<!-- MODAL CADASTRAR MANGÁ (SÓ O NOME E FOTO OPCIONAL) -->
 <div class="modal-overlay" id="mangaModal">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="mangaTitle">Novo Link de Mangá</h2>
+      <h2>Novo Mangá</h2>
       <button class="modal-close" id="mangaClose">✕</button>
     </div>
     <form id="mangaForm" novalidate>
-      <input type="hidden" id="mangaId" />
       <div class="form-group">
-        <label>Nome do Mangá * </label>
-        <input id="mNome" class="form-control" type="text" placeholder="Ex: JoJo Bizarre Adventure" required />
+        <label>Nome do Mangá *</label>
+        <input id="mNome" class="form-control" type="text" placeholder="Ex: Berserk" required />
       </div>
-      <div class="form-group">
-        <label>URL de Download/Leitura *</label>
-        <input id="mUrl" class="form-control" type="url" placeholder="https://..." required />
-      </div>
-      <div class="form-group">
-        <label>Volume/Capítulo Opcional</label>
-        <input id="mVol" class="form-control" type="text" placeholder="Ex: Cap 1 - Volume 20" />
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-ghost" id="mangaCancel">Cancelar</button>
-        <button type="submit" class="btn btn-primary">💾 Salvar</button>
+      <!-- Removemos URL e info de volume, pois agora vão na tabela manga_volumes separada -->
+      <div class="form-actions" style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" id="btnSalvarManga" style="width:100%">💾 Salvar Mangá</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL ADD VOLUME (UPLOAD PDF) -->
+<div class="modal-overlay" id="volumeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Fazer Upload de Volume</h2>
+      <button class="modal-close" id="volumeClose">✕</button>
+    </div>
+    <form id="volumeForm">
+      <div class="form-group">
+        <label>Número do Volume *</label>
+        <input id="vNumber" class="form-control" type="number" min="1" value="1" placeholder="Ex: 1" required />
+      </div>
+      <div class="form-group">
+        <label>Título (Opcional)</label>
+        <input id="vTitle" class="form-control" type="text" placeholder="Ex: A Espada Negra" />
+      </div>
+      <div class="form-group">
+        <label>Modo de Envio *</label>
+        <select id="vMode" class="form-control" style="border-color:var(--primary);">
+           <option value="url" selected>Link do PDF (Google Drive, Mega, etc)</option>
+           <option value="file">Apenas Fazer Upload (Arquivos Curtos)</option>
+        </select>
+      </div>
+      <div class="form-group" id="grpUrl">
+        <label>Link de Visualização/Leitura *</label>
+        <input id="vUrl" class="form-control" type="url" placeholder="Ex: https://drive.google.com/file/d/..." />
+        <small style="color:var(--primary);display:block;margin-top:5px;font-weight:bold;">Links do Google Drive são automaticamente abertos no leitor de PDF do site.</small>
+      </div>
+      <div class="form-group" id="grpFile" style="display:none;">
+        <label>Arquivo do Mangá (Somente PDF) *</label>
+        <input id="vFile" class="form-control" type="file" accept="application/pdf" />
+        <small style="color:var(--text-muted);display:block;margin-top:5px;">Para PDFs com mais de 50MB, use a opção de "Link do Drive".</small>
+      </div>
+      <div class="form-actions" style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" id="btnSalvarVolume" style="width:100%">📤 Iniciar Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LEITOR DE MANGÁ (TELA CHEIA) -->
+<div class="modal-overlay" id="readerModal">
+  <div class="modal" id="readerModalContent" style="position:relative;">
+    <div class="modal-header">
+      <h2 id="readerTitle" style="font-family:'Bangers'; color:var(--primary); font-size: 1.6rem; margin:0">Lendo...</h2>
+      <div style="display:flex; align-items:center; gap: 1rem;">
+         <button class="btn btn-ghost btn-sm" id="btnFullscreen" style="color:var(--text); border:1px solid var(--border);">
+            🔲 Ativar Tela Cheia
+         </button>
+         <button class="modal-close" id="readerClose" style="position:static;">✕</button>
+      </div>
+    </div>
+    <iframe id="readerFrame" src="" title="Leitor PDF" allowfullscreen></iframe>
   </div>
 </div>
 

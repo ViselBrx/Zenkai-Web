@@ -178,12 +178,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       if (editingId) {
         await DB.updateCartoon(editingId, data);
-        showToast('Desenho atualizado!');
+        initFilters(); renderTable(); closeForm();
+        showDarkToast('Desenho atualizado!');
       } else {
-        await DB.addCartoon(data);
-        showToast('Desenho cadastrado com sucesso!');
+        const newItem = await DB.addCartoon(data);
+        initFilters(); renderTable(); closeForm();
+        showUndoToast('Desenho cadastrado com sucesso!',
+          () => { /* Timer expirou, item permanece */ },
+          async () => {
+            await DB.deleteCartoon(newItem.id);
+            initFilters();
+            renderTable();
+          }
+        );
       }
-      initFilters(); renderTable(); closeForm();
     } catch(err) {
       showToast('Erro ao salvar!', 'error');
     } finally {

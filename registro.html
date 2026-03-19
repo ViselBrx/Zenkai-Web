@@ -126,6 +126,16 @@
     <div id="registerError" class="auth-error">Erro ao registrar. Verifique os dados.</div>
     <div id="registerSuccess" class="auth-success">Conta criada! Redirecionando...</div>
     
+    <!-- Seção de Reenviar Email (oculta por padrão) -->
+    <div id="resendEmailSection" style="display: none; margin-bottom: 1.5rem; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); text-align: center;">
+      <p style="margin: 0 0 10px; color: var(--text-main); font-size: 0.9rem;">
+        ⏱️ <strong>Não recebeu o email de confirmação?</strong><br/>
+        <small style="color: var(--text-muted);">Verifique a pasta de SPAM ou clique abaixo para reenviar</small>
+      </p>
+      <input type="email" id="resendEmail" placeholder="seu-email@exemplo.com" style="width: 100%; padding: 8px; margin-bottom: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main);" />
+      <button type="button" id="resendBtn" class="btn btn-secondary" style="width: 100%; padding: 10px; font-size: 0.85rem;">📧 Reenviar Email de Confirmação</button>
+    </div>
+    
     <form class="auth-form" id="registerForm">
       <div class="form-group">
         <label for="email">E-mail</label>

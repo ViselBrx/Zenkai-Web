@@ -1050,10 +1050,10 @@
     }
   ],
   "aiConfig": {
-    "groqKey": "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",
+    "groqKey": "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",
     "provider": "groq"
   },
   "siteConfig": {
-    "theme": ""
+    "theme": "theme-tt-classic"
   }
 }
