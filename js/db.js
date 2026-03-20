@@ -13,10 +13,78 @@ function getSupa() {
     return window.supabaseClient;
 }
 
+// Utilitário para limpar os iframes (Redecanais mudam muito de domínio)
+// PROBLEMA RAIZ: os iframes usam hostname percent-encoded (ex: %72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F
+// que é 'redecanais.ooo'). Browsers NÃO conseguem resolver hostnames codificados assim,
+// por isso o player fica preto. A correção é decodificar o src e substituir o domínio.
+function cleanIframe(iframe) {
+    if (!iframe) return '';
+    const iframeTrim = iframe.trim();
+
+    // --- Caso 1: tag <iframe> completa ---
+    if (iframeTrim.toLowerCase().startsWith('<iframe')) {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(iframeTrim, 'text/html');
+            const el = doc.querySelector('iframe');
+            if (el) {
+                let src = el.getAttribute('src') || '';
+
+                // DECODE: converte %72%65%64... → redecanais.ooo (etc.)
+                try { src = decodeURIComponent(src); } catch(e) { /* ignora erros de decode */ }
+
+                // Protocolo absoluto
+                if (src.startsWith('//')) src = 'https:' + src;
+                if (src.startsWith('http://')) src = 'https://' + src.slice(7);
+
+                // Substituição de domínio (cobre todos os domínios conhecidos do Redecanais)
+                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+
+                el.setAttribute('src', src);
+                el.setAttribute('allow', 'fullscreen');
+                el.setAttribute('allowfullscreen', '');
+                el.setAttribute('frameborder', '0');
+                el.setAttribute('width', '100%');
+                el.removeAttribute('loading');
+
+                return el.outerHTML;
+            }
+        } catch(e) {
+            console.warn('cleanIframe DOMParser error, usando fallback regex:', e);
+        }
+
+        // Fallback regex se DOMParser falhar
+        return iframeTrim
+            .replace(/src="([^"]+)"/gi, (_, rawSrc) => {
+                let s = rawSrc;
+                try { s = decodeURIComponent(s); } catch(e) {}
+                if (s.startsWith('//')) s = 'https:' + s;
+                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+                return `src="${s}"`;
+            })
+            .replace(/allow="[^"]*"/gi, 'allow="fullscreen"');
+    }
+
+    // --- Caso 2: só a URL ---
+    let url = iframeTrim;
+    try { url = decodeURIComponent(url); } catch(e) {}
+    if (url.startsWith('//')) url = 'https:' + url;
+    if (url.startsWith('http://')) url = 'https://' + url.slice(7);
+    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+
+    if (url.startsWith('https://')) {
+        return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="fullscreen" allowfullscreen></iframe>`;
+    }
+
+    return iframe; // devolve original se não reconheceu
+}
+
+
 const DB = {
   // Inicializa o banco (Baixa tudo do Supabase para a memória local)
   async init() {
     try {
+        _store = JSON.parse(JSON.stringify(_DEFAULT));
         const supa = getSupa();
         const [
             { data: cartoons }, { data: episodes }, { data: movies },
@@ -59,7 +127,12 @@ const DB = {
             episodes.forEach(ep => {
                 if (!_store.episodes[ep.cartoon_id]) _store.episodes[ep.cartoon_id] = {};
                 if (!_store.episodes[ep.cartoon_id][ep.temporada]) _store.episodes[ep.cartoon_id][ep.temporada] = [];
-                _store.episodes[ep.cartoon_id][ep.temporada].push({ id: ep.id, epNumber: ep.ep_number, title: ep.title, iframe: ep.iframe });
+                _store.episodes[ep.cartoon_id][ep.temporada].push({ 
+                  id: ep.id, 
+                  epNumber: ep.ep_number, 
+                  title: ep.title, 
+                  iframe: cleanIframe(ep.iframe) 
+                });
             });
             // Opcional: ordenar episódios
             for(let cid in _store.episodes) {
@@ -73,7 +146,11 @@ const DB = {
         if (movies) {
             movies.forEach(m => {
                 if (!_store.movies[m.cartoon_id]) _store.movies[m.cartoon_id] = [];
-                _store.movies[m.cartoon_id].push({ id: m.id, title: m.title, iframe: m.iframe });
+                _store.movies[m.cartoon_id].push({ 
+                  id: m.id, 
+                  title: m.title, 
+                  iframe: cleanIframe(m.iframe) 
+                });
             });
         }
 
@@ -85,7 +162,7 @@ const DB = {
                 if (!_store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada]) _store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada] = [];
                 
                 _store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada].push({
-                    id: ep.id, epNumber: ep.ep_number, title: ep.title, iframe: ep.iframe
+                    id: ep.id, epNumber: ep.ep_number, title: ep.title, iframe: cleanIframe(ep.iframe)
                 });
             });
              for(let aid in _store.animeEpisodes) {
@@ -206,7 +283,7 @@ const DB = {
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: epData.iframe || ''
+        iframe: cleanIframe(epData.iframe || '')
     };
 
     const { error } = await getSupa().from('episodes').insert([item]);
@@ -222,7 +299,7 @@ const DB = {
      const isSeasonChanging = (oldSeason !== newSeason);
      const updatePayload = {
          title: data.title,
-         iframe: data.iframe,
+         iframe: cleanIframe(data.iframe),
          ep_number: data.epNumber,
          temporada: String(newSeason)
      };
@@ -270,7 +347,7 @@ const DB = {
         id: 'm_c_' + Date.now(), 
         cartoon_id: cId, 
         title: movieData.title, 
-        iframe: movieData.iframe 
+        iframe: cleanIframe(movieData.iframe) 
     };
     const { error } = await getSupa().from('movies').insert([item]);
     if (error) throw new Error(error.message);
@@ -281,7 +358,10 @@ const DB = {
   },
 
   async updateMovie(cId, mId, data) {
-    const { error } = await getSupa().from('movies').update(data).eq('id', mId);
+    const updatePayload = { ...data };
+    if (updatePayload.iframe) updatePayload.iframe = cleanIframe(updatePayload.iframe);
+    
+    const { error } = await getSupa().from('movies').update(updatePayload).eq('id', mId);
     if (error) throw new Error(error.message);
 
     if (_store.movies[cId]) {
@@ -342,7 +422,7 @@ const DB = {
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: epData.iframe || ''
+        iframe: cleanIframe(epData.iframe || '')
     };
     const { error } = await getSupa().from('anime_episodes').insert([item]);
     if (error) throw new Error(error.message);
@@ -359,7 +439,7 @@ const DB = {
     const isSeasonChanging = (oldSeason !== newSeason);
     const updatePayload = {
          title: data.title,
-         iframe: data.iframe,
+         iframe: cleanIframe(data.iframe),
          ep_number: data.epNumber,
          temporada: String(newSeason)
     };

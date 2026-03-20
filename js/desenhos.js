@@ -208,7 +208,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
           <div class="episode-label" style="justify-content:space-between">
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
-            <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            <div style="display:flex;gap:5px;">
+              <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            </div>
           </div>
         `;
         grid.appendChild(card);
@@ -400,7 +402,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     activeEpisodeId = id;
     
     watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
-    watchFrame.innerHTML = item.iframe;
+    
+    // Mostra carregando brevemente antes de inserir o iframe
+    watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando Vídeo...</div>';
+    
+    setTimeout(() => {
+        watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: Vídeo indisponível.</p>';
+    }, 100);
+
     watchModal.classList.add('open');
   };
 

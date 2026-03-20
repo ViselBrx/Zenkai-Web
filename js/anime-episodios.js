@@ -226,13 +226,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
               <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
             </div>
-            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
               Episódio ${ep.epNumber}
             </div>
           </div>
           <div class="episode-label" style="justify-content:space-between">
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
-            <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            <div style="display:flex;gap:5px;">
+              <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            </div>
           </div>
         `;
         grid.appendChild(card);
@@ -425,12 +427,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     activeEpisodeId = id;
     
     watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
-    watchFrame.innerHTML = item.iframe;
+    
+    // Feedback visual de carregamento
+    watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando Anime...</div>';
+    
+    setTimeout(() => {
+        watchFrame.innerHTML = ''; // Limpar
+        if (item.iframe) {
+            // Usar método seguro para inserir iframe
+            const temp = document.createElement('div');
+            temp.innerHTML = item.iframe;
+            const iframe = temp.querySelector('iframe');
+            if (iframe) {
+                // Garantir atributos críticos
+                iframe.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:10px;');
+                iframe.setAttribute('allow', 'fullscreen');
+                iframe.setAttribute('loading', 'lazy');
+                iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
+                iframe.removeAttribute('height');
+                iframe.removeAttribute('width');
+                iframe.removeAttribute('scrolling');
+                watchFrame.appendChild(iframe);
+            } else {
+                watchFrame.innerHTML = '<p style="color:var(--danger)">Erro: Formato de iframe inválido.</p>';
+            }
+        } else {
+            watchFrame.innerHTML = '<p style="color:var(--danger)">Erro: Vídeo indisponível.</p>';
+        }
+    }, 100);
+
     watchModal.classList.add('open');
   };
 
   const closeWatch = () => {
     watchModal.classList.remove('open');
+    // Remover iframe para evitar que continue carregando
+    const iframes = watchFrame.querySelectorAll('iframe');
+    iframes.forEach(iframe => iframe.src = ''); // Parar carregamento
     watchFrame.innerHTML = '';
   };
   document.getElementById('watchClose').addEventListener('click', closeWatch);

@@ -237,14 +237,6 @@ input, textarea, select, button { font-family: inherit; }
   border: 3px solid var(--bg-dark) !important;
   box-shadow: 0 0 18px var(--primary), inset 0 0 8px rgba(var(--primary-rgb), 0.2) !important;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover) !important;
-  box-shadow: 0 0 28px var(--primary), inset 0 0 10px rgba(var(--primary-rgb), 0.3) !important;
-}
-::-webkit-scrollbar-thumb:active {
-  background: var(--primary) !important;
-  box-shadow: 0 0 10px var(--primary) !important;
-}
 
 /* Scrollbar da Navbar - VISÍVEL E TEMATIZADA */
 .navbar-links::-webkit-scrollbar {
@@ -261,14 +253,6 @@ input, textarea, select, button { font-family: inherit; }
   border-radius: 50px;
   border: 2px solid var(--bg-dark) !important;
   box-shadow: 0 0 18px var(--primary), inset 0 0 6px rgba(var(--primary-rgb), 0.2) !important;
-}
-.navbar-links::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-hover) !important;
-  box-shadow: 0 0 28px var(--primary), inset 0 0 8px rgba(var(--primary-rgb), 0.3) !important;
-}
-.navbar-links::-webkit-scrollbar-thumb:active {
-  background: var(--primary) !important;
-  box-shadow: 0 0 10px var(--primary) !important;
 }
 
 /* Scrollbar Firefox - Global */
@@ -1356,4 +1340,19 @@ body:hover .watermark {
   opacity: 0.9;
   transform: scale(1.05);
   text-shadow: 0 0 35px rgba(var(--primary-rgb), 1), 0 0 55px rgba(var(--primary-rgb), 0.6);
+}
+
+/* ===== WATCH FRAME — PLAYER ===== */
+/* Garante que o iframe dentro do watchFrame ocupe 100% do espaço */
+#watchFrame {
+  position: relative;
+}
+#watchFrame iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+  border-radius: 10px;
 }
