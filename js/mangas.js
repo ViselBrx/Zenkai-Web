@@ -162,12 +162,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const titleStr = v.title ? v.title : `Volume ${v.volume_number}`;
       
+      const noteData = DB.getMangaNote(v.id) || {};
+      const bookmarkVal = noteData.page_bookmark || '';
+      const textVal = noteData.note_text || '';
+      
+      const bookmarkBadge = bookmarkVal ? `<div class="vol-bookmark-badge">🔖 Pág. ${bookmarkVal}</div>` : '';
+      const hasNoteStyle = (bookmarkVal || textVal) ? 'color: var(--primary); border-color: var(--primary); opacity: 1;' : '';
+      
       card.innerHTML = `
+        ${bookmarkBadge}
         <span class="vol-icon">📖</span>
         <div class="vol-title">Volume ${v.volume_number}</div>
         <div class="vol-sub">${v.title || ''}</div>
-        <button class="vol-actions-ui btn-edit-vol" title="Editar Volume" style="position:absolute; top:10px; left:10px; opacity:0; transition:0.2s; background:var(--bg-card); border:1px solid var(--primary); color:var(--primary); cursor:pointer; font-size:1.1rem; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">✏️</button>
+        
+        <button class="vol-actions-ui btn-note-vol" title="Anotações e Marcações" style="${hasNoteStyle}">📝</button>
+        <button class="vol-actions-ui btn-edit-vol" title="Editar Volume" style="position:absolute; top:10px; right:50px; opacity:0; transition:0.2s; background:var(--bg-card); border:1px solid var(--primary); color:var(--primary); cursor:pointer; font-size:1.1rem; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">✏️</button>
         <button class="vol-actions-ui btn-del-vol" title="Apagar Volume" style="position:absolute; top:10px; right:10px; opacity:0; transition:0.2s; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); color:var(--danger); cursor:pointer; font-size:1.1rem; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">✖</button>
+        
       `;
 
       // Clicar para abrir leitor PDF
@@ -222,6 +233,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               renderVolumes();
             }
         );
+      });
+
+      // --- ANOTAÇÕES E BOOKMARKS ---
+      const noteBtn = card.querySelector('.btn-note-vol');
+      noteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openNoteModal(v);
       });
 
       volumesGrid.appendChild(card);
@@ -396,6 +414,63 @@ document.addEventListener('DOMContentLoaded', async () => {
       } finally {
           btn.disabled = false;
           btn.innerHTML = '📤 Iniciar Upload / Salvar Link';
+      }
+  });
+
+  /* ANOTAÇÕES (MODAL GLOBAL) */
+  const noteModal = document.getElementById('noteModal');
+  const noteClose = document.getElementById('noteClose');
+  const nPage = document.getElementById('nPage');
+  const nText = document.getElementById('nText');
+  const btnSalvarNote = document.getElementById('btnSalvarNote');
+  const btnExcluirNote = document.getElementById('btnExcluirNote');
+  let currentNoteVolId = null;
+
+  function openNoteModal(v) {
+      currentNoteVolId = v.id;
+      const noteData = DB.getMangaNote(v.id) || {};
+      nPage.value = noteData.page_bookmark || '';
+      nText.value = noteData.note_text || '';
+      document.querySelector('#noteModal .modal-header h2').textContent = `Anotações: Vol. ${v.volume_number}`;
+      noteModal.classList.add('open');
+  }
+
+  noteClose.addEventListener('click', () => {
+      noteModal.classList.remove('open');
+      currentNoteVolId = null;
+  });
+
+  btnExcluirNote.addEventListener('click', async () => {
+      if (!currentNoteVolId || !activeMangaId) return;
+      btnExcluirNote.disabled = true;
+      btnExcluirNote.textContent = 'Limpando...';
+      try {
+          await DB.saveMangaNote(activeMangaId, currentNoteVolId, '', '');
+          noteModal.classList.remove('open');
+          showDarkToast('Anotações excluídas!');
+          renderVolumes();
+      } catch (err) {
+          showToast('Erro ao limpar: ' + err.message, 'error');
+      } finally {
+          btnExcluirNote.disabled = false;
+          btnExcluirNote.innerHTML = '🗑️ Limpar';
+      }
+  });
+
+  btnSalvarNote.addEventListener('click', async () => {
+      if (!currentNoteVolId || !activeMangaId) return;
+      btnSalvarNote.disabled = true;
+      btnSalvarNote.textContent = 'Salvando...';
+      try {
+          await DB.saveMangaNote(activeMangaId, currentNoteVolId, nText.value, nPage.value);
+          noteModal.classList.remove('open');
+          showDarkToast('Anotações salvas com sucesso!');
+          renderVolumes(); // Recarrega os volumes para mostrar as badges
+      } catch (err) {
+          showToast('Erro ao salvar: ' + err.message, 'error');
+      } finally {
+          btnSalvarNote.disabled = false;
+          btnSalvarNote.innerHTML = '💾 Salvar Anotações';
       }
   });
 

@@ -90,18 +90,18 @@
   --mutant-rex-shadow-neon-h: 0 0 55px rgba(255, 102, 0, 0.8), 0 0 28px rgba(255, 102, 0, 0.5);
   --mutant-rex-scrollbar:     #ff6600;
 
-  /* TEMA REGULAR SHOW - AZUL ESCURO */
-  --regular-show-primary:       #1565c0;
-  --regular-show-primary-rgb:   21, 101, 192;
-  --regular-show-primary-hover: #1976d2;
-  --regular-show-accent:        #42a5f5;
-  --regular-show-accent2:       #0d47a1;
+  /* TEMA REGULAR SHOW - AZUL CLARO */
+  --regular-show-primary:       #1e88e5;
+  --regular-show-primary-rgb:   30, 136, 229;
+  --regular-show-primary-hover: #2196f3;
+  --regular-show-accent:        #64b5f6;
+  --regular-show-accent2:       #1565c0;
   --regular-show-text-main:     #e3f2fd;
-  --regular-show-text-muted:    #64b5f6;
-  --regular-show-border:        #1565c0;
-  --regular-show-shadow-neon:   0 0 28px rgba(21, 101, 192, 0.7);
-  --regular-show-shadow-neon-h: 0 0 55px rgba(21, 101, 192, 0.9), 0 0 28px rgba(21, 101, 192, 0.6);
-  --regular-show-scrollbar:     #1565c0;
+  --regular-show-text-muted:    #90caf9;
+  --regular-show-border:        #1e88e5;
+  --regular-show-shadow-neon:   0 0 28px rgba(30, 136, 229, 0.7);
+  --regular-show-shadow-neon-h: 0 0 55px rgba(30, 136, 229, 0.9), 0 0 28px rgba(30, 136, 229, 0.6);
+  --regular-show-scrollbar:     #1e88e5;
 
   /* TEMA VAGABOND - BRANCO NEON */
   --vagabond-primary:       #ffffff;

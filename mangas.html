@@ -84,6 +84,42 @@
     }
     .volume-card:hover .btn-del-vol { opacity: 1; }
 
+    .vol-bookmark-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .btn-note-vol {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      font-size: 1.2rem;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+      z-index: 5;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .volume-card:hover .btn-note-vol { opacity: 1; }
+    .btn-note-vol:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.1); }
+
     /* Modal do Leitor */
     #readerModal .modal {
       width: 95vw !important;
@@ -277,6 +313,30 @@
       </div>
       <div class="form-actions" style="margin-top: 2rem;">
         <button type="submit" class="btn btn-primary" id="btnSalvarVolume" style="width:100%">📤 Iniciar Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ANOTAÇÕES -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>Anotações do Volume</h2>
+      <button class="modal-close" id="noteClose">✕</button>
+    </div>
+    <form id="noteForm" novalidate onsubmit="return false">
+      <div class="form-group">
+        <label>Página Atual (Marca-página) 🔖</label>
+        <input id="nPage" class="form-control" type="number" min="1" placeholder="Ex: 42" style="border-color: var(--primary);" />
+      </div>
+      <div class="form-group">
+        <label>Suas Anotações 📝</label>
+        <textarea id="nText" class="form-control" placeholder="Citações, resumos, onde parei de ler..." style="min-height: 120px; resize: vertical; border-color: var(--primary); padding-top: 8px;"></textarea>
+      </div>
+      <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 10px;">
+        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;">🗑️ Limpar</button>
+        <button type="button" class="btn btn-primary" id="btnSalvarNote" style="flex: 2;">💾 Salvar Anotações</button>
       </div>
     </form>
   </div>

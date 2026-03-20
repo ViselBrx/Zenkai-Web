@@ -4,7 +4,7 @@
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
 
-const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, filmes: [], aiConfig: {}, siteConfig: {} };
+const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, mangaNotes: {}, filmes: [], aiConfig: {}, siteConfig: {} };
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
 
 // Checa se o supabase está disponível (injetado via auth.js)
@@ -89,6 +89,7 @@ const DB = {
         const [
             { data: cartoons }, { data: episodes }, { data: movies },
             { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols },
+            { data: mangaNotes },
             { data: filmesData }, { data: settings }
         ] = await Promise.all([
             supa.from('cartoons').select('*').order('created_at', { ascending: true }),
@@ -98,6 +99,7 @@ const DB = {
             supa.from('anime_episodes').select('*'),
             supa.from('mangas').select('*').order('created_at', { ascending: true }),
             supa.from('manga_volumes').select('*').order('volume_number', { ascending: true }),
+            supa.from('manga_notes').select('*'),
             supa.from('filmes').select('*').order('created_at', { ascending: true }),
             supa.from('settings').select('*')
         ]);
@@ -122,6 +124,18 @@ const DB = {
                 _store.mangaVolumes[v.manga_id].push({
                    id: v.id, volume_number: v.volume_number, title: v.title, pdf_url: v.pdf_url
                 });
+            });
+        }
+
+        // Agrupar Manga Notes
+        if (mangaNotes) {
+            mangaNotes.forEach(n => {
+                _store.mangaNotes[n.volume_id] = {
+                    id: n.id,
+                    manga_id: n.manga_id,
+                    note_text: n.note_text,
+                    page_bookmark: n.page_bookmark
+                };
             });
         }
 
@@ -597,6 +611,30 @@ const DB = {
           );
           _store.mangaVolumes[mangaId].sort((a,b) => a.volume_number - b.volume_number);
       }
+  },
+
+  /* Manga Notes & Bookmarks */
+  getMangaNote(volumeId) {
+      return _store.mangaNotes[volumeId] || null;
+  },
+  async saveMangaNote(mangaId, volumeId, noteText, pageBookmark) {
+      const existing = _store.mangaNotes[volumeId];
+      const payload = {
+          manga_id: mangaId,
+          volume_id: volumeId,
+          note_text: noteText || '',
+          page_bookmark: pageBookmark ? parseInt(pageBookmark) : null,
+          updated_at: Date.now()
+      };
+      
+      let id = existing ? existing.id : 'mn_' + Date.now();
+      if (!existing) payload.id = id;
+
+      const { error } = await getSupa().from('manga_notes').upsert([{ id, ...payload }]);
+      if (error) throw new Error(error.message);
+
+      _store.mangaNotes[volumeId] = { id, ...payload };
+      return _store.mangaNotes[volumeId];
   },
   
   /* Filmes */

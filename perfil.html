@@ -126,6 +126,27 @@
 <!-- Lógica do Perfil -->
 <script src="js/auth.js"></script>
 <script>
+  function showToast(msg, type = 'success', ms = 3000) {
+    const container = document.getElementById('toast');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = 'undo-toast';
+    const isError = type === 'error';
+    if (isError) {
+        el.style.border = '2px solid var(--danger)';
+        el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
+    }
+    el.innerHTML = `
+      <div class="undo-content" style="justify-content: center;">
+        <span style="${isError ? 'color: var(--danger); font-weight: bold;' : ''}">${isError ? '⚠️ ' : ''}${msg}</span>
+      </div>
+    `;
+    container.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('fade-out');
+      setTimeout(() => el.remove(), 300);
+    }, ms);
+  }
   document.addEventListener('DOMContentLoaded', async () => {
       // Aguarda o supaClient ser inicializado no auth.js
       const checkClient = setInterval(async () => {
