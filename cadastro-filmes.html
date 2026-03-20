@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Cadastro de Animes</title>
-  <meta name="description" content="Cadastre, edite e exclua animes da sua coleção." />
+  <title>Anime House — Cadastro de Filmes</title>
+  <meta name="description" content="Cadastre, edite e exclua filmes da sua coleção." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
@@ -17,8 +17,7 @@
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Anime</span>House
   </div>
-  <ul class="navbar-links" id="navLinks">
-  </ul>
+  <ul class="navbar-links" id="navLinks"></ul>
   <button class="navbar-burger" id="navBurger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -26,16 +25,16 @@
 
 <main class="container">
   <div class="page-header">
-    <h1>📋 Gerenciar Animes</h1>
-    <p>Cadastre, edite e exclua os animes da sua coleção</p>
+    <h1>🎬 Gerenciar Filmes</h1>
+    <p>Cadastre, edite e exclua os filmes da sua coleção</p>
   </div>
 
   <div class="search-bar">
     <input id="searchInput" type="text" placeholder="🔍  Pesquisar..." />
-    <select id="filterEstudio">
-      <option value="">Todos os estúdios</option>
+    <select id="filterGenero">
+      <option value="">Todos os gêneros</option>
     </select>
-    <button class="btn btn-primary" id="addBtn">✚ Novo Anime</button>
+    <button class="btn btn-primary" id="addBtn">✚ Novo Filme</button>
   </div>
 
   <div class="table-wrapper">
@@ -44,9 +43,9 @@
         <tr>
           <th>Capa</th>
           <th>Nome</th>
-          <th>Estúdio</th>
+          <th>Diretor</th>
           <th>Gênero</th>
-          <th>Temps</th>
+          <th>Ano</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -55,7 +54,7 @@
   </div>
   <div id="emptyState" class="empty-state" style="display:none;">
     <div class="empty-icon">📭</div>
-    <p>Nenhum anime cadastrado ainda. Clique em <strong>Novo Anime</strong>.</p>
+    <p>Nenhum filme cadastrado ainda. Clique em <strong>Novo Filme</strong>.</p>
   </div>
 </main>
 
@@ -63,37 +62,41 @@
 <div class="modal-overlay" id="formModal">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="formTitle">Novo Anime</h2>
+      <h2 id="formTitle">Novo Filme</h2>
       <button class="modal-close" id="modalClose">✕</button>
     </div>
-    <form id="animeForm" novalidate>
-      <input type="hidden" id="animeId" />
+    <form id="filmeForm" novalidate>
+      <input type="hidden" id="filmeId" />
       <div class="form-group">
         <label for="nome">Nome *</label>
-        <input id="nome" class="form-control" type="text" placeholder="Ex: Naruto Shippuden" required />
+        <input id="nome" class="form-control" type="text" placeholder="Ex: O Poderoso Chefão" required />
       </div>
       <div class="form-group">
-        <label for="estudio">Estúdio *</label>
-        <input id="estudio" class="form-control" type="text" placeholder="Ex: Studio Pierrot" required />
+        <label for="diretor">Diretor</label>
+        <input id="diretor" class="form-control" type="text" placeholder="Ex: Francis Ford Coppola" />
       </div>
       <div class="form-group">
         <label for="genero">Gênero</label>
-        <input id="genero" class="form-control" type="text" placeholder="Ex: Shounen, Ação" />
+        <input id="genero" class="form-control" type="text" placeholder="Ex: Drama, Crime" />
       </div>
       <div class="form-group">
-        <label for="temporadas">Quantidade de Temporadas</label>
-        <input id="temporadas" class="form-control" type="number" min="1" value="1" />
+        <label for="ano">Ano de Lançamento</label>
+        <input id="ano" class="form-control" type="number" min="1900" max="2099" placeholder="Ex: 1972" />
       </div>
       <div class="form-group">
-        <label for="capa">Capa (Upload de Arquivo local ou URL)</label>
+        <label>Capa (Upload ou URL)</label>
         <div style="display:flex;gap:10px;align-items:center;">
           <input id="capaFile" class="form-control" type="file" accept="image/*" style="flex:1" />
           <span style="font-size:0.8rem;color:var(--text-muted)">ou</span>
-          <input id="capa" class="form-control" type="url" placeholder="https://..." style="flex:1" />
+          <input id="capaUrl" class="form-control" type="url" placeholder="https://..." style="flex:1" />
         </div>
         <div id="capaPreview" style="margin-top:10px;display:none;">
           <img id="capaImg" src="" alt="Preview" style="width:80px;height:106px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
         </div>
+      </div>
+      <div class="form-group">
+        <label for="iframe">Código de Incorporação (iframe) ou URL *</label>
+        <textarea id="iframe" class="form-control" rows="3" placeholder='<iframe src="..."></iframe> ou https://...' style="resize:vertical;"></textarea>
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" id="cancelBtn">Cancelar</button>
@@ -110,7 +113,7 @@
       <h2 style="color:var(--danger)">⚠️ Excluir</h2>
       <button class="modal-close" id="deleteClose">✕</button>
     </div>
-    <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteAnimeName"></strong>? Todos os episódios cadastrados também serão removidos.</p>
+    <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteFilmeName"></strong>?</p>
     <div class="form-actions">
       <button class="btn btn-ghost" id="deleteCancelBtn">Cancelar</button>
       <button class="btn btn-danger" id="deleteConfirmBtn">🗑️ Excluir</button>
@@ -119,10 +122,10 @@
 </div>
 
 <div id="toast"></div>
-<script src="js/db.js"></script>
-<script src="js/cadastro-animes.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/cadastro-filmes.js"></script>
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>
 </html>

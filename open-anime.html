@@ -219,8 +219,11 @@
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Open</span>AnIme
   </div>
-  <ul class="navbar-links" id="navLinks">
+  <ul class="navbar-links" id="navLinks" style="list-style: none !important; margin: 0; padding: 0;">
   </ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <main class="main-content ai-page-fix">
@@ -228,7 +231,7 @@
     
     <!-- Lado Esquerdo: Ferramentas & Config -->
     <aside class="ai-panel-tools">
-      <div class="ai-card">
+      <div class="ai-card" id="apiKeyCard" style="display:none;">
         <h3><span class="nav-icon">⚙️</span> Configuração</h3>
         <div id="config-groq" class="provider-config">
           <div class="form-group">
@@ -251,6 +254,10 @@
         <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
           Pressione <strong>Enter</strong> para enviar no chat. Explore as abas acima para usar as ferramentas.
         </p>
+        <!-- Botão discreto para config -->
+        <button id="toggleApiKey" title="Configurações" style="margin-top:10px;background:none;border:none;cursor:pointer;opacity:0.25;font-size:0.8rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.8'" onmouseleave="this.style.opacity='0.25'">
+          <span>⚙️</span> config
+        </button>
       </div>
     </aside>
 
@@ -455,8 +462,9 @@
 <!-- Scripts -->
 <script src="js/db.js"></script>
 <script src="js/open-anime.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
+<div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>
 </html>

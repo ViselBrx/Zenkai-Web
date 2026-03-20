@@ -25,6 +25,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let editingMangaId = null;
   let editingVolId = null;
 
+  // Elementos de capa do modal
+  const mCapaInput = document.getElementById('mCapa');
+  const mCapaPreview = document.getElementById('mCapaPreview');
+
   // Renderizar a lista de mangás em formato de pílulas (seletor)
   function renderMangaPills() {
     const term = searchManga.value.toLowerCase();
@@ -33,23 +37,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         return m.nome.toLowerCase().includes(term);
     });
 
+    // Auto-selecionar o primeiro mangá (se existir algum e não houver pesquisa)
+    if (!activeMangaId && mangas.length > 0 && !term) {
+        activeMangaId = mangas[0].id;
+    }
+
     mangaPills.innerHTML = '';
     
     mangas.forEach(m => {
-      const btn = document.createElement('button');
-      btn.className = 'manga-pill' + (m.id === activeMangaId ? ' active' : '');
+      const card = document.createElement('div');
+      card.className = 'card' + (m.id === activeMangaId ? ' active-card' : '');
+      if (m.id === activeMangaId) card.style.borderColor = 'var(--primary)';
+      
       const initial = m.nome.charAt(0).toUpperCase();
-      btn.innerHTML = `<span style="background:var(--primary);color:var(--text);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem">${initial}</span> ${m.nome}`;
+      // Thumbnail: mostra a capa do mangá (grande) ou inicial grande
+      const coverHtml = m.capa
+        ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" />`
+        : `<div class="card-cover-placeholder">${initial}</div>`;
+
+      card.innerHTML = `
+        ${coverHtml}
+        <div class="card-body">
+          <div class="card-title">${m.nome}</div>
+          <div style="display:flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: auto;">
+             <span class="card-badge" style="margin-top:0;">📚 Ver Estante</span>
+             <span class="pill-edit-btn" title="Editar" style="opacity:0.7; font-size:1.1rem; cursor:pointer;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.7'">✏️</span>
+          </div>
+        </div>
+      `;
       
       // Clique rápido para selecionar
-      btn.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.pill-edit-btn')) return; // ignora botão de edição
         activeMangaId = m.id;
-        renderMangaPills(); // Atualiza pill ativa
+        renderMangaPills(); // Atualiza card ativo
         renderVolumes();
+        // Rolar a tela suavemente até a estante
+        document.getElementById('volumesPanel').scrollIntoView({behavior: 'smooth', block: 'start'});
+      });
+
+      // Clique no lápis: abrir modal no modo edição
+      card.querySelector('.pill-edit-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        editingMangaId = m.id;
+        document.getElementById('mNome').value = m.nome;
+        mCapaPreview.src = m.capa || '';
+        mCapaPreview.style.display = m.capa ? 'block' : 'none';
+        mCapaInput.value = '';
+        document.querySelector('#mangaModal .modal-header h2').textContent = 'Editar Mangá';
+        mangaModal.classList.add('open');
       });
 
       // Duplo clique para excluir mangá inteiro
-      btn.addEventListener('dblclick', () => {
+      card.addEventListener('dblclick', (e) => {
+         if (e.target.closest('.pill-edit-btn')) return;
+
          const idToHide = m.id;
          if (!window.pendingDeletions) window.pendingDeletions = new Set();
          window.pendingDeletions.add(idToHide);
@@ -75,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
          );
       });
 
-      mangaPills.appendChild(btn);
+      mangaPills.appendChild(card);
     });
   }
 
@@ -87,8 +129,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     const mgr = DB.getCartoonById(activeMangaId) || DB.getMangas().find(x=>x.id===activeMangaId);
+    const bannerEl = document.getElementById('mangaCapaBanner');
     if(mgr) {
        mangaPanelTitle.innerHTML = `<span style="color:var(--text)">Leitura:</span> ${mgr.nome}`;
+       // Exibir capa no banner do painel
+       if (mgr.capa) {
+           bannerEl.src = mgr.capa;
+           bannerEl.style.display = 'block';
+       } else {
+           bannerEl.style.display = 'none';
+           bannerEl.src = '';
+       }
     }
 
     noMangaMsg.style.display = 'none';
@@ -181,10 +232,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchManga.addEventListener('input', renderMangaPills);
 
   /* MANGA MODAL (CRIAR PASTA DO MANGÁ) */
+
+  // Preview ao selecionar imagem
+  mCapaInput.addEventListener('change', () => {
+    const file = mCapaInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        mCapaPreview.src = e.target.result;
+        mCapaPreview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      mCapaPreview.src = '';
+      mCapaPreview.style.display = 'none';
+    }
+  });
+
   addMangaBtn.addEventListener('click', () => {
     editingMangaId = null;
     mangaModal.classList.add('open');
     mangaForm.reset();
+    mCapaPreview.src = '';
+    mCapaPreview.style.display = 'none';
+    document.querySelector('#mangaModal .modal-header h2').textContent = 'Novo Mangá';
   });
   const closeMangaModal = () => mangaModal.classList.remove('open');
   document.getElementById('mangaClose').addEventListener('click', closeMangaModal);
@@ -199,23 +270,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.textContent = 'Salvando...';
 
     try {
-        const novo = await DB.addManga({ nome });
-        closeMangaModal();
-        activeMangaId = novo.id; // foca no novo mangá
-        renderMangaPills();
-        renderVolumes();
-        
-        showUndoToast('Estante de mangá criada com sucesso!',
-            () => {},
-            async () => {
-              if (activeMangaId === novo.id) activeMangaId = null;
-              await DB.deleteManga(novo.id);
-              renderMangaPills();
-              renderVolumes();
-            }
-        );
+        // Converter capa para base64 se selecionou
+        let capaBase64 = null;
+        if (mCapaInput.files.length) {
+            capaBase64 = await fileToBase64(mCapaInput.files[0]);
+        }
+
+        const payload = { nome };
+        if (capaBase64) payload.capaBase64 = capaBase64;
+
+        if (editingMangaId) {
+            await DB.updateManga(editingMangaId, payload);
+            closeMangaModal();
+            renderMangaPills();
+            renderVolumes();
+            showDarkToast('Mangá atualizado!');
+        } else {
+            const novo = await DB.addManga(payload);
+            closeMangaModal();
+            activeMangaId = novo.id;
+            renderMangaPills();
+            renderVolumes();
+            
+            showUndoToast('Estante de mangá criada com sucesso!',
+                () => {},
+                async () => {
+                  if (activeMangaId === novo.id) activeMangaId = null;
+                  await DB.deleteManga(novo.id);
+                  renderMangaPills();
+                  renderVolumes();
+                }
+            );
+        }
     } catch(err) {
-        showToast('Erro ao salvar!', 'error');
+        showToast('Erro ao salvar! ' + err.message, 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = '💾 Salvar Mangá';
@@ -317,7 +405,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       readerTitle.textContent = titulo;
       
       // Um iframe aponta direto pro PDF nativo do navegador
-      readerFrame.src = url + '#toolbar=0'; 
+      // view=FitH tenta fazer o PDF ocupar toda a largura disponível
+      readerFrame.src = url + '#toolbar=0&view=FitH'; 
       readerModal.classList.add('open');
   }
   
@@ -330,17 +419,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnFullscreen = document.getElementById('btnFullscreen');
   if (btnFullscreen) {
       btnFullscreen.addEventListener('click', () => {
-         try {
-           if (readerFrame.requestFullscreen) {
-              readerFrame.requestFullscreen();
-           } else if (readerFrame.webkitRequestFullscreen) {
-              readerFrame.webkitRequestFullscreen();
-           } else if (readerFrame.msRequestFullscreen) {
-              readerFrame.msRequestFullscreen();
-           }
-         } catch(e) {
-             showToast('O navegador bloqueou a tela cheia. Tente F11.', 'error');
-         }
+          const modalContent = document.getElementById('readerModalContent');
+          const isFull = modalContent.classList.contains('site-fullscreen');
+          
+          modalContent.classList.toggle('site-fullscreen');
+          document.body.classList.toggle('reading-fullscreen');
+          
+          if (!isFull) {
+              btnFullscreen.innerHTML = '🔲 Sair da Tela Cheia';
+              // Tenta ativar o modo tela cheia do navegador
+              if (modalContent.requestFullscreen) {
+                  modalContent.requestFullscreen().catch(err => console.warn(err));
+              } else if (modalContent.webkitRequestFullscreen) {
+                  modalContent.webkitRequestFullscreen().catch(err => console.warn(err));
+              }
+          } else {
+              btnFullscreen.innerHTML = '🔲 Ativar Tela Cheia';
+              // Sai do modo tela cheia do navegador se estiver nele
+              if (document.fullscreenElement) {
+                  document.exitFullscreen().catch(err => console.warn(err));
+              }
+          }
+      });
+      // Escutar mudança de tela cheia do sistema (ex: tecla Esc ou botão nativo do navegador)
+      document.addEventListener('fullscreenchange', () => {
+          const modalContent = document.getElementById('readerModalContent');
+          if (!document.fullscreenElement && modalContent.classList.contains('site-fullscreen')) {
+             modalContent.classList.remove('site-fullscreen');
+             document.body.classList.remove('reading-fullscreen');
+             btnFullscreen.innerHTML = '🔲 Ativar Tela Cheia';
+          }
       });
   }
 

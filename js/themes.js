@@ -1,6 +1,6 @@
 (function() {
     async function applyTheme(theme) {
-        document.body.classList.remove('theme-default', 'theme-ben10', 'theme-vinland', 'theme-aot', 'theme-tt-classic', 'theme-mutant-rex');
+        document.body.classList.remove('theme-default', 'theme-ben10', 'theme-vinland', 'theme-aot', 'theme-tt-classic', 'theme-mutant-rex', 'theme-regular-show', 'theme-vagabond');
         if (theme) document.body.classList.add(theme);
         else document.body.classList.add('theme-default');
         
@@ -34,6 +34,8 @@
                 <button class="theme-opt-btn" data-theme="theme-aot" title="Attack on Titan">⚔️</button>
                 <button class="theme-opt-btn" data-theme="theme-tt-classic" title="Jovens Titãs">💜</button>
                 <button class="theme-opt-btn" data-theme="theme-mutant-rex" title="Mutante Rex">🦎</button>
+                <button class="theme-opt-btn" data-theme="theme-regular-show" title="Regular Show">🔵</button>
+                <button class="theme-opt-btn" data-theme="theme-vagabond" title="Vagabond">⚪</button>
             </div>
         `;
 
@@ -76,10 +78,12 @@
             { href: 'index.html', label: '🏠 Início', icon: '🏠' },
             { href: 'catalogo-desenhos.html', label: '🎬 Desenhos', icon: '🎬' },
             { href: 'animes.html', label: '⛩️ Animes', icon: '⛩️' },
+            { href: 'filmes.html', label: '🎬 Filmes', icon: '🎬' },
             { href: 'desenhos.html', label: '▶️ Eps. Desenhos', icon: '▶️' },
             { href: 'anime-episodios.html', label: '▶️ Eps. Animes', icon: '▶️' },
             { href: 'cadastro.html', label: '📝 Cad. Desenhos', icon: '📝' },
             { href: 'cadastro-animes.html', label: '📝 Cad. Animes', icon: '📝' },
+            { href: 'cadastro-filmes.html', label: '📝 Cad. Filmes', icon: '📝' },
             { href: 'mangas.html', label: '📚 Mangás', icon: '📚' },
             { href: 'agradecimento.html', label: '💖 Agradecimento', icon: '💖' },
             { href: 'open-anime.html', label: '🤖 Open AnIme', icon: '🤖' }

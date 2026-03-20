@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Toggle discreto da config de API Key
+  const apiKeyCard = document.getElementById('apiKeyCard');
+  const toggleApiKeyBtn = document.getElementById('toggleApiKey');
+  if (toggleApiKeyBtn && apiKeyCard) {
+    toggleApiKeyBtn.addEventListener('click', () => {
+      const visible = apiKeyCard.style.display !== 'none';
+      apiKeyCard.style.display = visible ? 'none' : 'block';
+    });
+  }
+
   // Elementos do Chat e Ferramentas
   const chatInput = document.getElementById('chatInput');
   const char1Inp = document.getElementById('char1');

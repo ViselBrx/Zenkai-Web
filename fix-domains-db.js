@@ -4,13 +4,7 @@ const SUPABASE_SERVICE_KEY = 'sb_secret_Cr0BzLecxWabufFasf0kQg_xJtI5VsM';
 async function updateIframe(table, id, oldIframe) {
     if (!oldIframe) return;
     
-    let newIframe = oldIframe.replace(/redecanais\.ooo/g, 'redecanais.in')
-                              .replace(/redecanais\.cafe/g, 'redecanais.in')
-                              .replace(/redecanais\.la/g, 'redecanais.in')
-                              .replace(/redecanais\.dev/g, 'redecanais.in')
-                              .replace(/%72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F/g, '%72%65%64%65%63%61%6E%61%69%73%2E%69%6E')
-                              .replace(/%72%65%64%65%63%61%6E%61%69%73%2E%63%61%66%65/g, '%72%65%64%65%63%61%6E%61%69%73%2E%69%6E')
-                              .replace(/%72%65%64%65%63%61%6E%61%69%73%2E%6C%61/g, '%72%65%64%65%63%61%6E%61%69%73%2E%69%6E');
+    let newIframe = oldIframe.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
 
     if (newIframe.includes('src="//')) {
         newIframe = newIframe.replace('src="//', 'src="https://');

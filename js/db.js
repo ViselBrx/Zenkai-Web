@@ -4,7 +4,7 @@
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
 
-const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, aiConfig: {}, siteConfig: {} };
+const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, filmes: [], aiConfig: {}, siteConfig: {} };
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
 
 // Checa se o supabase está disponível (injetado via auth.js)
@@ -38,7 +38,7 @@ function cleanIframe(iframe) {
                 if (src.startsWith('http://')) src = 'https://' + src.slice(7);
 
                 // Substituição de domínio (cobre todos os domínios conhecidos do Redecanais)
-                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
 
                 el.setAttribute('src', src);
                 el.setAttribute('allow', 'fullscreen');
@@ -59,7 +59,7 @@ function cleanIframe(iframe) {
                 let s = rawSrc;
                 try { s = decodeURIComponent(s); } catch(e) {}
                 if (s.startsWith('//')) s = 'https:' + s;
-                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
                 return `src="${s}"`;
             })
             .replace(/allow="[^"]*"/gi, 'allow="fullscreen"');
@@ -70,7 +70,7 @@ function cleanIframe(iframe) {
     try { url = decodeURIComponent(url); } catch(e) {}
     if (url.startsWith('//')) url = 'https:' + url;
     if (url.startsWith('http://')) url = 'https://' + url.slice(7);
-    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.in');
+    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
 
     if (url.startsWith('https://')) {
         return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="fullscreen" allowfullscreen></iframe>`;
@@ -88,7 +88,8 @@ const DB = {
         const supa = getSupa();
         const [
             { data: cartoons }, { data: episodes }, { data: movies },
-            { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols }, { data: settings }
+            { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols },
+            { data: filmesData }, { data: settings }
         ] = await Promise.all([
             supa.from('cartoons').select('*').order('created_at', { ascending: true }),
             supa.from('episodes').select('*'),
@@ -97,6 +98,7 @@ const DB = {
             supa.from('anime_episodes').select('*'),
             supa.from('mangas').select('*').order('created_at', { ascending: true }),
             supa.from('manga_volumes').select('*').order('volume_number', { ascending: true }),
+            supa.from('filmes').select('*').order('created_at', { ascending: true }),
             supa.from('settings').select('*')
         ]);
 
@@ -104,6 +106,7 @@ const DB = {
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
+        _store.filmes = (filmesData || []).map(f => ({...f, createdAt: f.created_at}));
         // Settings
         if (settings) {
             settings.forEach(s => {
@@ -504,6 +507,8 @@ const DB = {
   /* Mangás */
   getMangas() { return [..._store.mangas]; },
   async addManga(data) {
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
     const item = { id: 'm_' + Date.now(), ...data, created_at: Date.now() };
     const { error } = await getSupa().from('mangas').insert([item]);
     if (error) throw new Error(error.message);
@@ -512,6 +517,8 @@ const DB = {
     return item;
   },
   async updateManga(id, data) {
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
     const { error } = await getSupa().from('mangas').update(data).eq('id', id);
     if (error) throw new Error(error.message);
 
@@ -592,6 +599,34 @@ const DB = {
       }
   },
   
+  /* Filmes */
+  getFilmes() { return [..._store.filmes]; },
+  getFilmeById(id) { return _store.filmes.find(f => f.id === id) || null; },
+  async addFilme(data) {
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    // Limpa o iframe/url via cleanIframe se for tag
+    if (data.iframe) data.iframe = cleanIframe(data.iframe);
+    const item = { id: 'f_' + Date.now(), ...data, created_at: Date.now() };
+    const { error } = await getSupa().from('filmes').insert([item]);
+    if (error) throw new Error(error.message);
+    _store.filmes.push({...item, createdAt: item.created_at});
+    return item;
+  },
+  async updateFilme(id, data) {
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    if (data.iframe) data.iframe = cleanIframe(data.iframe);
+    const { error } = await getSupa().from('filmes').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+    _store.filmes = _store.filmes.map(f => f.id === id ? { ...f, ...data } : f);
+  },
+  async deleteFilme(id) {
+    const { error } = await getSupa().from('filmes').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    _store.filmes = _store.filmes.filter(f => f.id !== id);
+  },
+
   /* IA Config */
   getAIConfig() { return { ..._store.aiConfig }; },
   async saveAIConfig(config) { 
@@ -693,12 +728,45 @@ function showUndoToast(msg, onComplete, onUndo) {
   };
 }
 
-// Nav links highlighting
+// Nav links highlighting and scroll sync
 document.addEventListener('DOMContentLoaded', () => {
   const links = document.querySelectorAll('.navbar-links a');
   const path  = location.pathname.split('/').pop() || 'index.html';
-  links.forEach(a => { if (a.getAttribute('href') === path) a.classList.add('active'); });
+  
+  let activeLink = null;
+  links.forEach(a => { 
+    if (a.getAttribute('href') === path) {
+      a.classList.add('active');
+      activeLink = a;
+    }
+  });
+  
   const burger = document.getElementById('navBurger');
   const menu   = document.getElementById('navLinks');
   if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
+
+  // Persistir posição do scroll da navbar de forma otimizada
+  if (menu) {
+    const savedScroll = sessionStorage.getItem('navbarScrollPosition');
+    
+    // Se tem scroll salvo, restaura. Senão, rola até o item ativo.
+    if (savedScroll !== null) {
+      menu.scrollLeft = parseInt(savedScroll, 10);
+    } else if (activeLink) {
+      // Pequeno delay para garantir que o CSS do flexbox aplicou
+      setTimeout(() => {
+        const padding = 20;
+        menu.scrollLeft = activeLink.offsetLeft - padding;
+      }, 50);
+    }
+
+    // Salva o scroll sem travar a interface (debounce)
+    let scrollTimeout;
+    menu.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        sessionStorage.setItem('navbarScrollPosition', menu.scrollLeft);
+      }, 100); // Aguarda 100ms após o scroll parar para salvar
+    });
+  }
 });

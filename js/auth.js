@@ -165,7 +165,7 @@ async function checkAuthStatus() {
     const currentPage = window.location.pathname.split('/').pop();
 
     // Rotas protegidas (apenas logados)
-    const protectedRoutes = ['cadastro.html', 'cadastro-animes.html'];
+    const protectedRoutes = ['cadastro.html', 'cadastro-animes.html', 'cadastro-filmes.html'];
 
     if (protectedRoutes.includes(currentPage)) {
         if (!session) {
