@@ -6,6 +6,10 @@
 
 Player HTML, CSS e JavaScript simples para assistir conteúdo do RedeCanais localmente, sem necessidade de acessar o site diretamente.
 
+## 💻 Tecnologias necessárias 
+
+> VsCode, Node.js, Git e GitHub.
+
 ## 🚀 Como usar
 
 1. Botão direito na área de trabalho, documentou ou downloads e vai em mais opções.
