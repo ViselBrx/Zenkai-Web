@@ -117,8 +117,9 @@ const server = http.createServer(async (req, res) => {
       let apiKey = '';
 
       if (target === 'groq') {
+        const GROQ_API_KEY = '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';
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-        apiKey = config.groqKey || frontendApiKey;
+        apiKey = GROQ_API_KEY;
       } else if (target === 'zimage') {
         apiUrl = 'https://api.z-image.com/v1/generate';
         apiKey = config.zimageKey || frontendApiKey;

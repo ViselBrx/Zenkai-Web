@@ -20,19 +20,19 @@ if (window.supabase) {
         supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         window.supabaseClient = supaClient; // Expondo para o db.js
         console.log("Supabase inicializado com sucesso.");
-        
+
         // Listener APENAS para detectar mudanças REAIS de autenticação
         // e recarregar a página quando há uma alternância de usuário
         supaClient.auth.onAuthStateChange((event, session) => {
             const currentSessionId = session?.user?.id || null;
-            
+
             // Só recarrega se a sessão MUDOU (ex: outro usuário logou)
             // Não recarrega na primeira inicialização ou no reload anterior
             if (previousSessionId !== null && previousSessionId !== currentSessionId) {
                 console.log("Detectada mudança de sessão, recarregando...");
                 window.location.reload();
             }
-            
+
             previousSessionId = currentSessionId;
         });
     } catch (e) {
@@ -74,14 +74,14 @@ if (loginForm) {
 
             if (error) {
                 console.error("Erro no login:", error);
-                
+
                 // Verifica se o erro é sobre email não confirmado
                 if (error.message && error.message.includes('Email not confirmed')) {
                     errorDiv.textContent = "⚠️ Email não confirmado. Verifique seu email para um link de confirmação e tente novamente.";
                 } else {
                     errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
                 }
-                
+
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Entrar no Painel';
@@ -89,7 +89,7 @@ if (loginForm) {
             }
 
             console.log("Login realizado:", data);
-            
+
             // Verifica se o email foi confirmado
             if (data.user && !data.user.email_confirmed_at) {
                 errorDiv.textContent = "⚠️ Email ainda não confirmado. Verifique seu email para o link de confirmação.";
@@ -98,7 +98,7 @@ if (loginForm) {
                 submitBtn.textContent = 'Entrar no Painel';
                 return;
             }
-            
+
             // Login bem-sucedido! Redireciona direto
             console.log("Redirecionando para index.html...");
             window.location.href = 'index.html';
@@ -154,7 +154,7 @@ if (registerForm) {
             submitBtn.textContent = 'Criar Conta';
         } else {
             console.log("Registro realizado:", data);
-            
+
             // Mostra mensagem pedindo confirmação de email
             if (successDiv) {
                 successDiv.innerHTML = `
@@ -164,11 +164,11 @@ if (registerForm) {
                     </div>
                 `;
             }
-            
+
             if (successDiv) successDiv.style.display = 'block';
             submitBtn.disabled = false;
             submitBtn.textContent = 'Criar Conta';
-            
+
             // Mostra seção de reenviar email
             const resendSection = document.getElementById('resendEmailSection');
             const resendEmailInput = document.getElementById('resendEmail');
@@ -176,7 +176,7 @@ if (registerForm) {
                 resendEmailInput.value = email; // Preenche com o email do cadastro
                 resendSection.style.display = 'block';
             }
-            
+
             // NÃO redireciona automaticamente para dar chance de reenviar
         }
     });
@@ -245,7 +245,7 @@ async function checkAuthStatus() {
                 .select('avatar_url, username')
                 .eq('id', session.user.id)
                 .single();
-            
+
             const avatarUrl = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
             authContainer.innerHTML = `
@@ -272,7 +272,7 @@ async function checkAuthStatus() {
 document.addEventListener('DOMContentLoaded', () => {
     // Pequeno delay pra dar tempo do themes.js injetar os links na navbar
     setTimeout(checkAuthStatus, 100);
-    
+
     // 7. Lógica de Reenviar Email de Confirmação
     const resendBtn = document.getElementById('resendBtn');
     if (resendBtn) {
@@ -280,23 +280,23 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const email = document.getElementById('resendEmail').value;
             const errorDiv = document.getElementById('registerError');
-            
+
             if (!email) {
                 errorDiv.textContent = "⚠️ Por favor, digite um email válido.";
                 errorDiv.style.display = 'block';
                 return;
             }
-            
+
             resendBtn.disabled = true;
             resendBtn.textContent = '⏳ Reenviando...';
             errorDiv.style.display = 'none';
-            
+
             try {
                 const { error } = await supaClient.auth.resend({
                     type: 'signup',
                     email: email
                 });
-                
+
                 if (error) {
                     console.error("Erro ao reenviar:", error);
                     errorDiv.textContent = "❌ Erro ao reenviar: " + (error.message || "Tente novamente mais tarde.");
@@ -315,10 +315,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         `;
                         successDiv.style.display = 'block';
                     }
-                    
+
                     resendBtn.disabled = false;
                     resendBtn.textContent = '📧 Reenviar Email de Confirmação';
-                    
+
                     // Remove a seção de reenvio após 5 segundos
                     setTimeout(() => {
                         const resendSection = document.getElementById('resendEmailSection');

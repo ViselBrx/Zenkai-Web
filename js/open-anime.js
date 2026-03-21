@@ -100,12 +100,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       chatHistory.push({ role: "user", content: prompt });
       
+      const GROQ_API_KEY = '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';
       const res = await fetch('/api/ai/proxy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target,
-          apiKey: config.groqKey,
+          apiKey: GROQ_API_KEY,
           body: {
             model: model,
             messages: chatHistory,
