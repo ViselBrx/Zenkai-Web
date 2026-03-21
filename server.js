@@ -11,7 +11,10 @@ const path = require('path');
 const url  = require('url');
 const https = require('https');
 
-const PORT      = 3000;
+// Carrega as variáveis do .env (se existir e o pacote estiver instalado)
+try { require('dotenv').config(); } catch (e) {}
+
+const PORT      = process.env.PORT || 3000;
 const ROOT      = __dirname;
 const DATA_FILE = path.join(ROOT, 'data.json');
 const UPLOADS_DIR = path.join(ROOT, 'uploads');
@@ -117,7 +120,7 @@ const server = http.createServer(async (req, res) => {
       let apiKey = '';
 
       if (target === 'groq') {
-        const GROQ_API_KEY = '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';
+        const GROQ_API_KEY = process.env.GROQ_API_KEY; // Agora busca do ambiente
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         apiKey = GROQ_API_KEY;
       } else if (target === 'zimage') {
@@ -193,8 +196,15 @@ const server = http.createServer(async (req, res) => {
   if (ext === '.html') {
     fs.readFile(filePath, 'utf8', (err, content) => {
       if (err) { res.writeHead(404); return res.end('404'); }
+      
+      // Injeta variáveis de ambiente no <head> para que o auth.js consiga ler as configurações do Supabase escondidas do código fonte
+      let responseContent = content.replace(/<head>/i, `<head>\n  <script>window.ENV = ${JSON.stringify({
+        SUPABASE_URL: process.env.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co',
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol'
+      })};</script>`);
+
       const theme = readData().siteConfig?.theme || 'theme-default';
-      const responseContent = content.replace(/<body([^>]*)>/i, (match, attrs) => {
+      responseContent = responseContent.replace(/<body([^>]*)>/i, (match, attrs) => {
         if (attrs.includes('class=')) {
           return match.replace(/class=["']([^"']*)["']/, `class="${theme} $1"`);
         }
@@ -212,7 +222,7 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log('\n\x1b[36m%s\x1b[0m', '🎌 ANIME HOUSE - SISTEMA ONLINE\n');
   console.log('\x1b[32m%s\x1b[0m', '✔ Sistema iniciado');
   console.log('\x1b[32m%s\x1b[0m', '✔ Banco carregado (data.json)');

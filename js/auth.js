@@ -4,12 +4,10 @@
  * Aqui você deve colar a URL e a ANON KEY do seu projeto Supabase.
  */
 
-// 1. INSIRA SUAS CREDENCIAIS AQUI:
-const SUPABASE_URL = 'https://bxifddhrbxbmimjkgwzr.supabase.co';
-// ⚠️ ATENÇÃO: NÃO COLOQUE A 'URL SECRET' AQUI! O GitHub bloqueia chaves que começam com sb_secret!
-// O Supabase possui DUAS chaves: a "anon public" (que começa com eyJhb...) e a "service_role secret" (que começa com sb_secret)
-// Você deve colar APENAS A CHAVE ANON (PÚBLICA) AQUI, pois é seguro deixá-la no frontend.
-const SUPABASE_ANON_KEY = 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
+// 1. CREDENCIAIS: As credenciais agora vêm do servidor pelo window.ENV (configurado no Render ou .env)
+const SUPABASE_URL = window.ENV?.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co';
+const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
+// ⚠️ ATENÇÃO: No Render, cole APENAS a CHAVE ANON (PÚBLICA) da sua API no SUPABASE_ANON_KEY! Não cole a secret baseada em "service_role".
 
 // 2. Inicializa o cliente do Supabase
 let supaClient;
