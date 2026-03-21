@@ -13,6 +13,42 @@ function getSupa() {
     return window.supabaseClient;
 }
 
+// Obter o ID do usuário logado
+async function getCurrentUserId() {
+    const supa = getSupa();
+    const { data: { user } } = await supa.auth.getUser();
+    return user?.id || null;
+}
+
+// Verificar se o usuário pode editar/deletar um item
+async function checkItemOwnership(itemId, table) {
+    try {
+        const supa = getSupa();
+        const userId = await getCurrentUserId();
+        const ADMIN_EMAIL = 'davizeravisel@gmail.com';
+        
+        // Conta principal pode fazer tudo
+        const { data: { user } } = await supa.auth.getUser();
+        if (user?.email === ADMIN_EMAIL) return true;
+        
+        // Outros usuários só podem editar seus próprios dados
+        const { data, error } = await supa.from(table).select('user_id').eq('id', itemId).single();
+        
+        if (error || !data) {
+            throw new Error('Item não encontrado.');
+        }
+        
+        if (data.user_id !== userId) {
+            throw new Error('Você não tem permissão para modificar este item.');
+        }
+        
+        return true;
+    } catch (err) {
+        console.error("Erro ao verificar propriedade:", err);
+        throw err;
+    }
+}
+
 // Utilitário para limpar os iframes (Redecanais mudam muito de domínio)
 // PROBLEMA RAIZ: os iframes usam hostname percent-encoded (ex: %72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F
 // que é 'redecanais.ooo'). Browsers NÃO conseguem resolver hostnames codificados assim,
@@ -86,21 +122,65 @@ const DB = {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
         const supa = getSupa();
+        const userId = await getCurrentUserId();
+        
+        // Verificar se é a conta principal
+        const { data: { user } } = await supa.auth.getUser();
+        const ADMIN_EMAIL = 'davizeravisel@gmail.com';
+        const isMainAccount = user?.email === ADMIN_EMAIL;
+        
+        // Se for conta principal, vê tudo. Se não, vê apenas seus dados
+        const cartoonQuery = isMainAccount 
+          ? supa.from('cartoons').select('*').order('created_at', { ascending: true })
+          : supa.from('cartoons').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+        
+        const episodesQuery = isMainAccount 
+          ? supa.from('episodes').select('*')
+          : supa.from('episodes').select('*').eq('user_id', userId);
+        
+        const moviesQuery = isMainAccount 
+          ? supa.from('movies').select('*')
+          : supa.from('movies').select('*').eq('user_id', userId);
+        
+        const animeQuery = isMainAccount 
+          ? supa.from('animes').select('*').order('created_at', { ascending: true })
+          : supa.from('animes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+        
+        const animeEpsQuery = isMainAccount 
+          ? supa.from('anime_episodes').select('*')
+          : supa.from('anime_episodes').select('*').eq('user_id', userId);
+        
+        const mangaQuery = isMainAccount 
+          ? supa.from('mangas').select('*').order('created_at', { ascending: true })
+          : supa.from('mangas').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+        
+        const mangaVolsQuery = isMainAccount 
+          ? supa.from('manga_volumes').select('*').order('volume_number', { ascending: true })
+          : supa.from('manga_volumes').select('*').eq('user_id', userId).order('volume_number', { ascending: true });
+        
+        const mangaNotesQuery = isMainAccount 
+          ? supa.from('manga_notes').select('*')
+          : supa.from('manga_notes').select('*').eq('user_id', userId);
+        
+        const filmesQuery = isMainAccount 
+          ? supa.from('filmes').select('*').order('created_at', { ascending: true })
+          : supa.from('filmes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+        
         const [
             { data: cartoons }, { data: episodes }, { data: movies },
             { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols },
             { data: mangaNotes },
             { data: filmesData }, { data: settings }
         ] = await Promise.all([
-            supa.from('cartoons').select('*').order('created_at', { ascending: true }),
-            supa.from('episodes').select('*'),
-            supa.from('movies').select('*'),
-            supa.from('animes').select('*').order('created_at', { ascending: true }),
-            supa.from('anime_episodes').select('*'),
-            supa.from('mangas').select('*').order('created_at', { ascending: true }),
-            supa.from('manga_volumes').select('*').order('volume_number', { ascending: true }),
-            supa.from('manga_notes').select('*'),
-            supa.from('filmes').select('*').order('created_at', { ascending: true }),
+            cartoonQuery,
+            episodesQuery,
+            moviesQuery,
+            animeQuery,
+            animeEpsQuery,
+            mangaQuery,
+            mangaVolsQuery,
+            mangaNotesQuery,
+            filmesQuery,
             supa.from('settings').select('*')
         ]);
 
@@ -262,7 +342,8 @@ const DB = {
   async addCartoon(data) {
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'c_' + Date.now(), ...data, created_at: Date.now() };
+    const userId = await getCurrentUserId();
+    const item = { id: 'c_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
     
     const { error } = await getSupa().from('cartoons').insert([item]);
     if (error) { console.error(error); throw new Error(error.message); }
@@ -272,6 +353,7 @@ const DB = {
   },
   
   async updateCartoon(id, data) {
+    await checkItemOwnership(id, 'cartoons');
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
     
@@ -282,6 +364,7 @@ const DB = {
   },
   
   async deleteCartoon(id) {
+    await checkItemOwnership(id, 'cartoons');
     const { error } = await getSupa().from('cartoons').delete().eq('id', id);
     if (error) { console.error(error); throw new Error(error.message); }
 
@@ -294,13 +377,15 @@ const DB = {
   getEpisodesFor(cId) { return _store.episodes[cId] || {}; },
   
   async addEpisode(cId, season, epData) {
+    const userId = await getCurrentUserId();
     const item = { 
         id: 'e_' + Date.now(), 
         cartoon_id: cId, 
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: cleanIframe(epData.iframe || '')
+        iframe: cleanIframe(epData.iframe || ''),
+        user_id: userId
     };
 
     const { error } = await getSupa().from('episodes').insert([item]);
@@ -312,8 +397,7 @@ const DB = {
     return item;
   },
   
-  async updateEpisode(cId, oldSeason, newSeason, epId, data) {
-     const isSeasonChanging = (oldSeason !== newSeason);
+  async updateEpisode(cId, oldSeason, newSeason, epId, data) {    await checkItemOwnership(epId, 'episodes');     const isSeasonChanging = (oldSeason !== newSeason);
      const updatePayload = {
          title: data.title,
          iframe: cleanIframe(data.iframe),
@@ -342,6 +426,7 @@ const DB = {
   },
 
   async deleteEpisode(cId, season, epId) {
+    await checkItemOwnership(epId, 'episodes');
     const { error } = await getSupa().from('episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
@@ -360,11 +445,13 @@ const DB = {
   getMoviesFor(cId) { return _store.movies[cId] || []; },
   
   async addMovie(cId, movieData) {
+    const userId = await getCurrentUserId();
     const item = { 
         id: 'm_c_' + Date.now(), 
         cartoon_id: cId, 
         title: movieData.title, 
-        iframe: cleanIframe(movieData.iframe) 
+        iframe: cleanIframe(movieData.iframe),
+        user_id: userId
     };
     const { error } = await getSupa().from('movies').insert([item]);
     if (error) throw new Error(error.message);
@@ -375,6 +462,7 @@ const DB = {
   },
 
   async updateMovie(cId, mId, data) {
+    await checkItemOwnership(mId, 'movies');
     const updatePayload = { ...data };
     if (updatePayload.iframe) updatePayload.iframe = cleanIframe(updatePayload.iframe);
     
@@ -387,6 +475,7 @@ const DB = {
   },
 
   async deleteMovie(cId, mId) {
+    await checkItemOwnership(mId, 'movies');
     const { error } = await getSupa().from('movies').delete().eq('id', mId);
     if (error) throw new Error(error.message);
     if (_store.movies[cId]) _store.movies[cId] = _store.movies[cId].filter(m => m.id !== mId);
@@ -397,9 +486,10 @@ const DB = {
   getAnimeById(id) { return _store.animes.find(a => a.id === id) || null; },
   
   async addAnime(data) {
+    const userId = await getCurrentUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'a_' + Date.now(), ...data, created_at: Date.now() };
+    const item = { id: 'a_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
     
     const { error } = await getSupa().from('animes').insert([item]);
     if (error) throw new Error(error.message);
@@ -409,6 +499,7 @@ const DB = {
   },
 
   async updateAnime(id, data) {
+    await checkItemOwnership(id, 'animes');
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
     const { error } = await getSupa().from('animes').update(data).eq('id', id);
@@ -418,6 +509,7 @@ const DB = {
   },
 
   async deleteAnime(id) {
+    await checkItemOwnership(id, 'animes');
     const { error } = await getSupa().from('animes').delete().eq('id', id);
     if (error) throw new Error(error.message);
 
@@ -432,6 +524,7 @@ const DB = {
   },
   
   async addAnimeEpisode(aId, audio, season, epData) {
+    const userId = await getCurrentUserId();
     const item = {
         id: 'ae_' + Date.now(),
         anime_id: aId,
@@ -439,7 +532,8 @@ const DB = {
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: cleanIframe(epData.iframe || '')
+        iframe: cleanIframe(epData.iframe || ''),
+        user_id: userId
     };
     const { error } = await getSupa().from('anime_episodes').insert([item]);
     if (error) throw new Error(error.message);
@@ -453,6 +547,7 @@ const DB = {
   },
 
   async updateAnimeEpisode(aId, audio, oldSeason, newSeason, epId, data) {
+    await checkItemOwnership(epId, 'anime_episodes');
     const isSeasonChanging = (oldSeason !== newSeason);
     const updatePayload = {
          title: data.title,
@@ -481,6 +576,7 @@ const DB = {
   },
 
   async deleteAnimeEpisode(aId, audio, season, epId) {
+    await checkItemOwnership(epId, 'anime_episodes');
     const { error } = await getSupa().from('anime_episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
@@ -502,6 +598,7 @@ const DB = {
   /* Animes: Filmes */
   getAnimeMoviesFor(aId) { return _store.animeMovies[aId] || []; },
   async addAnimeMovie(aId, movieData) {
+    const userId = await getCurrentUserId();
       if (!_store.animeMovies[aId]) _store.animeMovies[aId] = [];
       const item = { id: 'm_a_' + Date.now(), ...movieData };
       _store.animeMovies[aId].push(item); return item;
@@ -521,9 +618,10 @@ const DB = {
   /* Mangás */
   getMangas() { return [..._store.mangas]; },
   async addManga(data) {
+    const userId = await getCurrentUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'm_' + Date.now(), ...data, created_at: Date.now() };
+    const item = { id: 'm_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
     const { error } = await getSupa().from('mangas').insert([item]);
     if (error) throw new Error(error.message);
 
@@ -531,6 +629,7 @@ const DB = {
     return item;
   },
   async updateManga(id, data) {
+    await checkItemOwnership(id, 'mangas');
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
     const { error } = await getSupa().from('mangas').update(data).eq('id', id);
@@ -539,6 +638,7 @@ const DB = {
     _store.mangas = _store.mangas.map(m => m.id === id ? { ...m, ...data } : m);
   },
   async deleteManga(id) {
+    await checkItemOwnership(id, 'mangas');
     const { error } = await getSupa().from('mangas').delete().eq('id', id);
     if (error) throw new Error(error.message);
     _store.mangas = _store.mangas.filter(m => m.id !== id);
@@ -548,6 +648,7 @@ const DB = {
     return _store.mangaVolumes[mangaId] || [];
   },
   async addMangaVolume(mangaId, file, urlExterna, volumeData) {
+    const userId = await getCurrentUserId();
     // Fazer upload do PDF ou usar o Link direto
     let pdfUrl = '';
     if (file) {
@@ -562,7 +663,8 @@ const DB = {
         volume_number: volumeData.volume,
         title: volumeData.title || '',
         pdf_url: pdfUrl,
-        created_at: Date.now()
+        created_at: Date.now(),
+        user_id: userId
     };
     
     const { error } = await getSupa().from('manga_volumes').insert([item]);
@@ -578,6 +680,7 @@ const DB = {
     return item;
   },
   async deleteMangaVolume(mangaId, volId) {
+    await checkItemOwnership(volId, 'manga_volumes');
     const { error } = await getSupa().from('manga_volumes').delete().eq('id', volId);
     if (error) throw new Error(error.message);
     
@@ -586,6 +689,7 @@ const DB = {
     }
   },
   async updateMangaVolume(mangaId, volId, file, urlExterna, volumeData) {
+      await checkItemOwnership(volId, 'manga_volumes');
       let pdfUrl = '';
       if (file) {
           pdfUrl = await DB.uploadMangaPdf(file);

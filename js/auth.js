@@ -13,11 +13,28 @@ const SUPABASE_ANON_KEY = 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
 
 // 2. Inicializa o cliente do Supabase
 let supaClient;
+let previousSessionId = null; // Track para evitar reload infinito
+
 if (window.supabase) {
     try {
         supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         window.supabaseClient = supaClient; // Expondo para o db.js
         console.log("Supabase inicializado com sucesso.");
+        
+        // Listener APENAS para detectar mudanças REAIS de autenticação
+        // e recarregar a página quando há uma alternância de usuário
+        supaClient.auth.onAuthStateChange((event, session) => {
+            const currentSessionId = session?.user?.id || null;
+            
+            // Só recarrega se a sessão MUDOU (ex: outro usuário logou)
+            // Não recarrega na primeira inicialização ou no reload anterior
+            if (previousSessionId !== null && previousSessionId !== currentSessionId) {
+                console.log("Detectada mudança de sessão, recarregando...");
+                window.location.reload();
+            }
+            
+            previousSessionId = currentSessionId;
+        });
     } catch (e) {
         console.error("Erro ao criar cliente Supabase:", e);
     }
@@ -48,26 +65,29 @@ if (loginForm) {
         submitBtn.textContent = 'Entrando...';
         errorDiv.style.display = 'none';
 
-        console.log("Tentando login com:", email);
-        const { data, error } = await supaClient.auth.signInWithPassword({
-            email,
-            password
-        });
+        try {
+            console.log("Tentando login com:", email);
+            const { data, error } = await supaClient.auth.signInWithPassword({
+                email,
+                password
+            });
 
-        if (error) {
-            console.error("Erro no login:", error);
-            
-            // Verifica se o erro é sobre email não confirmado
-            if (error.message && error.message.includes('Email not confirmed')) {
-                errorDiv.textContent = "⚠️ Email não confirmado. Verifique seu email para um link de confirmação e tente novamente.";
-            } else {
-                errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
+            if (error) {
+                console.error("Erro no login:", error);
+                
+                // Verifica se o erro é sobre email não confirmado
+                if (error.message && error.message.includes('Email not confirmed')) {
+                    errorDiv.textContent = "⚠️ Email não confirmado. Verifique seu email para um link de confirmação e tente novamente.";
+                } else {
+                    errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
+                }
+                
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Entrar no Painel';
+                return;
             }
-            
-            errorDiv.style.display = 'block';
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Entrar no Painel';
-        } else {
+
             console.log("Login realizado:", data);
             
             // Verifica se o email foi confirmado
@@ -79,10 +99,15 @@ if (loginForm) {
                 return;
             }
             
-            showToast('Login realizado com sucesso!');
-            setTimeout(() => {
-                window.location.href = 'index.html'; // Redireciona pro DB
-            }, 1000);
+            // Login bem-sucedido! Redireciona direto
+            console.log("Redirecionando para index.html...");
+            window.location.href = 'index.html';
+        } catch (err) {
+            console.error("Erro inesperado no login:", err);
+            errorDiv.textContent = "Erro inesperado: " + (err.message || 'Tente novamente');
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Entrar no Painel';
         }
     });
 }
@@ -165,7 +190,7 @@ async function checkAuthStatus() {
     const currentPage = window.location.pathname.split('/').pop();
 
     // Rotas protegidas (apenas logados)
-    const protectedRoutes = ['cadastro.html', 'cadastro-animes.html', 'cadastro-filmes.html'];
+    const protectedRoutes = ['cadastro.html', 'cadastro-animes.html', 'cadastro-filmes.html', 'cadastro-desenhos.html'];
 
     if (protectedRoutes.includes(currentPage)) {
         if (!session) {
