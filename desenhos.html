@@ -129,7 +129,8 @@
       <button class="modal-close" id="watchClose">✕</button>
     </div>
     <div id="watchFrame" style="width:100%;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:#000;"></div>
-    <div class="form-actions" style="margin-top:1rem;">
+    <div class="form-actions" style="margin-top:1rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button id="watchedModalBadge" class="watched-modal-badge not-watched">○ Marcar como Assistido</button>
       <button class="btn btn-danger btn-sm" id="watchDeleteBtn">🗑️ Remover Episódio</button>
     </div>
   </div>
@@ -137,6 +138,7 @@
 
 <div id="toast"></div>
 <script src="js/db.js"></script>
+<script src="js/watched.js"></script>
 <script src="js/desenhos.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>

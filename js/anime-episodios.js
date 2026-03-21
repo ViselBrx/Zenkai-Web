@@ -147,21 +147,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     movies.forEach(m => {
       if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return;
       const card = document.createElement('div');
-      card.className = 'episode-card';
+      const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(m.id);
+      card.className = 'episode-card' + (isWatched ? ' is-watched' : '');
       card.innerHTML = `
         <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${m.id}', 'movie')">
-          <div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
+          <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
             <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
           </div>
+          <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
           <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
             FILME
           </div>
         </div>
         <div class="episode-label" style="justify-content:space-between">
           <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${m.title}">${m.title}</span>
-          <button class="btn btn-ghost btn-sm" onclick="editMovie(event, '${m.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <button class="btn btn-ghost btn-sm" onclick="editMovie(event, '${m.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+          </div>
         </div>
       `;
+      // Botão de marcação
+      if (typeof createWatchedBtn !== 'undefined') {
+        const labelDiv = card.querySelector('.episode-label > div');
+        const wBtn = createWatchedBtn(m.id, (id, nowWatched) => {
+          card.classList.toggle('is-watched', nowWatched);
+        });
+        labelDiv.prepend(wBtn);
+      }
       grid.appendChild(card);
     });
 
@@ -217,26 +229,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         head.classList.toggle('open');
       };
 
+      const epIds = eps.map(ep => ep.id);
+
+      // Barra de progresso da temporada
+      if (typeof createSeasonProgress !== 'undefined') {
+        const progressEl = createSeasonProgress(epIds);
+        const headInnerLeft = head.querySelector('div');
+        if (headInnerLeft) headInnerLeft.appendChild(progressEl);
+      }
+
       eps.forEach(ep => {
         if (window.pendingDeletions && window.pendingDeletions.has(ep.id)) return;
         const card = document.createElement('div');
-        card.className = 'episode-card';
+        const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(ep.id);
+        card.className = 'episode-card' + (isWatched ? ' is-watched' : '');
         card.innerHTML = `
           <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${ep.id}', ${seasonNum})">
-            <div style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
+            <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
               <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
             </div>
+            <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
             <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
               Episódio ${ep.epNumber}
             </div>
           </div>
           <div class="episode-label" style="justify-content:space-between">
             <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
-            <div style="display:flex;gap:5px;">
+            <div style="display:flex;gap:5px;align-items:center;">
               <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
             </div>
           </div>
         `;
+        // Botão de marcação
+        if (typeof createWatchedBtn !== 'undefined') {
+          const labelDiv = card.querySelector('.episode-label > div');
+          const wBtn = createWatchedBtn(ep.id, (id, nowWatched) => {
+            card.classList.toggle('is-watched', nowWatched);
+            // Atualiza barra de progresso
+            const progressEl = head.querySelector('.season-progress');
+            if (progressEl && typeof Watched !== 'undefined') {
+              const total = epIds.length;
+              const watched = Watched.countWatched(epIds);
+              const pct = total === 0 ? 0 : Math.round((watched / total) * 100);
+              const fill = progressEl.querySelector('.season-progress-fill');
+              const label = progressEl.querySelector('.season-progress-label');
+              if (fill) fill.style.width = pct + '%';
+              if (label) {
+                label.textContent = `${watched}/${total} assistidos`;
+                label.classList.toggle('complete', watched === total);
+              }
+            }
+          });
+          labelDiv.prepend(wBtn);
+        }
         grid.appendChild(card);
       });
 
@@ -456,8 +501,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }, 100);
 
+    // Botão de marcar como assistido no modal
+    _updateWatchModalBadge(id);
+
     watchModal.classList.add('open');
   };
+
+  function _updateWatchModalBadge(id) {
+    let badge = document.getElementById('watchedModalBadge');
+    if (!badge) return;
+    const w = typeof Watched !== 'undefined' && Watched.isWatched(id);
+    badge.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
+    badge.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
+    badge.onclick = () => {
+      if (typeof Watched === 'undefined') return;
+      const nowWatched = Watched.toggle(id);
+      badge.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
+      badge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
+      // Atualiza card na lista
+      renderContent();
+    };
+  }
 
   const closeWatch = () => {
     watchModal.classList.remove('open');

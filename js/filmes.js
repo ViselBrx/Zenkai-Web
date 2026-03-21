@@ -48,10 +48,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     filtered.forEach(f => {
       const card = document.createElement('div');
       card.className = 'card';
+      const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(f.id);
       let imgHtml = f.capa ? `<img src="${f.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${f.capa ? 'display:none;' : ''}">🎬</div>`;
+      const watchedBadge = isWatched 
+        ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);">✓ Assistido</span>`
+        : '';
       card.innerHTML = `
-        ${imgHtml}${placeholder}
+        <div style="position:relative;">${imgHtml}${placeholder}${watchedBadge}</div>
         <div class="card-body">
           <div class="card-title">${f.nome}</div>
           <div class="card-meta">
@@ -91,6 +95,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
+    // Botão de marcar como assistido no modal de detalhes
+    let watchedDetailBtn = document.getElementById('watchedDetailBtn');
+    if (watchedDetailBtn && typeof Watched !== 'undefined') {
+      const w = Watched.isWatched(f.id);
+      watchedDetailBtn.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
+      watchedDetailBtn.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
+      watchedDetailBtn.onclick = (e) => {
+        e.stopPropagation();
+        const nowWatched = Watched.toggle(f.id);
+        watchedDetailBtn.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
+        watchedDetailBtn.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
+        render(); // Atualiza badge no card do catálogo
+      };
+    }
+
     detailWatchBtn.onclick = () => {
       detailModal.classList.remove('open');
       openWatchModal(f);
@@ -113,6 +132,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     watchTitle.textContent = f.nome;
     watchFrame.innerHTML = f.iframe || '';
     watchModal.classList.add('open');
+    // Botão de marcar como assistido no modal de player
+    const wBadge = document.getElementById('watchedModalBadge');
+    if (wBadge && typeof Watched !== 'undefined') {
+      const w = Watched.isWatched(f.id);
+      wBadge.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
+      wBadge.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
+      wBadge.onclick = () => {
+        const nowWatched = Watched.toggle(f.id);
+        wBadge.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
+        wBadge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
+        render();
+      };
+    }
   }
 
   document.getElementById('watchClose').addEventListener('click', () => {
