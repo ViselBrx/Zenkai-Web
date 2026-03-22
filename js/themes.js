@@ -1,21 +1,21 @@
 (function() {
-    async function applyTheme(theme) {
-        document.body.classList.remove('theme-default', 'theme-ben10', 'theme-vinland', 'theme-aot', 'theme-tt-classic', 'theme-mutant-rex', 'theme-regular-show', 'theme-vagabond');
-        if (theme) document.body.classList.add(theme);
-        else document.body.classList.add('theme-default');
+    // Aplicação imediata para evitar flash de estilo no carregamento da página
+    const savedTheme = sessionStorage.getItem('theme') || 'theme-default';
+    document.documentElement.className = savedTheme;
+
+    function applyTheme(theme) {
+        const themeToApply = theme || 'theme-default';
+        document.documentElement.className = themeToApply;
+        if (document.body) {
+            document.body.className = themeToApply;
+        }
         
-        // Salvar no servidor (Persistência Definitiva)
-        try {
-            await fetch('/api/set-theme', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ theme })
-            });
-        } catch (e) { console.error('Erro ao salvar tema no servidor:', e); }
+        // Salvar na sessão local (apaga ao fechar navegador, mantém no refresh)
+        sessionStorage.setItem('theme', themeToApply);
 
         // Sincronizar botões se existirem
         document.querySelectorAll('.theme-opt-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+            btn.classList.toggle('active', btn.getAttribute('data-theme') === themeToApply);
         });
     }
 
@@ -59,8 +59,8 @@
             if (!wrapper.contains(e.target)) wrapper.classList.remove('active');
         });
 
-        // Sincronizar estado inicial com a classe injetada pelo servidor
-        const currentTheme = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || '';
+        // Sincronizar estado inicial
+        const currentTheme = sessionStorage.getItem('theme') || 'theme-default';
         document.querySelectorAll('.theme-opt-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === currentTheme);
         });
@@ -127,8 +127,10 @@
     window.setTheme = applyTheme;
 
     document.addEventListener('DOMContentLoaded', () => {
+        if (document.body && !document.body.className.includes(savedTheme)) {
+            document.body.className = savedTheme;
+        }
         injectSwitcher();
         setupNavbarScrollIndicator();
-        // Não chamamos applyTheme() aqui para não sobrescrever a injeção do servidor
     });
 })();

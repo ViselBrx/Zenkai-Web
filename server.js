@@ -175,17 +175,7 @@ const server = http.createServer(async (req, res) => {
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
-  // Rota para salvar tema global
-  if (req.method === 'POST' && pathname === '/api/set-theme') {
-    try {
-      const { theme } = await getBody(req);
-      const data = readData();
-      if (!data.siteConfig) data.siteConfig = {};
-      data.siteConfig.theme = theme;
-      writeData(data);
-      return sendJSON(res, 200, { ok: true });
-    } catch (e) { return sendJSON(res, 400, { error: e.message }); }
-  }
+  // Rota para salvar tema global removida pois o tema agora é local (sessionStorage)
 
   // ── ARQUIVOS ESTÁTICOS ──
   let filePath = path.join(ROOT, pathname === '/' ? 'index.html' : pathname);
@@ -203,13 +193,7 @@ const server = http.createServer(async (req, res) => {
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol'
       })};</script>`);
 
-      const theme = readData().siteConfig?.theme || 'theme-default';
-      responseContent = responseContent.replace(/<body([^>]*)>/i, (match, attrs) => {
-        if (attrs.includes('class=')) {
-          return match.replace(/class=["']([^"']*)["']/, `class="${theme} $1"`);
-        }
-        return `<body class="${theme}"${attrs}>`;
-      });
+      // Injeção de tema removida para usar o theme.js via sessionStorage
       res.writeHead(200, { 'Content-Type': MIME[ext], 'Access-Control-Allow-Origin': '*' });
       res.end(responseContent);
     });
