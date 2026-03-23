@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const iframe = temp.querySelector('iframe');
             if (iframe) {
                 // Garantir atributos críticos
-                iframe.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:10px;');
+                iframe.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:0;');
                 iframe.setAttribute('allow', 'fullscreen');
                 iframe.setAttribute('loading', 'lazy');
                 iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');

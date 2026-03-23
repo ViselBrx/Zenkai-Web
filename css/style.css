@@ -817,12 +817,12 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,0.82);
   z-index: 2000;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  /* Sem backdrop-filter — evita desfoque no conteúdo interno (iframe/player) */
 }
 .modal-overlay.open { display: flex; }
 .modal {
@@ -1408,6 +1408,7 @@ body:hover .watermark {
 /* Garante que o iframe dentro do watchFrame ocupe 100% do espaço */
 #watchFrame {
   position: relative;
+  isolation: isolate; /* Stacking context próprio — evita herdar blur de pais */
 }
 #watchFrame iframe {
   position: absolute;
@@ -1416,8 +1417,9 @@ body:hover .watermark {
   width: 100% !important;
   height: 100% !important;
   border: none;
-  border-radius: 10px;
+  border-radius: 0; /* border-radius em iframe causa desfoque no Chromium */
 }
+
 
 /* ===== SISTEMA DE MARCAÇÃO DE EPISÓDIOS ASSISTIDOS ===== */
 
