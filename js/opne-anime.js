@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Tabs
   const tabs = document.querySelectorAll('.ai-tab');
   const panels = document.querySelectorAll('.tool-panel');
@@ -17,9 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const groqInp = document.getElementById('groqKey');
   const saveBtn = document.getElementById('saveApiKeys');
 
-  function loadConfigs() {
+  async function loadConfigs() {
+    let isAdmin = false;
+    if (window.supabaseClient) {
+      const { data: { user } } = await window.supabaseClient.auth.getUser();
+      isAdmin = user?.email === 'davizeravisel@gmail.com';
+    }
+
+    const apiKeyCard = document.getElementById('apiKeyCard');
+    if (apiKeyCard && !isAdmin) {
+      apiKeyCard.style.display = 'none';
+    }
+
     const config = DB.getAIConfig();
-    if (config.groqKey) groqInp.value = config.groqKey;
+    if (config.groqKey && groqInp) groqInp.value = config.groqKey;
   }
   loadConfigs();
 

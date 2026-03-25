@@ -14,15 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // Toggle discreto da config de API Key
-  const apiKeyCard = document.getElementById('apiKeyCard');
-  const toggleApiKeyBtn = document.getElementById('toggleApiKey');
-  if (toggleApiKeyBtn && apiKeyCard) {
-    toggleApiKeyBtn.addEventListener('click', () => {
-      const visible = apiKeyCard.style.display !== 'none';
-      apiKeyCard.style.display = visible ? 'none' : 'block';
-    });
-  }
+
 
   // Elementos do Chat e Ferramentas
   const chatInput = document.getElementById('chatInput');
@@ -51,37 +43,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Enter na chave API
-  document.getElementById('groqKey').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('saveApiKeys').click();
-    }
-  });
 
-  // Config & API Keys
-  const groqInp = document.getElementById('groqKey');
-  const saveBtn = document.getElementById('saveApiKeys');
 
-  function loadConfigs() {
-    const config = DB.getAIConfig();
-    if (config.groqKey) groqInp.value = config.groqKey;
-  }
-  loadConfigs();
 
-  saveBtn.addEventListener('click', async () => {
-    try {
-      await DB.saveAIConfig({
-        groqKey: groqInp.value.trim(),
-        provider: 'groq'
-      });
-      showToast('Chave Groq salva com sucesso!');
-    } catch(e) {
-      showToast('Erro ao salvar chave: ' + e.message, 'error');
-    }
-  });
-
-  
   // Histórico do Chat
   let chatHistory = [
     { role: "system", content: "Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa." }
@@ -93,7 +57,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Proxy Calls
   async function callAI(prompt) {
-    const config = DB.getAIConfig();
     const target = 'groq'; 
     const model = "llama-3.3-70b-versatile";
 
