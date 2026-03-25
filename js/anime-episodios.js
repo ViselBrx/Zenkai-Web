@@ -32,6 +32,97 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeEpisodeId = null;
   let activeSeasonForWatch = null;
   let activeTypeForWatch = 'episode'; // 'episode' ou 'movie'
+  let pendingHistoryResume = null;
+
+  function loadPendingHistoryResume() {
+    if (typeof HistoryTracker === 'undefined') {
+      pendingHistoryResume = null;
+      return;
+    }
+    pendingHistoryResume = HistoryTracker.consumeResumeFromUrl('anime-episodios.html');
+  }
+
+  function clearPendingHistoryResume() {
+    pendingHistoryResume = null;
+  }
+
+  function trackHistoryView(item, typeOrSeason) {
+    if (typeof HistoryTracker === 'undefined' || !activeAnimeId || !item) return;
+
+    const anime = DB.getAnimeById(activeAnimeId);
+    const isMovie = typeOrSeason === 'movie';
+    const season = isMovie ? null : Number(typeOrSeason);
+    const epNumber = Number(item.epNumber || 0) || null;
+    const title = isMovie
+      ? `${anime?.nome || 'Anime'} - Filme`
+      : `${anime?.nome || 'Anime'} - ${activeAudio} - T${season || 1}E${epNumber || 1}`;
+
+    HistoryTracker.track({
+      contentId: item.id,
+      contentType: isMovie ? 'anime_movie' : 'anime_episode',
+      title,
+      subtitle: isMovie
+        ? (item.title || 'Filme sem titulo')
+        : (item.title || `Episodio ${epNumber || 1}`),
+      coverUrl: anime?.capa || '',
+      route: 'anime-episodios.html',
+      payload: {
+        animeId: activeAnimeId,
+        season,
+        audio: activeAudio,
+        mediaType: isMovie ? 'movie' : 'episode'
+      }
+    });
+  }
+
+  function syncAudioTabFromState() {
+    audioTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.audio === activeAudio);
+    });
+    activeAudioForm.value = activeAudio;
+  }
+
+  function tryResumeWatchFromHistory() {
+    if (!pendingHistoryResume || !activeAnimeId) return;
+    if (pendingHistoryResume.route !== 'anime-episodios.html') return;
+    if (pendingHistoryResume.animeId !== activeAnimeId) return;
+
+    const targetId = pendingHistoryResume.contentId;
+    if (!targetId) {
+      clearPendingHistoryResume();
+      return;
+    }
+
+    const resumeAudio = pendingHistoryResume.audio || activeAudio;
+    if (resumeAudio !== activeAudio) {
+      activeAudio = resumeAudio;
+      syncAudioTabFromState();
+      renderSeasons();
+    }
+
+    const isMovie = pendingHistoryResume.contentType === 'anime_movie';
+    if (isMovie) {
+      const movieExists = DB.getAnimeMoviesFor(activeAnimeId).some(m => m.id === targetId);
+      if (!movieExists) {
+        clearPendingHistoryResume();
+        return;
+      }
+      clearPendingHistoryResume();
+      setTimeout(() => window.openWatchModal(targetId, 'movie'), 60);
+      return;
+    }
+
+    const season = Number(pendingHistoryResume.season || 1);
+    const seasonEps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio)[season] || [];
+    const epExists = seasonEps.some(ep => ep.id === targetId);
+    if (!epExists) {
+      clearPendingHistoryResume();
+      return;
+    }
+
+    clearPendingHistoryResume();
+    setTimeout(() => window.openWatchModal(targetId, season), 60);
+  }
 
   function loadAnimes() {
     const list = DB.getAnimes();
@@ -55,11 +146,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       pillsContainer.appendChild(btn);
     });
 
-    const pending = localStorage.getItem('selectedAnime');
+    loadPendingHistoryResume();
+    const pendingFromHistory = pendingHistoryResume?.animeId || null;
+    const pending = pendingFromHistory || localStorage.getItem('selectedAnime');
     if (pending) {
       const btn = [...pillsContainer.children].find(b => b.textContent.includes(DB.getAnimeById(pending)?.nome));
       if (btn) selectAnime(pending, btn);
-      localStorage.removeItem('selectedAnime');
+      if (!pendingFromHistory) localStorage.removeItem('selectedAnime');
     } else {
       noAnimeMsg.style.display = 'block';
     }
@@ -114,7 +207,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     panel.style.display = 'block';
     
     epSeason.value = 1; epNumber.value = 1; epTitle.value = ''; epIframe.value = '';
+    if (pendingHistoryResume && pendingHistoryResume.animeId === id && pendingHistoryResume.audio) {
+      activeAudio = pendingHistoryResume.audio;
+      syncAudioTabFromState();
+    }
     renderContent();
+    tryResumeWatchFromHistory();
   }
 
   function renderContent() {
@@ -470,6 +568,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (!item) return;
     activeEpisodeId = id;
+
+    trackHistoryView(item, typeOrSeason);
     
     watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
     

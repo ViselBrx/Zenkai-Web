@@ -7,6 +7,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterAno = document.getElementById('filterAno');
 
   let filmes = DB.getFilmes();
+  let pendingHistoryResume = null;
+
+  function loadPendingHistoryResume() {
+    if (typeof HistoryTracker === 'undefined') {
+      pendingHistoryResume = null;
+      return;
+    }
+    pendingHistoryResume = HistoryTracker.consumeResumeFromUrl('filmes.html');
+  }
+
+  function clearPendingHistoryResume() {
+    pendingHistoryResume = null;
+  }
+
+  function trackHistoryView(f) {
+    if (typeof HistoryTracker === 'undefined' || !f) return;
+    HistoryTracker.track({
+      contentId: f.id,
+      contentType: 'filme',
+      title: f.nome || 'Filme',
+      subtitle: [f.ano, f.genero].filter(Boolean).join(' - ') || 'Filme',
+      coverUrl: f.capa || '',
+      route: 'filmes.html',
+      payload: {
+        filmId: f.id,
+        mediaType: 'movie'
+      }
+    });
+  }
+
+  function tryResumeFilmPlayback() {
+    if (!pendingHistoryResume) return;
+    const filmId = pendingHistoryResume.filmId || pendingHistoryResume.contentId;
+    if (!filmId) {
+      clearPendingHistoryResume();
+      return;
+    }
+
+    const film = filmes.find(f => f.id === filmId) || DB.getFilmeById(filmId);
+    clearPendingHistoryResume();
+    if (!film) return;
+
+    setTimeout(() => openWatchModal(film), 60);
+  }
 
   function initFilters() {
     const generos = [...new Set(filmes.map(f => f.genero).filter(Boolean))].sort();
@@ -132,6 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     watchTitle.textContent = f.nome;
     watchFrame.innerHTML = f.iframe || '';
     watchModal.classList.add('open');
+    trackHistoryView(f);
     // Botão de marcar como assistido no modal de player
     const wBadge = document.getElementById('watchedModalBadge');
     if (wBadge && typeof Watched !== 'undefined') {
@@ -160,6 +205,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   filterGenero.addEventListener('change', render);
   filterAno.addEventListener('change', render);
 
+  loadPendingHistoryResume();
   initFilters();
   render();
+  tryResumeFilmPlayback();
 });

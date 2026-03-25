@@ -1,22 +1,24 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
-  // Tabs Verticais
+
   const tabs = document.querySelectorAll('.ai-tab-v');
   const panels = document.querySelectorAll('.tool-panel');
+  function activateToolTab(tabName) {
+    const targetTab = String(tabName || 'chat');
+    const selectedTab = document.querySelector(`.ai-tab-v[data-tab="${targetTab}"]`);
+    const selectedPanel = document.getElementById(`tab-${targetTab}`);
+    if (!selectedTab || !selectedPanel) return;
+
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    selectedTab.classList.add('active');
+    selectedPanel.classList.add('active');
+  }
 
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      panels.forEach(p => p.classList.remove('active'));
-      
-      tab.classList.add('active');
-      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-    });
+    tab.addEventListener('click', () => activateToolTab(tab.dataset.tab));
   });
 
-
-
-  // Elementos do Chat e Ferramentas
   const chatInput = document.getElementById('chatInput');
   const char1Inp = document.getElementById('char1');
   const char2Inp = document.getElementById('char2');
@@ -25,38 +27,54 @@ document.addEventListener('DOMContentLoaded', async () => {
   const toggleInfoCardBtn = document.getElementById('toggleInfoCard');
   const infoCard = document.getElementById('infoCard');
   const themeName = document.getElementById('themeName');
+  const themeColorPreview = document.getElementById('themeColorPreview');
   const chatScrollFill = document.getElementById('chatScrollFill');
   const chatScrollStatus = document.getElementById('chatScrollStatus');
+  const compareBtn = document.getElementById('compareBtn');
+  const compareResult = document.getElementById('compareResult');
+  const compareHistoryList = document.getElementById('compareHistoryList');
 
-  // Atalhos Enter
-  chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('sendChat').click();
-    }
-  });
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!';
+  const AI_HISTORY_TABLE = 'ai_chat_messages';
+  const AI_HISTORY_LIMIT = 120;
+  const TEMP_CONTEXT_KEY = 'open_anime_temp_chat_context_v1';
 
-  char1Inp.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      char2Inp.focus();
-    }
-  });
+  let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
+  let cachedAIUser = null;
+  let compareHistory = [];
 
-  char2Inp.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('compareBtn').click();
-    }
-  });
+  let resumeData = null;
+  if (typeof HistoryTracker !== 'undefined') {
+    resumeData = HistoryTracker.consumeResumeFromUrl('open-anime.html');
+  }
 
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+  }
 
+  if (char1Inp) {
+    char1Inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        char2Inp.focus();
+      }
+    });
+  }
 
-
-  // Histórico do Chat
-  let chatHistory = [
-    { role: "system", content: "Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa." }
-  ];
+  if (char2Inp) {
+    char2Inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        compareBtn.click();
+      }
+    });
+  }
 
   const themeLabels = {
     'theme-default': 'Tema padrão',
@@ -71,9 +89,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   function updateThemeInfo() {
-    if (!themeName) return;
-    const currentTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-default';
-    themeName.textContent = themeLabels[currentTheme] || 'Tema personalizado';
+    if (themeName) {
+      const currentTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-default';
+      themeName.textContent = themeLabels[currentTheme] || 'Tema personalizado';
+    }
+    if (themeColorPreview) {
+      const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7c3aed';
+      themeColorPreview.style.background = primary;
+    }
   }
 
   function updateChatScrollInfo() {
@@ -135,7 +158,87 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function formatAIResponse(text) {
+    if (!text) return '';
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function getNavigationType() {
+    try {
+      const nav = performance.getEntriesByType('navigation')[0];
+      return nav?.type || 'navigate';
+    } catch {
+      return 'navigate';
+    }
+  }
+
+  function isValidMessageArray(value) {
+    return Array.isArray(value) && value.every((item) => (
+      item
+      && typeof item === 'object'
+      && typeof item.role === 'string'
+      && typeof item.content === 'string'
+    ));
+  }
+
+  function saveTemporaryChatContext() {
+    try {
+      const safeMessages = chatHistory
+        .filter((msg) => msg && typeof msg.content === 'string' && typeof msg.role === 'string')
+        .slice(-60);
+      sessionStorage.setItem(TEMP_CONTEXT_KEY, JSON.stringify({
+        messages: safeMessages,
+        updatedAt: Date.now()
+      }));
+    } catch {
+      // ignore temporary session cache failures
+    }
+  }
+
+  function clearTemporaryChatContext() {
+    try {
+      sessionStorage.removeItem(TEMP_CONTEXT_KEY);
+    } catch {
+      // ignore
+    }
+  }
+
+  function restoreTemporaryChatContextFromSession() {
+    try {
+      const raw = sessionStorage.getItem(TEMP_CONTEXT_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      if (!isValidMessageArray(parsed?.messages) || parsed.messages.length === 0) return false;
+
+      const hasSystem = parsed.messages.some((msg) => msg.role === 'system');
+      chatHistory = hasSystem
+        ? parsed.messages
+        : [{ role: 'system', content: SYSTEM_PROMPT }, ...parsed.messages];
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function buildComparisonHistoryContentId(metadata = {}) {
+    const normalize = (value, fallback) => String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 32) || fallback;
+
+    const char1 = normalize(metadata.char1, 'personagem_1');
+    const char2 = normalize(metadata.char2, 'personagem_2');
+    return `open_anime_compare_${char1}_${char2}_${Date.now()}`;
+  }
+
   function appendMsg(text, type) {
+    if (!chatWindow) return;
+
     const div = document.createElement('div');
     div.className = `msg ${type}`;
 
@@ -154,16 +257,260 @@ document.addEventListener('DOMContentLoaded', async () => {
     div.appendChild(content);
     div.appendChild(copyBtn);
     chatWindow.appendChild(div);
-    
+
     setTimeout(() => {
       chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
       updateChatScrollInfo();
-    }, 100);
+    }, 80);
   }
 
-  appendMsg('Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!', 'bot');
+  function renderChatFromMessages(messages = []) {
+    if (!chatWindow) return;
+    chatWindow.innerHTML = '';
+
+    messages.forEach((msg) => {
+      if (!msg || msg.role === 'system' || typeof msg.content !== 'string') return;
+      const type = msg.role === 'assistant' ? 'bot' : 'user';
+      appendMsg(msg.content, type);
+    });
+  }
+
+  function renderCompareHistory() {
+    if (!compareHistoryList) return;
+
+    if (compareHistory.length === 0) {
+      compareHistoryList.innerHTML = '<div class="compare-history-empty">Sem comparações anteriores.</div>';
+      return;
+    }
+
+    compareHistoryList.innerHTML = compareHistory.map(item => {
+      const when = new Date(item.created_at || Date.now()).toLocaleString('pt-BR');
+      const pair = item.char1 && item.char2 ? `${item.char1} vs ${item.char2}` : 'Comparação';
+      return `
+        <div class="compare-history-item">
+          <div class="compare-history-head">
+            <strong>${pair}</strong>
+            <span>${when}</span>
+          </div>
+          <div class="compare-history-body">${formatAIResponse(item.content || '')}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function waitForSupabaseClient(timeoutMs = 6000) {
+    const start = Date.now();
+    while (!window.supabaseClient && (Date.now() - start) < timeoutMs) {
+      await new Promise(resolve => setTimeout(resolve, 120));
+    }
+    return window.supabaseClient || null;
+  }
+
+  async function getAIHistoryUser() {
+    if (cachedAIUser) return cachedAIUser;
+
+    const supa = await waitForSupabaseClient();
+    if (!supa) return null;
+
+    try {
+      const { data: { user } } = await supa.auth.getUser();
+      cachedAIUser = user || null;
+      return cachedAIUser;
+    } catch {
+      return null;
+    }
+  }
+
+  async function saveAIHistoryMessage({ role, content, context = 'chat', metadata = {} }) {
+    const supa = await waitForSupabaseClient();
+    if (!supa || !content) return false;
+
+    const user = await getAIHistoryUser();
+    if (!user) return false;
+
+    try {
+      const { error } = await supa
+        .from(AI_HISTORY_TABLE)
+        .insert([{ user_id: user.id, role, content, context, metadata }]);
+      return !error;
+    } catch (err) {
+      console.error('Erro ao salvar histórico da IA:', err);
+      return false;
+    }
+  }
+
+  async function loadAIHistoryMessages(context = 'chat', limit = AI_HISTORY_LIMIT) {
+    const supa = await waitForSupabaseClient();
+    if (!supa) return [];
+
+    const user = await getAIHistoryUser();
+    if (!user) return [];
+
+    try {
+      const { data, error } = await supa
+        .from(AI_HISTORY_TABLE)
+        .select('role, content, context, metadata, created_at')
+        .eq('user_id', user.id)
+        .eq('context', context)
+        .order('created_at', { ascending: true })
+        .limit(limit);
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Erro ao carregar histórico da IA:', err);
+      return [];
+    }
+  }
+
+  async function initializePersistentChatHistory(useTemporaryFirst = false) {
+    if (useTemporaryFirst && chatHistory.length > 1) {
+      renderChatFromMessages(chatHistory);
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages('chat');
+
+    if (persisted.length > 0) {
+      chatHistory = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
+      ];
+      renderChatFromMessages(chatHistory);
+      saveTemporaryChatContext();
+      return;
+    }
+
+    appendMsg(GREETING_MESSAGE, 'bot');
+    chatHistory.push({ role: 'assistant', content: GREETING_MESSAGE });
+    await saveAIHistoryMessage({ role: 'assistant', content: GREETING_MESSAGE, context: 'chat' });
+    saveTemporaryChatContext();
+  }
+
+  async function initializeComparisonHistory() {
+    const persisted = await loadAIHistoryMessages('compare');
+
+    compareHistory = persisted
+      .filter(msg => msg.role === 'assistant')
+      .map(msg => ({
+        content: msg.content,
+        created_at: msg.created_at,
+        char1: msg.metadata?.char1 || '',
+        char2: msg.metadata?.char2 || ''
+      }))
+      .reverse();
+
+    renderCompareHistory();
+
+    if (compareResult && compareHistory.length > 0) {
+      compareResult.style.display = 'block';
+      compareResult.innerHTML = `<strong>Última análise:</strong><br><br>${formatAIResponse(compareHistory[0].content)}`;
+    }
+  }
+
+  async function callAI(prompt, options = {}) {
+    const target = 'groq';
+    const model = 'llama-3.3-70b-versatile';
+    const useChatContext = options.useChatContext !== false;
+    const persistToAIHistory = options.persistToAIHistory !== false;
+    const context = options.context || 'chat';
+    const metadata = options.metadata || {};
+
+    try {
+      if (useChatContext) {
+        chatHistory.push({ role: 'user', content: prompt });
+        saveTemporaryChatContext();
+      }
+
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({ role: 'user', content: prompt, context, metadata });
+      }
+
+      const GROQ_API_KEY = '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';
+      const requestMessages = useChatContext
+        ? chatHistory
+        : [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: prompt }];
+
+      const res = await fetch('/api/ai/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target,
+          apiKey: GROQ_API_KEY,
+          body: {
+            model,
+            messages: requestMessages,
+            stream: false
+          }
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const erroMsg = typeof errData.error === 'object' ? errData.error.message : errData.error;
+        throw new Error(erroMsg || ('Erro HTTP ' + res.status));
+      }
+
+      const data = await res.json();
+      const aiResponse = data.choices[0].message.content;
+
+      if (useChatContext) {
+        chatHistory.push({ role: 'assistant', content: aiResponse });
+        saveTemporaryChatContext();
+      }
+
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({ role: 'assistant', content: aiResponse, context, metadata });
+
+        if (typeof HistoryTracker !== 'undefined') {
+          const isCompare = context === 'compare';
+          HistoryTracker.track({
+            contentId: isCompare ? buildComparisonHistoryContentId(metadata) : 'open_anime_chat',
+            contentType: isCompare ? 'ai_compare' : 'ai_chat',
+            title: isCompare
+              ? `Comparação IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
+              : ('Open AnIme - ' + prompt.slice(0, 60)),
+            subtitle: aiResponse.slice(0, 120),
+            route: 'open-anime.html',
+            payload: {
+              mediaType: isCompare ? 'ai_compare' : 'ai_chat',
+              tab: isCompare ? 'compare' : 'chat',
+              char1: metadata.char1 || '',
+              char2: metadata.char2 || ''
+            }
+          });
+        }
+      }
+
+      return aiResponse;
+    } catch (e) {
+      console.error(e);
+      if (useChatContext && chatHistory.length > 1) {
+        chatHistory.pop();
+        saveTemporaryChatContext();
+      }
+      return 'Falha: ' + e.message + '. Verifique o terminal do servidor para mais detalhes.';
+    }
+  }
+
+  const navigationType = getNavigationType();
+  if (navigationType !== 'reload') {
+    clearTemporaryChatContext();
+  }
+  const temporaryContextRestored = restoreTemporaryChatContextFromSession();
+
+  await initializePersistentChatHistory(temporaryContextRestored);
+  await initializeComparisonHistory();
   updateThemeInfo();
   updateChatScrollInfo();
+
+  if (!temporaryContextRestored) {
+    saveTemporaryChatContext();
+  }
+
+  const shouldOpenCompareTab = resumeData?.mediaType === 'ai_compare'
+    || resumeData?.contentType === 'ai_compare'
+    || resumeData?.tab === 'compare';
+  activateToolTab(shouldOpenCompareTab ? 'compare' : 'chat');
 
   if (toggleInfoCardBtn && infoCard) {
     toggleInfoCardBtn.addEventListener('click', () => {
@@ -183,74 +530,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Proxy Calls
-  async function callAI(prompt) {
-    const target = 'groq'; 
-    const model = "llama-3.3-70b-versatile";
-
-    try {
-      chatHistory.push({ role: "user", content: prompt });
-      
-      const GROQ_API_KEY = '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';
-      const res = await fetch('/api/ai/proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target,
-          apiKey: GROQ_API_KEY,
-          body: {
-            model: model,
-            messages: chatHistory,
-            stream: false
-          }
-        })
-      });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const erroMsg = typeof errData.error === 'object' ? errData.error.message : errData.error;
-        throw new Error(erroMsg || `Erro HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      const aiResponse = data.choices[0].message.content;
-      chatHistory.push({ role: "assistant", content: aiResponse });
-      return aiResponse;
-    } catch (e) {
-      console.error(e);
-      // Remove o último prompt do usuário se falhar para não poluir o histórico com erros
-      chatHistory.pop();
-      return `⚠️ Falha: ${e.message}. Verifique o terminal do servidor para mais detalhes.`;
-    }
-  }
-
-  function formatAIResponse(text) {
-    if (!text) return '';
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
-  }
-
   sendBtn.addEventListener('click', async () => {
     const val = chatInput.value.trim();
     if (!val) return;
-    
+
     appendMsg(val, 'user');
     chatInput.value = '';
-    
+
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'msg bot loading-msg';
     loadingMsg.innerHTML = '<span class="pulse">🧠 Pensando...</span>';
     chatWindow.appendChild(loadingMsg);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     updateChatScrollInfo();
-    
-    const response = await callAI(val);
+
+    const response = await callAI(val, { useChatContext: true, persistToAIHistory: true, context: 'chat' });
     loadingMsg.remove();
     appendMsg(response, 'bot');
   });
-
-  // Compare Characters
-  const compareBtn = document.getElementById('compareBtn');
-  const compareResult = document.getElementById('compareResult');
 
   compareBtn.addEventListener('click', async () => {
     const c1 = char1Inp.value.trim();
@@ -259,23 +556,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     compareResult.style.display = 'block';
     compareResult.innerHTML = '⚖️ Analisando poderes, história e habilidades...';
-    
+
     const prompt = `Faça uma comparação detalhada entre os personagens de anime/desenho ${c1} e ${c2}. Analise Força, Inteligência, Habilidades Especiais e diga quem venceria em um duelo épico e por quê.`;
-    const analysis = await callAI(prompt);
+    const analysis = await callAI(prompt, {
+      useChatContext: false,
+      persistToAIHistory: true,
+      context: 'compare',
+      metadata: { char1: c1, char2: c2 }
+    });
+
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
-    
-    // Scroll suave para o resultado
+
+    compareHistory.unshift({
+      content: analysis,
+      created_at: new Date().toISOString(),
+      char1: c1,
+      char2: c2
+    });
+    compareHistory = compareHistory.slice(0, 20);
+    renderCompareHistory();
+
     setTimeout(() => {
       compareResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   });
 
-  // Clear comparison entries on load
   char1Inp.value = '';
   char2Inp.value = '';
-  if (compareResult) {
-    compareResult.innerHTML = '';
-    compareResult.style.display = 'none';
-  }
-
 });

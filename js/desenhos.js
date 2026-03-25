@@ -28,6 +28,82 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeEpisodeId = null;
   let activeSeasonForWatch = null;
   let activeTypeForWatch = 'episode'; // 'episode' ou 'movie'
+  let pendingHistoryResume = null;
+
+  function loadPendingHistoryResume() {
+    if (typeof HistoryTracker === 'undefined') {
+      pendingHistoryResume = null;
+      return;
+    }
+    pendingHistoryResume = HistoryTracker.consumeResumeFromUrl('desenhos.html');
+  }
+
+  function clearPendingHistoryResume() {
+    pendingHistoryResume = null;
+  }
+
+  function trackHistoryView(item, typeOrSeason) {
+    if (typeof HistoryTracker === 'undefined' || !activeCartoonId || !item) return;
+
+    const cartoon = DB.getCartoonById(activeCartoonId);
+    const isMovie = typeOrSeason === 'movie';
+    const season = isMovie ? null : Number(typeOrSeason);
+    const epNumber = Number(item.epNumber || 0) || null;
+    const title = isMovie
+      ? `${cartoon?.nome || 'Desenho'} - Filme`
+      : `${cartoon?.nome || 'Desenho'} - T${season || 1}E${epNumber || 1}`;
+
+    HistoryTracker.track({
+      contentId: item.id,
+      contentType: isMovie ? 'desenho_movie' : 'desenho_episode',
+      title,
+      subtitle: isMovie
+        ? (item.title || 'Filme sem titulo')
+        : (item.title || `Episodio ${epNumber || 1}`),
+      coverUrl: cartoon?.capa || '',
+      route: 'desenhos.html',
+      payload: {
+        cartoonId: activeCartoonId,
+        season,
+        mediaType: isMovie ? 'movie' : 'episode'
+      }
+    });
+  }
+
+  function tryResumeWatchFromHistory() {
+    if (!pendingHistoryResume || !activeCartoonId) return;
+    if (pendingHistoryResume.route !== 'desenhos.html') return;
+    if (pendingHistoryResume.cartoonId !== activeCartoonId) return;
+
+    const targetId = pendingHistoryResume.contentId;
+    if (!targetId) {
+      clearPendingHistoryResume();
+      return;
+    }
+
+    const isMovie = pendingHistoryResume.contentType === 'desenho_movie';
+    if (isMovie) {
+      const movieExists = DB.getMoviesFor(activeCartoonId).some(m => m.id === targetId);
+      if (!movieExists) {
+        clearPendingHistoryResume();
+        return;
+      }
+      clearPendingHistoryResume();
+      setTimeout(() => window.openWatchModal(targetId, 'movie'), 60);
+      return;
+    }
+
+    const season = Number(pendingHistoryResume.season || 1);
+    const seasonEps = DB.getEpisodesFor(activeCartoonId)[season] || [];
+    const epExists = seasonEps.some(ep => ep.id === targetId);
+    if (!epExists) {
+      clearPendingHistoryResume();
+      return;
+    }
+
+    clearPendingHistoryResume();
+    setTimeout(() => window.openWatchModal(targetId, season), 60);
+  }
 
   function loadCartoons() {
     const list = DB.getCartoons();
@@ -51,11 +127,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       pillsContainer.appendChild(btn);
     });
 
-    const pending = localStorage.getItem('selectedCartoon');
+    loadPendingHistoryResume();
+    const pendingFromHistory = pendingHistoryResume?.cartoonId || null;
+    const pending = pendingFromHistory || localStorage.getItem('selectedCartoon');
     if (pending) {
       const btn = [...pillsContainer.children].find(b => b.textContent.includes(DB.getCartoonById(pending)?.nome));
       if (btn) selectCartoon(pending, btn);
-      localStorage.removeItem('selectedCartoon');
+      if (!pendingFromHistory) localStorage.removeItem('selectedCartoon');
     } else {
       noCartoonMsg.style.display = 'block';
     }
@@ -96,6 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     epSeason.value = 1; epNumber.value = 1; epTitle.value = ''; epIframe.value = '';
     renderContent();
+    tryResumeWatchFromHistory();
   }
 
   function renderContent() {
@@ -443,6 +522,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     if (!item) return;
     activeEpisodeId = id;
+
+    trackHistoryView(item, typeOrSeason);
     
     watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
     

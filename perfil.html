@@ -3,71 +3,358 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Meu Perfil</title>
+  <title>Anime House - Meu Perfil</title>
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .profile-container {
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 0 20px;
+    .profile-shell {
+      max-width: 1320px;
+      margin: 24px auto;
+      padding: 0 16px 30px;
     }
-    .profile-card {
-      background: var(--bg-card);
-      border: 1px solid rgba(var(--primary-rgb), 0.2);
+
+    .profile-layout {
+      display: grid;
+      grid-template-columns: 330px minmax(0, 1fr);
+      gap: 18px;
+      min-height: calc(100vh - 150px);
+    }
+
+    .history-sidebar {
+      background: linear-gradient(
+        180deg,
+        rgba(var(--primary-rgb), 0.16) 0%,
+        rgba(var(--bg-dark), 0.95) 55%,
+        rgba(var(--bg-card), 0.92) 100%
+      );
+      border: 1px solid rgba(var(--primary-rgb), 0.4);
       border-radius: 16px;
-      padding: 30px;
-      box-shadow: var(--shadow-md);
-      animation: fadeInUp 0.6s ease;
-    }
-    .profile-header {
+      padding: 14px;
       display: flex;
       flex-direction: column;
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.35),
+        0 0 26px rgba(var(--primary-rgb), 0.22),
+        inset 0 0 22px rgba(var(--primary-rgb), 0.07);
+      min-height: 660px;
+      height: calc(100vh - 120px);
+      max-height: calc(100vh - 120px);
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      display: flex;
       align-items: center;
-      margin-bottom: 30px;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-title {
+      margin: 0;
+      font-family: 'Bangers', cursive;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      color: var(--primary);
+      text-shadow: 0 0 18px rgba(var(--primary-rgb), 0.48);
+    }
+
+    .sidebar-meta {
+      margin: 0 0 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .history-search input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(var(--primary-rgb), 0.28);
+      background: rgba(3, 14, 33, 0.9);
+      color: var(--text-main);
+      outline: none;
+      margin-bottom: 8px;
+    }
+
+    .history-search input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.32);
+    }
+
+    .history-note {
+      margin: 0 0 10px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      color: #f0f4f8;
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 120px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--primary-rgb), 0.65) rgba(var(--primary-rgb), 0.1);
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .history-list::-webkit-scrollbar-track {
+      background: rgba(var(--primary-rgb), 0.08);
+      border-radius: 999px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.95), rgba(var(--primary-rgb), 0.55));
+      border-radius: 999px;
+      border: 1px solid rgba(var(--primary-rgb), 0.35);
+      box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.35);
+    }
+
+    .history-list::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(var(--primary-rgb), 1), rgba(var(--primary-rgb), 0.72));
+    }
+
+    .history-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-group-label {
+      margin: 0;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(var(--primary-rgb), 0.92);
+      font-weight: 700;
+      padding-left: 2px;
+    }
+
+    .history-item {
+      background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.16), rgba(8, 25, 54, 0.7));
+      border: 1px solid rgba(var(--primary-rgb), 0.32);
+      border-radius: 11px;
+      padding: 10px;
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+
+    .history-item:hover {
+      border-color: rgba(var(--primary-rgb), 0.62);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 16px rgba(var(--primary-rgb), 0.25);
+    }
+
+    .history-open {
+      width: 100%;
+      border: none;
+      background: transparent;
+      text-align: left;
+      color: var(--text-main);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .history-open strong {
+      display: block;
+      font-size: 0.89rem;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+
+    .history-open span {
+      display: block;
+      font-size: 0.77rem;
+      line-height: 1.35;
+      color: var(--text-muted);
+    }
+
+    .history-meta {
+      margin-top: 6px;
+      font-size: 0.7rem;
+      color: rgba(168, 194, 223, 0.88);
+    }
+
+    .history-item-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .history-empty {
+      border: 1px dashed rgba(var(--primary-rgb), 0.35);
+      border-radius: 12px;
+      background: rgba(8, 25, 54, 0.6);
+      color: var(--text-muted);
       text-align: center;
+      padding: 22px 12px;
+      margin-top: 6px;
     }
-    .profile-avatar-large {
-      width: 120px;
-      height: 120px;
+
+    .history-empty p {
+      margin: 0;
+      font-size: 0.86rem;
+    }
+
+    .sidebar-footer {
+      margin-top: 12px;
+      border-top: 1px solid rgba(var(--primary-rgb), 0.3);
+      padding-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 64px;
+    }
+
+    .profile-bubble {
+      width: 46px;
+      height: 46px;
       border-radius: 50%;
+      border: 2px solid var(--primary);
       object-fit: cover;
-      border: 4px solid var(--primary);
-      box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4);
-      margin-bottom: 15px;
+      box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.45);
+      flex-shrink: 0;
     }
-    .profile-email {
+
+    .profile-identity {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .profile-identity strong {
+      font-size: 0.9rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-identity span {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .profile-main {
+      background: linear-gradient(170deg, rgba(4, 22, 50, 0.92) 0%, rgba(7, 14, 31, 0.94) 100%);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+    }
+
+    .main-head {
+      margin-bottom: 18px;
+    }
+
+    .main-head h1 {
+      margin: 0;
+      color: var(--primary);
+      font-family: 'Bangers', cursive;
+      letter-spacing: 1px;
+      font-size: 2rem;
+    }
+
+    .main-head p {
+      margin: 5px 0 0;
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
+
     .form-group label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 7px;
       font-weight: 600;
       color: var(--text-main);
     }
+
     .form-group input {
       width: 100%;
-      padding: 12px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      padding: 11px 12px;
+      background: rgba(5, 17, 38, 0.75);
+      border: 1px solid rgba(var(--primary-rgb), 0.22);
+      border-radius: 10px;
       color: var(--text-main);
       outline: none;
     }
+
     .form-group input:focus {
       border-color: var(--primary);
-      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
+      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.28);
     }
+
+    .form-group p {
+      margin: 8px 0 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
     .actions {
       display: flex;
-      gap: 15px;
-      margin-top: 30px;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .actions .btn {
+      min-height: 42px;
+    }
+
+    .back-link {
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: inline-block;
+    }
+
+    @media (max-width: 980px) {
+      .profile-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .history-sidebar {
+        min-height: 420px;
+        height: auto;
+        max-height: none;
+        overflow: visible;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .profile-main,
+      .history-sidebar {
+        padding: 16px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .actions .btn,
+      .actions a {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -84,159 +371,403 @@
   <button class="navbar-burger" id="navBurger"><span></span><span></span><span></span></button>
 </nav>
 
-<main class="profile-container">
-  <div class="profile-card">
-    <div class="profile-header">
-      <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-avatar-large" alt="Avatar" />
-      <h2 id="displayUsername" style="color:var(--primary); font-family:'Bangers'; font-size: 2rem;">Carregando...</h2>
-      <p id="displayEmail" class="profile-email">---</p>
-    </div>
+<main class="profile-shell">
+  <div class="profile-layout">
+    <aside class="history-sidebar">
+      <div class="sidebar-head">
+        <h2 class="sidebar-title">Histórico</h2>
+        <button type="button" id="clearHistoryBtn" class="btn btn-danger btn-sm">Apagar</button>
+      </div>
+      <p id="historyCount" class="sidebar-meta">0 itens</p>
 
-    <form id="profileForm">
-      <div class="form-group">
-        <label for="username">Nome de Exibição</label>
-        <input type="text" id="username" placeholder="Seu nome" required />
+      <div class="history-search">
+        <input id="historySearch" type="text" placeholder="Buscar no histórico..." />
       </div>
-      
-      <div class="form-group">
-        <label for="avatarFile">Sua Foto de Perfil (Upload)</label>
-        <input type="file" id="avatarFile" accept="image/*" style="margin-bottom: 10px;" />
-        <p style="font-size: 0.8rem; color:var(--text-muted)">Ou cole uma URL abaixo:</p>
+      <p id="historySourceNote" class="history-note" style="display:none;"></p>
+
+      <div id="historyList" class="history-list"></div>
+      <div id="historyEmpty" class="history-empty" style="display:none;">
+        <p>Nenhum item no seu histórico ainda.</p>
       </div>
 
-      <div class="form-group">
-        <label for="avatarUrl">URL da Foto</label>
-        <input type="url" id="avatarUrl" placeholder="https://exemplo.com/foto.jpg" />
+      <div class="sidebar-footer">
+        <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-bubble" alt="Avatar" />
+        <div class="profile-identity">
+          <strong id="displayUsername">Carregando...</strong>
+          <span id="displayEmail">---</span>
+        </div>
       </div>
-      
-      <div class="actions">
-        <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Alterações</button>
-        <button type="button" id="logoutBtn" class="btn btn-danger">Sair</button>
+    </aside>
+
+    <section class="profile-main">
+      <div class="main-head">
+        <h1>Meu Perfil</h1>
+        <p>Edite seu nome de exibição e avatar.</p>
       </div>
-    </form>
-    
-    <div style="margin-top: 20px; text-align: center;">
-        <a href="index.html" style="color:var(--text-muted); font-size: 0.9rem;">← Voltar ao Início</a>
-    </div>
+
+      <form id="profileForm">
+        <div class="form-group">
+          <label for="username">Nome de Exibição</label>
+          <input type="text" id="username" placeholder="Seu nome" required />
+        </div>
+
+        <div class="form-group">
+          <label for="avatarFile">Foto de Perfil (Upload)</label>
+          <input type="file" id="avatarFile" accept="image/*" />
+          <p>Ou use uma URL da imagem abaixo.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="avatarUrl">URL da Foto</label>
+          <input type="url" id="avatarUrl" placeholder="https://exemplo.com/foto.jpg" />
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" style="flex:1;">Salvar Alterações</button>
+          <button type="button" id="logoutBtn" class="btn btn-danger">Sair</button>
+        </div>
+      </form>
+
+      <a class="back-link" href="index.html">&larr; Voltar ao Início</a>
+    </section>
   </div>
 </main>
 
 <div id="toast"></div>
 
-<!-- Lógica do Perfil -->
+<script src="js/history.js"></script>
 <script src="js/auth.js"></script>
 <script>
   function showToast(msg, type = 'success', ms = 3000) {
     const container = document.getElementById('toast');
     if (!container) return;
+
     const el = document.createElement('div');
     el.className = 'undo-toast';
     const isError = type === 'error';
     if (isError) {
-        el.style.border = '2px solid var(--danger)';
-        el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
+      el.style.border = '2px solid var(--danger)';
+      el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
     }
+
     el.innerHTML = `
       <div class="undo-content" style="justify-content: center;">
-        <span style="${isError ? 'color: var(--danger); font-weight: bold;' : ''}">${isError ? '⚠️ ' : ''}${msg}</span>
+        <span style="${isError ? 'color: var(--danger); font-weight: bold;' : ''}">${msg}</span>
       </div>
     `;
     container.appendChild(el);
+
     setTimeout(() => {
       el.classList.add('fade-out');
       setTimeout(() => el.remove(), 300);
     }, ms);
   }
+
   document.addEventListener('DOMContentLoaded', async () => {
-      // Aguarda o supaClient ser inicializado no auth.js
-      const checkClient = setInterval(async () => {
-          if (window.supabaseClient) {
-              clearInterval(checkClient);
-              await initProfile();
-          }
-      }, 100);
+    const historySearch = document.getElementById('historySearch');
+    const historyList = document.getElementById('historyList');
+    const historyEmpty = document.getElementById('historyEmpty');
+    const historyCount = document.getElementById('historyCount');
+    const historySourceNote = document.getElementById('historySourceNote');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
-      async function initProfile() {
-          const supabase = window.supabaseClient;
-          const { data: { user } } = await supabase.auth.getUser();
+    let historyItems = [];
+    let historyEventsBound = false;
 
-          if (!user) {
-              window.location.href = 'login.html';
-              return;
-          }
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
 
-          // Busca dados do perfil
-          const { data: profile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single();
+    function formatTypeLabel(type) {
+      const map = {
+        desenho_movie: 'Desenho - Filme',
+        desenho_episode: 'Desenho - Episódio',
+        anime_movie: 'Anime - Filme',
+        anime_episode: 'Anime - Episódio',
+        filme: 'Filme',
+        ai_chat: 'IA - Chat',
+        ai_compare: 'IA - Comparação'
+      };
+      return map[type] || type || 'Conteúdo';
+    }
 
-          if (profile) {
-              document.getElementById('username').value = profile.username || '';
-              document.getElementById('avatarUrl').value = profile.avatar_url || '';
-              document.getElementById('displayUsername').textContent = profile.username || 'Usuário';
-              document.getElementById('displayAvatar').src = profile.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-          }
-          document.getElementById('displayEmail').textContent = user.email;
+    function toDate(value) {
+      const date = new Date(value || Date.now());
+      if (Number.isNaN(date.getTime())) return new Date();
+      return date;
+    }
 
-          // Upload de Imagem
-          document.getElementById('avatarFile').onchange = async (e) => {
-              const file = e.target.files[0];
-              if (!file) return;
+    function formatGroupLabel(value) {
+      const date = toDate(value);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const itemDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const diffDays = Math.round((today - itemDay) / 86400000);
 
-              showToast('Enviando imagem...');
-              const fileExt = file.name.split('.').pop();
-              const fileName = `${user.id}-${Math.floor(Date.now() / 1000)}.${fileExt}`;
+      if (diffDays <= 0) return 'Hoje';
+      if (diffDays === 1) return 'Ontem';
+      return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+    }
 
-              const { data, error: uploadError } = await supabase.storage
-                  .from('avatars')
-                  .upload(fileName, file);
+    function formatHour(value) {
+      return toDate(value).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
 
-              if (uploadError) {
-                  console.error(uploadError);
-                  showToast('Erro no upload: ' + uploadError.message, true);
-                  return;
-              }
+    function getFilteredHistoryItems() {
+      const term = (historySearch?.value || '').trim().toLowerCase();
+      if (!term) return historyItems;
 
-              // Pega a URL pública
-              const { data: { publicUrl } } = supabase.storage
-                  .from('avatars')
-                  .getPublicUrl(fileName);
+      return historyItems.filter(item => {
+        const base = [item.title || '', item.subtitle || '', item.content_type || ''].join(' ').toLowerCase();
+        return base.includes(term);
+      });
+    }
 
-              document.getElementById('avatarUrl').value = publicUrl;
-              document.getElementById('displayAvatar').src = publicUrl;
-              showToast('Imagem carregada! Não esqueça de Salvar Alterações.');
-          };
+    function renderHistory() {
+      if (!historyList || !historyEmpty || !historyCount) return;
 
-          // Salvar
-          document.getElementById('profileForm').onsubmit = async (e) => {
-              e.preventDefault();
-              const username = document.getElementById('username').value;
-              const avatar_url = document.getElementById('avatarUrl').value;
+      const filtered = getFilteredHistoryItems();
+      historyCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'item' : 'itens'}`;
 
-              const { error: updateError } = await supabase
-                  .from('profiles')
-                  .upsert({
-                      id: user.id,
-                      username,
-                      avatar_url,
-                      updated_at: new Date()
-                  });
-
-              if (updateError) {
-                  showToast('Erro ao salvar: ' + updateError.message, true);
-              } else {
-                  showToast('Perfil atualizado!');
-                  setTimeout(() => window.location.reload(), 1000);
-              }
-          };
-
-          document.getElementById('logoutBtn').onclick = async () => {
-              await supabase.auth.signOut();
-              window.location.href = 'index.html';
-          };
+      if (filtered.length === 0) {
+        historyList.innerHTML = '';
+        historyEmpty.style.display = 'block';
+        return;
       }
+
+      historyEmpty.style.display = 'none';
+      const groups = new Map();
+
+      filtered.forEach(item => {
+        const stamp = item.last_watched_at || item.created_at || item.updated_at || new Date().toISOString();
+        const label = formatGroupLabel(stamp);
+        if (!groups.has(label)) groups.set(label, []);
+        groups.get(label).push(item);
+      });
+
+      let html = '';
+      groups.forEach((items, label) => {
+        html += `<section class="history-group"><h4 class="history-group-label">${escapeHtml(label)}</h4>`;
+
+        items.forEach(item => {
+          const itemId = escapeHtml(item.id || '');
+          const title = escapeHtml(item.title || 'Conteúdo sem título');
+          const subtitle = escapeHtml(item.subtitle || formatTypeLabel(item.content_type));
+          const stamp = item.last_watched_at || item.created_at || item.updated_at;
+          const meta = `${formatTypeLabel(item.content_type)} - ${formatHour(stamp)}`;
+
+          html += `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <strong>${title}</strong>
+                <span>${subtitle}</span>
+                <div class="history-meta">${escapeHtml(meta)}</div>
+              </button>
+              <div class="history-item-actions">
+                <button type="button" class="btn btn-ghost btn-sm" data-open-id="${itemId}">Abrir</button>
+                <button type="button" class="btn btn-danger btn-sm" data-delete-id="${itemId}">Excluir</button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += '</section>';
+      });
+
+      historyList.innerHTML = html;
+    }
+
+    function findHistoryItem(itemId) {
+      return historyItems.find(item => String(item.id) === String(itemId)) || null;
+    }
+
+    async function refreshHistory() {
+      if (typeof HistoryTracker === 'undefined') {
+        historyItems = [];
+        renderHistory();
+        return;
+      }
+
+      const { items, source } = await HistoryTracker.list(240);
+      historyItems = Array.isArray(items) ? [...items] : [];
+      historyItems.sort((a, b) => {
+        const aTime = new Date(a.last_watched_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.last_watched_at || b.created_at || 0).getTime();
+        return bTime - aTime;
+      });
+
+      if (historySourceNote) {
+        if (source === 'error' || source === 'no-client') {
+          historySourceNote.textContent = 'Não foi possível carregar do Supabase agora. Verifique auth.js e a tabela user_watch_history.';
+          historySourceNote.style.display = 'block';
+        } else {
+          historySourceNote.textContent = '';
+          historySourceNote.style.display = 'none';
+        }
+      }
+
+      renderHistory();
+    }
+
+    async function deleteHistoryItem(itemId) {
+      if (typeof HistoryTracker === 'undefined') return;
+      const ok = await HistoryTracker.remove(itemId);
+      if (!ok) {
+        showToast('Falha ao remover item do histórico.', 'error');
+        return;
+      }
+      historyItems = historyItems.filter(item => String(item.id) !== String(itemId));
+      renderHistory();
+      showToast('Item removido do histórico.');
+    }
+
+    function openHistoryItem(itemId) {
+      const item = findHistoryItem(itemId);
+      if (!item) return;
+
+      if (typeof HistoryTracker !== 'undefined') {
+        HistoryTracker.queueResumeAndOpen(item);
+        return;
+      }
+
+      window.location.href = item.route || 'index.html';
+    }
+
+    function bindHistoryEvents() {
+      if (historyEventsBound) return;
+      historyEventsBound = true;
+
+      if (historySearch) {
+        historySearch.addEventListener('input', renderHistory);
+      }
+
+      if (historyList) {
+        historyList.addEventListener('click', async (event) => {
+          const openBtn = event.target.closest('[data-open-id]');
+          if (openBtn) {
+            openHistoryItem(openBtn.getAttribute('data-open-id'));
+            return;
+          }
+
+          const deleteBtn = event.target.closest('[data-delete-id]');
+          if (deleteBtn) {
+            await deleteHistoryItem(deleteBtn.getAttribute('data-delete-id'));
+          }
+        });
+      }
+
+      if (clearHistoryBtn) {
+        clearHistoryBtn.addEventListener('click', async () => {
+          if (!confirm('Deseja apagar todo o histórico da sua conta?')) return;
+          if (typeof HistoryTracker === 'undefined') return;
+
+          const ok = await HistoryTracker.clearAll();
+          if (!ok) {
+            showToast('Falha ao limpar histórico.', 'error');
+            return;
+          }
+          historyItems = [];
+          renderHistory();
+          showToast('Histórico limpo com sucesso.');
+        });
+      }
+    }
+
+    const checkClient = setInterval(async () => {
+      if (window.supabaseClient) {
+        clearInterval(checkClient);
+        await initProfile();
+      }
+    }, 100);
+
+    async function initProfile() {
+      const supabase = window.supabaseClient;
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      const fallbackName = user.email ? user.email.split('@')[0] : 'Usuário';
+      const usernameValue = profile?.username || fallbackName;
+      const avatarValue = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+      document.getElementById('username').value = usernameValue;
+      document.getElementById('avatarUrl').value = profile?.avatar_url || '';
+      document.getElementById('displayUsername').textContent = usernameValue;
+      document.getElementById('displayAvatar').src = avatarValue;
+      document.getElementById('displayEmail').textContent = user.email || '';
+
+      bindHistoryEvents();
+      await refreshHistory();
+
+      document.getElementById('avatarFile').onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        showToast('Enviando imagem...');
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}-${Math.floor(Date.now() / 1000)}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error(uploadError);
+          showToast('Erro no upload: ' + uploadError.message, 'error');
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(fileName);
+
+        document.getElementById('avatarUrl').value = publicUrl;
+        document.getElementById('displayAvatar').src = publicUrl;
+        showToast('Imagem carregada. Salve as alterações para concluir.');
+      };
+
+      document.getElementById('profileForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const avatar_url = document.getElementById('avatarUrl').value;
+
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            username,
+            avatar_url,
+            updated_at: new Date()
+          });
+
+        if (updateError) {
+          showToast('Erro ao salvar: ' + updateError.message, 'error');
+        } else {
+          showToast('Perfil atualizado!');
+          document.getElementById('displayUsername').textContent = username || fallbackName;
+          document.getElementById('displayAvatar').src = avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+        }
+      };
+
+      document.getElementById('logoutBtn').onclick = async () => {
+        await supabase.auth.signOut();
+        window.location.href = 'index.html';
+      };
+    }
   });
 </script>
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>

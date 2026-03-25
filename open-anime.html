@@ -265,18 +265,6 @@
           </p>
         </div>
 
-        <div class="ai-scroll-panel">
-          <div class="ai-scroll-panel__top">
-            <span class="ai-config-label">Navegação</span>
-            <strong id="chatScrollStatus">Role o chat para explorar o histórico</strong>
-          </div>
-          <div class="ai-scroll-track">
-            <div class="ai-scroll-track__fill" id="chatScrollFill"></div>
-          </div>
-          <p class="ai-side-note">
-            A barra acima mostra o quanto do histórico atual do chat já foi percorrido.
-          </p>
-        </div>
       </div>
 
       <div class="ai-tool-box">
@@ -331,6 +319,10 @@
           </div>
           <button class="btn btn-primary w-100" id="compareBtn">Iniciar Análise de Batalha</button>
           <div id="compareResult" class="msg bot" style="margin-top:20px; display:none; max-width: 100%; margin-bottom: 40px; min-height: 100px;"></div>
+          <div style="margin-top:10px;">
+            <h3 style="margin:0 0 10px;color:var(--accent);font-size:1rem;">Histórico de Comparações</h3>
+            <div id="compareHistoryList" class="compare-history-list"></div>
+          </div>
         </div>
       </div>
 
@@ -619,12 +611,100 @@
     display: flex;
     flex-direction: column;
   }
+
+  .compare-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .compare-history-item {
+    border: 1px solid rgba(var(--primary-rgb), 0.25);
+    border-radius: 12px;
+    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.1), rgba(0, 0, 0, 0.2));
+    box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.2);
+    padding: 12px;
+  }
+
+  .compare-history-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: var(--text-main);
+    font-size: 0.82rem;
+  }
+
+  .compare-history-head span {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+
+  .compare-history-body {
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.45;
+  }
+
+  .compare-history-empty {
+    border: 1px dashed rgba(var(--primary-rgb), 0.3);
+    border-radius: 10px;
+    padding: 12px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  .ai-content-area,
+  .ai-chat-window,
+  .ai-input-wrapper,
+  .ai-card,
+  .ai-tab-v,
+  .ai-tab-v.active,
+  .ai-panel-tools {
+    border-color: rgba(var(--primary-rgb), 0.35) !important;
+  }
+
+  .ai-content-area {
+    box-shadow: 0 0 26px rgba(var(--primary-rgb), 0.25), inset 0 0 22px rgba(var(--primary-rgb), 0.06);
+    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(0, 0, 0, 0.25));
+  }
+
+  .ai-card,
+  .ai-chat-window,
+  .ai-input-wrapper {
+    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(var(--bg-card), 0.55));
+    box-shadow: 0 0 22px rgba(var(--primary-rgb), 0.22);
+  }
+
+  .ai-tab-v.active {
+    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.35);
+    color: var(--text-main);
+    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.24), rgba(var(--primary-rgb), 0.08));
+  }
+
+  .msg.bot {
+    border-color: rgba(var(--primary-rgb), 0.4);
+    box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.2);
+    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.13), rgba(0, 0, 0, 0.25));
+  }
+
+  .msg.user {
+    border-color: rgba(var(--primary-rgb), 0.45);
+    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.25);
+    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.18), rgba(0, 0, 0, 0.2));
+  }
 </style>
 
 <div id="toast"></div>
 
 <!-- Scripts -->
 <script src="js/db.js"></script>
+<script src="js/history.js"></script>
 <script src="js/open-anime.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
