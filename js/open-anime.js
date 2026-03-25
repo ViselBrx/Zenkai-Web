@@ -32,21 +32,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatScrollStatus = document.getElementById('chatScrollStatus');
   const compareBtn = document.getElementById('compareBtn');
   const compareResult = document.getElementById('compareResult');
-  const compareHistoryList = document.getElementById('compareHistoryList');
 
   const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const TEMP_CONTEXT_KEY = 'open_anime_temp_chat_context_v1';
 
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
-  let compareHistory = [];
+  let currentChatThreadId = '';
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
     resumeData = HistoryTracker.consumeResumeFromUrl('open-anime.html');
+  }
+
+  function buildUniqueId(prefix) {
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function getResumeChatThreadId() {
+    if (!resumeData) return '';
+    const candidate = String(resumeData.threadId || resumeData.contentId || '').trim();
+    if (!candidate || candidate === 'open_anime_chat') return '';
+    return candidate;
+  }
+
+  function getResumeCompareHistoryId() {
+    if (!resumeData) return '';
+    return String(resumeData.historyContentId || resumeData.compareId || resumeData.contentId || '').trim();
   }
 
   if (chatInput) {
@@ -165,63 +179,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/\n/g, '<br>');
   }
 
-  function getNavigationType() {
-    try {
-      const nav = performance.getEntriesByType('navigation')[0];
-      return nav?.type || 'navigate';
-    } catch {
-      return 'navigate';
-    }
-  }
-
-  function isValidMessageArray(value) {
-    return Array.isArray(value) && value.every((item) => (
-      item
-      && typeof item === 'object'
-      && typeof item.role === 'string'
-      && typeof item.content === 'string'
-    ));
-  }
-
-  function saveTemporaryChatContext() {
-    try {
-      const safeMessages = chatHistory
-        .filter((msg) => msg && typeof msg.content === 'string' && typeof msg.role === 'string')
-        .slice(-60);
-      sessionStorage.setItem(TEMP_CONTEXT_KEY, JSON.stringify({
-        messages: safeMessages,
-        updatedAt: Date.now()
-      }));
-    } catch {
-      // ignore temporary session cache failures
-    }
-  }
-
-  function clearTemporaryChatContext() {
-    try {
-      sessionStorage.removeItem(TEMP_CONTEXT_KEY);
-    } catch {
-      // ignore
-    }
-  }
-
-  function restoreTemporaryChatContextFromSession() {
-    try {
-      const raw = sessionStorage.getItem(TEMP_CONTEXT_KEY);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw);
-      if (!isValidMessageArray(parsed?.messages) || parsed.messages.length === 0) return false;
-
-      const hasSystem = parsed.messages.some((msg) => msg.role === 'system');
-      chatHistory = hasSystem
-        ? parsed.messages
-        : [{ role: 'system', content: SYSTEM_PROMPT }, ...parsed.messages];
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   function buildComparisonHistoryContentId(metadata = {}) {
     const normalize = (value, fallback) => String(value || '')
       .normalize('NFD')
@@ -275,29 +232,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function renderCompareHistory() {
-    if (!compareHistoryList) return;
-
-    if (compareHistory.length === 0) {
-      compareHistoryList.innerHTML = '<div class="compare-history-empty">Sem comparações anteriores.</div>';
-      return;
-    }
-
-    compareHistoryList.innerHTML = compareHistory.map(item => {
-      const when = new Date(item.created_at || Date.now()).toLocaleString('pt-BR');
-      const pair = item.char1 && item.char2 ? `${item.char1} vs ${item.char2}` : 'Comparação';
-      return `
-        <div class="compare-history-item">
-          <div class="compare-history-head">
-            <strong>${pair}</strong>
-            <span>${when}</span>
-          </div>
-          <div class="compare-history-body">${formatAIResponse(item.content || '')}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
   async function waitForSupabaseClient(timeoutMs = 6000) {
     const start = Date.now();
     while (!window.supabaseClient && (Date.now() - start) < timeoutMs) {
@@ -339,7 +273,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function loadAIHistoryMessages(context = 'chat', limit = AI_HISTORY_LIMIT) {
+  async function loadAIHistoryMessages(options = {}) {
+    const context = options.context || 'chat';
+    const metadataContains = options.metadataContains && typeof options.metadataContains === 'object'
+      ? options.metadataContains
+      : null;
+    const limit = Number.isFinite(options.limit)
+      ? options.limit
+      : (metadataContains ? 1000 : AI_HISTORY_LIMIT);
     const supa = await waitForSupabaseClient();
     if (!supa) return [];
 
@@ -355,56 +296,72 @@ document.addEventListener('DOMContentLoaded', async () => {
         .order('created_at', { ascending: true })
         .limit(limit);
       if (error) throw error;
-      return data || [];
+
+      const messages = data || [];
+      if (!metadataContains || Object.keys(metadataContains).length === 0) {
+        return messages;
+      }
+
+      return messages.filter((message) => (
+        Object.entries(metadataContains).every(([key, value]) => (
+          String(message?.metadata?.[key] || '') === String(value || '')
+        ))
+      ));
     } catch (err) {
       console.error('Erro ao carregar histórico da IA:', err);
       return [];
     }
   }
 
-  async function initializePersistentChatHistory(useTemporaryFirst = false) {
-    if (useTemporaryFirst && chatHistory.length > 1) {
-      renderChatFromMessages(chatHistory);
-      return;
-    }
+  async function initializeChatView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resumedThreadId = getResumeChatThreadId();
+    currentChatThreadId = resumedThreadId || buildUniqueId('open_anime_chat_thread');
+    chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
 
-    const persisted = await loadAIHistoryMessages('chat');
-
-    if (persisted.length > 0) {
-      chatHistory = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
-      ];
-      renderChatFromMessages(chatHistory);
-      saveTemporaryChatContext();
-      return;
+    if (restoreSaved && resumedThreadId) {
+      const persisted = await loadAIHistoryMessages({
+        context: 'chat',
+        metadataContains: { threadId: resumedThreadId }
+      });
+      if (persisted.length > 0) {
+        chatHistory = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
+        ];
+        renderChatFromMessages(chatHistory);
+        return;
+      }
     }
 
     appendMsg(GREETING_MESSAGE, 'bot');
     chatHistory.push({ role: 'assistant', content: GREETING_MESSAGE });
-    await saveAIHistoryMessage({ role: 'assistant', content: GREETING_MESSAGE, context: 'chat' });
-    saveTemporaryChatContext();
   }
 
-  async function initializeComparisonHistory() {
-    const persisted = await loadAIHistoryMessages('compare');
-
-    compareHistory = persisted
-      .filter(msg => msg.role === 'assistant')
-      .map(msg => ({
-        content: msg.content,
-        created_at: msg.created_at,
-        char1: msg.metadata?.char1 || '',
-        char2: msg.metadata?.char2 || ''
-      }))
-      .reverse();
-
-    renderCompareHistory();
-
-    if (compareResult && compareHistory.length > 0) {
-      compareResult.style.display = 'block';
-      compareResult.innerHTML = `<strong>Última análise:</strong><br><br>${formatAIResponse(compareHistory[0].content)}`;
+  async function initializeComparisonView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    if (compareResult) {
+      compareResult.style.display = 'none';
+      compareResult.innerHTML = '';
     }
+
+    const selectedCompareHistoryId = getResumeCompareHistoryId();
+    if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'compare',
+      metadataContains: { historyContentId: selectedCompareHistoryId },
+      limit: 20
+    });
+    const selectedComparison = persisted.find(msg => msg.role === 'assistant');
+    if (!selectedComparison) return;
+
+    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resumeData?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resumeData?.char2 || '';
+    compareResult.style.display = 'block';
+    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(selectedComparison.content || '')}`;
   }
 
   async function callAI(prompt, options = {}) {
@@ -413,12 +370,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
-    const metadata = options.metadata || {};
+    const metadata = { ...(options.metadata || {}) };
+
+    if (context === 'chat') {
+      currentChatThreadId = metadata.threadId || currentChatThreadId || buildUniqueId('open_anime_chat_thread');
+      metadata.threadId = currentChatThreadId;
+    }
+
+    if (context === 'compare') {
+      metadata.historyContentId = metadata.historyContentId || buildComparisonHistoryContentId(metadata);
+    }
 
     try {
       if (useChatContext) {
         chatHistory.push({ role: 'user', content: prompt });
-        saveTemporaryChatContext();
       }
 
       if (persistToAIHistory) {
@@ -455,7 +420,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (useChatContext) {
         chatHistory.push({ role: 'assistant', content: aiResponse });
-        saveTemporaryChatContext();
       }
 
       if (persistToAIHistory) {
@@ -464,7 +428,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof HistoryTracker !== 'undefined') {
           const isCompare = context === 'compare';
           HistoryTracker.track({
-            contentId: isCompare ? buildComparisonHistoryContentId(metadata) : 'open_anime_chat',
+            contentId: isCompare ? metadata.historyContentId : currentChatThreadId,
             contentType: isCompare ? 'ai_compare' : 'ai_chat',
             title: isCompare
               ? `Comparação IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
@@ -474,6 +438,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             payload: {
               mediaType: isCompare ? 'ai_compare' : 'ai_chat',
               tab: isCompare ? 'compare' : 'chat',
+              threadId: isCompare ? '' : currentChatThreadId,
+              historyContentId: isCompare ? metadata.historyContentId : '',
               char1: metadata.char1 || '',
               char2: metadata.char2 || ''
             }
@@ -486,30 +452,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error(e);
       if (useChatContext && chatHistory.length > 1) {
         chatHistory.pop();
-        saveTemporaryChatContext();
       }
       return 'Falha: ' + e.message + '. Verifique o terminal do servidor para mais detalhes.';
     }
   }
 
-  const navigationType = getNavigationType();
-  if (navigationType !== 'reload') {
-    clearTemporaryChatContext();
-  }
-  const temporaryContextRestored = restoreTemporaryChatContextFromSession();
+  const shouldRestoreSavedChat = resumeData?.mediaType === 'ai_chat'
+    || resumeData?.contentType === 'ai_chat';
+  const shouldRestoreSavedCompare = resumeData?.mediaType === 'ai_compare'
+    || resumeData?.contentType === 'ai_compare';
 
-  await initializePersistentChatHistory(temporaryContextRestored);
-  await initializeComparisonHistory();
+  await initializeChatView({ restoreSaved: shouldRestoreSavedChat });
+  await initializeComparisonView({ restoreSaved: shouldRestoreSavedCompare });
   updateThemeInfo();
   updateChatScrollInfo();
 
-  if (!temporaryContextRestored) {
-    saveTemporaryChatContext();
-  }
-
-  const shouldOpenCompareTab = resumeData?.mediaType === 'ai_compare'
-    || resumeData?.contentType === 'ai_compare'
-    || resumeData?.tab === 'compare';
+  const shouldOpenCompareTab = shouldRestoreSavedCompare || resumeData?.tab === 'compare';
   activateToolTab(shouldOpenCompareTab ? 'compare' : 'chat');
 
   if (toggleInfoCardBtn && infoCard) {
@@ -553,6 +511,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const c1 = char1Inp.value.trim();
     const c2 = char2Inp.value.trim();
     if (!c1 || !c2) return showToast('Digite dois nomes para comparar', 'error');
+    const compareHistoryId = buildComparisonHistoryContentId({ char1: c1, char2: c2 });
 
     compareResult.style.display = 'block';
     compareResult.innerHTML = '⚖️ Analisando poderes, história e habilidades...';
@@ -562,25 +521,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       useChatContext: false,
       persistToAIHistory: true,
       context: 'compare',
-      metadata: { char1: c1, char2: c2 }
+      metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
     });
 
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
-
-    compareHistory.unshift({
-      content: analysis,
-      created_at: new Date().toISOString(),
-      char1: c1,
-      char2: c2
-    });
-    compareHistory = compareHistory.slice(0, 20);
-    renderCompareHistory();
 
     setTimeout(() => {
       compareResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   });
 
-  char1Inp.value = '';
-  char2Inp.value = '';
+  if (!shouldRestoreSavedCompare) {
+    char1Inp.value = '';
+    char2Inp.value = '';
+  }
 });
