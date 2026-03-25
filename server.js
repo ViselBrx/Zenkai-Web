@@ -120,9 +120,9 @@ const server = http.createServer(async (req, res) => {
       let apiKey = '';
 
       if (target === 'groq') {
-        const GROQ_API_KEY = process.env.GROQ_API_KEY; // Agora busca do ambiente
+        const GROQ_API_KEY = process.env.GROQ_API_KEY;
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-        apiKey = GROQ_API_KEY;
+        apiKey = GROQ_API_KEY || frontendApiKey || config.groqKey || '';
       } else if (target === 'zimage') {
         apiUrl = 'https://api.z-image.com/v1/generate';
         apiKey = config.zimageKey || frontendApiKey;
@@ -135,7 +135,7 @@ const server = http.createServer(async (req, res) => {
       console.log(`[AI Proxy] Chave defasada do data.json: ${config.groqKey ? config.groqKey.substring(0,6) + '...' : 'Vazio'}`);
       if (!apiUrl || !apiKey) {
         console.error(`[AI Proxy] Erro Crítico: Alvo '${target}' não configurado corretamente.`);
-        return sendJSON(res, 400, { error: 'Configuração de IA ausente no data.json' });
+        return sendJSON(res, 400, { error: `Configuração da IA '${target}' ausente. Defina no .env, envie pelo frontend ou salve no data.json.` });
       }
 
       console.log(`[AI Proxy] Chamando API externa: ${apiUrl}`);
@@ -207,11 +207,45 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('\n\x1b[36m%s\x1b[0m', '🎌 ANIME HOUSE - SISTEMA ONLINE\n');
-  console.log('\x1b[32m%s\x1b[0m', '✔ Sistema iniciado');
-  console.log('\x1b[32m%s\x1b[0m', '✔ Banco carregado (data.json)');
-  console.log('\x1b[32m%s\x1b[0m', '✔ Capas ativas (/uploads)');
-  console.log('\x1b[32m%s\x1b[0m', '✔ Proxy Consumet ativo');
-  console.log('\n\x1b[33m%s\x1b[0m', `🌐 http://localhost:${PORT}\n`);
-  console.log('\x1b[90m%s\x1b[0m', '⚠ Não feche este terminal\n');
+  const reset = '\x1b[0m';
+  const bold = '\x1b[1m';
+  const cyan = '\x1b[36m';
+  const blue = '\x1b[34m';
+  const green = '\x1b[32m';
+  const yellow = '\x1b[33m';
+  const magenta = '\x1b[35m';
+  const red = '\x1b[31m';
+  const white = '\x1b[97m';
+  const gray = '\x1b[90m';
+
+  const divider = `${gray}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}`;
+  const title = `${bold}${cyan}Anime House Local Server${reset}`;
+  const subtitle = `${blue}Media Platform • AI Tools • Local Runtime${reset}`;
+  const statusOk = `${bold}${green}ONLINE${reset}`;
+  const info = `${bold}${cyan}INFO${reset}`;
+  const storage = `${bold}${magenta}STORAGE${reset}`;
+  const proxy = `${bold}${blue}PROXY${reset}`;
+  const access = `${bold}${green}ACCESS${reset}`;
+  const warn = `${bold}${yellow}NOTICE${reset}`;
+  const secure = `${bold}${red}KEEP OPEN${reset}`;
+  const supabaseUrl = process.env.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co';
+  const supabaseHost = supabaseUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+  console.log(`\n${divider}`);
+  console.log(` ${title}`);
+  console.log(` ${subtitle}`);
+  console.log(`${divider}`);
+  console.log(` ${statusOk}   Serviço principal inicializado com sucesso`);
+  console.log(` ${info}     Ambiente........... ${white}desenvolvimento local${reset}`);
+  console.log(` ${info}     Porta.............. ${yellow}${PORT}${reset}`);
+  console.log(` ${access}   URL base........... ${green}http://localhost:${PORT}${reset}`);
+  console.log(` ${storage}  Database........... ${magenta}Supabase${reset}`);
+  console.log(` ${storage}  Endpoint........... ${magenta}${supabaseHost}${reset}`);
+  console.log(` ${storage}  Uploads............ ${magenta}${path.basename(UPLOADS_DIR)}/${reset}`);
+  console.log(` ${proxy}    AI Proxy........... ${blue}habilitado${reset}`);
+  console.log(` ${proxy}    CORS............... ${blue}habilitado para acesso local${reset}`);
+  console.log(`${divider}`);
+  console.log(` ${warn}   Use esta instância para navegar, cadastrar conteúdo e testar integrações.`);
+  console.log(` ${secure}  Mantenha este terminal aberto enquanto o sistema estiver em uso.`);
+  console.log(`${divider}\n`);
 });

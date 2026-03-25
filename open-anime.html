@@ -231,15 +231,52 @@
     
     <!-- Lado Esquerdo: Ferramentas & Config -->
     <aside class="ai-panel-tools">
-      <div class="ai-card" id="apiKeyCard" style="display:none;">
-        <h3><span class="nav-icon">⚙️</span> Configuração</h3>
-        <div id="config-groq" class="provider-config">
-          <div class="form-group">
-            <label style="font-size: 0.75rem;">Groq API Key (Llama 3.3)</label>
-            <input type="password" id="groqKey" class="form-control" placeholder="gsk_..." style="font-size: 0.85rem;" />
+      <div class="ai-card ai-info-card" id="infoCard" style="display:none;">
+        <h3><span class="nav-icon">📖</span> Saiba mais</h3>
+        <div class="provider-config ai-config-summary">
+          <div class="ai-config-item">
+            <span class="ai-config-label">Assistente</span>
+            <strong>Open AnIme</strong>
+          </div>
+          <div class="ai-config-item">
+            <span class="ai-config-label">Inteligência atual</span>
+            <strong>Groq Cloud com Llama 3.3 70B Versatile</strong>
+          </div>
+          <div class="ai-config-item">
+            <span class="ai-config-label">Como funciona</span>
+            <strong>Chat com contexto contínuo e comparação de personagens</strong>
+          </div>
+          <div class="ai-config-item">
+            <span class="ai-config-label">Integração</span>
+            <strong>Proxy interno via <code>/api/ai/proxy</code></strong>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm w-100" id="saveApiKeys">💾 Salvar Chave</button>
+
+        <div class="ai-theme-panel">
+          <div class="ai-theme-panel__header">
+            <span class="ai-config-label">Tema ativo</span>
+            <div class="ai-theme-chip">
+              <span class="ai-theme-chip__color" id="themeColorPreview"></span>
+              <strong id="themeName">Tema padrão</strong>
+            </div>
+          </div>
+          <p class="ai-side-note">
+            As cores desta tela acompanham automaticamente o tema global do site.
+          </p>
+        </div>
+
+        <div class="ai-scroll-panel">
+          <div class="ai-scroll-panel__top">
+            <span class="ai-config-label">Navegação</span>
+            <strong id="chatScrollStatus">Role o chat para explorar o histórico</strong>
+          </div>
+          <div class="ai-scroll-track">
+            <div class="ai-scroll-track__fill" id="chatScrollFill"></div>
+          </div>
+          <p class="ai-side-note">
+            A barra acima mostra o quanto do histórico atual do chat já foi percorrido.
+          </p>
+        </div>
       </div>
 
       <div class="ai-tool-box">
@@ -255,8 +292,8 @@
           Pressione <strong>Enter</strong> para enviar no chat. Explore as abas acima para usar as ferramentas.
         </p>
         <!-- Botão discreto para config -->
-        <button id="toggleApiKey" title="Configurações" style="margin-top:10px;background:none;border:none;cursor:pointer;opacity:0.25;font-size:0.8rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.8'" onmouseleave="this.style.opacity='0.25'">
-          <span>⚙️</span> config
+        <button id="toggleInfoCard" title="Saiba mais" style="margin-top:10px;background:none;border:none;cursor:pointer;opacity:0.4;font-size:0.85rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='0.4'">
+          <span>📖</span> saiba mais
         </button>
       </div>
     </aside>
@@ -268,9 +305,6 @@
       <div id="tab-chat" class="tool-panel active">
         <div class="ai-chat-container">
           <div class="ai-chat-window" id="chatWindow">
-            <div class="msg bot">
-              Olá! Eu sou o <strong>Open AnIme</strong>. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site! 
-            </div>
           </div>
           <div class="ai-input-wrapper">
             <input type="text" id="chatInput" placeholder="Sua pergunta... (Pressione Enter)" />
@@ -416,6 +450,136 @@
   }
 
   .ai-btn-send svg { width: 20px; }
+
+  .msg {
+    position: relative;
+  }
+
+  .msg-content {
+    padding-right: 42px;
+  }
+
+  .msg-copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    border-radius: 8px;
+    background: rgba(var(--bg-card), 0.65);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .msg:hover .msg-copy-btn,
+  .msg:focus-within .msg-copy-btn {
+    opacity: 1;
+  }
+
+  .msg-copy-btn:hover {
+    color: var(--primary);
+    border-color: rgba(var(--primary-rgb), 0.45);
+    transform: translateY(-1px);
+  }
+
+  .msg-copy-btn.copied {
+    opacity: 1;
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.55);
+  }
+
+  .ai-config-summary {
+    display: grid;
+    gap: 12px;
+  }
+
+  .ai-config-item,
+  .ai-theme-panel,
+  .ai-scroll-panel {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--primary-rgb), 0.12);
+    background: linear-gradient(180deg, rgba(var(--bg-card), 0.42) 0%, rgba(var(--bg-card), 0.2) 100%);
+    box-shadow: inset 0 0 12px rgba(var(--primary-rgb), 0.05);
+  }
+
+  .ai-config-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ai-theme-panel__header,
+  .ai-scroll-panel__top {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .ai-theme-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+  }
+
+  .ai-theme-chip__color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    flex-shrink: 0;
+  }
+
+  .ai-scroll-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(var(--primary-rgb), 0.08);
+    margin: 12px 0 10px;
+    border: 1px solid rgba(var(--primary-rgb), 0.15);
+  }
+
+  .ai-scroll-track__fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.35) 0%, var(--primary) 100%);
+    box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.45);
+    transition: width 0.25s ease;
+  }
+
+  .ai-side-note {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .ai-info-card {
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+
+  .ai-info-card::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .ai-info-card::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 999px;
+  }
 
   /* Ferramentas Estilo Full */
   .full-card { height: 100%; border: none; background: transparent; }
