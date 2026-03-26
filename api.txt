@@ -3,3 +3,7 @@ https://console.groq.com/keys
 https://supabase.com/dashboard/project/bxifddhrbxbmimjkgwzr
 
 https://dashboard.render.com/web/srv-d6vcb7khg0os73dh07ig/settings
+
+https://dash.cloudflare.com/c26a167ebf82c8a7589eeb03a9678cd8/ai/workers-ai/api-quick-start
+
+https://dash.cloudflare.com/profile/api-tokens

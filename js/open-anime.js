@@ -32,6 +32,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatScrollStatus = document.getElementById('chatScrollStatus');
   const compareBtn = document.getElementById('compareBtn');
   const compareResult = document.getElementById('compareResult');
+  const visionUpload = document.getElementById('visionUpload');
+  const visionAnalyzeBtn = document.getElementById('visionAnalyzeBtn');
+  const visionOutput = document.getElementById('visionOutput');
+  const visionDropZone = document.getElementById('visionDropZone');
+  const visionPreview = document.getElementById('visionPreview');
+  const visionPreviewImg = document.getElementById('visionPreviewImg');
+  const visionFileName = document.getElementById('visionFileName');
+  const visionFileInfo = document.getElementById('visionFileInfo');
 
   const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!';
@@ -41,6 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
+  let selectedVisionFile = null;
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
@@ -61,6 +70,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   function getResumeCompareHistoryId() {
     if (!resumeData) return '';
     return String(resumeData.historyContentId || resumeData.compareId || resumeData.contentId || '').trim();
+  }
+
+  function getResumeVisionHistoryId() {
+    if (!resumeData) return '';
+    return String(resumeData.historyContentId || resumeData.visionId || resumeData.contentId || '').trim();
   }
 
   if (chatInput) {
@@ -194,6 +208,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     return `open_anime_compare_${char1}_${char2}_${Date.now()}`;
   }
 
+  function buildVisionHistoryContentId(metadata = {}) {
+    const fileBase = String(metadata.fileName || 'imagem')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40) || 'imagem';
+
+    return `open_anime_vision_${fileBase}_${Date.now()}`;
+  }
+
+  function formatFileSize(size) {
+    const bytes = Number(size || 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) return 'Tamanho desconhecido';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error('Falha ao ler a imagem.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function extractVisionText(result) {
+    if (typeof result?.result?.description === 'string' && result.result.description.trim()) {
+      return result.result.description.trim();
+    }
+    if (typeof result?.description === 'string' && result.description.trim()) {
+      return result.description.trim();
+    }
+    if (typeof result?.result?.response === 'string' && result.result.response.trim()) {
+      return result.result.response.trim();
+    }
+    if (Array.isArray(result?.result) && result.result.length > 0) {
+      return JSON.stringify(result.result, null, 2);
+    }
+    return '';
+  }
+
+  function renderVisionResult(text) {
+    if (!visionOutput) return;
+    visionOutput.innerHTML = `<strong>Analise da imagem:</strong><br><br>${formatAIResponse(text || 'Nenhum resultado retornado.')}`;
+  }
+
+  function setVisionFile(file, options = {}) {
+    selectedVisionFile = file || null;
+    const canAnalyze = !!(selectedVisionFile && typeof selectedVisionFile.arrayBuffer === 'function');
+
+    if (visionAnalyzeBtn) {
+      visionAnalyzeBtn.disabled = !canAnalyze;
+    }
+
+    if (!visionDropZone) return;
+
+    if (!selectedVisionFile) {
+      visionDropZone.classList.remove('is-ready');
+      if (visionPreview) visionPreview.hidden = true;
+      if (visionPreviewImg) visionPreviewImg.removeAttribute('src');
+      if (visionFileName) visionFileName.textContent = 'Nenhuma imagem selecionada';
+      if (visionFileInfo) visionFileInfo.textContent = 'Aguardando envio';
+      return;
+    }
+
+    visionDropZone.classList.add('is-ready');
+
+    if (visionPreview) visionPreview.hidden = false;
+    if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
+    if (visionFileInfo) {
+      visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} • ${formatFileSize(selectedVisionFile.size)}`;
+    }
+
+    if (visionPreviewImg) {
+      visionPreviewImg.src = options.previewUrl
+        || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
+    }
+  }
+
   function appendMsg(text, type) {
     if (!chatWindow) return;
 
@@ -263,10 +360,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = await getAIHistoryUser();
     if (!user) return false;
 
+    const normalizedContext = context === 'vision' ? 'vision' : context;
+    const payloadMetadata = normalizedContext === 'vision'
+      ? { ...metadata, aiContext: 'vision' }
+      : metadata;
+
     try {
-      const { error } = await supa
+      let { error } = await supa
         .from(AI_HISTORY_TABLE)
-        .insert([{ user_id: user.id, role, content, context, metadata }]);
+        .insert([{ user_id: user.id, role, content, context: normalizedContext, metadata: payloadMetadata }]);
+
+      if (error && normalizedContext === 'vision') {
+        const fallback = await supa
+          .from(AI_HISTORY_TABLE)
+          .insert([{ user_id: user.id, role, content, context: 'compare', metadata: payloadMetadata }]);
+        error = fallback.error;
+      }
       return !error;
     } catch (err) {
       console.error('Erro ao salvar histórico da IA:', err);
@@ -289,16 +398,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!user) return [];
 
     try {
-      const { data, error } = await supa
+      let query = supa
         .from(AI_HISTORY_TABLE)
         .select('role, content, context, metadata, created_at')
         .eq('user_id', user.id)
-        .eq('context', context)
         .order('created_at', { ascending: true })
         .limit(limit);
+
+      if (context === 'vision') {
+        query = query.in('context', ['vision', 'compare']);
+      } else {
+        query = query.eq('context', context);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
 
-      const messages = data || [];
+      const messages = (data || []).filter((message) => {
+        if (context !== 'vision') return true;
+        return message.context === 'vision' || message?.metadata?.aiContext === 'vision';
+      });
       if (!metadataContains || Object.keys(metadataContains).length === 0) {
         return messages;
       }
@@ -365,6 +484,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(selectedComparison.content || '')}`;
   }
 
+  async function initializeVisionView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+
+    if (visionOutput) {
+      visionOutput.textContent = 'Aguardando imagem...';
+    }
+
+    if (!restoreSaved) {
+      setVisionFile(null);
+      return;
+    }
+
+    const selectedVisionHistoryId = getResumeVisionHistoryId();
+    if (!selectedVisionHistoryId || !visionOutput) {
+      setVisionFile(null);
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'vision',
+      metadataContains: { historyContentId: selectedVisionHistoryId },
+      limit: 20
+    });
+    const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    if (!selectedAnalysis) {
+      setVisionFile(null);
+      return;
+    }
+
+    setVisionFile(
+      {
+        name: selectedAnalysis.metadata?.fileName || 'imagem-restaurada',
+        type: selectedAnalysis.metadata?.fileType || 'image/*',
+        size: Number(selectedAnalysis.metadata?.fileSize || 0)
+      },
+      {
+        fileInfo: 'Resultado restaurado do historico'
+      }
+    );
+    renderVisionResult(selectedAnalysis.content || '');
+  }
+
   async function callAI(prompt, options = {}) {
     const target = 'groq';
     const model = 'llama-3.3-70b-versatile';
@@ -391,7 +552,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await saveAIHistoryMessage({ role: 'user', content: prompt, context, metadata });
       }
 
-      const GROQ_API_KEY = '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';
       const requestMessages = useChatContext
         ? chatHistory
         : [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: prompt }];
@@ -401,7 +561,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target,
-          apiKey: GROQ_API_KEY,
           body: {
             model,
             messages: requestMessages,
@@ -458,18 +617,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  async function callVisionAI(file, options = {}) {
+    const persistToAIHistory = options.persistToAIHistory !== false;
+    const context = 'vision';
+    const metadata = {
+      ...(options.metadata || {}),
+      fileName: file?.name || 'imagem',
+      fileType: file?.type || 'image/*',
+      fileSize: Number(file?.size || 0)
+    };
+    metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
+
+    const prompt = 'Descreva a imagem em portugues. Extraia todo o texto visivel. Se houver pistas sobre a origem da imagem, cite apenas pistas visuais ou textuais sem inventar.';
+    const base64Image = await readFileAsDataUrl(file);
+
+    try {
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({
+          role: 'user',
+          content: `Imagem enviada: ${metadata.fileName}`,
+          context,
+          metadata
+        });
+      }
+
+      const res = await fetch('/api/ai/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'cloudflare-vision',
+          body: {
+            image: base64Image,
+            prompt,
+            max_tokens: 700
+          }
+        })
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const erroMsg = typeof result.error === 'object' ? result.error.message : result.error;
+        throw new Error(erroMsg || ('Erro HTTP ' + res.status));
+      }
+
+      const aiResponse = extractVisionText(result);
+      if (!aiResponse) {
+        throw new Error('A Cloudflare nao retornou uma descricao utilizavel para esta imagem.');
+      }
+
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({ role: 'assistant', content: aiResponse, context, metadata });
+
+        if (typeof HistoryTracker !== 'undefined') {
+          HistoryTracker.track({
+            contentId: metadata.historyContentId,
+            contentType: 'ai_vision',
+            title: `IA - Imagem ${metadata.fileName}`,
+            subtitle: aiResponse.slice(0, 120),
+            route: 'open-anime.html',
+            payload: {
+              mediaType: 'ai_vision',
+              tab: 'vision',
+              historyContentId: metadata.historyContentId,
+              fileName: metadata.fileName
+            }
+          });
+        }
+      }
+
+      return { aiResponse, base64Image, metadata };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   const shouldRestoreSavedChat = resumeData?.mediaType === 'ai_chat'
     || resumeData?.contentType === 'ai_chat';
   const shouldRestoreSavedCompare = resumeData?.mediaType === 'ai_compare'
     || resumeData?.contentType === 'ai_compare';
+  const shouldRestoreSavedVision = resumeData?.mediaType === 'ai_vision'
+    || resumeData?.contentType === 'ai_vision';
 
   await initializeChatView({ restoreSaved: shouldRestoreSavedChat });
   await initializeComparisonView({ restoreSaved: shouldRestoreSavedCompare });
+  await initializeVisionView({ restoreSaved: shouldRestoreSavedVision });
   updateThemeInfo();
   updateChatScrollInfo();
 
-  const shouldOpenCompareTab = shouldRestoreSavedCompare || resumeData?.tab === 'compare';
-  activateToolTab(shouldOpenCompareTab ? 'compare' : 'chat');
+  const initialTab = shouldRestoreSavedVision || resumeData?.tab === 'vision'
+    ? 'vision'
+    : ((shouldRestoreSavedCompare || resumeData?.tab === 'compare') ? 'compare' : 'chat');
+  activateToolTab(initialTab);
 
   if (toggleInfoCardBtn && infoCard) {
     toggleInfoCardBtn.addEventListener('click', () => {
@@ -507,6 +746,95 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadingMsg.remove();
     appendMsg(response, 'bot');
   });
+
+  async function handleVisionSelection(file) {
+    if (!file) return;
+
+    const previewUrl = await readFileAsDataUrl(file);
+    setVisionFile(file, {
+      previewUrl,
+      fileInfo: `${file.type || 'image/*'} • ${formatFileSize(file.size)}`
+    });
+    renderVisionResult('Imagem pronta para analise. Clique em "Analisar imagem".');
+  }
+
+  if (visionUpload) {
+    visionUpload.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        await handleVisionSelection(file);
+      } catch (error) {
+        console.error(error);
+        setVisionFile(null);
+        renderVisionResult('Falha ao carregar a imagem selecionada.');
+      }
+    });
+  }
+
+  if (visionDropZone) {
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      visionDropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        visionDropZone.classList.add('is-ready');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      visionDropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        if (!selectedVisionFile || eventName === 'drop') {
+          visionDropZone.classList.remove('is-ready');
+        }
+      });
+    });
+
+    visionDropZone.addEventListener('drop', async (event) => {
+      const file = event.dataTransfer?.files?.[0];
+      if (!file || !String(file.type || '').startsWith('image/')) {
+        showFeedback('Solte apenas arquivos de imagem');
+        return;
+      }
+
+      try {
+        await handleVisionSelection(file);
+      } catch (error) {
+        console.error(error);
+        setVisionFile(null);
+        renderVisionResult('Falha ao carregar a imagem arrastada.');
+      }
+    });
+  }
+
+  if (visionAnalyzeBtn) {
+    visionAnalyzeBtn.addEventListener('click', async () => {
+      if (!selectedVisionFile) {
+        showFeedback('Escolha uma imagem antes de analisar');
+        return;
+      }
+
+      visionAnalyzeBtn.disabled = true;
+      renderVisionResult('Analisando imagem com Cloudflare AI...');
+
+      try {
+        const { aiResponse } = await callVisionAI(selectedVisionFile, {
+          persistToAIHistory: true,
+          metadata: {
+            fileName: selectedVisionFile.name,
+            fileType: selectedVisionFile.type,
+            fileSize: selectedVisionFile.size
+          }
+        });
+
+        renderVisionResult(aiResponse);
+      } catch (error) {
+        renderVisionResult(`Falha: ${error.message}. Verifique o terminal do servidor para mais detalhes.`);
+      } finally {
+        visionAnalyzeBtn.disabled = false;
+      }
+    });
+  }
 
   compareBtn.addEventListener('click', async () => {
     const c1 = char1Inp.value.trim();

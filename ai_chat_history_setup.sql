@@ -21,7 +21,7 @@ alter table public.ai_chat_messages
   drop constraint if exists ai_chat_messages_context_check;
 
 alter table public.ai_chat_messages
-  add constraint ai_chat_messages_context_check check (context in ('chat', 'compare'));
+  add constraint ai_chat_messages_context_check check (context in ('chat', 'compare', 'vision'));
 
 create index if not exists idx_ai_chat_messages_user_created
   on public.ai_chat_messages(user_id, created_at asc);
