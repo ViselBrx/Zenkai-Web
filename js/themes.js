@@ -35,6 +35,7 @@
                 <button class="theme-opt-btn" data-theme="theme-tt-classic" title="Jovens Titãs">💜</button>
                 <button class="theme-opt-btn" data-theme="theme-mutant-rex" title="Mutante Rex">🦎</button>
                 <button class="theme-opt-btn" data-theme="theme-regular-show" title="Regular Show">🔵</button>
+                <button class="theme-opt-btn" data-theme="theme-demon-slayer" title="Demon Slayer">🎋</button>
                 <button class="theme-opt-btn" data-theme="theme-vagabond" title="Vagabond">⚪</button>
             </div>
         `;

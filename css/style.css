@@ -103,6 +103,19 @@
   --regular-show-shadow-neon-h: 0 0 55px rgba(30, 136, 229, 0.9), 0 0 28px rgba(30, 136, 229, 0.6);
   --regular-show-scrollbar:     #1e88e5;
 
+  /* TEMA DEMON SLAYER - VERDE ESCURO */
+  --demon-slayer-primary:       #2b8a5d;
+  --demon-slayer-primary-rgb:   43, 138, 93;
+  --demon-slayer-primary-hover: #41b97b;
+  --demon-slayer-accent:        #bbf7d0;
+  --demon-slayer-accent2:       #143927;
+  --demon-slayer-text-main:     #edf7f0;
+  --demon-slayer-text-muted:    #9fddbc;
+  --demon-slayer-border:        #7ef0b2;
+  --demon-slayer-shadow-neon:   0 0 34px rgba(126, 240, 178, 0.78), 0 0 18px rgba(43, 138, 93, 0.55);
+  --demon-slayer-shadow-neon-h: 0 0 68px rgba(126, 240, 178, 0.96), 0 0 36px rgba(65, 185, 123, 0.82), 0 0 20px rgba(43, 138, 93, 0.62);
+  --demon-slayer-scrollbar:     #7ef0b2;
+
   /* TEMA VAGABOND - BRANCO NEON */
   --vagabond-primary:       #ffffff;
   --vagabond-primary-rgb:   255, 255, 255;
@@ -226,6 +239,20 @@
   --shadow-neon:   var(--regular-show-shadow-neon);
   --shadow-neon-h: var(--regular-show-shadow-neon-h);
 }
+
+/* ===== TEMA DEMON SLAYER (DARK GREEN SLAYER GLOW) ===== */
+.theme-demon-slayer {
+  --primary:       var(--demon-slayer-primary);
+  --primary-rgb:   var(--demon-slayer-primary-rgb);
+  --primary-hover: var(--demon-slayer-primary-hover);
+  --accent:        var(--demon-slayer-accent);
+  --accent2:       var(--demon-slayer-accent2);
+  --text-main:     var(--demon-slayer-text-main);
+  --text-muted:    var(--demon-slayer-text-muted);
+  --border:        var(--demon-slayer-border);
+  --shadow-neon:   var(--demon-slayer-shadow-neon);
+  --shadow-neon-h: var(--demon-slayer-shadow-neon-h);
+}
 /* ===== TEMA VAGABOND (WHITE NEON) ===== */
 .theme-vagabond {
   --primary:       var(--vagabond-primary);
@@ -247,6 +274,7 @@
 .theme-tt-classic { scrollbar-color: var(--tt-classic-scrollbar) #050f1f; }
 .theme-mutant-rex { scrollbar-color: var(--mutant-rex-scrollbar) #050f1f; }
 .theme-regular-show { scrollbar-color: var(--regular-show-scrollbar) #050f1f; }
+.theme-demon-slayer { scrollbar-color: var(--demon-slayer-scrollbar) #050f1f; }
 .theme-vagabond { scrollbar-color: var(--vagabond-scrollbar) #050f1f; }
 
 /* ===== RESET ===== */
@@ -506,6 +534,7 @@ body {
 .theme-tt-classic .page-header h1 { font-family: 'Fredoka One', sans-serif; }
 .theme-mutant-rex .page-header h1 { font-family: 'Audiowide', cursive; }
 .theme-regular-show .page-header h1 { font-family: 'Fredoka', sans-serif; font-weight: 700; }
+.theme-demon-slayer .page-header h1 { font-family: 'Black Ops One', cursive; }
 .theme-vagabond .page-header h1 { font-family: 'Black Ops One', cursive; letter-spacing: 3px; }
 .page-header p {
   color: var(--text-muted);
@@ -1268,6 +1297,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .theme-opt-btn[data-theme="theme-aot"] { background: var(--aot-primary); color: #050505; }
 .theme-opt-btn[data-theme="theme-tt-classic"] { background: var(--tt-classic-primary); color: #0a0015; }
 .theme-opt-btn[data-theme="theme-mutant-rex"] { background: var(--mutant-rex-primary); color: #0d0600; }
+.theme-opt-btn[data-theme="theme-demon-slayer"] { background: var(--demon-slayer-primary); color: #ecfdf5; }
 
 .theme-opt-btn::after {
   content: attr(title);

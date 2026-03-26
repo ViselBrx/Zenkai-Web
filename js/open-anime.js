@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     'theme-tt-classic': 'Jovens Titãs',
     'theme-mutant-rex': 'Mutante Rex',
     'theme-regular-show': 'Regular Show',
+    'theme-demon-slayer': 'Demon Slayer',
     'theme-vagabond': 'Vagabond'
   };
 
