@@ -20,7 +20,7 @@
   --default-accent2:       #00ced1;
   --default-text-main:     #e0f7fa;
   --default-text-muted:    #64b5f6;
-  --default-border:        #112240;
+  --default-border:        var(--default-primary);
   --default-shadow-neon:   0 0 28px rgba(114, 255, 255, 0.6);
   --default-shadow-neon-h: 0 0 55px rgba(114, 255, 255, 0.8), 0 0 28px rgba(114, 255, 255, 0.5);
   --default-scrollbar:     #72FFFF;
