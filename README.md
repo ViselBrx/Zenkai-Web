@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Anime House - Player Local 🎬🍿
 
 <p align="center">
