@@ -12,6 +12,7 @@
     "watermark": "node scripts/maintenance/apply_watermark_to_pages.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.100.1",
     "dotenv": "^16.4.5"
   }
 }

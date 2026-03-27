@@ -76,7 +76,14 @@ const HistoryTracker = (() => {
         return;
       }
       if (!_isPrimitive(value)) return;
-      params.set(`h_payload_${key}`, String(value));
+
+      // Evita URLs gigantes ao abrir itens pelo histórico:
+      // campos longos (ex.: descrições de IA) não são necessários para retomar.
+      if (['description', 'analysis', 'rawResult', 'content'].includes(String(key))) return;
+      const serialized = String(value);
+      if (serialized.length > 180) return;
+
+      params.set(`h_payload_${key}`, serialized);
     });
 
     return `${cleanRoute}?${params.toString()}`;

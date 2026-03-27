@@ -54,9 +54,9 @@ if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
-  '.css' : 'text/css',
-  '.js'  : 'application/javascript',
-  '.json': 'application/json',
+  '.css' : 'text/css; charset=utf-8',
+  '.js'  : 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
   '.png' : 'image/png',
   '.jpg' : 'image/jpeg',
   '.jpeg': 'image/jpeg',
@@ -67,7 +67,7 @@ const MIME = {
 function sendJSON(res, status, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(status, {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
     'Pragma': 'no-cache',
@@ -167,6 +167,54 @@ const server = http.createServer(async (req, res) => {
         const GROQ_API_KEY = process.env.GROQ_API_KEY;
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         apiKey = GROQ_API_KEY || frontendApiKey || config.groqKey || '';
+      } else if (target === 'gemini') {
+        const geminiModel = String(
+          body?.model
+          || process.env.GEMINI_MODEL
+          || config.geminiModel
+          || 'gemini-2.5-flash'
+        ).replace(/^models\//i, '').trim();
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY || frontendApiKey || config.geminiKey || '';
+        apiUrl = GEMINI_API_KEY
+          ? `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`
+          : '';
+        apiKey = GEMINI_API_KEY;
+        console.log(`[AI Proxy] Gemini model: ${geminiModel}`);
+        
+        const contents = (body?.messages || []).filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+
+        if (contents.length === 0 && (body?.prompt || body?.content)) {
+          contents.push({ role: 'user', parts: [{ text: body.prompt || body.content }] });
+        }
+
+        const systemMessage = (body?.messages || []).find(m => m.role === 'system');
+
+        requestPayload = {
+          contents,
+          generationConfig: {
+            temperature: body?.temperature || 0.7,
+            maxOutputTokens: body?.max_tokens || 2048
+          }
+        };
+
+        if (systemMessage) {
+          requestPayload.system_instruction = { parts: [{ text: systemMessage.content }] };
+        }
+
+        if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
+          const lastTurn = contents[contents.length - 1];
+          if (lastTurn && lastTurn.role === 'user') {
+            lastTurn.parts.push({
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: body.image.split(',')[1]
+              }
+            });
+          }
+        }
       } else if (target === 'cloudflare-vision') {
         const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || config.cloudflareAccountId || '';
         apiUrl = cloudflareAccountId
@@ -177,7 +225,7 @@ const server = http.createServer(async (req, res) => {
         if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
           const imageBytes = dataUrlToByteArray(body.image);
           if (!imageBytes) {
-            return sendJSON(res, 400, { error: 'Imagem invÃ¡lida para Cloudflare Vision.' });
+            return sendJSON(res, 400, { error: 'Imagem inválida para Cloudflare Vision.' });
           }
 
           requestPayload = {
@@ -194,7 +242,14 @@ const server = http.createServer(async (req, res) => {
       }
       console.log(`[AI Proxy] URL: ${apiUrl}`);
       console.log(`[AI Proxy] Chave do Frontend chegou? ${!!frontendApiKey} (Valor: ${frontendApiKey ? frontendApiKey.substring(0,6) + '...' : 'Vazio'})`);
-      console.log(`[AI Proxy] Chave defasada do data.json: ${config.groqKey ? config.groqKey.substring(0,6) + '...' : 'Vazio'}`);
+      const configKeyPreview = target === 'gemini'
+        ? config.geminiKey
+        : target === 'groq'
+          ? config.groqKey
+          : target === 'cloudflare-vision'
+            ? config.cloudflareApiToken
+            : '';
+      console.log(`[AI Proxy] Chave em data.json para ${target}: ${configKeyPreview ? configKeyPreview.substring(0,6) + '...' : 'Vazio'}`);
       if (!apiUrl || !apiKey) {
         console.error(`[AI Proxy] Erro Crítico: Alvo '${target}' não configurado corretamente.`);
         return sendJSON(res, 400, { error: `Configuração da IA '${target}' ausente. Defina no .env, envie pelo frontend ou salve no data.json.` });
@@ -211,6 +266,10 @@ const server = http.createServer(async (req, res) => {
         }
       };
 
+      if (target === 'gemini') {
+        delete options.headers['Authorization']; // Gemini usa key na URL
+      }
+
       const requestBody = requestPayload ? JSON.stringify(requestPayload) : null;
       if (requestBody) {
         options.headers['Content-Length'] = Buffer.byteLength(requestBody);
@@ -222,7 +281,10 @@ const server = http.createServer(async (req, res) => {
         proxyRes.on('data', (d) => { resBody += d; });
         proxyRes.on('end', () => {
           console.log(`[AI Proxy] Resposta Final (Primeiros 100 caracteres): ${resBody.substring(0, 100)}...`);
-          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+          if (proxyRes.statusCode >= 400) {
+            console.error(`[AI Proxy] Erro da API Externa (${proxyRes.statusCode}):`, resBody);
+          }
+          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
           res.end(resBody);
         });
       });
@@ -241,8 +303,6 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(301, { Location: '/open-anime.html' });
     return res.end();
   }
-
-  // Rota para salvar tema global removida pois o tema agora é local (sessionStorage)
 
   // ── ARQUIVOS ESTÁTICOS ──
   const requestPath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
@@ -263,7 +323,6 @@ const server = http.createServer(async (req, res) => {
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol'
       })};</script>`);
 
-      // Injeção de tema removida para usar o theme.js via sessionStorage
       res.writeHead(200, { 'Content-Type': MIME[ext], 'Access-Control-Allow-Origin': '*' });
       res.end(responseContent);
     });

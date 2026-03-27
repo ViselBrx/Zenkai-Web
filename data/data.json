@@ -1050,8 +1050,8 @@
     }
   ],
   "aiConfig": {
-    "groqKey": "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",
-    "provider": "groq"
+    "geminiKey": "AIzaSyARpueH2oQddQ5vWS-4vY03SeNHPcpO470",
+    "provider": "gemini"
   },
   "siteConfig": {
     "theme": "theme-mutant-rex"

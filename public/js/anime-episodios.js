@@ -577,7 +577,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando Anime...</div>';
     
     setTimeout(() => {
-        watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: VÃ­deo indisponÃ­vel.</p>';
+        watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: Vídeo indisponível.</p>';
 
         const iframeSeguro = watchFrame.querySelector('iframe');
         if (!item.iframe) {

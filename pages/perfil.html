@@ -519,12 +519,44 @@
       return toDate(value).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function getHistoryDescription(item) {
+      if (!item || typeof item !== 'object') return '';
+
+      const payload = item.payload && typeof item.payload === 'object' ? item.payload : {};
+      const directSubtitle = String(item.subtitle || '').trim();
+      const payloadDescription = String(payload.description || '').trim();
+
+      if (item.content_type === 'ai_vision') {
+        return payloadDescription || directSubtitle;
+      }
+
+      return directSubtitle;
+    }
+
+    function getHistoryMeta(item, stamp) {
+      const baseType = formatTypeLabel(item?.content_type);
+      const payload = item?.payload && typeof item.payload === 'object' ? item.payload : {};
+
+      if (item?.content_type === 'ai_vision' && payload.fileName) {
+        return `${baseType} - ${payload.fileName} - ${formatHour(stamp)}`;
+      }
+
+      return `${baseType} - ${formatHour(stamp)}`;
+    }
+
     function getFilteredHistoryItems() {
       const term = (historySearch?.value || '').trim().toLowerCase();
       if (!term) return historyItems;
 
       return historyItems.filter(item => {
-        const base = [item.title || '', item.subtitle || '', item.content_type || ''].join(' ').toLowerCase();
+        const payload = item.payload && typeof item.payload === 'object' ? item.payload : {};
+        const base = [
+          item.title || '',
+          item.subtitle || '',
+          getHistoryDescription(item),
+          payload.fileName || '',
+          item.content_type || ''
+        ].join(' ').toLowerCase();
         return base.includes(term);
       });
     }
@@ -558,9 +590,9 @@
         items.forEach(item => {
           const itemId = escapeHtml(item.id || '');
           const title = escapeHtml(item.title || 'Conteúdo sem título');
-          const subtitle = escapeHtml(item.subtitle || formatTypeLabel(item.content_type));
+          const subtitle = escapeHtml(getHistoryDescription(item) || formatTypeLabel(item.content_type));
           const stamp = item.last_watched_at || item.created_at || item.updated_at;
-          const meta = `${formatTypeLabel(item.content_type)} - ${formatHour(stamp)}`;
+          const meta = getHistoryMeta(item, stamp);
 
           html += `
             <div class="history-item">

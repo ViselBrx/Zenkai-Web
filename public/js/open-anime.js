@@ -41,15 +41,56 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visionFileName = document.getElementById('visionFileName');
   const visionFileInfo = document.getElementById('visionFileInfo');
 
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.';
-  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!';
+  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF]|�)/;
+
+  function normalizeBrokenEncoding(value) {
+    const text = String(value ?? '');
+    if (!text || !BROKEN_ENCODING_REGEX.test(text)) return text;
+
+    try {
+      const bytes = Uint8Array.from(text, (char) => char.charCodeAt(0) & 0xFF);
+      const decoded = new TextDecoder('utf-8').decode(bytes);
+      return decoded && decoded.trim() ? decoded : text;
+    } catch {
+      return text;
+    }
+  }
+
+  const SYSTEM_PROMPT = normalizeBrokenEncoding('Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.');
+  const GREETING_MESSAGE = normalizeBrokenEncoding('Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!');
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
+  const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
+  const COMPARE_GEMINI_MODEL = 'gemini-2.5-flash-lite';
+  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash';
+  const COMPARE_MAX_TOKENS = 1400;
+  const COMPARE_TEMPERATURE = 0.35;
+  const VISION_MAX_TOKENS = 1800;
+  const VISION_MIN_COMPLETION_CHARS = 700;
+  const VISION_PROMPT = [
+    'Faça uma análise visual completa e detalhada da imagem em português.',
+    'Formato obrigatório da resposta (Markdown):',
+    '## Resumo geral',
+    '- Descreva a cena em 4-8 linhas, sem ser superficial.',
+    '## Elementos visuais importantes',
+    '- Personagens/pessoas, roupas, expressões, poses, objetos, cenário, iluminação, estilo artístico e qualidade da imagem.',
+    '## Texto visível (OCR)',
+    '- Transcreva TODO texto visível exatamente como aparece (incluindo números, siglas e palavras parciais).',
+    '- Se algo estiver ilegível, indique [ilegível] no trecho correspondente.',
+    '## Pistas de origem',
+    '- Cite possíveis pistas de origem (anime, jogo, plataforma, marca, idioma, interface, watermark), sem inventar fatos.',
+    '## Incertezas e limitações',
+    '- Liste pontos em que há baixa confiança e por quê.',
+    'Regra: não responda de forma curta. Prefira completude e precisão.'
+  ].join('\n');
+  const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
+  const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
 
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
   let selectedVisionFile = null;
+  let isComparing = false;
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
@@ -58,6 +99,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function buildUniqueId(prefix) {
     return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function isTemporaryModelOverload(statusCode, message) {
+    const status = Number(statusCode || 0);
+    const text = String(message || '').toLowerCase();
+    if (status === 429 || status === 503) return true;
+    return (
+      text.includes('high demand')
+      || text.includes('resource_exhausted')
+      || text.includes('temporarily unavailable')
+      || text.includes('try again later')
+      || text.includes('overloaded')
+    );
   }
 
   function getResumeChatThreadId() {
@@ -172,8 +230,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       await navigator.clipboard.writeText(text);
       if (button) {
-        const original = button.innerHTML;
-        button.innerHTML = '✓';
+        const original = button.dataset.originalIcon || button.innerHTML;
+        button.dataset.originalIcon = original;
+        button.innerHTML = COPIED_ICON;
         button.classList.add('copied');
         setTimeout(() => {
           button.innerHTML = original;
@@ -187,11 +246,101 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function escapeHtml(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatInlineMarkdown(text) {
+    let content = escapeHtml(text);
+
+    content = content.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    content = content.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    content = content.replace(/\*\*\*([^*\n]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+    content = content.replace(/___([^_\n]+)___/g, '<strong><em>$1</em></strong>');
+    content = content.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    content = content.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+    content = content.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    content = content.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+    content = content.replace(/~~([^~\n]+)~~/g, '<del>$1</del>');
+
+    return content;
+  }
+
   function formatAIResponse(text) {
     if (!text) return '';
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
+
+    const lines = String(text).replace(/\r\n/g, '\n').split('\n');
+    const html = [];
+    let inUl = false;
+    let inOl = false;
+
+    const closeLists = () => {
+      if (inUl) {
+        html.push('</ul>');
+        inUl = false;
+      }
+      if (inOl) {
+        html.push('</ol>');
+        inOl = false;
+      }
+    };
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+
+      if (!trimmed) {
+        closeLists();
+        html.push('<br>');
+        return;
+      }
+
+      const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
+      if (headingMatch) {
+        closeLists();
+        const level = Math.min(6, headingMatch[1].length + 2);
+        html.push(`<h${level}>${formatInlineMarkdown(headingMatch[2])}</h${level}>`);
+        return;
+      }
+
+      const ulMatch = trimmed.match(/^[-*]\s+(.+)$/);
+      if (ulMatch) {
+        if (inOl) {
+          html.push('</ol>');
+          inOl = false;
+        }
+        if (!inUl) {
+          html.push('<ul>');
+          inUl = true;
+        }
+        html.push(`<li>${formatInlineMarkdown(ulMatch[1])}</li>`);
+        return;
+      }
+
+      const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);
+      if (olMatch) {
+        if (inUl) {
+          html.push('</ul>');
+          inUl = false;
+        }
+        if (!inOl) {
+          html.push('<ol>');
+          inOl = true;
+        }
+        html.push(`<li>${formatInlineMarkdown(olMatch[1])}</li>`);
+        return;
+      }
+
+      closeLists();
+      html.push(`<p>${formatInlineMarkdown(trimmed)}</p>`);
+    });
+
+    closeLists();
+    return html.join('');
   }
 
   function buildComparisonHistoryContentId(metadata = {}) {
@@ -238,6 +387,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function extractVisionText(result) {
+    if (typeof result?.candidates?.[0]?.content?.parts?.[0]?.text === 'string') {
+      return result.candidates[0].content.parts[0].text.trim();
+    }
     if (typeof result?.result?.description === 'string' && result.result.description.trim()) {
       return result.result.description.trim();
     }
@@ -255,7 +407,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderVisionResult(text) {
     if (!visionOutput) return;
-    visionOutput.innerHTML = `<strong>Analise da imagem:</strong><br><br>${formatAIResponse(text || 'Nenhum resultado retornado.')}`;
+    const normalizedText = normalizeBrokenEncoding(text || 'Nenhum resultado retornado.');
+    visionOutput.innerHTML = `<strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}`;
   }
 
   function setVisionFile(file, options = {}) {
@@ -282,7 +435,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (visionPreview) visionPreview.hidden = false;
     if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
     if (visionFileInfo) {
-      visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} • ${formatFileSize(selectedVisionFile.size)}`;
+      visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} - ${formatFileSize(selectedVisionFile.size)}`;
     }
 
     if (visionPreviewImg) {
@@ -293,21 +446,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function appendMsg(text, type) {
     if (!chatWindow) return;
+    const normalizedText = normalizeBrokenEncoding(text);
 
     const div = document.createElement('div');
     div.className = `msg ${type}`;
 
     const content = document.createElement('div');
     content.className = 'msg-content';
-    content.innerHTML = formatAIResponse(text);
+    content.innerHTML = formatAIResponse(normalizedText);
 
     const copyBtn = document.createElement('button');
     copyBtn.className = 'msg-copy-btn';
     copyBtn.type = 'button';
     copyBtn.title = 'Copiar mensagem';
     copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-    copyBtn.innerHTML = '⧉';
-    copyBtn.addEventListener('click', () => copyText(text, copyBtn));
+    copyBtn.innerHTML = COPY_ICON;
+    copyBtn.dataset.originalIcon = COPY_ICON;
+    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
 
     div.appendChild(content);
     div.appendChild(copyBtn);
@@ -447,7 +602,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (persisted.length > 0) {
         chatHistory = [
           { role: 'system', content: SYSTEM_PROMPT },
-          ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
+          ...persisted.map(msg => ({ role: msg.role, content: normalizeBrokenEncoding(msg.content) }))
         ];
         renderChatFromMessages(chatHistory);
         return;
@@ -481,7 +636,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resumeData?.char1 || '';
     if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resumeData?.char2 || '';
     compareResult.style.display = 'block';
-    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(selectedComparison.content || '')}`;
+    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizeBrokenEncoding(selectedComparison.content || ''))}`;
   }
 
   async function initializeVisionView(options = {}) {
@@ -520,19 +675,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         size: Number(selectedAnalysis.metadata?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do historico'
+        fileInfo: 'Resultado restaurado do histórico'
       }
     );
     renderVisionResult(selectedAnalysis.content || '');
   }
 
   async function callAI(prompt, options = {}) {
-    const target = 'groq';
-    const model = 'llama-3.3-70b-versatile';
+    const target = 'gemini';
+    const model = options.model || DEFAULT_GEMINI_MODEL;
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
     const metadata = { ...(options.metadata || {}) };
+    const systemPrompt = options.systemPrompt || SYSTEM_PROMPT;
 
     if (context === 'chat') {
       currentChatThreadId = metadata.threadId || currentChatThreadId || buildUniqueId('open_anime_chat_thread');
@@ -554,29 +710,80 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const requestMessages = useChatContext
         ? chatHistory
-        : [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: prompt }];
+        : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
-      const res = await fetch('/api/ai/proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target,
-          body: {
-            model,
-            messages: requestMessages,
-            stream: false
+      const modelQueue = context === 'compare'
+        ? Array.from(new Set([model, COMPARE_FALLBACK_GEMINI_MODEL, DEFAULT_GEMINI_MODEL].filter(Boolean)))
+        : [model];
+
+      const maxRetriesPerModel = 2;
+      let aiResponse = '';
+      let lastError = null;
+
+      for (let modelIndex = 0; modelIndex < modelQueue.length; modelIndex += 1) {
+        const selectedModel = modelQueue[modelIndex];
+        for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
+          const res = await fetch('/api/ai/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target,
+              body: {
+                model: selectedModel,
+                messages: requestMessages,
+                temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
+                max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
+                stream: false
+              }
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            aiResponse = normalizeBrokenEncoding(
+              data.candidates?.[0]?.content?.parts?.[0]?.text
+              || data.choices?.[0]?.message?.content
+              || 'Sem resposta da IA.'
+            );
+            break;
           }
-        })
-      });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const erroMsg = typeof errData.error === 'object' ? errData.error.message : errData.error;
-        throw new Error(erroMsg || ('Erro HTTP ' + res.status));
+          const errData = await res.json().catch(() => ({}));
+          const erroMsg = normalizeBrokenEncoding(
+            typeof errData.error === 'object'
+              ? (errData.error.message || JSON.stringify(errData.error))
+              : (errData.error || '')
+          );
+          const composedError = erroMsg || ('Erro HTTP ' + res.status);
+          lastError = new Error(composedError);
+
+          if (!isTemporaryModelOverload(res.status, composedError)) {
+            throw lastError;
+          }
+
+          const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
+          if (hasRetryInCurrentModel) {
+            await sleep(800 * (attempt + 1));
+            continue;
+          }
+
+          const hasFallbackModel = modelIndex < (modelQueue.length - 1);
+          if (hasFallbackModel) {
+            await sleep(500);
+            break;
+          }
+
+          throw lastError;
+        }
+
+        if (aiResponse) {
+          break;
+        }
       }
 
-      const data = await res.json();
-      const aiResponse = data.choices[0].message.content;
+      if (!aiResponse) {
+        throw (lastError || new Error('Sem resposta da IA.'));
+      }
 
       if (useChatContext) {
         chatHistory.push({ role: 'assistant', content: aiResponse });
@@ -628,8 +835,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
-    const prompt = 'Descreva a imagem em portugues. Extraia todo o texto visivel. Se houver pistas sobre a origem da imagem, cite apenas pistas visuais ou textuais sem inventar.';
     const base64Image = await readFileAsDataUrl(file);
+    const requestedModel = options.model || DEFAULT_GEMINI_MODEL;
+    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_GEMINI_MODEL].filter(Boolean)));
+    const maxRetriesPerModel = 2;
+
+    async function requestVisionText(promptText) {
+      let lastError = null;
+
+      for (let modelIndex = 0; modelIndex < visionModelQueue.length; modelIndex += 1) {
+        const selectedModel = visionModelQueue[modelIndex];
+
+        for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
+          const res = await fetch('/api/ai/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              target: 'gemini',
+              body: {
+                model: selectedModel,
+                image: base64Image,
+                prompt: promptText,
+                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+              }
+            })
+          });
+
+          const result = await res.json().catch(() => ({}));
+          if (res.ok) {
+            const text = normalizeBrokenEncoding(extractVisionText(result));
+            if (!text) {
+              lastError = new Error('O Gemini não retornou uma descrição utilizável para esta imagem.');
+            } else {
+              return text;
+            }
+          } else {
+            const erroMsg = normalizeBrokenEncoding(
+              typeof result.error === 'object'
+                ? (result.error.message || JSON.stringify(result.error))
+                : (result.error || '')
+            );
+            lastError = new Error(erroMsg || ('Erro HTTP ' + res.status));
+          }
+
+          if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
+            break;
+          }
+
+          const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
+          if (hasRetryInCurrentModel) {
+            await sleep(700 * (attempt + 1));
+            continue;
+          }
+
+          const hasFallbackModel = modelIndex < (visionModelQueue.length - 1);
+          if (hasFallbackModel) {
+            await sleep(450);
+            break;
+          }
+        }
+      }
+
+      throw (lastError || new Error('Falha ao analisar a imagem.'));
+    }
 
     try {
       if (persistToAIHistory) {
@@ -641,28 +909,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
-      const res = await fetch('/api/ai/proxy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          target: 'cloudflare-vision',
-          body: {
-            image: base64Image,
-            prompt,
-            max_tokens: 700
+      let aiResponse = await requestVisionText(VISION_PROMPT);
+
+      if (aiResponse.length < VISION_MIN_COMPLETION_CHARS) {
+        try {
+          const refinementPrompt = [
+            VISION_PROMPT,
+            '',
+            'A resposta anterior ficou curta.',
+            'Refaça com mais profundidade, cobrindo todos os tópicos com mais detalhes e sem resumir demais.'
+          ].join('\n');
+          const refined = await requestVisionText(refinementPrompt);
+          if (refined && refined.length > aiResponse.length) {
+            aiResponse = refined;
           }
-        })
-      });
-
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const erroMsg = typeof result.error === 'object' ? result.error.message : result.error;
-        throw new Error(erroMsg || ('Erro HTTP ' + res.status));
-      }
-
-      const aiResponse = extractVisionText(result);
-      if (!aiResponse) {
-        throw new Error('A Cloudflare nao retornou uma descricao utilizavel para esta imagem.');
+        } catch (refinementError) {
+          console.warn('Refinamento de visão não aplicado:', refinementError?.message || refinementError);
+        }
       }
 
       if (persistToAIHistory) {
@@ -673,13 +936,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentId: metadata.historyContentId,
             contentType: 'ai_vision',
             title: `IA - Imagem ${metadata.fileName}`,
-            subtitle: aiResponse.slice(0, 120),
+            subtitle: aiResponse.slice(0, 220),
             route: 'open-anime.html',
             payload: {
               mediaType: 'ai_vision',
               tab: 'vision',
               historyContentId: metadata.historyContentId,
-              fileName: metadata.fileName
+              fileName: metadata.fileName,
+              description: aiResponse.slice(0, 1600)
             }
           });
         }
@@ -737,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'msg bot loading-msg';
-    loadingMsg.innerHTML = '<span class="pulse">🧠 Pensando...</span>';
+    loadingMsg.innerHTML = '<span class="pulse">Pensando...</span>';
     chatWindow.appendChild(loadingMsg);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     updateChatScrollInfo();
@@ -753,9 +1017,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const previewUrl = await readFileAsDataUrl(file);
     setVisionFile(file, {
       previewUrl,
-      fileInfo: `${file.type || 'image/*'} • ${formatFileSize(file.size)}`
+      fileInfo: `${file.type || 'image/*'} - ${formatFileSize(file.size)}`
     });
-    renderVisionResult('Imagem pronta para analise. Clique em "Analisar imagem".');
+    renderVisionResult('Imagem pronta para análise. Clique em "Analisar imagem".');
   }
 
   if (visionUpload) {
@@ -815,7 +1079,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       visionAnalyzeBtn.disabled = true;
-      renderVisionResult('Analisando imagem com Cloudflare AI...');
+      renderVisionResult('Analisando imagem com Gemini AI...');
 
       try {
         const { aiResponse } = await callVisionAI(selectedVisionFile, {
@@ -840,20 +1104,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     const c1 = char1Inp.value.trim();
     const c2 = char2Inp.value.trim();
     if (!c1 || !c2) return showToast('Digite dois nomes para comparar', 'error');
+    if (isComparing) return;
     const compareHistoryId = buildComparisonHistoryContentId({ char1: c1, char2: c2 });
 
     compareResult.style.display = 'block';
-    compareResult.innerHTML = '⚖️ Analisando poderes, história e habilidades...';
+    compareResult.innerHTML = 'Analisando poderes, história e habilidades...';
+    isComparing = true;
+    compareBtn.disabled = true;
 
-    const prompt = `Faça uma comparação detalhada entre os personagens de anime/desenho ${c1} e ${c2}. Analise Força, Inteligência, Habilidades Especiais e diga quem venceria em um duelo épico e por quê.`;
-    const analysis = await callAI(prompt, {
-      useChatContext: false,
-      persistToAIHistory: true,
-      context: 'compare',
-      metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
-    });
+    const compareSystemPrompt = 'Você é um analista técnico de batalhas entre personagens de anime/desenho. Responda em português com objetividade, sem enrolação, e sempre entregue todas as seções solicitadas.';
+    const prompt = [
+      `Compare ${c1} vs ${c2}.`,
+      'Formato obrigatório da resposta (Markdown):',
+      '## Panorama rápido',
+      '- Quem tem vantagem geral e por que em 2-3 linhas.',
+      '## Atributos (notas de 0 a 10)',
+      '- Força',
+      '- Velocidade',
+      '- Inteligência tática',
+      '- Resistência',
+      '- Habilidades especiais',
+      '- Controle emocional',
+      '## Cenários',
+      '1. Duelo direto (sem preparo)',
+      '2. Duelo com 24h de preparo',
+      '3. Campo neutro com civis por perto',
+      '## Pontos fracos de cada um',
+      '## Veredito final',
+      '- Vencedor provável',
+      '- Condições para o azarão virar o jogo',
+      '- Nível de confiança em %',
+      'Regra: se faltar dado canônico, diga explicitamente "informação insuficiente" e continue a análise mesmo assim.'
+    ].join('\n');
 
-    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
+    try {
+      const analysis = await callAI(prompt, {
+        useChatContext: false,
+        persistToAIHistory: true,
+        context: 'compare',
+        model: COMPARE_GEMINI_MODEL,
+        temperature: COMPARE_TEMPERATURE,
+        max_tokens: COMPARE_MAX_TOKENS,
+        systemPrompt: compareSystemPrompt,
+        metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
+      });
+
+      compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
+    } finally {
+      isComparing = false;
+      compareBtn.disabled = false;
+    }
 
     setTimeout(() => {
       compareResult.scrollIntoView({ behavior: 'smooth', block: 'start' });

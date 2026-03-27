@@ -7,3 +7,5 @@ https://dashboard.render.com/web/srv-d6vcb7khg0os73dh07ig/settings
 https://dash.cloudflare.com/c26a167ebf82c8a7589eeb03a9678cd8/ai/workers-ai/api-quick-start
 
 https://dash.cloudflare.com/profile/api-tokens
+
+https://aistudio.google.com/app/u/4/api-keys?projectFilter=gen-lang-client-0375365290
