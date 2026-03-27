@@ -269,6 +269,7 @@
 
       <div class="ai-tool-box">
         <div class="ai-tabs-vertical">
+          <div class="ai-tab-v" data-tab="vision">Imagem IA</div>
           <div class="ai-tab-v active" data-tab="chat">💬 Chat Cérebro</div>
           <div class="ai-tab-v" data-tab="compare">⚖️ Comparar</div>
         </div>
@@ -305,6 +306,34 @@
 
 
 
+      <!-- TAB: VISION -->
+      <div id="tab-vision" class="tool-panel">
+        <div class="ai-card full-card">
+          <div class="tool-header">
+            <h2>Leitura de Imagem</h2>
+            <p>Envie uma imagem para a IA descrever, extrair textos visiveis e apontar pistas sobre a origem.</p>
+          </div>
+          <label class="upload-zone" id="visionDropZone" for="visionUpload">
+            <div class="upload-zone__content">
+              <strong>Solte a imagem aqui ou clique para enviar</strong>
+              <span>PNG, JPG, WEBP e outros formatos comuns</span>
+            </div>
+            <input type="file" id="visionUpload" accept="image/*" />
+          </label>
+          <div class="vision-preview" id="visionPreview" hidden>
+            <img id="visionPreviewImg" alt="Preview da imagem enviada" />
+            <div class="vision-preview__meta">
+              <strong id="visionFileName">Nenhuma imagem selecionada</strong>
+              <span id="visionFileInfo">Aguardando envio</span>
+            </div>
+          </div>
+          <button class="btn btn-primary w-100" id="visionAnalyzeBtn" disabled>Analisar imagem</button>
+          <div id="visionOutput" class="ocr-result" style="margin-bottom: 40px;">
+            Aguardando imagem...
+          </div>
+        </div>
+      </div>
+
       <!-- TAB: COMPARE -->
       <div id="tab-compare" class="tool-panel">
         <div class="ai-card full-card">
@@ -319,10 +348,6 @@
           </div>
           <button class="btn btn-primary w-100" id="compareBtn">Iniciar Análise de Batalha</button>
           <div id="compareResult" class="msg bot" style="margin-top:20px; display:none; max-width: 100%; margin-bottom: 40px; min-height: 100px;"></div>
-          <div style="margin-top:10px;">
-            <h3 style="margin:0 0 10px;color:var(--accent);font-size:1rem;">Histórico de Comparações</h3>
-            <div id="compareHistoryList" class="compare-history-list"></div>
-          </div>
         </div>
       </div>
 
@@ -588,6 +613,57 @@
     cursor: pointer;
   }
   .upload-zone input { display: none; }
+
+  .upload-zone__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    color: var(--text-main);
+  }
+
+  .upload-zone__content span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  .upload-zone.is-ready {
+    border-color: rgba(var(--primary-rgb), 0.7);
+    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.18);
+  }
+
+  .vision-preview {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0;
+    padding: 14px;
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    border-radius: 14px;
+    background: rgba(var(--bg-card), 0.35);
+  }
+
+  .vision-preview img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(var(--primary-rgb), 0.25);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .vision-preview__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: var(--text-main);
+  }
+
+  .vision-preview__meta span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
 
   .ocr-result {
     margin-top: 20px;

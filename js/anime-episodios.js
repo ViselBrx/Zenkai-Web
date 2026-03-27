@@ -577,6 +577,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando Anime...</div>';
     
     setTimeout(() => {
+        watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: VÃ­deo indisponÃ­vel.</p>';
+
+        const iframeSeguro = watchFrame.querySelector('iframe');
+        if (!item.iframe) {
+            return;
+        }
+
+        if (iframeSeguro) {
+            iframeSeguro.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:0;');
+            iframeSeguro.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
+            iframeSeguro.setAttribute('allowfullscreen', '');
+            iframeSeguro.setAttribute('loading', 'lazy');
+            iframeSeguro.removeAttribute('sandbox');
+            iframeSeguro.removeAttribute('height');
+            iframeSeguro.removeAttribute('width');
+            iframeSeguro.removeAttribute('scrolling');
+            return;
+        }
+
         watchFrame.innerHTML = ''; // Limpar
         if (item.iframe) {
             // Usar método seguro para inserir iframe

@@ -11,8 +11,37 @@ const path = require('path');
 const url  = require('url');
 const https = require('https');
 
+function loadEnvFallback(envFilePath) {
+  try {
+    const envContent = fs.readFileSync(envFilePath, 'utf8');
+    envContent.split(/\r?\n/).forEach((line) => {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith('#')) return;
+
+      const separatorIndex = trimmedLine.indexOf('=');
+      if (separatorIndex <= 0) return;
+
+      const key = trimmedLine.slice(0, separatorIndex).trim();
+      let value = trimmedLine.slice(separatorIndex + 1).trim();
+
+      if (
+        (value.startsWith('"') && value.endsWith('"'))
+        || (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+
+      if (!(key in process.env)) {
+        process.env[key] = value;
+      }
+    });
+  } catch (error) {
+    // Ignora se o .env nao existir ou nao puder ser lido.
+  }
+}
+
 // Carrega as variáveis do .env (se existir e o pacote estiver instalado)
-try { require('dotenv').config(); } catch (e) {}
+try { require('dotenv').config(); } catch (e) { loadEnvFallback(path.join(__dirname, '.env')); }
 
 const PORT      = process.env.PORT || 3000;
 const ROOT      = __dirname;
@@ -60,6 +89,12 @@ function getBody(req) {
     req.on('end',  () => { try { resolve(JSON.parse(body)); } catch { reject(new Error('JSON inválido')); } });
     req.on('error', reject);
   });
+}
+
+function dataUrlToByteArray(dataUrl) {
+  const matches = dataUrl.match(/^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/);
+  if (!matches) return null;
+  return Array.from(Buffer.from(matches[1], 'base64'));
 }
 
 const server = http.createServer(async (req, res) => {
@@ -118,11 +153,30 @@ const server = http.createServer(async (req, res) => {
       
       let apiUrl = '';
       let apiKey = '';
+      let requestPayload = body || null;
 
       if (target === 'groq') {
         const GROQ_API_KEY = process.env.GROQ_API_KEY;
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         apiKey = GROQ_API_KEY || frontendApiKey || config.groqKey || '';
+      } else if (target === 'cloudflare-vision') {
+        const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || config.cloudflareAccountId || '';
+        apiUrl = cloudflareAccountId
+          ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/llava-hf/llava-1.5-7b-hf`
+          : '';
+        apiKey = process.env.CLOUDFLARE_API_TOKEN || frontendApiKey || config.cloudflareApiToken || '';
+
+        if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
+          const imageBytes = dataUrlToByteArray(body.image);
+          if (!imageBytes) {
+            return sendJSON(res, 400, { error: 'Imagem invÃ¡lida para Cloudflare Vision.' });
+          }
+
+          requestPayload = {
+            ...body,
+            image: imageBytes
+          };
+        }
       } else if (target === 'zimage') {
         apiUrl = 'https://api.z-image.com/v1/generate';
         apiKey = config.zimageKey || frontendApiKey;
@@ -149,7 +203,7 @@ const server = http.createServer(async (req, res) => {
         }
       };
 
-      const requestBody = body ? JSON.stringify(body) : null;
+      const requestBody = requestPayload ? JSON.stringify(requestPayload) : null;
       if (requestBody) {
         options.headers['Content-Length'] = Buffer.byteLength(requestBody);
       }

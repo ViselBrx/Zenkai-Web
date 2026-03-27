@@ -32,21 +32,49 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatScrollStatus = document.getElementById('chatScrollStatus');
   const compareBtn = document.getElementById('compareBtn');
   const compareResult = document.getElementById('compareResult');
-  const compareHistoryList = document.getElementById('compareHistoryList');
+  const visionUpload = document.getElementById('visionUpload');
+  const visionAnalyzeBtn = document.getElementById('visionAnalyzeBtn');
+  const visionOutput = document.getElementById('visionOutput');
+  const visionDropZone = document.getElementById('visionDropZone');
+  const visionPreview = document.getElementById('visionPreview');
+  const visionPreviewImg = document.getElementById('visionPreviewImg');
+  const visionFileName = document.getElementById('visionFileName');
+  const visionFileInfo = document.getElementById('visionFileInfo');
 
   const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const TEMP_CONTEXT_KEY = 'open_anime_temp_chat_context_v1';
 
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
-  let compareHistory = [];
+  let currentChatThreadId = '';
+  let selectedVisionFile = null;
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
     resumeData = HistoryTracker.consumeResumeFromUrl('open-anime.html');
+  }
+
+  function buildUniqueId(prefix) {
+    return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function getResumeChatThreadId() {
+    if (!resumeData) return '';
+    const candidate = String(resumeData.threadId || resumeData.contentId || '').trim();
+    if (!candidate || candidate === 'open_anime_chat') return '';
+    return candidate;
+  }
+
+  function getResumeCompareHistoryId() {
+    if (!resumeData) return '';
+    return String(resumeData.historyContentId || resumeData.compareId || resumeData.contentId || '').trim();
+  }
+
+  function getResumeVisionHistoryId() {
+    if (!resumeData) return '';
+    return String(resumeData.historyContentId || resumeData.visionId || resumeData.contentId || '').trim();
   }
 
   if (chatInput) {
@@ -85,6 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     'theme-tt-classic': 'Jovens Titãs',
     'theme-mutant-rex': 'Mutante Rex',
     'theme-regular-show': 'Regular Show',
+    'theme-demon-slayer': 'Demon Slayer',
     'theme-vagabond': 'Vagabond'
   };
 
@@ -165,63 +194,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/\n/g, '<br>');
   }
 
-  function getNavigationType() {
-    try {
-      const nav = performance.getEntriesByType('navigation')[0];
-      return nav?.type || 'navigate';
-    } catch {
-      return 'navigate';
-    }
-  }
-
-  function isValidMessageArray(value) {
-    return Array.isArray(value) && value.every((item) => (
-      item
-      && typeof item === 'object'
-      && typeof item.role === 'string'
-      && typeof item.content === 'string'
-    ));
-  }
-
-  function saveTemporaryChatContext() {
-    try {
-      const safeMessages = chatHistory
-        .filter((msg) => msg && typeof msg.content === 'string' && typeof msg.role === 'string')
-        .slice(-60);
-      sessionStorage.setItem(TEMP_CONTEXT_KEY, JSON.stringify({
-        messages: safeMessages,
-        updatedAt: Date.now()
-      }));
-    } catch {
-      // ignore temporary session cache failures
-    }
-  }
-
-  function clearTemporaryChatContext() {
-    try {
-      sessionStorage.removeItem(TEMP_CONTEXT_KEY);
-    } catch {
-      // ignore
-    }
-  }
-
-  function restoreTemporaryChatContextFromSession() {
-    try {
-      const raw = sessionStorage.getItem(TEMP_CONTEXT_KEY);
-      if (!raw) return false;
-      const parsed = JSON.parse(raw);
-      if (!isValidMessageArray(parsed?.messages) || parsed.messages.length === 0) return false;
-
-      const hasSystem = parsed.messages.some((msg) => msg.role === 'system');
-      chatHistory = hasSystem
-        ? parsed.messages
-        : [{ role: 'system', content: SYSTEM_PROMPT }, ...parsed.messages];
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   function buildComparisonHistoryContentId(metadata = {}) {
     const normalize = (value, fallback) => String(value || '')
       .normalize('NFD')
@@ -234,6 +206,89 @@ document.addEventListener('DOMContentLoaded', async () => {
     const char1 = normalize(metadata.char1, 'personagem_1');
     const char2 = normalize(metadata.char2, 'personagem_2');
     return `open_anime_compare_${char1}_${char2}_${Date.now()}`;
+  }
+
+  function buildVisionHistoryContentId(metadata = {}) {
+    const fileBase = String(metadata.fileName || 'imagem')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 40) || 'imagem';
+
+    return `open_anime_vision_${fileBase}_${Date.now()}`;
+  }
+
+  function formatFileSize(size) {
+    const bytes = Number(size || 0);
+    if (!Number.isFinite(bytes) || bytes <= 0) return 'Tamanho desconhecido';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(reader.error || new Error('Falha ao ler a imagem.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function extractVisionText(result) {
+    if (typeof result?.result?.description === 'string' && result.result.description.trim()) {
+      return result.result.description.trim();
+    }
+    if (typeof result?.description === 'string' && result.description.trim()) {
+      return result.description.trim();
+    }
+    if (typeof result?.result?.response === 'string' && result.result.response.trim()) {
+      return result.result.response.trim();
+    }
+    if (Array.isArray(result?.result) && result.result.length > 0) {
+      return JSON.stringify(result.result, null, 2);
+    }
+    return '';
+  }
+
+  function renderVisionResult(text) {
+    if (!visionOutput) return;
+    visionOutput.innerHTML = `<strong>Analise da imagem:</strong><br><br>${formatAIResponse(text || 'Nenhum resultado retornado.')}`;
+  }
+
+  function setVisionFile(file, options = {}) {
+    selectedVisionFile = file || null;
+    const canAnalyze = !!(selectedVisionFile && typeof selectedVisionFile.arrayBuffer === 'function');
+
+    if (visionAnalyzeBtn) {
+      visionAnalyzeBtn.disabled = !canAnalyze;
+    }
+
+    if (!visionDropZone) return;
+
+    if (!selectedVisionFile) {
+      visionDropZone.classList.remove('is-ready');
+      if (visionPreview) visionPreview.hidden = true;
+      if (visionPreviewImg) visionPreviewImg.removeAttribute('src');
+      if (visionFileName) visionFileName.textContent = 'Nenhuma imagem selecionada';
+      if (visionFileInfo) visionFileInfo.textContent = 'Aguardando envio';
+      return;
+    }
+
+    visionDropZone.classList.add('is-ready');
+
+    if (visionPreview) visionPreview.hidden = false;
+    if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
+    if (visionFileInfo) {
+      visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} • ${formatFileSize(selectedVisionFile.size)}`;
+    }
+
+    if (visionPreviewImg) {
+      visionPreviewImg.src = options.previewUrl
+        || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
+    }
   }
 
   function appendMsg(text, type) {
@@ -275,29 +330,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function renderCompareHistory() {
-    if (!compareHistoryList) return;
-
-    if (compareHistory.length === 0) {
-      compareHistoryList.innerHTML = '<div class="compare-history-empty">Sem comparações anteriores.</div>';
-      return;
-    }
-
-    compareHistoryList.innerHTML = compareHistory.map(item => {
-      const when = new Date(item.created_at || Date.now()).toLocaleString('pt-BR');
-      const pair = item.char1 && item.char2 ? `${item.char1} vs ${item.char2}` : 'Comparação';
-      return `
-        <div class="compare-history-item">
-          <div class="compare-history-head">
-            <strong>${pair}</strong>
-            <span>${when}</span>
-          </div>
-          <div class="compare-history-body">${formatAIResponse(item.content || '')}</div>
-        </div>
-      `;
-    }).join('');
-  }
-
   async function waitForSupabaseClient(timeoutMs = 6000) {
     const start = Date.now();
     while (!window.supabaseClient && (Date.now() - start) < timeoutMs) {
@@ -328,10 +360,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const user = await getAIHistoryUser();
     if (!user) return false;
 
+    const normalizedContext = context === 'vision' ? 'vision' : context;
+    const payloadMetadata = normalizedContext === 'vision'
+      ? { ...metadata, aiContext: 'vision' }
+      : metadata;
+
     try {
-      const { error } = await supa
+      let { error } = await supa
         .from(AI_HISTORY_TABLE)
-        .insert([{ user_id: user.id, role, content, context, metadata }]);
+        .insert([{ user_id: user.id, role, content, context: normalizedContext, metadata: payloadMetadata }]);
+
+      if (error && normalizedContext === 'vision') {
+        const fallback = await supa
+          .from(AI_HISTORY_TABLE)
+          .insert([{ user_id: user.id, role, content, context: 'compare', metadata: payloadMetadata }]);
+        error = fallback.error;
+      }
       return !error;
     } catch (err) {
       console.error('Erro ao salvar histórico da IA:', err);
@@ -339,7 +383,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  async function loadAIHistoryMessages(context = 'chat', limit = AI_HISTORY_LIMIT) {
+  async function loadAIHistoryMessages(options = {}) {
+    const context = options.context || 'chat';
+    const metadataContains = options.metadataContains && typeof options.metadataContains === 'object'
+      ? options.metadataContains
+      : null;
+    const limit = Number.isFinite(options.limit)
+      ? options.limit
+      : (metadataContains ? 1000 : AI_HISTORY_LIMIT);
     const supa = await waitForSupabaseClient();
     if (!supa) return [];
 
@@ -347,64 +398,132 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!user) return [];
 
     try {
-      const { data, error } = await supa
+      let query = supa
         .from(AI_HISTORY_TABLE)
         .select('role, content, context, metadata, created_at')
         .eq('user_id', user.id)
-        .eq('context', context)
         .order('created_at', { ascending: true })
         .limit(limit);
+
+      if (context === 'vision') {
+        query = query.in('context', ['vision', 'compare']);
+      } else {
+        query = query.eq('context', context);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+
+      const messages = (data || []).filter((message) => {
+        if (context !== 'vision') return true;
+        return message.context === 'vision' || message?.metadata?.aiContext === 'vision';
+      });
+      if (!metadataContains || Object.keys(metadataContains).length === 0) {
+        return messages;
+      }
+
+      return messages.filter((message) => (
+        Object.entries(metadataContains).every(([key, value]) => (
+          String(message?.metadata?.[key] || '') === String(value || '')
+        ))
+      ));
     } catch (err) {
       console.error('Erro ao carregar histórico da IA:', err);
       return [];
     }
   }
 
-  async function initializePersistentChatHistory(useTemporaryFirst = false) {
-    if (useTemporaryFirst && chatHistory.length > 1) {
-      renderChatFromMessages(chatHistory);
-      return;
-    }
+  async function initializeChatView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resumedThreadId = getResumeChatThreadId();
+    currentChatThreadId = resumedThreadId || buildUniqueId('open_anime_chat_thread');
+    chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
 
-    const persisted = await loadAIHistoryMessages('chat');
-
-    if (persisted.length > 0) {
-      chatHistory = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
-      ];
-      renderChatFromMessages(chatHistory);
-      saveTemporaryChatContext();
-      return;
+    if (restoreSaved && resumedThreadId) {
+      const persisted = await loadAIHistoryMessages({
+        context: 'chat',
+        metadataContains: { threadId: resumedThreadId }
+      });
+      if (persisted.length > 0) {
+        chatHistory = [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...persisted.map(msg => ({ role: msg.role, content: msg.content }))
+        ];
+        renderChatFromMessages(chatHistory);
+        return;
+      }
     }
 
     appendMsg(GREETING_MESSAGE, 'bot');
     chatHistory.push({ role: 'assistant', content: GREETING_MESSAGE });
-    await saveAIHistoryMessage({ role: 'assistant', content: GREETING_MESSAGE, context: 'chat' });
-    saveTemporaryChatContext();
   }
 
-  async function initializeComparisonHistory() {
-    const persisted = await loadAIHistoryMessages('compare');
-
-    compareHistory = persisted
-      .filter(msg => msg.role === 'assistant')
-      .map(msg => ({
-        content: msg.content,
-        created_at: msg.created_at,
-        char1: msg.metadata?.char1 || '',
-        char2: msg.metadata?.char2 || ''
-      }))
-      .reverse();
-
-    renderCompareHistory();
-
-    if (compareResult && compareHistory.length > 0) {
-      compareResult.style.display = 'block';
-      compareResult.innerHTML = `<strong>Última análise:</strong><br><br>${formatAIResponse(compareHistory[0].content)}`;
+  async function initializeComparisonView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    if (compareResult) {
+      compareResult.style.display = 'none';
+      compareResult.innerHTML = '';
     }
+
+    const selectedCompareHistoryId = getResumeCompareHistoryId();
+    if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'compare',
+      metadataContains: { historyContentId: selectedCompareHistoryId },
+      limit: 20
+    });
+    const selectedComparison = persisted.find(msg => msg.role === 'assistant');
+    if (!selectedComparison) return;
+
+    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resumeData?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resumeData?.char2 || '';
+    compareResult.style.display = 'block';
+    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(selectedComparison.content || '')}`;
+  }
+
+  async function initializeVisionView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+
+    if (visionOutput) {
+      visionOutput.textContent = 'Aguardando imagem...';
+    }
+
+    if (!restoreSaved) {
+      setVisionFile(null);
+      return;
+    }
+
+    const selectedVisionHistoryId = getResumeVisionHistoryId();
+    if (!selectedVisionHistoryId || !visionOutput) {
+      setVisionFile(null);
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'vision',
+      metadataContains: { historyContentId: selectedVisionHistoryId },
+      limit: 20
+    });
+    const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    if (!selectedAnalysis) {
+      setVisionFile(null);
+      return;
+    }
+
+    setVisionFile(
+      {
+        name: selectedAnalysis.metadata?.fileName || 'imagem-restaurada',
+        type: selectedAnalysis.metadata?.fileType || 'image/*',
+        size: Number(selectedAnalysis.metadata?.fileSize || 0)
+      },
+      {
+        fileInfo: 'Resultado restaurado do historico'
+      }
+    );
+    renderVisionResult(selectedAnalysis.content || '');
   }
 
   async function callAI(prompt, options = {}) {
@@ -413,19 +532,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
-    const metadata = options.metadata || {};
+    const metadata = { ...(options.metadata || {}) };
+
+    if (context === 'chat') {
+      currentChatThreadId = metadata.threadId || currentChatThreadId || buildUniqueId('open_anime_chat_thread');
+      metadata.threadId = currentChatThreadId;
+    }
+
+    if (context === 'compare') {
+      metadata.historyContentId = metadata.historyContentId || buildComparisonHistoryContentId(metadata);
+    }
 
     try {
       if (useChatContext) {
         chatHistory.push({ role: 'user', content: prompt });
-        saveTemporaryChatContext();
       }
 
       if (persistToAIHistory) {
         await saveAIHistoryMessage({ role: 'user', content: prompt, context, metadata });
       }
 
-      const GROQ_API_KEY = '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';
       const requestMessages = useChatContext
         ? chatHistory
         : [{ role: 'system', content: SYSTEM_PROMPT }, { role: 'user', content: prompt }];
@@ -435,7 +561,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           target,
-          apiKey: GROQ_API_KEY,
           body: {
             model,
             messages: requestMessages,
@@ -455,7 +580,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (useChatContext) {
         chatHistory.push({ role: 'assistant', content: aiResponse });
-        saveTemporaryChatContext();
       }
 
       if (persistToAIHistory) {
@@ -464,7 +588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof HistoryTracker !== 'undefined') {
           const isCompare = context === 'compare';
           HistoryTracker.track({
-            contentId: isCompare ? buildComparisonHistoryContentId(metadata) : 'open_anime_chat',
+            contentId: isCompare ? metadata.historyContentId : currentChatThreadId,
             contentType: isCompare ? 'ai_compare' : 'ai_chat',
             title: isCompare
               ? `Comparação IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
@@ -474,6 +598,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             payload: {
               mediaType: isCompare ? 'ai_compare' : 'ai_chat',
               tab: isCompare ? 'compare' : 'chat',
+              threadId: isCompare ? '' : currentChatThreadId,
+              historyContentId: isCompare ? metadata.historyContentId : '',
               char1: metadata.char1 || '',
               char2: metadata.char2 || ''
             }
@@ -486,31 +612,103 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error(e);
       if (useChatContext && chatHistory.length > 1) {
         chatHistory.pop();
-        saveTemporaryChatContext();
       }
       return 'Falha: ' + e.message + '. Verifique o terminal do servidor para mais detalhes.';
     }
   }
 
-  const navigationType = getNavigationType();
-  if (navigationType !== 'reload') {
-    clearTemporaryChatContext();
-  }
-  const temporaryContextRestored = restoreTemporaryChatContextFromSession();
+  async function callVisionAI(file, options = {}) {
+    const persistToAIHistory = options.persistToAIHistory !== false;
+    const context = 'vision';
+    const metadata = {
+      ...(options.metadata || {}),
+      fileName: file?.name || 'imagem',
+      fileType: file?.type || 'image/*',
+      fileSize: Number(file?.size || 0)
+    };
+    metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
-  await initializePersistentChatHistory(temporaryContextRestored);
-  await initializeComparisonHistory();
+    const prompt = 'Descreva a imagem em portugues. Extraia todo o texto visivel. Se houver pistas sobre a origem da imagem, cite apenas pistas visuais ou textuais sem inventar.';
+    const base64Image = await readFileAsDataUrl(file);
+
+    try {
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({
+          role: 'user',
+          content: `Imagem enviada: ${metadata.fileName}`,
+          context,
+          metadata
+        });
+      }
+
+      const res = await fetch('/api/ai/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          target: 'cloudflare-vision',
+          body: {
+            image: base64Image,
+            prompt,
+            max_tokens: 700
+          }
+        })
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const erroMsg = typeof result.error === 'object' ? result.error.message : result.error;
+        throw new Error(erroMsg || ('Erro HTTP ' + res.status));
+      }
+
+      const aiResponse = extractVisionText(result);
+      if (!aiResponse) {
+        throw new Error('A Cloudflare nao retornou uma descricao utilizavel para esta imagem.');
+      }
+
+      if (persistToAIHistory) {
+        await saveAIHistoryMessage({ role: 'assistant', content: aiResponse, context, metadata });
+
+        if (typeof HistoryTracker !== 'undefined') {
+          HistoryTracker.track({
+            contentId: metadata.historyContentId,
+            contentType: 'ai_vision',
+            title: `IA - Imagem ${metadata.fileName}`,
+            subtitle: aiResponse.slice(0, 120),
+            route: 'open-anime.html',
+            payload: {
+              mediaType: 'ai_vision',
+              tab: 'vision',
+              historyContentId: metadata.historyContentId,
+              fileName: metadata.fileName
+            }
+          });
+        }
+      }
+
+      return { aiResponse, base64Image, metadata };
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  const shouldRestoreSavedChat = resumeData?.mediaType === 'ai_chat'
+    || resumeData?.contentType === 'ai_chat';
+  const shouldRestoreSavedCompare = resumeData?.mediaType === 'ai_compare'
+    || resumeData?.contentType === 'ai_compare';
+  const shouldRestoreSavedVision = resumeData?.mediaType === 'ai_vision'
+    || resumeData?.contentType === 'ai_vision';
+
+  await initializeChatView({ restoreSaved: shouldRestoreSavedChat });
+  await initializeComparisonView({ restoreSaved: shouldRestoreSavedCompare });
+  await initializeVisionView({ restoreSaved: shouldRestoreSavedVision });
   updateThemeInfo();
   updateChatScrollInfo();
 
-  if (!temporaryContextRestored) {
-    saveTemporaryChatContext();
-  }
-
-  const shouldOpenCompareTab = resumeData?.mediaType === 'ai_compare'
-    || resumeData?.contentType === 'ai_compare'
-    || resumeData?.tab === 'compare';
-  activateToolTab(shouldOpenCompareTab ? 'compare' : 'chat');
+  const initialTab = shouldRestoreSavedVision || resumeData?.tab === 'vision'
+    ? 'vision'
+    : ((shouldRestoreSavedCompare || resumeData?.tab === 'compare') ? 'compare' : 'chat');
+  activateToolTab(initialTab);
 
   if (toggleInfoCardBtn && infoCard) {
     toggleInfoCardBtn.addEventListener('click', () => {
@@ -549,10 +747,100 @@ document.addEventListener('DOMContentLoaded', async () => {
     appendMsg(response, 'bot');
   });
 
+  async function handleVisionSelection(file) {
+    if (!file) return;
+
+    const previewUrl = await readFileAsDataUrl(file);
+    setVisionFile(file, {
+      previewUrl,
+      fileInfo: `${file.type || 'image/*'} • ${formatFileSize(file.size)}`
+    });
+    renderVisionResult('Imagem pronta para analise. Clique em "Analisar imagem".');
+  }
+
+  if (visionUpload) {
+    visionUpload.addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      try {
+        await handleVisionSelection(file);
+      } catch (error) {
+        console.error(error);
+        setVisionFile(null);
+        renderVisionResult('Falha ao carregar a imagem selecionada.');
+      }
+    });
+  }
+
+  if (visionDropZone) {
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      visionDropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        visionDropZone.classList.add('is-ready');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      visionDropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        if (!selectedVisionFile || eventName === 'drop') {
+          visionDropZone.classList.remove('is-ready');
+        }
+      });
+    });
+
+    visionDropZone.addEventListener('drop', async (event) => {
+      const file = event.dataTransfer?.files?.[0];
+      if (!file || !String(file.type || '').startsWith('image/')) {
+        showFeedback('Solte apenas arquivos de imagem');
+        return;
+      }
+
+      try {
+        await handleVisionSelection(file);
+      } catch (error) {
+        console.error(error);
+        setVisionFile(null);
+        renderVisionResult('Falha ao carregar a imagem arrastada.');
+      }
+    });
+  }
+
+  if (visionAnalyzeBtn) {
+    visionAnalyzeBtn.addEventListener('click', async () => {
+      if (!selectedVisionFile) {
+        showFeedback('Escolha uma imagem antes de analisar');
+        return;
+      }
+
+      visionAnalyzeBtn.disabled = true;
+      renderVisionResult('Analisando imagem com Cloudflare AI...');
+
+      try {
+        const { aiResponse } = await callVisionAI(selectedVisionFile, {
+          persistToAIHistory: true,
+          metadata: {
+            fileName: selectedVisionFile.name,
+            fileType: selectedVisionFile.type,
+            fileSize: selectedVisionFile.size
+          }
+        });
+
+        renderVisionResult(aiResponse);
+      } catch (error) {
+        renderVisionResult(`Falha: ${error.message}. Verifique o terminal do servidor para mais detalhes.`);
+      } finally {
+        visionAnalyzeBtn.disabled = false;
+      }
+    });
+  }
+
   compareBtn.addEventListener('click', async () => {
     const c1 = char1Inp.value.trim();
     const c2 = char2Inp.value.trim();
     if (!c1 || !c2) return showToast('Digite dois nomes para comparar', 'error');
+    const compareHistoryId = buildComparisonHistoryContentId({ char1: c1, char2: c2 });
 
     compareResult.style.display = 'block';
     compareResult.innerHTML = '⚖️ Analisando poderes, história e habilidades...';
@@ -562,25 +850,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       useChatContext: false,
       persistToAIHistory: true,
       context: 'compare',
-      metadata: { char1: c1, char2: c2 }
+      metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
     });
 
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
-
-    compareHistory.unshift({
-      content: analysis,
-      created_at: new Date().toISOString(),
-      char1: c1,
-      char2: c2
-    });
-    compareHistory = compareHistory.slice(0, 20);
-    renderCompareHistory();
 
     setTimeout(() => {
       compareResult.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
   });
 
-  char1Inp.value = '';
-  char2Inp.value = '';
+  if (!shouldRestoreSavedCompare) {
+    char1Inp.value = '';
+    char2Inp.value = '';
+  }
 });
