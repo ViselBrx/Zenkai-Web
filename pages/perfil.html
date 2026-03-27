@@ -177,6 +177,11 @@
       font-size: 0.77rem;
       line-height: 1.35;
       color: var(--text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      max-height: 2.7em;
     }
 
     .history-meta {
@@ -191,6 +196,12 @@
       justify-content: flex-end;
       gap: 6px;
       margin-top: 8px;
+    }
+
+    .rename-help {
+      margin: 8px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
     }
 
     .history-empty {
@@ -433,12 +444,30 @@
   </div>
 </main>
 
+<div class="modal-overlay" id="renameModal">
+  <div class="modal" style="max-width:430px">
+    <div class="modal-header">
+      <h2>Renomear Conversa</h2>
+      <button class="modal-close" id="renameModalClose">✕</button>
+    </div>
+    <div class="form-group" style="margin-bottom: 10px;">
+      <label for="renameConversationInput">Novo nome</label>
+      <input id="renameConversationInput" class="form-control" type="text" maxlength="220" placeholder="Digite o novo título da conversa" />
+      <p class="rename-help">Esse nome aparece no seu histórico e continua salvo mesmo com novas mensagens.</p>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn btn-ghost" id="renameCancelBtn">Cancelar</button>
+      <button type="button" class="btn btn-primary" id="renameConfirmBtn">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script src="js/history.js"></script>
 <script src="js/auth.js"></script>
 <script>
-  function showToast(msg, type = 'success', ms = 3000) {
+  function showToast(msg, type = 'success', ms = 7000) {
     const container = document.getElementById('toast');
     if (!container) return;
 
@@ -450,10 +479,15 @@
       el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
     }
 
+    const progressStyle = isError
+      ? `animation-duration:${ms}ms; background: var(--danger); box-shadow: 0 0 20px var(--danger);`
+      : `animation-duration:${ms}ms;`;
+
     el.innerHTML = `
       <div class="undo-content" style="justify-content: center;">
         <span style="${isError ? 'color: var(--danger); font-weight: bold;' : ''}">${msg}</span>
       </div>
+      <div class="undo-progress" style="${progressStyle}"></div>
     `;
     container.appendChild(el);
 
@@ -470,9 +504,15 @@
     const historyCount = document.getElementById('historyCount');
     const historySourceNote = document.getElementById('historySourceNote');
     const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const renameModal = document.getElementById('renameModal');
+    const renameModalClose = document.getElementById('renameModalClose');
+    const renameCancelBtn = document.getElementById('renameCancelBtn');
+    const renameConfirmBtn = document.getElementById('renameConfirmBtn');
+    const renameConversationInput = document.getElementById('renameConversationInput');
 
     let historyItems = [];
     let historyEventsBound = false;
+    let renameTargetItemId = null;
 
     function escapeHtml(value) {
       return String(value || '')
@@ -519,6 +559,13 @@
       return toDate(value).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     }
 
+    function shortenText(value, maxLen = 100) {
+      const normalized = String(value || '').replace(/\s+/g, ' ').trim();
+      if (!normalized) return '';
+      if (normalized.length <= maxLen) return normalized;
+      return normalized.slice(0, Math.max(0, maxLen - 1)).trimEnd() + '…';
+    }
+
     function getHistoryDescription(item) {
       if (!item || typeof item !== 'object') return '';
 
@@ -542,6 +589,14 @@
       }
 
       return `${baseType} - ${formatHour(stamp)}`;
+    }
+
+    function getHistoryPreview(item) {
+      const description = getHistoryDescription(item) || formatTypeLabel(item?.content_type);
+      if (item?.content_type === 'ai_vision') {
+        return shortenText(`Descrição: ${description}`, 150);
+      }
+      return shortenText(description, 95);
     }
 
     function getFilteredHistoryItems() {
@@ -590,7 +645,7 @@
         items.forEach(item => {
           const itemId = escapeHtml(item.id || '');
           const title = escapeHtml(item.title || 'Conteúdo sem título');
-          const subtitle = escapeHtml(getHistoryDescription(item) || formatTypeLabel(item.content_type));
+          const subtitle = escapeHtml(getHistoryPreview(item));
           const stamp = item.last_watched_at || item.created_at || item.updated_at;
           const meta = getHistoryMeta(item, stamp);
 
@@ -598,11 +653,12 @@
             <div class="history-item">
               <button type="button" class="history-open" data-open-id="${itemId}">
                 <strong>${title}</strong>
-                <span>${subtitle}</span>
+                <span class="history-preview">${subtitle}</span>
                 <div class="history-meta">${escapeHtml(meta)}</div>
               </button>
               <div class="history-item-actions">
                 <button type="button" class="btn btn-ghost btn-sm" data-open-id="${itemId}">Abrir</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-rename-id="${itemId}">Renomear</button>
                 <button type="button" class="btn btn-danger btn-sm" data-delete-id="${itemId}">Excluir</button>
               </div>
             </div>
@@ -659,6 +715,61 @@
       showToast('Item removido do histórico.');
     }
 
+    async function renameHistoryItem(itemId) {
+      const item = findHistoryItem(itemId);
+      if (!item || typeof HistoryTracker === 'undefined') return;
+
+      const currentTitle = String(item.title || '').trim() || 'Conversa sem título';
+      renameTargetItemId = itemId;
+      if (renameConversationInput) {
+        renameConversationInput.value = currentTitle;
+        renameConversationInput.focus();
+        renameConversationInput.select();
+      }
+      if (renameModal) renameModal.classList.add('open');
+    }
+
+    function closeRenameModal() {
+      renameTargetItemId = null;
+      if (renameConversationInput) renameConversationInput.value = '';
+      if (renameModal) renameModal.classList.remove('open');
+    }
+
+    async function confirmRenameFromModal() {
+      if (!renameTargetItemId || typeof HistoryTracker === 'undefined') return;
+      const item = findHistoryItem(renameTargetItemId);
+      if (!item) {
+        closeRenameModal();
+        return;
+      }
+
+      const currentTitle = String(item.title || '').trim() || 'Conversa sem título';
+      const nextTitle = String(renameConversationInput?.value || '').replace(/\s+/g, ' ').trim();
+      if (!nextTitle) {
+        showToast('Digite um nome válido.', 'error', 7000);
+        return;
+      }
+      if (nextTitle === currentTitle) {
+        closeRenameModal();
+        return;
+      }
+
+      const ok = await HistoryTracker.rename(renameTargetItemId, nextTitle);
+      if (!ok) {
+        showToast('Não foi possível renomear essa conversa.', 'error', 7000);
+        return;
+      }
+
+      historyItems = historyItems.map(entry =>
+        String(entry.id) === String(renameTargetItemId)
+          ? { ...entry, title: nextTitle }
+          : entry
+      );
+      renderHistory();
+      closeRenameModal();
+      showToast('Conversa atualizada com sucesso.', 'success', 7000);
+    }
+
     function openHistoryItem(itemId) {
       const item = findHistoryItem(itemId);
       if (!item) return;
@@ -687,10 +798,42 @@
             return;
           }
 
+          const renameBtn = event.target.closest('[data-rename-id]');
+          if (renameBtn) {
+            await renameHistoryItem(renameBtn.getAttribute('data-rename-id'));
+            return;
+          }
+
           const deleteBtn = event.target.closest('[data-delete-id]');
           if (deleteBtn) {
             await deleteHistoryItem(deleteBtn.getAttribute('data-delete-id'));
           }
+        });
+      }
+
+      if (renameModalClose) {
+        renameModalClose.addEventListener('click', closeRenameModal);
+      }
+      if (renameCancelBtn) {
+        renameCancelBtn.addEventListener('click', closeRenameModal);
+      }
+      if (renameConfirmBtn) {
+        renameConfirmBtn.addEventListener('click', confirmRenameFromModal);
+      }
+      if (renameConversationInput) {
+        renameConversationInput.addEventListener('keydown', async (event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault();
+            await confirmRenameFromModal();
+          }
+          if (event.key === 'Escape') {
+            closeRenameModal();
+          }
+        });
+      }
+      if (renameModal) {
+        renameModal.addEventListener('click', (event) => {
+          if (event.target === renameModal) closeRenameModal();
         });
       }
 
@@ -701,12 +844,12 @@
 
           const ok = await HistoryTracker.clearAll();
           if (!ok) {
-            showToast('Falha ao limpar histórico.', 'error');
+            showToast('Falha ao limpar histórico.', 'error', 7000);
             return;
           }
           historyItems = [];
           renderHistory();
-          showToast('Histórico limpo com sucesso.');
+          showToast('Histórico excluído com sucesso.', 'success', 7000);
         });
       }
     }
@@ -760,7 +903,7 @@
 
         if (uploadError) {
           console.error(uploadError);
-          showToast('Erro no upload: ' + uploadError.message, 'error');
+          showToast('Erro no upload: ' + uploadError.message, 'error', 7000);
           return;
         }
 
@@ -770,7 +913,7 @@
 
         document.getElementById('avatarUrl').value = publicUrl;
         document.getElementById('displayAvatar').src = publicUrl;
-        showToast('Imagem carregada. Salve as alterações para concluir.');
+        showToast('Imagem cadastrada com sucesso.', 'success', 7000);
       };
 
       document.getElementById('profileForm').onsubmit = async (e) => {
@@ -788,9 +931,9 @@
           });
 
         if (updateError) {
-          showToast('Erro ao salvar: ' + updateError.message, 'error');
+          showToast('Erro ao salvar: ' + updateError.message, 'error', 7000);
         } else {
-          showToast('Perfil atualizado!');
+          showToast('Perfil atualizado com sucesso.', 'success', 7000);
           document.getElementById('displayUsername').textContent = username || fallbackName;
           document.getElementById('displayAvatar').src = avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
         }

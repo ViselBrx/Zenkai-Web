@@ -110,6 +110,7 @@ const HistoryTracker = (() => {
     const user = await _getUser();
     if (!user) return { ok: false, reason: 'no-user' };
 
+    const incomingPayload = _serializePayload(entry.payload);
     const payload = {
       user_id: user.id,
       content_id: _cleanText(entry.contentId, 140),
@@ -118,7 +119,7 @@ const HistoryTracker = (() => {
       subtitle: _cleanText(entry.subtitle, 320) || null,
       cover_url: _cleanText(entry.coverUrl, 1000) || null,
       route: _cleanRoute(entry.route),
-      payload: _serializePayload(entry.payload),
+      payload: incomingPayload,
       last_watched_at: new Date().toISOString()
     };
 
@@ -130,6 +131,30 @@ const HistoryTracker = (() => {
     if (!supa) return { ok: false, reason: 'no-client' };
 
     try {
+      const { data: existing } = await supa
+        .from(TABLE)
+        .select('title, payload')
+        .eq('user_id', user.id)
+        .eq('content_id', payload.content_id)
+        .eq('content_type', payload.content_type)
+        .eq('route', payload.route)
+        .maybeSingle();
+
+      const existingPayload = existing?.payload && typeof existing.payload === 'object'
+        ? existing.payload
+        : {};
+      const mergedPayload = { ...existingPayload, ...incomingPayload };
+
+      const customTitleFromExisting = _cleanText(existingPayload.customTitle, 220);
+      const customTitleFromIncoming = _cleanText(incomingPayload.customTitle, 220);
+      const customTitle = customTitleFromIncoming || customTitleFromExisting;
+
+      if (customTitle) {
+        payload.title = customTitle;
+        mergedPayload.customTitle = customTitle;
+      }
+      payload.payload = mergedPayload;
+
       const { data, error } = await supa
         .from(TABLE)
         .upsert(payload, { onConflict: 'user_id,content_id,content_type,route' })
@@ -178,6 +203,42 @@ const HistoryTracker = (() => {
       const { error } = await supa
         .from(TABLE)
         .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
+  async function rename(id, newTitle) {
+    const user = await _getUser();
+    if (!user || !id) return false;
+
+    const supa = _getClient();
+    if (!supa) return false;
+
+    const cleanTitle = _cleanText(newTitle, 220);
+    if (!cleanTitle) return false;
+
+    try {
+      const { data: existing } = await supa
+        .from(TABLE)
+        .select('payload')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const currentPayload = existing?.payload && typeof existing.payload === 'object'
+        ? existing.payload
+        : {};
+
+      const { error } = await supa
+        .from(TABLE)
+        .update({
+          title: cleanTitle,
+          payload: { ...currentPayload, customTitle: cleanTitle }
+        })
         .eq('id', id)
         .eq('user_id', user.id);
       return !error;
@@ -261,6 +322,7 @@ const HistoryTracker = (() => {
     track,
     list,
     remove,
+    rename,
     clearAll,
     queueResumeAndOpen,
     consumeResumeFromUrl
