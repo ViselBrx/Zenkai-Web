@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   const mangaModal = document.getElementById('mangaModal');
   const mangaForm = document.getElementById('mangaForm');
+  const deleteModal = document.getElementById('deleteModal');
   
   const volumeModal = document.getElementById('volumeModal');
   const volumeForm = document.getElementById('volumeForm');
@@ -24,10 +25,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeMangaId = null;
   let editingMangaId = null;
   let editingVolId = null;
+  let deletingMangaId = null;
 
   // Elementos de capa do modal
   const mCapaInput = document.getElementById('mCapa');
   const mCapaPreview = document.getElementById('mCapaPreview');
+
+  function askDeleteManga(id, nome) {
+    deletingMangaId = id;
+    document.getElementById('deleteMangaName').textContent = nome;
+    deleteModal.classList.add('open');
+  }
+
+  function queueMangaDeletion(idToHide, mangaName) {
+    if (!window.pendingDeletions) window.pendingDeletions = new Set();
+    window.pendingDeletions.add(idToHide);
+
+    if (activeMangaId === idToHide) {
+      activeMangaId = null;
+    }
+
+    renderMangaPills();
+    renderVolumes();
+
+    showUndoToast(`Excluindo coleção "${mangaName}"...`,
+      () => {
+        if (window.pendingDeletions.has(idToHide)) {
+          DB.deleteManga(idToHide);
+          window.pendingDeletions.delete(idToHide);
+          renderMangaPills();
+          renderVolumes();
+        }
+      },
+      () => {
+        window.pendingDeletions.delete(idToHide);
+        renderMangaPills();
+        renderVolumes();
+      }
+    );
+  }
 
   // Renderizar a lista de mangás em formato de pílulas (seletor)
   function renderMangaPills() {
@@ -61,14 +97,17 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="card-title">${m.nome}</div>
           <div style="display:flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: auto;">
              <span class="card-badge" style="margin-top:0;">📚 Ver Estante</span>
-             <span class="pill-edit-btn" title="Editar" style="opacity:0.7; font-size:1.1rem; cursor:pointer;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.7'">✏️</span>
+             <div style="display:flex; gap:8px; align-items:center;">
+               <span class="pill-edit-btn" title="Editar" style="opacity:0.7; font-size:1.1rem; cursor:pointer;" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.7'">✏️</span>
+               <span class="pill-delete-btn" title="Excluir" style="opacity:0.7; font-size:1.1rem; cursor:pointer; color:var(--danger);" onmouseenter="this.style.opacity='1'" onmouseleave="this.style.opacity='0.7'">🗑️</span>
+             </div>
           </div>
         </div>
       `;
       
       // Clique rápido para selecionar
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.pill-edit-btn')) return; // ignora botão de edição
+        if (e.target.closest('.pill-edit-btn') || e.target.closest('.pill-delete-btn')) return; // ignora botões de ação
         activeMangaId = m.id;
         renderMangaPills(); // Atualiza card ativo
         renderVolumes();
@@ -88,33 +127,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         mangaModal.classList.add('open');
       });
 
-      // Duplo clique para excluir mangá inteiro
-      card.addEventListener('dblclick', (e) => {
-         if (e.target.closest('.pill-edit-btn')) return;
-
-         const idToHide = m.id;
-         if (!window.pendingDeletions) window.pendingDeletions = new Set();
-         window.pendingDeletions.add(idToHide);
-         
-         if (activeMangaId === idToHide) {
-             activeMangaId = null;
-             renderVolumes();
-         }
-         renderMangaPills();
-         
-         showUndoToast(`Excluindo coleção "${m.nome}"...`, 
-            () => {
-              if (window.pendingDeletions.has(idToHide)) {
-                DB.deleteManga(idToHide);
-                window.pendingDeletions.delete(idToHide);
-                renderMangaPills();
-              }
-            },
-            () => {
-              window.pendingDeletions.delete(idToHide);
-              renderMangaPills();
-            }
-         );
+      card.querySelector('.pill-delete-btn').addEventListener('click', (e) => {
+         e.stopPropagation();
+         askDeleteManga(m.id, m.nome);
       });
 
       mangaPills.appendChild(card);
@@ -277,6 +292,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   const closeMangaModal = () => mangaModal.classList.remove('open');
   document.getElementById('mangaClose').addEventListener('click', closeMangaModal);
+
+  const closeDeleteModal = () => {
+    deleteModal.classList.remove('open');
+    deletingMangaId = null;
+  };
+  document.getElementById('deleteClose').addEventListener('click', closeDeleteModal);
+  document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+  document.getElementById('deleteConfirmBtn').addEventListener('click', () => {
+    if (!deletingMangaId) return;
+
+    const mangaName = document.getElementById('deleteMangaName').textContent;
+    const idToDelete = deletingMangaId;
+    closeDeleteModal();
+    queueMangaDeletion(idToDelete, mangaName);
+  });
   
   mangaForm.addEventListener('submit', async (e) => {
     e.preventDefault();
