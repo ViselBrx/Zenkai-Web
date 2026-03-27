@@ -1,13 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 
-const dir = __dirname;
-const htmlFiles = fs.readdirSync(dir).filter(f => f.endsWith('.html'));
+const ROOT_DIR = path.resolve(__dirname, '..', '..');
+const pagesDir = path.join(ROOT_DIR, 'pages');
+const htmlFiles = fs.readdirSync(pagesDir).filter(f => f.endsWith('.html'));
 
 const watermarkHTML = '<div class="watermark">© ViselBrx & DaviMoraes07™</div>';
 
 htmlFiles.forEach(file => {
-    const filePath = path.join(dir, file);
+    const filePath = path.join(pagesDir, file);
     let content = fs.readFileSync(filePath, 'utf8');
 
     // Remove old watermarks using regex matching `<div class="watermark">...</div>`

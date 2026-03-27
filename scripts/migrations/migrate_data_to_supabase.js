@@ -5,8 +5,9 @@ const SUPABASE_URL = 'https://bxifddhrbxbmimjkgwzr.supabase.co';
 // ATENÇÃO: Use a chave 'service_role' (secret) aqui para ignorar a segurança (RLS) durante a migração
 const SUPABASE_SERVICE_KEY = 'sb_secret_Cr0BzLecxWabufFasf0kQg_xJtI5VsM'; // <-- TROQUE PELA SUA SERVICE_ROLE KEY
 
-// Ler data.json atual
-const dataPath = path.join(__dirname, 'data.json');
+// Ler data/data.json (novo layout da pasta)
+const ROOT_DIR = path.resolve(__dirname, '..', '..');
+const dataPath = path.join(ROOT_DIR, 'data', 'data.json');
 let db;
 try {
     db = JSON.parse(fs.readFileSync(dataPath, 'utf8'));

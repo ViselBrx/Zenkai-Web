@@ -4,7 +4,12 @@
   "description": "Anime House Web Service",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "migrate:data": "node scripts/migrations/migrate_data_to_supabase.js",
+    "sync:data": "node scripts/migrations/sync_missing_data.js",
+    "fix:data-domains": "node scripts/maintenance/fix_data_json_domains.js",
+    "watermark": "node scripts/maintenance/apply_watermark_to_pages.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5"

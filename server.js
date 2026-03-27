@@ -43,12 +43,14 @@ function loadEnvFallback(envFilePath) {
 // Carrega as variáveis do .env (se existir e o pacote estiver instalado)
 try { require('dotenv').config(); } catch (e) { loadEnvFallback(path.join(__dirname, '.env')); }
 
-const PORT      = process.env.PORT || 3000;
-const ROOT      = __dirname;
-const DATA_FILE = path.join(ROOT, 'data.json');
-const UPLOADS_DIR = path.join(ROOT, 'uploads');
+const PORT       = process.env.PORT || 3000;
+const ROOT       = __dirname;
+const PUBLIC_DIR = path.join(ROOT, 'public');
+const PAGES_DIR  = path.join(ROOT, 'pages');
+const DATA_FILE  = path.join(ROOT, 'data', 'data.json');
+const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
 
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -95,6 +97,12 @@ function dataUrlToByteArray(dataUrl) {
   const matches = dataUrl.match(/^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/);
   if (!matches) return null;
   return Array.from(Buffer.from(matches[1], 'base64'));
+}
+
+function safeResolve(baseDir, requestPath) {
+  const resolved = path.normalize(path.join(baseDir, requestPath));
+  if (resolved !== baseDir && !resolved.startsWith(baseDir + path.sep)) return null;
+  return resolved;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -229,11 +237,19 @@ const server = http.createServer(async (req, res) => {
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
+  if (req.method === 'GET' && pathname === '/opne-anime.html') {
+    res.writeHead(301, { Location: '/open-anime.html' });
+    return res.end();
+  }
+
   // Rota para salvar tema global removida pois o tema agora é local (sessionStorage)
 
   // ── ARQUIVOS ESTÁTICOS ──
-  let filePath = path.join(ROOT, pathname === '/' ? 'index.html' : pathname);
-  if (!filePath.startsWith(ROOT)) { res.writeHead(403); return res.end('Proibido'); }
+  const requestPath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  const isHtmlRequest = pathname === '/' || path.extname(requestPath).toLowerCase() === '.html';
+  const baseDir = isHtmlRequest ? PAGES_DIR : PUBLIC_DIR;
+  const filePath = safeResolve(baseDir, requestPath);
+  if (!filePath) { res.writeHead(403); return res.end('Proibido'); }
 
   const ext = path.extname(filePath).toLowerCase();
 

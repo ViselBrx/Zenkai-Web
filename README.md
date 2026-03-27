@@ -1,120 +1,97 @@
 # Anime House - Player Local 🎬🍿
 
 <p align="center">
-  <img src="./assets/tryhard.png" alt="Anime House Logo" width="110" />
+  <img src="./public/assets/tryhard.png" alt="Anime House Logo" width="110" />
 </p>
 
 <p align="center">
   <strong>Plataforma local para catalogar e assistir animes, desenhos, filmes e mangás</strong><br />
-  com autenticação, histórico por usuário, perfil, upload de capas/PDFs e assistente Open AnIme 🤖
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/status-em%20desenvolvimento-1f8b4c?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/runtime-Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/database-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/frontend-HTML%2FCSS%2FJS-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="Frontend" />
+  com autenticação, histórico por usuário, perfil, upload e assistente Open AnIme 🤖
 </p>
 
 > 🔒 **Uso privado e individual**  
-> Não compartilhe acesso, links, arquivos ou qualquer forma de distribuição pública deste projeto.
+> Não compartilhe acesso, links, arquivos ou versões públicas deste projeto.
 
-## 📌 Visão Geral
+## ✅ Reorganização Aplicada
 
-O projeto roda com servidor Node.js local (`server.js`) e frontend em HTML/CSS/JS puro, com dados sincronizados no Supabase.  
-Ele centraliza:
+A estrutura foi reorganizada para separar claramente:
 
-- 🎞️ Catálogo de desenhos, animes e filmes
-- 📚 Leitor de mangás com volumes PDF e anotações
-- 👤 Login/registro, perfil e avatar
-- 🕒 Histórico de reprodução por usuário
-- ✅ Marcação de episódios assistidos
-- 🤖 Open AnIme (chat + comparação de personagens via proxy de IA)
+- `pages/`: páginas HTML do site
+- `public/`: arquivos estáticos (CSS, JS, assets, uploads)
+- `database/`: SQL organizado por responsabilidade
+- `scripts/`: utilitários de migração/manutenção
+- `data/`: base local (`data.json`)
+- `legacy/`: arquivos antigos/legados
 
-## 🧰 Tecnologias (com imagens)
+## 🧰 Tecnologias
 
 <p>
   <img src="https://skillicons.dev/icons?i=html,css,js,nodejs,supabase,git,github,vscode" alt="Tech stack" />
 </p>
 
-- `HTML5` + `CSS3` + `JavaScript Vanilla`
-- `Node.js` (HTTP server e rotas locais)
-- `Supabase` (Auth, Database, Storage e RLS)
-- `dotenv` (variáveis de ambiente)
+- `HTML5`, `CSS3`, `JavaScript Vanilla`
+- `Node.js` (`server.js`)
+- `Supabase` (Auth, Database, Storage, RLS)
+- `dotenv`
 
-## 🗂️ Estrutura Real do Projeto
+## 🗂️ Estrutura Atual
 
 ```text
 Videos-redecanais/
-|- assets/
-|  |- tryhard.png
-|- css/
-|  |- style.css
-|- js/
-|  |- auth.js
-|  |- db.js
-|  |- themes.js
-|  |- history.js
-|  |- watched.js
-|  |- animes.js / filmes.js / desenhos.js / mangas.js
-|  |- cadastro.js / cadastro-animes.js / cadastro-filmes.js
-|  |- anime-episodios.js / open-anime.js / opne-anime.js
-|- uploads/
+|- public/
+|  |- assets/
+|  |- css/
+|  |- js/
+|  |- uploads/
+|- pages/
+|  |- index.html
+|  |- animes.html
+|  |- filmes.html
+|  |- desenhos.html
+|  |- anime-episodios.html
+|  |- mangas.html
+|  |- open-anime.html
+|  |- login.html / registro.html / perfil.html
+|- database/
+|  |- schema/
+|  |- storage/
+|  |- migrations/
+|  |- fixes/
+|- scripts/
+|  |- migrations/
+|  |- maintenance/
+|- data/
+|  |- data.json
+|- legacy/
 |- server.js
 |- package.json
-|- data.json
 |- iniciar.bat
-|- *.html
-|- *.sql
-|- migrate.js / sync-missing-data.js / fix-*.js
 ```
 
-## 🧩 Componentes por Área
+## 🗄️ SQL Organizado (Importante x Opcional)
 
-### Frontend (páginas)
+### Essencial para o site e database
 
-- `index.html`: landing/home principal
-- `catalogo-desenhos.html`, `animes.html`, `filmes.html`: catálogos
-- `desenhos.html`, `anime-episodios.html`: player de episódios
-- `mangas.html`: leitor de mangás e volumes
-- `cadastro*.html`: telas de gerenciamento/cadastro
-- `login.html`, `registro.html`, `perfil.html`: autenticação e perfil
-- `open-anime.html`: assistente IA (chat + comparação)
+1. `database/schema/01_core_schema.sql`
+2. `database/schema/02_filmes_schema.sql`
+3. `database/schema/03_profiles_schema.sql`
+4. `database/storage/01_capas_bucket.sql`
+5. `database/storage/02_avatars_bucket.sql`
+6. `database/schema/04_manga_volumes_and_storage.sql`
+7. `database/schema/05_manga_notes.sql`
+8. `database/schema/06_watch_history.sql`
+9. `database/schema/07_ai_chat_history.sql`
 
-### JavaScript (módulos)
+### Importante para isolamento/multiusuário
 
-- `js/auth.js`: integração com Supabase Auth
-- `js/db.js`: camada de dados (CRUD + upload + integração Supabase)
-- `js/history.js`: histórico persistente (`user_watch_history`)
-- `js/watched.js`: estado local de assistidos por usuário
-- `js/themes.js`: tema global e navegação dinâmica
+1. `database/migrations/01_user_isolation.sql`
 
-### Backend local
+### Não essencial (manutenção/correção pontual)
 
-- `server.js`: servidor HTTP + arquivos estáticos + APIs locais:
-  - `GET /api/data`
-  - `POST /api/save`
-  - `POST /api/upload`
-  - `POST /api/ai/proxy`
+1. `database/fixes/01_fix_localhost_capas.sql`
+2. `database/fixes/02_rls_ai_config.sql`
 
-## 🗄️ Banco e Scripts SQL
-
-Principais scripts deste repositório:
-
-- `supabase_schema.sql`: tabelas base (cartoons, animes, episódios, mangas, settings)
-- `profiles.sql`: perfil de usuário e trigger de criação automática
-- `capas_storage_setup.sql` e `storage_setup.sql`: buckets e policies de storage
-- `mangas_pdf_setup.sql` e `manga_notes_setup.sql`: volumes PDF + anotações
-- `watch_history_setup.sql`: histórico de reprodução por usuário
-- `ai_chat_history_setup.sql`: histórico de chat da IA
-- `user_isolation_migration.sql`: isolamento de dados por `user_id`
-
-## ⚙️ Configuração e Execução
-
-### Pré-requisitos
-
-- `Node.js` (LTS recomendada)
-- Conta e projeto no Supabase
+## ⚙️ Rodar o Projeto
 
 ### 1. Instalar dependências
 
@@ -122,7 +99,7 @@ Principais scripts deste repositório:
 npm install
 ```
 
-### 2. Configurar variáveis de ambiente (`.env`)
+### 2. Configurar `.env`
 
 ```env
 GROQ_API_KEY=...
@@ -130,7 +107,7 @@ SUPABASE_URL=...
 SUPABASE_ANON_KEY=...
 ```
 
-### 3. Rodar o projeto
+### 3. Executar
 
 ```bash
 npm start
@@ -144,22 +121,32 @@ iniciar.bat
 
 Acesse: `http://localhost:3000`
 
-## 🛠️ Scripts Utilitários
+## 🧩 Backend e Rotas
 
-- `migrate.js`: migração inicial de `data.json` para Supabase
-- `sync-missing-data.js`: sincronização de dados faltantes
-- `fix-data-json.js`, `fix-domains-db.js`, `fix_ai_key.js`: correções pontuais
-- `apply-watermark.js`: aplica watermark em páginas HTML
+Arquivo principal: `server.js`
 
-## 🚨 Troubleshooting rápido
+- `GET /api/data`
+- `POST /api/save`
+- `POST /api/upload`
+- `POST /api/ai/proxy`
 
-- Porta ocupada: altere `PORT` no `.env` ou libere a `3000`
-- Erro de autenticação Supabase: confira `SUPABASE_URL` e `SUPABASE_ANON_KEY`
-- Upload falhando: valide se os buckets e policies SQL foram criados
-- IA sem resposta: confira `GROQ_API_KEY` e a rota `/api/ai/proxy`
+Arquivos estáticos saem de `public/` e páginas HTML de `pages/`.
+
+## 🛠️ Scripts Reorganizados
+
+### Migração de dados
+
+- `scripts/migrations/migrate_data_to_supabase.js`
+- `scripts/migrations/sync_missing_data.js`
+
+### Manutenção
+
+- `scripts/maintenance/fix_data_json_domains.js`
+- `scripts/maintenance/fix_supabase_iframe_domains.js`
+- `scripts/maintenance/seed_ai_key_setting.js`
+- `scripts/maintenance/apply_watermark_to_pages.js`
 
 ## 📜 Aviso Legal
 
-Projeto voltado a estudo e uso pessoal em ambiente local.  
-O responsável pelo uso deve respeitar termos de serviço e legislação aplicável ao conteúdo acessado.
-=======
+Projeto voltado para estudo e uso pessoal em ambiente local.  
+Respeite os termos de serviço e a legislação aplicável ao conteúdo acessado.
