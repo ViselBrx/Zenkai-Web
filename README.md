@@ -147,3 +147,4 @@ Arquivos estáticos saem de `public/` e as páginas HTML ficam em `pages/`.
 
 Projeto voltado para estudo e uso pessoal em ambiente local. Respeite os termos de serviço e a legislação aplicável ao conteúdo acessado.
 "# Videos-redecanais-mobile" 
+# Videos-redecanais-mobile
