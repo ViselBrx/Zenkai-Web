@@ -85,6 +85,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
+  const COPY_BUTTON_LABEL = 'Copiar';
+  const COPIED_BUTTON_LABEL = 'Copiado';
 
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
@@ -118,21 +120,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  function getResumeChatThreadId() {
-    if (!resumeData) return '';
-    const candidate = String(resumeData.threadId || resumeData.contentId || '').trim();
+  function getResumeChatThreadId(resume = resumeData) {
+    if (!resume) return '';
+    const candidate = String(resume.threadId || resume.contentId || '').trim();
     if (!candidate || candidate === 'open_anime_chat') return '';
     return candidate;
   }
 
-  function getResumeCompareHistoryId() {
-    if (!resumeData) return '';
-    return String(resumeData.historyContentId || resumeData.compareId || resumeData.contentId || '').trim();
+  function getResumeCompareHistoryId(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.historyContentId || resume.compareId || resume.contentId || '').trim();
   }
 
-  function getResumeVisionHistoryId() {
-    if (!resumeData) return '';
-    return String(resumeData.historyContentId || resumeData.visionId || resumeData.contentId || '').trim();
+  function getResumeVisionHistoryId(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.historyContentId || resume.visionId || resume.contentId || '').trim();
+  }
+
+  function getResumeType(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.mediaType || resume.contentType || '').trim();
   }
 
   if (chatInput) {
@@ -226,20 +233,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 1800);
   }
 
+  function updateCopyButton(button, copied = false) {
+    if (!button) return;
+
+    const label = copied ? COPIED_BUTTON_LABEL : COPY_BUTTON_LABEL;
+    button.classList.toggle('copied', copied);
+    button.innerHTML = `${copied ? COPIED_ICON : COPY_ICON}<span>${label}</span>`;
+    button.title = copied ? 'Mensagem copiada' : 'Copiar mensagem';
+    button.setAttribute('aria-label', copied ? 'Mensagem copiada' : 'Copiar mensagem');
+  }
+
+  function writeTextToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise((resolve, reject) => {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '-9999px';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      try {
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (!copied) {
+          reject(new Error('Comando de cópia indisponível.'));
+          return;
+        }
+        resolve();
+      } catch (error) {
+        document.body.removeChild(textarea);
+        reject(error);
+      }
+    });
+  }
+
   async function copyText(text, button) {
     try {
-      await navigator.clipboard.writeText(text);
+      await writeTextToClipboard(text);
       if (button) {
-        const original = button.dataset.originalIcon || button.innerHTML;
-        button.dataset.originalIcon = original;
-        button.innerHTML = COPIED_ICON;
-        button.classList.add('copied');
-        setTimeout(() => {
-          button.innerHTML = original;
-          button.classList.remove('copied');
-        }, 1400);
+        clearTimeout(button.copyResetTimeout);
+        updateCopyButton(button, true);
+        button.copyResetTimeout = setTimeout(() => {
+          updateCopyButton(button, false);
+        }, 1600);
       }
-      showFeedback('Mensagem copiada');
+      showFeedback(button?.dataset.feedbackMessage || 'Mensagem copiada');
     } catch (error) {
       console.error('Erro ao copiar mensagem:', error);
       showFeedback('Não foi possível copiar a mensagem');
@@ -460,8 +505,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.type = 'button';
     copyBtn.title = 'Copiar mensagem';
     copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-    copyBtn.innerHTML = COPY_ICON;
-    copyBtn.dataset.originalIcon = COPY_ICON;
+    copyBtn.dataset.feedbackMessage = type === 'bot' ? 'Resposta copiada' : 'Mensagem copiada';
+    updateCopyButton(copyBtn, false);
     copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
 
     div.appendChild(content);
@@ -590,9 +635,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function initializeChatView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
-    const resumedThreadId = getResumeChatThreadId();
+    const resume = options.resume || resumeData;
+    const resumedThreadId = getResumeChatThreadId(resume);
     currentChatThreadId = resumedThreadId || buildUniqueId('open_anime_chat_thread');
     chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
+    renderChatFromMessages(chatHistory);
 
     if (restoreSaved && resumedThreadId) {
       const persisted = await loadAIHistoryMessages({
@@ -615,12 +662,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function initializeComparisonView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
     if (compareResult) {
       compareResult.style.display = 'none';
       compareResult.innerHTML = '';
     }
 
-    const selectedCompareHistoryId = getResumeCompareHistoryId();
+    const selectedCompareHistoryId = getResumeCompareHistoryId(resume);
     if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
       return;
     }
@@ -633,14 +681,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectedComparison = persisted.find(msg => msg.role === 'assistant');
     if (!selectedComparison) return;
 
-    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resumeData?.char1 || '';
-    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resumeData?.char2 || '';
+    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resume?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resume?.char2 || '';
     compareResult.style.display = 'block';
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizeBrokenEncoding(selectedComparison.content || ''))}`;
   }
 
   async function initializeVisionView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
 
     if (visionOutput) {
       visionOutput.textContent = 'Aguardando imagem...';
@@ -651,7 +700,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const selectedVisionHistoryId = getResumeVisionHistoryId();
+    const selectedVisionHistoryId = getResumeVisionHistoryId(resume);
     if (!selectedVisionHistoryId || !visionOutput) {
       setVisionFile(null);
       return;
@@ -679,6 +728,119 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     );
     renderVisionResult(selectedAnalysis.content || '');
+  }
+
+  async function openConversationFromHistory(nextResume) {
+    const resumeType = getResumeType(nextResume);
+    if (!resumeType) return false;
+
+    resumeData = nextResume || null;
+
+    if (resumeType === 'ai_chat') {
+      await initializeChatView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('chat');
+      updateChatScrollInfo();
+      return true;
+    }
+
+    if (resumeType === 'ai_compare') {
+      await initializeComparisonView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('compare');
+      return true;
+    }
+
+    if (resumeType === 'ai_vision') {
+      await initializeVisionView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('vision');
+      return true;
+    }
+
+    return false;
+  }
+
+  async function initializeComparisonView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
+    if (compareResult) {
+      compareResult.style.display = 'none';
+      compareResult.innerHTML = '';
+    }
+
+    const selectedCompareHistoryId = getResumeCompareHistoryId(resume);
+    if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'compare',
+      metadataContains: { historyContentId: selectedCompareHistoryId },
+      limit: 20
+    });
+    const selectedComparison = persisted.find(msg => msg.role === 'assistant');
+    const fallbackAnalysis = normalizeBrokenEncoding(
+      resume?.analysis
+      || resume?.resumeSubtitle
+      || ''
+    );
+
+    if (char1Inp) char1Inp.value = selectedComparison?.metadata?.char1 || resume?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison?.metadata?.char2 || resume?.char2 || '';
+    if (!selectedComparison && !fallbackAnalysis) {
+      return;
+    }
+
+    const comparisonText = normalizeBrokenEncoding(selectedComparison?.content || fallbackAnalysis);
+    compareResult.style.display = 'block';
+    compareResult.innerHTML = `<strong>Analise de Combate:</strong><br><br>${formatAIResponse(comparisonText)}`;
+  }
+
+  async function initializeVisionView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
+
+    if (visionOutput) {
+      visionOutput.textContent = 'Aguardando imagem...';
+    }
+
+    if (!restoreSaved) {
+      setVisionFile(null);
+      return;
+    }
+
+    const selectedVisionHistoryId = getResumeVisionHistoryId(resume);
+    if (!selectedVisionHistoryId || !visionOutput) {
+      setVisionFile(null);
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'vision',
+      metadataContains: { historyContentId: selectedVisionHistoryId },
+      limit: 20
+    });
+    const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    const fallbackVisionText = normalizeBrokenEncoding(
+      resume?.description
+      || resume?.resumeSubtitle
+      || ''
+    );
+
+    if (!selectedAnalysis && !fallbackVisionText) {
+      setVisionFile(null);
+      return;
+    }
+
+    setVisionFile(
+      {
+        name: selectedAnalysis?.metadata?.fileName || resume?.fileName || 'imagem-restaurada',
+        type: selectedAnalysis?.metadata?.fileType || resume?.fileType || 'image/*',
+        size: Number(selectedAnalysis?.metadata?.fileSize || resume?.fileSize || 0)
+      },
+      {
+        fileInfo: 'Resultado restaurado do historico'
+      }
+    );
+    renderVisionResult(selectedAnalysis?.content || fallbackVisionText);
   }
 
   async function callAI(prompt, options = {}) {
@@ -807,6 +969,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               tab: isCompare ? 'compare' : 'chat',
               threadId: isCompare ? '' : currentChatThreadId,
               historyContentId: isCompare ? metadata.historyContentId : '',
+              analysis: isCompare ? aiResponse : '',
               char1: metadata.char1 || '',
               char2: metadata.char2 || ''
             }
@@ -943,7 +1106,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               tab: 'vision',
               historyContentId: metadata.historyContentId,
               fileName: metadata.fileName,
-              description: aiResponse.slice(0, 1600)
+              fileType: metadata.fileType || '',
+              fileSize: metadata.fileSize || 0,
+              description: aiResponse
             }
           });
         }
@@ -989,6 +1154,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', (event) => {
     if (event.target.closest('.theme-opt-btn')) {
       setTimeout(updateThemeInfo, 20);
+    }
+  });
+
+  window.addEventListener('historytracker:resume', async (event) => {
+    const handled = await openConversationFromHistory(event?.detail || null);
+    if (handled) {
+      showFeedback('Conversa aberta do histÃ³rico');
+    }
+  });
+
+  window.addEventListener('popstate', async (event) => {
+    const handled = await openConversationFromHistory(event?.state?.historyTrackerResume || null);
+    if (handled) {
+      showFeedback('Conversa restaurada');
     }
   });
 

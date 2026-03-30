@@ -6,6 +6,8 @@
 
 const HistoryTracker = (() => {
   const TABLE = 'user_watch_history';
+  const RESUME_EVENT = 'historytracker:resume';
+  const RESUME_STORE_PREFIX = 'historytracker:resume:';
 
   function _getClient() {
     return window.supabaseClient || null;
@@ -45,6 +47,41 @@ const HistoryTracker = (() => {
     return t === 'string' || t === 'number' || t === 'boolean';
   }
 
+  function _buildResumeToken() {
+    return `r_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function _storeResumePayload(token, payload) {
+    if (!token) return;
+    try {
+      window.sessionStorage.setItem(`${RESUME_STORE_PREFIX}${token}`, JSON.stringify(payload || {}));
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  function _readResumePayload(token) {
+    if (!token) return null;
+    try {
+      const raw = window.sessionStorage.getItem(`${RESUME_STORE_PREFIX}${token}`);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  function _consumeStoredResumePayload(token) {
+    if (!token) return null;
+    const payload = _readResumePayload(token);
+    try {
+      window.sessionStorage.removeItem(`${RESUME_STORE_PREFIX}${token}`);
+    } catch {
+      // ignore storage errors
+    }
+    return payload;
+  }
+
   function _buildUrlWithResume(route, resumePayload) {
     const cleanRoute = _cleanRoute(route);
     const params = new URLSearchParams();
@@ -60,6 +97,7 @@ const HistoryTracker = (() => {
     if (resumePayload.audio) params.set('h_audio', String(resumePayload.audio));
     if (resumePayload.filmId) params.set('h_film_id', String(resumePayload.filmId));
     if (resumePayload.mediaType) params.set('h_media_type', String(resumePayload.mediaType));
+    if (resumePayload.resumeToken) params.set('h_resume_token', String(resumePayload.resumeToken));
 
     Object.entries(resumePayload).forEach(([key, value]) => {
       if ([
@@ -71,7 +109,8 @@ const HistoryTracker = (() => {
         'season',
         'audio',
         'filmId',
-        'mediaType'
+        'mediaType',
+        'resumeToken'
       ].includes(key)) {
         return;
       }
@@ -275,10 +314,31 @@ const HistoryTracker = (() => {
       route: item.route || 'index.html',
       contentId: item.content_id,
       contentType: item.content_type,
+      resumeTitle: _cleanText(item.title, 220),
+      resumeSubtitle: _cleanText(item.subtitle, 180),
       ...payload
     };
+    const resumeToken = _buildResumeToken();
+    resumePayload.resumeToken = resumeToken;
+    _storeResumePayload(resumeToken, resumePayload);
+    const targetRoute = _cleanRoute(resumePayload.route);
+    const currentRoute = _cleanRoute(window.location.pathname.split('/').pop() || 'index.html');
 
-    window.location.href = _buildUrlWithResume(resumePayload.route, resumePayload);
+    if (targetRoute === currentRoute) {
+      const targetUrl = _buildUrlWithResume(targetRoute, resumePayload);
+      try {
+        window.history.pushState({ historyTrackerResume: resumePayload }, '', targetUrl);
+      } catch {
+        // ignore history state errors
+      }
+
+      window.dispatchEvent(new CustomEvent(RESUME_EVENT, {
+        detail: resumePayload
+      }));
+      return;
+    }
+
+    window.location.href = _buildUrlWithResume(targetRoute, resumePayload);
   }
 
   function consumeResumeFromUrl(routeName) {
@@ -304,7 +364,8 @@ const HistoryTracker = (() => {
       season: params.get('h_season') || '',
       audio: params.get('h_audio') || '',
       filmId: params.get('h_film_id') || '',
-      mediaType: params.get('h_media_type') || ''
+      mediaType: params.get('h_media_type') || '',
+      resumeToken: params.get('h_resume_token') || ''
     };
 
     params.forEach((value, key) => {
@@ -313,6 +374,11 @@ const HistoryTracker = (() => {
       if (!payloadKey) return;
       resume[payloadKey] = value;
     });
+
+    const storedResume = _consumeStoredResumePayload(resume.resumeToken);
+    if (storedResume && typeof storedResume === 'object' && !Array.isArray(storedResume)) {
+      Object.assign(resume, storedResume);
+    }
 
     _removeResumeParamsFromUrl();
     return resume;
