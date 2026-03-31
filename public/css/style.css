@@ -25,7 +25,7 @@
   --default-shadow-neon-h: 0 0 55px rgba(114, 255, 255, 0.8), 0 0 28px rgba(114, 255, 255, 0.5);
   --default-scrollbar:     #72FFFF;
 
-  /* TEMA BEN 10 - NEON VERDE */
+  /* TEMA - NEON VERDE */
   --ben10-primary:       #00ff00;
   --ben10-primary-rgb:   0, 255, 0;
   --ben10-primary-hover: #39ff14;
@@ -38,7 +38,7 @@
   --ben10-shadow-neon-h: 0 0 55px rgba(0, 255, 0, 0.8), 0 0 28px rgba(0, 255, 0, 0.5);
   --ben10-scrollbar:     #00ff00;
 
-  /* TEMA VINLAND - GOLD */
+  /* TEMA - GOLD */
   --vinland-primary:       #ffcc00;
   --vinland-primary-rgb:   255, 204, 0;
   --vinland-primary-hover: #ffdb4d;
@@ -51,7 +51,7 @@
   --vinland-shadow-neon-h: 0 0 55px rgba(255, 204, 0, 0.8), 0 0 28px rgba(255, 204, 0, 0.5);
   --vinland-scrollbar:     #ffcc00;
 
-  /* TEMA AOT - VERMELHO */
+  /* TEMA - VERMELHO */
   --aot-primary:       #ff0000;
   --aot-primary-rgb:   255, 0, 0;
   --aot-primary-hover: #ff4d4d;
@@ -64,7 +64,7 @@
   --aot-shadow-neon-h: 0 0 55px rgba(255, 0, 0, 0.8), 0 0 28px rgba(255, 0, 0, 0.5);
   --aot-scrollbar:     #ff0000;
 
-  /* TEMA JOVENS TITÃS - ROXO */
+  /* TEMA - ROXO */
   --tt-classic-primary:       #8b00ff;
   --tt-classic-primary-rgb:   139, 0, 255;
   --tt-classic-primary-hover: #a020f0;
@@ -77,7 +77,7 @@
   --tt-classic-shadow-neon-h: 0 0 55px rgba(139, 0, 255, 0.8), 0 0 28px rgba(139, 0, 255, 0.5);
   --tt-classic-scrollbar:     #8b00ff;
 
-  /* TEMA MUTANT REX - LARANJA */
+  /* TEMA - LARANJA */
   --mutant-rex-primary:       #ff6600;
   --mutant-rex-primary-rgb:   255, 102, 0;
   --mutant-rex-primary-hover: #ff7722;
@@ -90,7 +90,7 @@
   --mutant-rex-shadow-neon-h: 0 0 55px rgba(255, 102, 0, 0.8), 0 0 28px rgba(255, 102, 0, 0.5);
   --mutant-rex-scrollbar:     #ff6600;
 
-  /* TEMA REGULAR SHOW - AZUL CLARO */
+  /* TEMA - AZUL CLARO */
   --regular-show-primary:       #1e88e5;
   --regular-show-primary-rgb:   30, 136, 229;
   --regular-show-primary-hover: #2196f3;
@@ -103,7 +103,7 @@
   --regular-show-shadow-neon-h: 0 0 55px rgba(30, 136, 229, 0.9), 0 0 28px rgba(30, 136, 229, 0.6);
   --regular-show-scrollbar:     #1e88e5;
 
-  /* TEMA DEMON SLAYER - VERDE ESCURO */
+  /* TEMA - VERDE ESCURO */
   --demon-slayer-primary:       #2b8a5d;
   --demon-slayer-primary-rgb:   43, 138, 93;
   --demon-slayer-primary-hover: #41b97b;
@@ -116,7 +116,7 @@
   --demon-slayer-shadow-neon-h: 0 0 68px rgba(126, 240, 178, 0.96), 0 0 36px rgba(65, 185, 123, 0.82), 0 0 20px rgba(43, 138, 93, 0.62);
   --demon-slayer-scrollbar:     #7ef0b2;
 
-  /* TEMA VAGABOND - BRANCO NEON */
+  /* TEMA - BRANCO */
   --vagabond-primary:       #ffffff;
   --vagabond-primary-rgb:   255, 255, 255;
   --vagabond-primary-hover: #e0e0e0;
@@ -128,6 +128,19 @@
   --vagabond-shadow-neon:   0 0 28px rgba(255, 255, 255, 0.5);
   --vagabond-shadow-neon-h: 0 0 55px rgba(255, 255, 255, 0.8), 0 0 28px rgba(255, 255, 255, 0.5);
   --vagabond-scrollbar:     #ffffff;
+
+  /* TEMA - AQUA VERDE */
+  --aqua-verde-primary:       #3ff2a0;
+  --aqua-verde-primary-rgb:   63, 242, 160;
+  --aqua-verde-primary-hover: #6af6b8;
+  --aqua-verde-accent:        #cffff0;
+  --aqua-verde-accent2:       #00b07a;
+  --aqua-verde-text-main:     #eefff8;
+  --aqua-verde-text-muted:    #7ae3b0;
+  --aqua-verde-border:        #62f4b4;
+  --aqua-verde-shadow-neon:   0 0 34px rgba(63, 242, 160, 0.82), 0 0 18px rgba(0, 176, 122, 0.58);
+  --aqua-verde-shadow-neon-h: 0 0 68px rgba(98, 244, 180, 0.98), 0 0 34px rgba(63, 242, 160, 0.86), 0 0 18px rgba(0, 176, 122, 0.64);
+  --aqua-verde-scrollbar:     #3ff2a0;
 
   /* VARIÁVEIS ATIVAS (padrão = tema default) */
   --primary:       var(--default-primary);
@@ -143,6 +156,7 @@
 }
 
 /* ===== TEMA DEFAULT (AZUL CLARO MARINHO) ===== */
+.theme-ciano,
 .theme-default {
   --primary:       var(--default-primary);
   --primary-rgb:   var(--default-primary-rgb);
@@ -157,6 +171,7 @@
 }
 
 /* ===== TEMA BEN 10 (OMNITRIX NEON VIBRANT) ===== */
+.theme-verde,
 .theme-ben10 {
   --primary:       var(--ben10-primary);
   --primary-rgb:   var(--ben10-primary-rgb);
@@ -171,6 +186,7 @@
 }
 
 /* ===== TEMA VINLAND SAGA (VIKING GOLD GLOW) ===== */
+.theme-dourado,
 .theme-vinland {
   --primary:       var(--vinland-primary);
   --primary-rgb:   var(--vinland-primary-rgb);
@@ -185,6 +201,7 @@
 }
 
 /* ===== TEMA ATTACK ON TITAN (COLOSSAL RADIANCE) ===== */
+.theme-vermelho,
 .theme-aot {
   --primary:       var(--aot-primary);
   --primary-rgb:   var(--aot-primary-rgb);
@@ -199,6 +216,7 @@
 }
 
 /* ===== TEMA JOVENS TITÃS CLÁSSICO (DOMINANT PURPLE) ===== */
+.theme-roxo,
 .theme-tt-classic {
   --primary:       var(--tt-classic-primary);
   --primary-rgb:   var(--tt-classic-primary-rgb);
@@ -213,6 +231,7 @@
 }
 
 /* ===== TEMA MUTANTE REX (DOMINANT ORANGE) ===== */
+.theme-laranja,
 .theme-mutant-rex {
   --primary:       var(--mutant-rex-primary);
   --primary-rgb:   var(--mutant-rex-primary-rgb);
@@ -227,6 +246,7 @@
 }
 
 /* ===== TEMA REGULAR SHOW (DARK BLUE) ===== */
+.theme-azul,
 .theme-regular-show {
   --primary:       var(--regular-show-primary);
   --primary-rgb:   var(--regular-show-primary-rgb);
@@ -241,6 +261,7 @@
 }
 
 /* ===== TEMA DEMON SLAYER (DARK GREEN SLAYER GLOW) ===== */
+.theme-verde-escuro,
 .theme-demon-slayer {
   --primary:       var(--demon-slayer-primary);
   --primary-rgb:   var(--demon-slayer-primary-rgb);
@@ -254,6 +275,7 @@
   --shadow-neon-h: var(--demon-slayer-shadow-neon-h);
 }
 /* ===== TEMA VAGABOND (WHITE NEON) ===== */
+.theme-branco,
 .theme-vagabond {
   --primary:       var(--vagabond-primary);
   --primary-rgb:   var(--vagabond-primary-rgb);
@@ -267,15 +289,38 @@
   --shadow-neon-h: var(--vagabond-shadow-neon-h);
 }
 
+.theme-aqua-verde {
+  --primary:       var(--aqua-verde-primary);
+  --primary-rgb:   var(--aqua-verde-primary-rgb);
+  --primary-hover: var(--aqua-verde-primary-hover);
+  --accent:        var(--aqua-verde-accent);
+  --accent2:       var(--aqua-verde-accent2);
+  --text-main:     var(--aqua-verde-text-main);
+  --text-muted:    var(--aqua-verde-text-muted);
+  --border:        var(--aqua-verde-border);
+  --shadow-neon:   var(--aqua-verde-shadow-neon);
+  --shadow-neon-h: var(--aqua-verde-shadow-neon-h);
+}
+
+.theme-ciano,
 .theme-default { scrollbar-color: var(--default-scrollbar) #050f1f; }
+.theme-verde,
 .theme-ben10 { scrollbar-color: var(--ben10-scrollbar) #050f1f; }
+.theme-dourado,
 .theme-vinland { scrollbar-color: var(--vinland-scrollbar) #050f1f; }
+.theme-vermelho,
 .theme-aot { scrollbar-color: var(--aot-scrollbar) #050f1f; }
+.theme-roxo,
 .theme-tt-classic { scrollbar-color: var(--tt-classic-scrollbar) #050f1f; }
+.theme-laranja,
 .theme-mutant-rex { scrollbar-color: var(--mutant-rex-scrollbar) #050f1f; }
+.theme-azul,
 .theme-regular-show { scrollbar-color: var(--regular-show-scrollbar) #050f1f; }
+.theme-verde-escuro,
 .theme-demon-slayer { scrollbar-color: var(--demon-slayer-scrollbar) #050f1f; }
+.theme-branco,
 .theme-vagabond { scrollbar-color: var(--vagabond-scrollbar) #050f1f; }
+.theme-aqua-verde { scrollbar-color: var(--aqua-verde-scrollbar) #050f1f; }
 
 /* ===== RESET ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -527,15 +572,25 @@ body {
 .page-header h1 span { color: var(--primary); }
 
 /* Fonts específicas para cada tema */
+.theme-ciano .page-header h1,
 .theme-default .page-header h1 { font-family: 'Bangers', cursive; }
+.theme-verde .page-header h1,
 .theme-ben10 .page-header h1 { font-family: 'Righteous', sans-serif; font-weight: 700; }
+.theme-dourado .page-header h1,
 .theme-vinland .page-header h1 { font-family: 'Black Ops One', cursive; }
+.theme-vermelho .page-header h1,
 .theme-aot .page-header h1 { font-family: 'Lilita One', sans-serif; }
+.theme-roxo .page-header h1,
 .theme-tt-classic .page-header h1 { font-family: 'Fredoka One', sans-serif; }
+.theme-laranja .page-header h1,
 .theme-mutant-rex .page-header h1 { font-family: 'Audiowide', cursive; }
+.theme-azul .page-header h1,
 .theme-regular-show .page-header h1 { font-family: 'Fredoka', sans-serif; font-weight: 700; }
+.theme-verde-escuro .page-header h1,
 .theme-demon-slayer .page-header h1 { font-family: 'Black Ops One', cursive; }
+.theme-branco .page-header h1,
 .theme-vagabond .page-header h1 { font-family: 'Black Ops One', cursive; letter-spacing: 3px; }
+.theme-aqua-verde .page-header h1 { font-family: 'Righteous', sans-serif; font-weight: 700; }
 .page-header p {
   color: var(--text-muted);
   margin-top: 0.5rem;
@@ -1291,13 +1346,16 @@ tr:hover td { background: rgba(255,255,255,0.02); }
   transform: scale(1.2);
   filter: drop-shadow(0 0 22px rgba(var(--primary-rgb), 0.8));
 }
-.theme-opt-btn[data-theme=""] { background: var(--default-primary); color: #050f1f; }
-.theme-opt-btn[data-theme="theme-ben10"] { background: var(--ben10-primary); color: #020617; }
-.theme-opt-btn[data-theme="theme-vinland"] { background: var(--vinland-primary); color: #0c0a09; }
-.theme-opt-btn[data-theme="theme-aot"] { background: var(--aot-primary); color: #050505; }
-.theme-opt-btn[data-theme="theme-tt-classic"] { background: var(--tt-classic-primary); color: #0a0015; }
-.theme-opt-btn[data-theme="theme-mutant-rex"] { background: var(--mutant-rex-primary); color: #0d0600; }
-.theme-opt-btn[data-theme="theme-demon-slayer"] { background: var(--demon-slayer-primary); color: #ecfdf5; }
+.theme-opt-btn[data-theme="theme-ciano"] { background: var(--default-primary); color: #050f1f; }
+.theme-opt-btn[data-theme="theme-verde"] { background: var(--ben10-primary); color: #020617; }
+.theme-opt-btn[data-theme="theme-dourado"] { background: var(--vinland-primary); color: #0c0a09; }
+.theme-opt-btn[data-theme="theme-vermelho"] { background: var(--aot-primary); color: #050505; }
+.theme-opt-btn[data-theme="theme-roxo"] { background: var(--tt-classic-primary); color: #0a0015; }
+.theme-opt-btn[data-theme="theme-laranja"] { background: var(--mutant-rex-primary); color: #0d0600; }
+.theme-opt-btn[data-theme="theme-azul"] { background: var(--regular-show-primary); color: #eff6ff; }
+.theme-opt-btn[data-theme="theme-verde-escuro"] { background: var(--demon-slayer-primary); color: #ecfdf5; }
+.theme-opt-btn[data-theme="theme-branco"] { background: var(--vagabond-primary); color: #111827; }
+.theme-opt-btn[data-theme="theme-aqua-verde"] { background: var(--aqua-verde-primary); color: #042f24; }
 
 .theme-opt-btn::after {
   content: attr(title);

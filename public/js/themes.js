@@ -1,19 +1,49 @@
 (function() {
-    // Aplicação imediata para evitar flash de estilo no carregamento da página
-    const savedTheme = sessionStorage.getItem('theme') || 'theme-default';
+    const THEME_ALIASES = {
+        '': 'theme-ciano',
+        'theme-default': 'theme-ciano',
+        'theme-ben10': 'theme-verde',
+        'theme-vinland': 'theme-dourado',
+        'theme-aot': 'theme-vermelho',
+        'theme-tt-classic': 'theme-roxo',
+        'theme-mutant-rex': 'theme-laranja',
+        'theme-regular-show': 'theme-azul',
+        'theme-demon-slayer': 'theme-verde-escuro',
+        'theme-vagabond': 'theme-branco'
+    };
+    const AVAILABLE_THEMES = new Set([
+        'theme-ciano',
+        'theme-verde',
+        'theme-dourado',
+        'theme-vermelho',
+        'theme-roxo',
+        'theme-laranja',
+        'theme-azul',
+        'theme-verde-escuro',
+        'theme-branco',
+        'theme-aqua-verde'
+    ]);
+
+    function normalizeTheme(theme) {
+        const rawTheme = String(theme || '').trim();
+        if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
+        return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : 'theme-ciano';
+    }
+
+    // Apply the saved theme early to avoid a flash on load.
+    const savedTheme = normalizeTheme(sessionStorage.getItem('theme'));
     document.documentElement.className = savedTheme;
+    sessionStorage.setItem('theme', savedTheme);
 
     function applyTheme(theme) {
-        const themeToApply = theme || 'theme-default';
+        const themeToApply = normalizeTheme(theme);
         document.documentElement.className = themeToApply;
         if (document.body) {
             document.body.className = themeToApply;
         }
-        
-        // Salvar na sessão local (apaga ao fechar navegador, mantém no refresh)
+
         sessionStorage.setItem('theme', themeToApply);
 
-        // Sincronizar botões se existirem
         document.querySelectorAll('.theme-opt-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === themeToApply);
         });
@@ -26,21 +56,21 @@
         wrapper.id = 'theme-switcher';
         wrapper.className = 'theme-switcher-wrapper';
         wrapper.innerHTML = `
-            <button class="theme-main-btn" title="Mudar Tema"><span>🎨</span></button>
+            <button class="theme-main-btn" title="Mudar cor"><span>🎨</span></button>
             <div class="theme-options">
-                <button class="theme-opt-btn" data-theme="" title="Padrão">🏠</button>
-                <button class="theme-opt-btn" data-theme="theme-ben10" title="Ben 10">🟢</button>
-                <button class="theme-opt-btn" data-theme="theme-vinland" title="Vinland">🌾</button>
-                <button class="theme-opt-btn" data-theme="theme-aot" title="Attack on Titan">⚔️</button>
-                <button class="theme-opt-btn" data-theme="theme-tt-classic" title="Jovens Titãs">💜</button>
-                <button class="theme-opt-btn" data-theme="theme-mutant-rex" title="Mutante Rex">🦎</button>
-                <button class="theme-opt-btn" data-theme="theme-regular-show" title="Regular Show">🔵</button>
-                <button class="theme-opt-btn" data-theme="theme-demon-slayer" title="Demon Slayer">🎋</button>
-                <button class="theme-opt-btn" data-theme="theme-vagabond" title="Vagabond">⚪</button>
+                <button class="theme-opt-btn" data-theme="theme-ciano" title="Ciano" aria-label="Ciano"></button>
+                <button class="theme-opt-btn" data-theme="theme-verde" title="Verde" aria-label="Verde"></button>
+                <button class="theme-opt-btn" data-theme="theme-dourado" title="Dourado" aria-label="Dourado"></button>
+                <button class="theme-opt-btn" data-theme="theme-vermelho" title="Vermelho" aria-label="Vermelho"></button>
+                <button class="theme-opt-btn" data-theme="theme-roxo" title="Roxo" aria-label="Roxo"></button>
+                <button class="theme-opt-btn" data-theme="theme-laranja" title="Laranja" aria-label="Laranja"></button>
+                <button class="theme-opt-btn" data-theme="theme-azul" title="Azul" aria-label="Azul"></button>
+                <button class="theme-opt-btn" data-theme="theme-verde-escuro" title="Verde escuro" aria-label="Verde escuro"></button>
+                <button class="theme-opt-btn" data-theme="theme-branco" title="Branco" aria-label="Branco"></button>
+                <button class="theme-opt-btn" data-theme="theme-aqua-verde" title="Aqua verde" aria-label="Aqua verde"></button>
             </div>
         `;
 
-        // Injetar direto no body: o switcher é fixed e deve funcionar igual em todas as páginas
         document.body.appendChild(wrapper);
 
         const mainBtn = wrapper.querySelector('.theme-main-btn');
@@ -55,13 +85,11 @@
             });
         });
 
-        // Fechar ao clicar fora
         document.addEventListener('click', (e) => {
             if (!wrapper.contains(e.target)) wrapper.classList.remove('active');
         });
 
-        // Sincronizar estado inicial
-        const currentTheme = sessionStorage.getItem('theme') || 'theme-default';
+        const currentTheme = normalizeTheme(sessionStorage.getItem('theme'));
         document.querySelectorAll('.theme-opt-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === currentTheme);
         });
@@ -72,11 +100,10 @@
         const links = document.querySelector('.navbar-links');
         if (!nav || !links) return;
 
-        // Adicionar todas as páginas aos links
         const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-        
+
         const pages = [
-            { href: 'index.html', label: '🏠 Início', icon: '🏠' },
+            { href: 'index.html', label: '🏠 Inicio', icon: '🏠' },
             { href: 'catalogo-desenhos.html', label: '🎬 Desenhos', icon: '🎬' },
             { href: 'animes.html', label: '⛩️ Animes', icon: '⛩️' },
             { href: 'filmes.html', label: '🎬 Filmes', icon: '🎬' },
@@ -85,32 +112,28 @@
             { href: 'cadastro.html', label: '📝 Cad. Desenhos', icon: '📝' },
             { href: 'cadastro-animes.html', label: '📝 Cad. Animes', icon: '📝' },
             { href: 'cadastro-filmes.html', label: '📝 Cad. Filmes', icon: '📝' },
-            { href: 'mangas.html', label: '📚 Mangás', icon: '📚' },
+            { href: 'mangas.html', label: '📚 Mangas', icon: '📚' },
             { href: 'agradecimento.html', label: '💖 Agradecimento', icon: '💖' },
             { href: 'open-anime.html', label: '🤖 Open AnIme', icon: '🤖' }
         ];
 
-        // Limpar links existentes (mantém apenas o brand)
         const existingLinks = links.querySelectorAll('li');
         existingLinks.forEach(li => li.remove());
 
-        // Adicionar novos links
         pages.forEach(page => {
             const li = document.createElement('li');
             const link = document.createElement('a');
             link.href = page.href;
             link.innerHTML = `<span class="nav-icon">${page.icon}</span> ${page.label.split(' ').slice(1).join(' ')}`;
-            
-            // Marcar como ativo se for a página atual
+
             if (currentPage === page.href || (currentPage === '' && page.href === 'index.html') || (currentPage === 'index.html' && page.href === 'index.html')) {
                 link.classList.add('active');
             }
-            
+
             li.appendChild(link);
             links.appendChild(li);
         });
 
-        // Scroll suave com mouse wheel
         const onWheel = (e) => {
             const maxScroll = links.scrollWidth - links.clientWidth;
             if (maxScroll <= 2) return;
@@ -121,11 +144,12 @@
             e.preventDefault();
             links.scrollLeft += e.deltaY;
         };
-        
+
         links.addEventListener('wheel', onWheel, { passive: false });
     }
 
     window.setTheme = applyTheme;
+    window.normalizeTheme = normalizeTheme;
 
     document.addEventListener('DOMContentLoaded', () => {
         if (document.body && !document.body.className.includes(savedTheme)) {

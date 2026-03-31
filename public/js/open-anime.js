@@ -170,22 +170,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const themeLabels = {
-    'theme-default': 'Tema padrão',
-    '': 'Tema padrão',
-    'theme-ben10': 'Ben 10',
-    'theme-vinland': 'Vinland Saga',
-    'theme-aot': 'Attack on Titan',
-    'theme-tt-classic': 'Jovens Titãs',
-    'theme-mutant-rex': 'Mutante Rex',
-    'theme-regular-show': 'Regular Show',
-    'theme-demon-slayer': 'Demon Slayer',
-    'theme-vagabond': 'Vagabond'
+    'theme-ciano': 'Ciano',
+    'theme-default': 'Ciano',
+    '': 'Ciano',
+    'theme-verde': 'Verde',
+    'theme-ben10': 'Verde',
+    'theme-dourado': 'Dourado',
+    'theme-vinland': 'Dourado',
+    'theme-vermelho': 'Vermelho',
+    'theme-aot': 'Vermelho',
+    'theme-roxo': 'Roxo',
+    'theme-tt-classic': 'Roxo',
+    'theme-laranja': 'Laranja',
+    'theme-mutant-rex': 'Laranja',
+    'theme-azul': 'Azul',
+    'theme-regular-show': 'Azul',
+    'theme-verde-escuro': 'Verde escuro',
+    'theme-demon-slayer': 'Verde escuro',
+    'theme-branco': 'Branco',
+    'theme-vagabond': 'Branco',
+    'theme-aqua-verde': 'Aqua verde'
   };
 
   function updateThemeInfo() {
     if (themeName) {
-      const currentTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-default';
-      themeName.textContent = themeLabels[currentTheme] || 'Tema personalizado';
+      const rawTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-ciano';
+      const currentTheme = typeof window.normalizeTheme === 'function'
+        ? window.normalizeTheme(rawTheme)
+        : rawTheme;
+      themeName.textContent = themeLabels[currentTheme] || 'Cor personalizada';
     }
     if (themeColorPreview) {
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7c3aed';
