@@ -46,16 +46,21 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 1.5rem;
+      padding: 1.25rem 1rem 2.7rem;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
       position: relative;
+      overflow: hidden;
     }
     .volume-card:hover {
       border-color: var(--primary);
       transform: translateY(-5px);
       box-shadow: 0 5px 15px var(--primary-glow);
+    }
+    .volume-card.is-watched {
+      border-color: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.12);
     }
     .vol-icon {
       font-size: 3rem;
@@ -72,17 +77,54 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
-    .btn-del-vol {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: transparent;
-      border: none;
-      color: var(--danger);
-      cursor: pointer;
-      opacity: 0.5;
+    .vol-read-state {
+      margin-top: 10px;
+      min-height: 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--success);
+      letter-spacing: 0.02em;
     }
-    .volume-card:hover .btn-del-vol { opacity: 1; }
+    .vol-read-state.is-empty {
+      visibility: hidden;
+    }
+    .manga-progress-inline {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--success);
+      font-size: 0.78rem;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .vol-actions-ui {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(10, 18, 34, 0.92);
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      z-index: 5;
+      font-size: 0.92rem;
+      line-height: 1;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+      transition: opacity 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+    }
+    .volume-card:hover .vol-actions-ui,
+    .volume-card.is-watched .btn-check-vol,
+    .volume-card.has-note .btn-note-vol {
+      opacity: 1;
+    }
 
     .vol-bookmark-badge {
       position: absolute;
@@ -99,27 +141,53 @@
       box-shadow: var(--bookmark-shadow);
     }
     .btn-note-vol {
-      position: absolute;
-      bottom: 15px;
-      left: 15px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      color: var(--text-muted);
-      cursor: pointer;
-      opacity: 0;
-      font-size: 1.2rem;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s;
-      z-index: 5;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      bottom: 10px;
+      left: 10px;
     }
-    .volume-card:hover .btn-note-vol { opacity: 1; }
-    .btn-note-vol:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.1); }
+    .btn-note-vol:hover,
+    .volume-card.has-note .btn-note-vol {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.1);
+    }
+    .btn-check-vol {
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.95rem;
+    }
+    .btn-check-vol:hover {
+      border-color: var(--success);
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .btn-check-vol.watched {
+      opacity: 1;
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--success);
+    }
+    .btn-edit-vol {
+      top: 10px;
+      right: 48px;
+      border-color: rgba(var(--primary-rgb), 0.45);
+      color: var(--primary);
+    }
+    .btn-edit-vol:hover {
+      border-color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.12);
+      color: var(--primary);
+    }
+    .btn-del-vol {
+      top: 10px;
+      right: 10px;
+      border-color: rgba(239, 68, 68, 0.28);
+      color: var(--danger);
+    }
+    .btn-del-vol:hover {
+      border-color: var(--danger);
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+    }
 
     /* Modal do Leitor */
     #readerModal .modal {
@@ -377,6 +445,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <script src="js/db.js"></script>
+<script src="js/watched.js"></script>
 <script src="js/mangas.js"></script>
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>

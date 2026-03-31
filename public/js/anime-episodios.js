@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const labelDiv = card.querySelector('.episode-label > div');
         const wBtn = createWatchedBtn(m.id, (id, nowWatched) => {
           card.classList.toggle('is-watched', nowWatched);
-        });
+        }, 'anime_movie');
         labelDiv.prepend(wBtn);
       }
       grid.appendChild(card);
@@ -377,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 label.classList.toggle('complete', watched === total);
               }
             }
-          });
+          }, 'anime_episode');
           labelDiv.prepend(wBtn);
         }
         grid.appendChild(card);
@@ -632,9 +632,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const w = typeof Watched !== 'undefined' && Watched.isWatched(id);
     badge.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
     badge.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
-    badge.onclick = () => {
+    const contentType = activeTypeForWatch === 'movie' ? 'anime_movie' : 'anime_episode';
+    badge.onclick = async () => {
       if (typeof Watched === 'undefined') return;
-      const nowWatched = Watched.toggle(id);
+      let nowWatched;
+      try {
+        nowWatched = await Watched.toggle(id, contentType);
+      } catch (err) {
+        showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+        return;
+      }
       badge.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
       badge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
       // Atualiza card na lista

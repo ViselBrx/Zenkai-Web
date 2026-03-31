@@ -143,11 +143,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       volumesPanel.style.display = 'none';
       return;
     }
-    const mgr = DB.getCartoonById(activeMangaId) || DB.getMangas().find(x=>x.id===activeMangaId);
+    const mgr = DB.getMangaById(activeMangaId) || DB.getMangas().find(x => x.id === activeMangaId);
+    const volumes = DB.getMangaVolumesFor(activeMangaId).filter(v => {
+        if (window.pendingDeletions && window.pendingDeletions.has(v.id)) return false;
+        return true;
+    });
+    const watchedCount = typeof Watched !== 'undefined'
+      ? Watched.countWatched(volumes.map(v => v.id))
+      : 0;
     const bannerEl = document.getElementById('mangaCapaBanner');
-    if(mgr) {
-       mangaPanelTitle.innerHTML = `<span style="color:var(--text)">Leitura:</span> ${mgr.nome}`;
-       // Exibir capa no banner do painel
+
+    if (mgr) {
+       const progressHtml = volumes.length
+         ? `<span class="manga-progress-inline">${watchedCount}/${volumes.length} lidos</span>`
+         : '';
+       mangaPanelTitle.innerHTML = `<span style="color:var(--text)">Leitura:</span> ${mgr.nome} ${progressHtml}`;
        if (mgr.capa) {
            bannerEl.src = mgr.capa;
            bannerEl.style.display = 'block';
@@ -160,11 +170,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     noMangaMsg.style.display = 'none';
     volumesPanel.style.display = 'block';
 
-    const volumes = DB.getMangaVolumesFor(activeMangaId).filter(v => {
-        if (window.pendingDeletions && window.pendingDeletions.has(v.id)) return false;
-        return true;
-    });
-
     volumesGrid.innerHTML = '';
     
     if(volumes.length === 0) {
@@ -173,26 +178,33 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     volumes.forEach(v => {
       const card = document.createElement('div');
-      card.className = 'volume-card';
+      const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(v.id);
       
       const titleStr = v.title ? v.title : `Volume ${v.volume_number}`;
       
       const noteData = DB.getMangaNote(v.id) || {};
       const bookmarkVal = noteData.page_bookmark || '';
       const textVal = noteData.note_text || '';
+      card.className = 'volume-card'
+        + (isWatched ? ' is-watched' : '')
+        + ((bookmarkVal || textVal) ? ' has-note' : '');
       
       const bookmarkBadge = bookmarkVal ? `<div class="vol-bookmark-badge">🔖 Pág. ${bookmarkVal}</div>` : '';
-      const hasNoteStyle = (bookmarkVal || textVal) ? 'color: var(--primary); border-color: var(--primary); opacity: 1;' : '';
+      const watchedMeta = isWatched
+        ? '<div class="vol-read-state">Lido</div>'
+        : '<div class="vol-read-state is-empty">Lido</div>';
       
       card.innerHTML = `
         ${bookmarkBadge}
         <span class="vol-icon">📖</span>
         <div class="vol-title">Volume ${v.volume_number}</div>
         <div class="vol-sub">${v.title || ''}</div>
+        ${watchedMeta}
         
-        <button class="vol-actions-ui btn-note-vol" title="Anotações e Marcações" style="${hasNoteStyle}">📝</button>
-        <button class="vol-actions-ui btn-edit-vol" title="Editar Volume" style="position:absolute; top:10px; right:50px; opacity:0; transition:0.2s; background:var(--bg-card); border:1px solid var(--primary); color:var(--primary); cursor:pointer; font-size:1.1rem; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">✏️</button>
-        <button class="vol-actions-ui btn-del-vol" title="Apagar Volume" style="position:absolute; top:10px; right:10px; opacity:0; transition:0.2s; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); color:var(--danger); cursor:pointer; font-size:1.1rem; border-radius:50%; width:35px; height:35px; display:flex; align-items:center; justify-content:center;">✖</button>
+        <button class="vol-actions-ui btn-note-vol" title="Anotações e Marcações">📝</button>
+        <button class="vol-actions-ui btn-check-vol${isWatched ? ' watched' : ''}" title="${isWatched ? 'Marcar como nao lido' : 'Marcar como lido'}">&#10003;</button>
+        <button class="vol-actions-ui btn-edit-vol" title="Editar Volume">✏️</button>
+        <button class="vol-actions-ui btn-del-vol" title="Apagar Volume">✖</button>
         
       `;
 
@@ -202,14 +214,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         openReader(v.pdf_url, `${mgr.nome} - ${titleStr}`);
       });
       
-      // Mostrar botões no Hover
-      card.addEventListener('mouseenter', () => {
-         card.querySelectorAll('.vol-actions-ui').forEach(b => b.style.opacity = '1');
-      });
-      card.addEventListener('mouseleave', () => {
-         card.querySelectorAll('.vol-actions-ui').forEach(b => b.style.opacity = '0');
-      });
-
       // Botão Editar
       const editBtn = card.querySelector('.btn-edit-vol');
       editBtn.addEventListener('click', (e) => {
@@ -255,6 +259,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       noteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           openNoteModal(v);
+      });
+
+      const checkBtn = card.querySelector('.btn-check-vol');
+      checkBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          if (typeof Watched === 'undefined') return;
+          try {
+              await Watched.toggle(v.id, 'manga_volume');
+              renderVolumes();
+          } catch (err) {
+              showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+          }
       });
 
       volumesGrid.appendChild(card);

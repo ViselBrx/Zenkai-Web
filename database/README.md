@@ -11,16 +11,17 @@
 7. `schema/05_manga_notes.sql`
 8. `schema/06_watch_history.sql`
 9. `schema/07_ai_chat_history.sql`
-10. `migrations/01_user_isolation.sql` (recomendado para isolamento por usuário)
+10. `schema/08_watched_items.sql`
+11. `migrations/01_user_isolation.sql` (recomendado para isolamento por usuario)
 
-## Opcionais (Correções)
+## Opcionais (Correções)
 
 - `fixes/01_fix_localhost_capas.sql`
 - `fixes/02_rls_ai_config.sql`
 
 ## Estrutura
 
-- `schema/`: criação de tabelas e policies principais
-- `storage/`: criação de buckets e policies de storage
-- `migrations/`: mudanças estruturais evolutivas
-- `fixes/`: ajustes pontuais de base já existente
+- `schema/`: criacao de tabelas e policies principais
+- `storage/`: criacao de buckets e policies de storage
+- `migrations/`: mudancas estruturais evolutivas
+- `fixes/`: ajustes pontuais de base ja existente

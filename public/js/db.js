@@ -4,8 +4,45 @@
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
 
-const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, mangaNotes: {}, filmes: [], aiConfig: {}, siteConfig: {} };
+const WATCHED_ITEMS_TABLE = 'user_watched_items';
+const WATCHED_ITEMS_SETUP_HINT = 'Execute database/schema/08_watched_items.sql no Supabase para ativar o checklist permanente.';
+
+const _DEFAULT = {
+    cartoons: [],
+    episodes: {},
+    movies: {},
+    animes: [],
+    animeEpisodes: {},
+    animeMovies: {},
+    mangas: [],
+    mangaVolumes: {},
+    mangaNotes: {},
+    filmes: [],
+    watched: {},
+    aiConfig: {},
+    siteConfig: {}
+};
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
+
+function isMissingRelationError(error) {
+    const msg = String(error?.message || '');
+    return error?.code === 'PGRST205'
+        || /relation .* does not exist/i.test(msg)
+        || /Could not find the table/i.test(msg);
+}
+
+function buildWatchedPersistenceError(error) {
+    if (isMissingRelationError(error)) {
+        return new Error(`Checklist permanente indisponível. ${WATCHED_ITEMS_SETUP_HINT}`);
+    }
+    return new Error(error?.message || 'Falha ao salvar o checklist permanente.');
+}
+
+function clearWatchedItems(ids = []) {
+    ids.forEach(id => {
+        if (id) delete _store.watched[id];
+    });
+}
 
 // Checa se o supabase estÃ¡ disponÃ­vel (injetado via auth.js)
 function getSupa() {
@@ -223,6 +260,28 @@ const DB = {
             supa.from('settings').select('*')
         ]);
 
+        const { data: watchedItems, error: watchedError } = await supa
+            .from(WATCHED_ITEMS_TABLE)
+            .select('id, content_id, content_type, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true });
+
+        if (watchedError) {
+            if (isMissingRelationError(watchedError)) {
+                console.warn(WATCHED_ITEMS_SETUP_HINT);
+            } else {
+                console.warn('Não foi possível carregar o checklist permanente:', watchedError.message || watchedError);
+            }
+        } else if (watchedItems) {
+            watchedItems.forEach(item => {
+                _store.watched[item.content_id] = {
+                    id: item.id,
+                    content_type: item.content_type,
+                    created_at: item.created_at
+                };
+            });
+        }
+
         // Formatar para bater com o padrÃ£o antigo do _store
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
@@ -407,8 +466,15 @@ const DB = {
     const { error } = await getSupa().from('cartoons').delete().eq('id', id);
     if (error) { console.error(error); throw new Error(error.message); }
 
+    const seasonEntries = Object.values(_store.episodes[id] || {}).flat();
+    const movieEntries = _store.movies[id] || [];
+    clearWatchedItems([
+        ...seasonEntries.map(ep => ep.id),
+        ...movieEntries.map(movie => movie.id)
+    ]);
     _store.cartoons = _store.cartoons.filter(c => c.id !== id);
     delete _store.episodes[id];
+    delete _store.movies[id];
   },
 
   /* Cartoons: EpisÃ³dios */
@@ -469,14 +535,17 @@ const DB = {
     const { error } = await getSupa().from('episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
+    clearWatchedItems([epId]);
     if (_store.episodes[cId]?.[season]) {
       _store.episodes[cId][season] = _store.episodes[cId][season].filter(e => e.id !== epId);
     }
   },
   
   async deleteSeason(cId, season) {
+    const deletedIds = (_store.episodes[cId]?.[season] || []).map(ep => ep.id);
     const { error } = await getSupa().from('episodes').delete().eq('cartoon_id', cId).eq('temporada', String(season));
     if (error) throw new Error(error.message);
+    clearWatchedItems(deletedIds);
     if (_store.episodes[cId]) delete _store.episodes[cId][season];
   },
 
@@ -517,6 +586,7 @@ const DB = {
     await checkItemOwnership(mId, 'movies');
     const { error } = await getSupa().from('movies').delete().eq('id', mId);
     if (error) throw new Error(error.message);
+    clearWatchedItems([mId]);
     if (_store.movies[cId]) _store.movies[cId] = _store.movies[cId].filter(m => m.id !== mId);
   },
 
@@ -552,8 +622,13 @@ const DB = {
     const { error } = await getSupa().from('animes').delete().eq('id', id);
     if (error) throw new Error(error.message);
 
+    const animeEpisodeIds = Object.values(_store.animeEpisodes[id] || {})
+      .flatMap(audioGroup => Object.values(audioGroup || {}).flat().map(ep => ep.id));
+    const animeMovieIds = (_store.animeMovies[id] || []).map(movie => movie.id);
+    clearWatchedItems([...animeEpisodeIds, ...animeMovieIds]);
     _store.animes = _store.animes.filter(a => a.id !== id);
     delete _store.animeEpisodes[id];
+    delete _store.animeMovies[id];
   },
 
   /* Animes: EpisÃ³dios */
@@ -619,16 +694,19 @@ const DB = {
     const { error } = await getSupa().from('anime_episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
+    clearWatchedItems([epId]);
     if (_store.animeEpisodes[aId]?.[audio]?.[season]) {
       _store.animeEpisodes[aId][audio][season] = _store.animeEpisodes[aId][audio][season].filter(e => e.id !== epId);
     }
   },
 
   async deleteAnimeSeason(aId, audio, season) {
+    const deletedIds = (_store.animeEpisodes[aId]?.[audio]?.[season] || []).map(ep => ep.id);
     const { error } = await getSupa().from('anime_episodes').delete()
         .eq('anime_id', aId).eq('idioma', audio).eq('temporada', String(season));
     if (error) throw new Error(error.message);
 
+    clearWatchedItems(deletedIds);
     if (_store.animeEpisodes[aId]?.[audio]) { 
       delete _store.animeEpisodes[aId][audio][season]; 
     }
@@ -650,12 +728,14 @@ const DB = {
   },
   async deleteAnimeMovie(aId, mId) {
       if (_store.animeMovies[aId]) {
+          clearWatchedItems([mId]);
           _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
       }
   },
 
   /* MangÃ¡s */
   getMangas() { return [..._store.mangas]; },
+  getMangaById(id) { return _store.mangas.find(m => m.id === id) || null; },
   async addManga(data) {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
@@ -680,7 +760,9 @@ const DB = {
     await checkItemOwnership(id, 'mangas');
     const { error } = await getSupa().from('mangas').delete().eq('id', id);
     if (error) throw new Error(error.message);
+    clearWatchedItems((_store.mangaVolumes[id] || []).map(v => v.id));
     _store.mangas = _store.mangas.filter(m => m.id !== id);
+    delete _store.mangaVolumes[id];
   },
 
   getMangaVolumesFor(mangaId) {
@@ -723,6 +805,7 @@ const DB = {
     const { error } = await getSupa().from('manga_volumes').delete().eq('id', volId);
     if (error) throw new Error(error.message);
     
+    clearWatchedItems([volId]);
     if (_store.mangaVolumes[mangaId]) {
         _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].filter(v => v.id !== volId);
     }
@@ -810,7 +893,59 @@ const DB = {
     await checkItemOwnership(id, 'filmes');
     const { error } = await getSupa().from('filmes').delete().eq('id', id);
     if (error) throw new Error(error.message);
+    clearWatchedItems([id]);
     _store.filmes = _store.filmes.filter(f => f.id !== id);
+  },
+
+  /* Checklist Permanente */
+  isWatched(contentId) {
+    return Boolean(contentId && _store.watched[contentId]);
+  },
+  countWatched(ids = []) {
+    return ids.reduce((total, id) => total + (_store.watched[id] ? 1 : 0), 0);
+  },
+  getAllWatched() {
+    return new Set(Object.keys(_store.watched));
+  },
+  async setWatched(contentId, watched, contentType = 'generic') {
+    if (!contentId) return false;
+
+    const supa = getSupa();
+    const userId = await getRequiredUserId();
+
+    if (watched) {
+      const payload = {
+        user_id: userId,
+        content_id: contentId,
+        content_type: contentType
+      };
+
+      const { data, error } = await supa
+        .from(WATCHED_ITEMS_TABLE)
+        .upsert([payload], { onConflict: 'user_id,content_id' })
+        .select('id, content_type, created_at')
+        .single();
+
+      if (error) throw buildWatchedPersistenceError(error);
+
+      _store.watched[contentId] = {
+        id: data?.id,
+        content_type: data?.content_type || contentType,
+        created_at: data?.created_at || Date.now()
+      };
+      return true;
+    }
+
+    const { error } = await supa
+      .from(WATCHED_ITEMS_TABLE)
+      .delete()
+      .eq('user_id', userId)
+      .eq('content_id', contentId);
+
+    if (error) throw buildWatchedPersistenceError(error);
+
+    delete _store.watched[contentId];
+    return false;
   },
 
   /* IA Config */

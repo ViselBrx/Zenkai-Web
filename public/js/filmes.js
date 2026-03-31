@@ -145,9 +145,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const w = Watched.isWatched(f.id);
       watchedDetailBtn.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
       watchedDetailBtn.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
-      watchedDetailBtn.onclick = (e) => {
+      watchedDetailBtn.onclick = async (e) => {
         e.stopPropagation();
-        const nowWatched = Watched.toggle(f.id);
+        let nowWatched;
+        try {
+          nowWatched = await Watched.toggle(f.id, 'filme');
+        } catch (err) {
+          showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+          return;
+        }
         watchedDetailBtn.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
         watchedDetailBtn.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
         render(); // Atualiza badge no card do catálogo
@@ -183,8 +189,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const w = Watched.isWatched(f.id);
       wBadge.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
       wBadge.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
-      wBadge.onclick = () => {
-        const nowWatched = Watched.toggle(f.id);
+      wBadge.onclick = async () => {
+        let nowWatched;
+        try {
+          nowWatched = await Watched.toggle(f.id, 'filme');
+        } catch (err) {
+          showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+          return;
+        }
         wBadge.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
         wBadge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
         render();
