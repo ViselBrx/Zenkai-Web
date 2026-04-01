@@ -1,4 +1,4 @@
-<h1 align="center">Anime House - Player Local 🎬🍿</h1>
+# 🎬🍿 Anime House - Player Local
 
 <p align="center">
   <img src="./public/assets/tryhard.png" alt="Anime House Logo" width="110" />
@@ -13,38 +13,31 @@
   🎞️ Organizado • 🔐 Privado • ⚡ Local
 </p>
 
-> 🔒 Uso pensado para ambiente local e privado.
+> 🔒 Projeto pensado para uso local e pessoal.
 
-## 📁 Reorganização aplicada
+## ✨ O que o projeto oferece
 
-A estrutura foi organizada para separar melhor as responsabilidades do projeto:
-
-- `pages/`: páginas HTML
-- `public/`: CSS, JS, assets e uploads
-- `database/`: SQL separado por finalidade
-- `scripts/`: utilitários de migração e manutenção
-- `data/`: base local do projeto
-- `legacy/`: arquivos antigos
+- Catálogos separados para desenhos, animes, filmes e mangás.
+- Área de autenticação com login, registro e perfil.
+- Histórico de uso por usuário.
+- Upload de capas e persistência de dados.
+- Proxy de IA para chat e recursos multimodais.
 
 ## 🧰 Tecnologias usadas
 
-<p>
+<p align="center">
   <img src="https://skillicons.dev/icons?i=html,css,js,nodejs,supabase,git,github,vscode" alt="Tech stack" />
+  <br />
+  <img src="https://img.shields.io/badge/dotenv-ECD53F?style=for-the-badge&logo=dotenv&logoColor=000000" alt="dotenv amarelo" />
 </p>
 
-- `HTML5`, `CSS3` e `JavaScript`
-- `Node.js`
-- `Supabase`
-- `dotenv`
-- `Git` e `GitHub`
-
-## 📥 Como clonar
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-```
-
-> 💡 Substitua `<URL_DO_REPOSITORIO>` pela URL do repositório.
+- VsCode
+- HTML, CSS & JavaScript
+- Node.js
+- Supabase
+- Dotenv
+- Git
+- GitHub
 
 ## ⚙️ Configuração
 
@@ -56,92 +49,51 @@ SUPABASE_URL=...
 SUPABASE_ANON_KEY=...
 ```
 
-## 🏗️ Estrutura atual
-
-```text
-Videos-redecanais/
-|- public/
-|  |- assets/
-|  |- css/
-|  |- js/
-|  |- uploads/
-|- pages/
-|- database/
-|  |- schema/
-|  |- storage/
-|  |- migrations/
-|  |- fixes/
-|- scripts/
-|  |- migrations/
-|  |- maintenance/
-|- data/
-|- legacy/
-|- server.js
-|- package.json
-|- iniciar.bat
-```
-
-## 🗃️ SQL organizado
-
-### ✅ Essencial
-
-- `database/schema/01_core_schema.sql`
-- `database/schema/02_filmes_schema.sql`
-- `database/schema/03_profiles_schema.sql`
-- `database/storage/01_capas_bucket.sql`
-- `database/storage/02_avatars_bucket.sql`
-- `database/schema/04_manga_volumes_and_storage.sql`
-- `database/schema/05_manga_notes.sql`
-- `database/schema/06_watch_history.sql`
-- `database/schema/07_ai_chat_history.sql`
-
-### ⭐ Importante
-
-- `database/migrations/01_user_isolation.sql`
-
-### 🧩 Opcional
-
-- `database/fixes/01_fix_localhost_capas.sql`
-- `database/fixes/02_rls_ai_config.sql`
-
 ## ▶️ Como rodar
 
 ```bash
 node server.js
 ```
 
-Ou, no Windows:
+No Windows, você também pode usar:
 
 ```bat
 iniciar.bat
 ```
 
-> 🚀 Acesse: `http://localhost:3000`
+Acesse: `http://localhost:3000`
 
-## 🌐 Backend e rotas
+## 🌐 Páginas do site e conteúdo
 
-Arquivo principal: `server.js`
+- **Início**: portal principal com atalhos para catálogos, autenticação e área administrativa.
+- **Login**: entrada do usuário com validação de conta.
+- **Registro**: criação de conta com confirmação.
+- **Perfil**: edição de nome/avatar, logout e visualização do histórico.
+- **Catálogo de Desenhos**: busca, filtros e visualização de detalhes dos títulos.
+- **Episódios de Desenhos**: gerenciamento e reprodução de episódios, com marcação de assistidos.
+- **Cadastro de Desenhos**: painel CRUD para criar, editar e remover desenhos e capas.
+- **Catálogo de Animes**: listagem com busca, filtros e modal de detalhes.
+- **Episódios de Animes**: cadastro e reprodução de episódios por anime, com status de assistido.
+- **Cadastro de Animes**: painel CRUD para manutenção de animes e capas.
+- **Catálogo de Filmes**: cards de filmes com filtros, detalhes e player.
+- **Cadastro de Filmes**: cadastro, edição e exclusão de filmes com capa e iframe/link de exibição.
+- **Leitor de Mangás**: organização por mangá e volumes, com upload e links de leitura.
+- **Open Anime Agent**: área de IA com chat, leitura de imagem e duelo de personagens.
+- **Agradecimento**: tela de créditos e reconhecimento.
+- **Home (redirecionamento)**: rota auxiliar que direciona para a página inicial.
 
-- `GET /api/data`
-- `POST /api/save`
-- `POST /api/upload`
-- `POST /api/ai/proxy`
+## 🔌 API disponível
 
-Arquivos estáticos saem de `public/` e as páginas HTML ficam em `pages/`.
+- `GET /api/data` → retorna dados atuais do sistema.
+- `POST /api/save` → salva alterações gerais no estado local.
+- `POST /api/upload` → envia imagem e retorna URL pública local.
+- `POST /api/ai/proxy` → encaminha chamadas para provedores de IA.
 
-## 🛠️ Scripts reorganizados
+## 📌 Observações
 
-### 🔄 Migração de dados
-
-- `scripts/migrations/migrate_data_to_supabase.js`
-- `scripts/migrations/sync_missing_data.js`
-
-### 🧹 Manutenção
-
-- `scripts/maintenance/fix_data_json_domains.js`
-- `scripts/maintenance/fix_supabase_iframe_domains.js`
-- `scripts/maintenance/seed_ai_key_setting.js`
-- `scripts/maintenance/apply_watermark_to_pages.js`
+- O sistema foi desenhado para execução local contínua.
+- Para usar o frontend normalmente, mantenha o terminal do servidor aberto.
+- Recomendado para estudo, organização pessoal e laboratório de integrações.
 
 ## 📜 Aviso legal
 
