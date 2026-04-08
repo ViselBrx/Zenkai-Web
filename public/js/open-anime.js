@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visionFileName = document.getElementById('visionFileName');
   const visionFileInfo = document.getElementById('visionFileInfo');
 
-  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF]|�)/;
+  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF])/
 
   function normalizeBrokenEncoding(value) {
     const text = String(value ?? '');
@@ -56,38 +56,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  const SYSTEM_PROMPT = normalizeBrokenEncoding('Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.');
-  const GREETING_MESSAGE = normalizeBrokenEncoding('Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!');
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House. REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS. Nunca alucine ou invente cânones. Raciocine passo-a-passo antes de escrever. Ao responder, não dê apenas o básico: traga informações extras genuínas, curiosidades fantásticas e aprofundamento real. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎌 — seu assistente de animes e desenhos no Anime House! Posso recomendar títulos com explicações detalhadas, discutir personagens, analisar arcos de história, comparar poderes ou ajudar a desenvolver ideias para o site. O que você quer explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-  const COMPARE_GEMINI_MODEL = 'gemini-2.5-flash-lite';
-  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash';
+  const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
+  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+  const COMPARE_FALLBACK_GROQ_MODEL = 'llama3-8b-8192';
   const COMPARE_MAX_TOKENS = 1400;
   const COMPARE_TEMPERATURE = 0.35;
-  const VISION_MAX_TOKENS = 1800;
-  const VISION_MIN_COMPLETION_CHARS = 700;
+  const VISION_MAX_TOKENS = 2500;
+  const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Faça uma análise visual completa e detalhada da imagem em português.',
-    'Formato obrigatório da resposta (Markdown):',
-    '## Resumo geral',
-    '- Descreva a cena em 4-8 linhas, sem ser superficial.',
-    '## Elementos visuais importantes',
-    '- Personagens/pessoas, roupas, expressões, poses, objetos, cenário, iluminação, estilo artístico e qualidade da imagem.',
-    '## Texto visível (OCR)',
-    '- Transcreva TODO texto visível exatamente como aparece (incluindo números, siglas e palavras parciais).',
-    '- Se algo estiver ilegível, indique [ilegível] no trecho correspondente.',
-    '## Pistas de origem',
-    '- Cite possíveis pistas de origem (anime, jogo, plataforma, marca, idioma, interface, watermark), sem inventar fatos.',
-    '## Incertezas e limitações',
-    '- Liste pontos em que há baixa confiança e por quê.',
-    'Regra: não responda de forma curta. Prefira completude e precisão.'
+    'Atue como um analista visual de elite e enciclopédia geek. Você tem todo o tempo e espaço do mundo para processar. Sua PRIMEIRA MISSÃO IRREVOGÁVEL é identificar O QUE e QUEM está na imagem com a máxima precisão possível. Se for um anime, cite o personagem e o nome da obra. Se for real, cite quem/o que é.',
+    'Raciocine logicamente antes de responder e entregue um laudo massivo, coerente e com altíssima riqueza de detalhes.',
+    'Regras de Formatação Obrigatórias:',
+    '1. Use APENAS a estrutura abaixo, utilizando EXATAMENTE três hashtags (###) para os grandes títulos para que o sistema capte as cores do tema do painel.',
+    '2. Nunca adivinhe algo que não está lá, mas deduz e interprete todas as pistas visíveis com maestria.',
+    '',
+    '### 🆔 Identificação e Origem',
+    '- Revele com firmeza O QUE (ou QUEM) é o foco central. Dê nomes: Qual o personagem? É de qual franquia, anime, jogo ou mangá? É uma pessoa real? (Ex: "Trata-se inequivocamente de Sasuke Uchiha do anime Naruto").',
+    '- Qual a relevância desse personagem/item no seu contexto de origem?',
+    '',
+    '### 🔎 Análise Anatômica e Vestuário',
+    '- Faça a decupagem milimétrica do visual: descreva a paleta de cores predominante, o corte das roupas, o material das texturas, acessórios e proporções.',
+    '- Analise a expressão facial, a linguagem corporal e qual sentimento a figura está exalando no momento do frame.',
+    '',
+    '### 🖼️ Cenário e Cinematografia',
+    '- Qual é o estilo artístico? (ex: estilo de animação dos anos 90, foto hiper-realista, arte conceitual, pintura ukiyo-e).',
+    '- O que há no plano de fundo? Como a iluminação, sombras e elementos distantes ajudam a compor o clima da cena?',
+    '',
+    '### 📝 Pistas Ocultas e Textos',
+    '- Transcreva QUALQUER texto, logo, interface gráfica ou assinatura legível.',
+    '- Você percebe algum easter egg ou detalhe muito discreto que conte uma história?',
+    '',
+    '### 🎯 Veredito',
+    '- Resume a cena e entregue uma curiosidade sobre a obra ou contexto da imagem (Ex: "Este estilo de arte foi feito pelo estúdio MAPPA...").',
+    'IMPORTANTE: Responda obrigatoriamente e apenas em português.'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
   const COPY_BUTTON_LABEL = 'Copiar';
   const COPIED_BUTTON_LABEL = 'Copiado';
-
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
@@ -445,6 +458,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function extractVisionText(result) {
+    if (typeof result?.choices?.[0]?.message?.content === 'string') {
+      return result.choices[0].message.content.trim();
+    }
     if (typeof result?.candidates?.[0]?.content?.parts?.[0]?.text === 'string') {
       return result.candidates[0].content.parts[0].text.trim();
     }
@@ -466,7 +482,45 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderVisionResult(text) {
     if (!visionOutput) return;
     const normalizedText = normalizeBrokenEncoding(text || 'Nenhum resultado retornado.');
-    visionOutput.innerHTML = `<strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}`;
+    visionOutput.innerHTML = `<div class="msg-content"><strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+
+    const existingCopyBtn = visionOutput.querySelector('.msg-copy-btn');
+    if (existingCopyBtn) existingCopyBtn.remove();
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.title = 'Copiar análise';
+    copyBtn.setAttribute('aria-label', 'Copiar análise');
+    copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    updateCopyButton(copyBtn, false);
+    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    visionOutput.appendChild(copyBtn);
+  }
+
+  function renderComparisonResult(text) {
+    if (!compareResult) return;
+    const normalizedText = normalizeBrokenEncoding(text || '');
+    if (!normalizedText) {
+      compareResult.style.display = 'none';
+      return;
+    }
+    compareResult.style.display = 'block';
+    compareResult.innerHTML = `<div class="msg-content"><strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+
+    const existingCopyBtn = compareResult.querySelector('.msg-copy-btn');
+    if (existingCopyBtn) existingCopyBtn.remove();
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.title = 'Copiar análise';
+    copyBtn.setAttribute('aria-label', 'Copiar análise');
+    copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    updateCopyButton(copyBtn, false);
+    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    compareResult.appendChild(copyBtn);
+
   }
 
   function setVisionFile(file, options = {}) {
@@ -802,9 +856,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const comparisonText = normalizeBrokenEncoding(selectedComparison?.content || fallbackAnalysis);
-    compareResult.style.display = 'block';
-    compareResult.innerHTML = `<strong>Analise de Combate:</strong><br><br>${formatAIResponse(comparisonText)}`;
+    renderComparisonResult(selectedComparison?.content || fallbackAnalysis);
   }
 
   async function initializeVisionView(options = {}) {
@@ -857,8 +909,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function callAI(prompt, options = {}) {
-    const target = 'gemini';
-    const model = options.model || DEFAULT_GEMINI_MODEL;
+    const target = 'groq';
+    const model = options.model || DEFAULT_GROQ_MODEL;
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
@@ -888,7 +940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
       const modelQueue = context === 'compare'
-        ? Array.from(new Set([model, COMPARE_FALLBACK_GEMINI_MODEL, DEFAULT_GEMINI_MODEL].filter(Boolean)))
+        ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
         : [model];
 
       const maxRetriesPerModel = 2;
@@ -1012,8 +1064,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
     const base64Image = await readFileAsDataUrl(file);
-    const requestedModel = options.model || DEFAULT_GEMINI_MODEL;
-    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_GEMINI_MODEL].filter(Boolean)));
+    const requestedModel = options.model || DEFAULT_VISION_MODEL;
+    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)));
     const maxRetriesPerModel = 2;
 
     async function requestVisionText(promptText) {
@@ -1027,11 +1079,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              target: 'gemini',
+              target: 'groq',
               body: {
                 model: selectedModel,
-                image: base64Image,
-                prompt: promptText,
+                messages: [
+                  {
+                    role: 'user',
+                    content: [
+                      { type: 'text', text: promptText },
+                      { type: 'image_url', image_url: { url: base64Image } }
+                    ]
+                  }
+                ],
+                
+                
+                
                 max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
               }
             })
@@ -1041,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (res.ok) {
             const text = normalizeBrokenEncoding(extractVisionText(result));
             if (!text) {
-              lastError = new Error('O Gemini não retornou uma descrição utilizável para esta imagem.');
+              lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
             } else {
               return text;
             }
@@ -1087,7 +1149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       let aiResponse = await requestVisionText(VISION_PROMPT);
 
-      if (aiResponse.length < VISION_MIN_COMPLETION_CHARS) {
+      if (false) { // aiResponse.length < VISION_MIN_COMPLETION_CHARS
         try {
           const refinementPrompt = [
             VISION_PROMPT,
@@ -1173,7 +1235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.addEventListener('historytracker:resume', async (event) => {
     const handled = await openConversationFromHistory(event?.detail || null);
     if (handled) {
-      showFeedback('Conversa aberta do histÃ³rico');
+      showFeedback('Conversa aberta do historico');
     }
   });
 
@@ -1271,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       visionAnalyzeBtn.disabled = true;
-      renderVisionResult('Analisando imagem com Gemini AI...');
+      renderVisionResult('Analisando imagem com Groq Vision (Llama 4 Scout)...');
 
       try {
         const { aiResponse } = await callVisionAI(selectedVisionFile, {
@@ -1304,29 +1366,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista técnico de batalhas entre personagens de anime/desenho. Responda em português com objetividade, sem enrolação, e sempre entregue todas as seções solicitadas.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre personagens de anime e desenho animado. Sua missão é fazer análises profundas, detalhadas e bem argumentadas, sempre em português. Nunca encurte a análise — explore cada atributo com exemplos reais do universo do personagem, cite poderes específicos e momentos canônicos que justifiquem as notas. Seja apaixonado e técnico ao mesmo tempo.';
     const prompt = [
-      `Compare ${c1} vs ${c2}.`,
+      `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
       'Formato obrigatório da resposta (Markdown):',
-      '## Panorama rápido',
-      '- Quem tem vantagem geral e por que em 2-3 linhas.',
-      '## Atributos (notas de 0 a 10)',
-      '- Força',
-      '- Velocidade',
-      '- Inteligência tática',
-      '- Resistência',
-      '- Habilidades especiais',
-      '- Controle emocional',
-      '## Cenários',
-      '1. Duelo direto (sem preparo)',
-      '2. Duelo com 24h de preparo',
-      '3. Campo neutro com civis por perto',
-      '## Pontos fracos de cada um',
+      '## Panorama geral',
+      '- Apresente brevemente os dois personagens (origem, universo, nível de poder geral).',
+      '- Explique em 3-4 linhas quem tem vantagem inicial e por quê.',
+      '## Atributos detalhados (nota de 0 a 10 com justificativa)',
+      '- **Força física**: cite exemplos canônicos de feitos de força.',
+      '- **Velocidade e reflexos**: cite exemplos de movimentos ou reações notáveis.',
+      '- **Inteligência tática**: como cada um age sob pressão e em batalha.',
+      '- **Resistência e durabilidade**: capacidade de absorver dano e continuar lutando.',
+      '- **Habilidades especiais e técnicas únicas**: liste as principais com breve descrição.',
+      '- **Controle emocional**: como as emoções afetam o desempenho em combate.',
+      '## Cenários de batalha',
+      '1. **Duelo direto sem preparo** — quem leva vantagem no impulso inicial?',
+      '2. **Duelo com 24h de preparo** — como cada um se prepararia e o que mudaria?',
+      '3. **Campo neutro com civis ao redor** — como as limitações morais/táticas afetam o resultado?',
+      '## Pontos fracos e vulnerabilidades',
+      '- Liste os principais pontos fracos de cada personagem com exemplos.',
       '## Veredito final',
-      '- Vencedor provável',
-      '- Condições para o azarão virar o jogo',
-      '- Nível de confiança em %',
-      'Regra: se faltar dado canônico, diga explicitamente "informação insuficiente" e continue a análise mesmo assim.'
+      '- **Vencedor mais provável** e argumentação sólida.',
+      '- **Condições em que o azarão pode virar o jogo.**',
+      '- **Nível de confiança no veredito (%)** e grau de incerteza.',
+      '- **Curiosidade bônus**: algo interessante sobre a rivalidade ou universo dos dois.',
+      'Regra: se faltar dado canônico, diga "informação insuficiente" e continue a análise. Nunca deixe uma seção em branco.'
     ].join('\n');
 
     try {
@@ -1334,14 +1399,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         useChatContext: false,
         persistToAIHistory: true,
         context: 'compare',
-        model: COMPARE_GEMINI_MODEL,
+        model: DEFAULT_GROQ_MODEL,
         temperature: COMPARE_TEMPERATURE,
-        max_tokens: COMPARE_MAX_TOKENS,
+        max_tokens: 2500,
         systemPrompt: compareSystemPrompt,
         metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
       });
 
-      compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
+      renderComparisonResult(analysis);
     } finally {
       isComparing = false;
       compareBtn.disabled = false;

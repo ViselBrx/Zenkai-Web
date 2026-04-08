@@ -274,7 +274,7 @@ const server = http.createServer(async (req, res) => {
           body?.model
           || process.env.GEMINI_MODEL
           || config.geminiModel
-          || 'gemini-2.5-flash'
+          || 'gemini-2.0-flash'
         ).replace(/^models\//i, '').trim();
         apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
         credentialCandidates = buildCredentialCandidates([
@@ -322,7 +322,7 @@ const server = http.createServer(async (req, res) => {
       } else if (target === 'cloudflare-vision') {
         const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || config.cloudflareAccountId || '';
         apiUrl = cloudflareAccountId
-          ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/llava-hf/llava-1.5-7b-hf`
+          ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`
           : '';
         credentialCandidates = buildCredentialCandidates([
           { source: 'frontend', value: frontendApiKey },
@@ -408,7 +408,7 @@ const server = http.createServer(async (req, res) => {
             && shouldRetryWithNextCredential(attempt.statusCode, attempt.body)
             && index < (credentialCandidates.length - 1)
           ) {
-            console.warn(`[AI Proxy] Falha de autenticaÃ§Ã£o/permissÃ£o com ${credential.source}. Tentando prÃ³xima chave.`);
+            console.warn(`[AI Proxy] Falha de autenticacao/permissao com ${credential.source}. Tentando proxima chave.`);
             continue;
           }
 
@@ -436,7 +436,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      return sendJSON(res, 500, { error: 'Falha no Proxy da IA: nenhuma credencial conseguiu concluir a requisiÃ§Ã£o.' });
+      return sendJSON(res, 500, { error: 'Falha no Proxy da IA: nenhuma credencial conseguiu concluir a requisicao.' });
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
