@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visionPreviewImg = document.getElementById('visionPreviewImg');
   const visionFileName = document.getElementById('visionFileName');
   const visionFileInfo = document.getElementById('visionFileInfo');
+  const visionPreviewActions = document.getElementById('visionPreviewActions');
+  const visionChooseAnotherBtn = document.getElementById('visionChooseAnotherBtn');
+  const visionClearBtn = document.getElementById('visionClearBtn');
 
   const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF])/
 
@@ -101,6 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
   const COPY_BUTTON_LABEL = 'Copiar';
   const COPIED_BUTTON_LABEL = 'Copiado';
+  const VISION_FALLBACK_PREVIEW = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
@@ -523,6 +527,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   }
 
+  function clearVisionSelection(options = {}) {
+    setVisionFile(null);
+    if (visionUpload) {
+      visionUpload.value = '';
+    }
+    if (options.keepOutput) return;
+    renderVisionResult(options.outputText || 'Aguardando imagem...');
+  }
+
   function setVisionFile(file, options = {}) {
     selectedVisionFile = file || null;
     const canAnalyze = !!(selectedVisionFile && typeof selectedVisionFile.arrayBuffer === 'function');
@@ -536,6 +549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!selectedVisionFile) {
       visionDropZone.classList.remove('is-ready');
       if (visionPreview) visionPreview.hidden = true;
+      if (visionPreviewActions) visionPreviewActions.hidden = true;
       if (visionPreviewImg) visionPreviewImg.removeAttribute('src');
       if (visionFileName) visionFileName.textContent = 'Nenhuma imagem selecionada';
       if (visionFileInfo) visionFileInfo.textContent = 'Aguardando envio';
@@ -545,14 +559,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     visionDropZone.classList.add('is-ready');
 
     if (visionPreview) visionPreview.hidden = false;
+    if (visionPreviewActions) visionPreviewActions.hidden = false;
     if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
     if (visionFileInfo) {
       visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} - ${formatFileSize(selectedVisionFile.size)}`;
     }
 
     if (visionPreviewImg) {
-      visionPreviewImg.src = options.previewUrl
-        || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
+      const previewSrc = typeof options.previewUrl === 'string'
+        ? options.previewUrl.trim()
+        : '';
+      visionPreviewImg.src = previewSrc || VISION_FALLBACK_PREVIEW;
     }
   }
 
@@ -779,6 +796,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       limit: 20
     });
     const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    const selectedUpload = persisted.find((msg) => (
+      msg.role === 'user'
+      && typeof msg?.metadata?.imageDataUrl === 'string'
+      && msg.metadata.imageDataUrl.startsWith('data:image')
+    ));
     if (!selectedAnalysis) {
       setVisionFile(null);
       return;
@@ -791,7 +813,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         size: Number(selectedAnalysis.metadata?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do histórico'
+        fileInfo: 'Resultado restaurado do histórico',
+        previewUrl: selectedAnalysis?.metadata?.imageDataUrl || selectedUpload?.metadata?.imageDataUrl || ''
       }
     );
     renderVisionResult(selectedAnalysis.content || '');
@@ -884,11 +907,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       limit: 20
     });
     const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    const selectedUpload = persisted.find((msg) => (
+      msg.role === 'user'
+      && typeof msg?.metadata?.imageDataUrl === 'string'
+      && msg.metadata.imageDataUrl.startsWith('data:image')
+    ));
     const fallbackVisionText = normalizeBrokenEncoding(
       resume?.description
       || resume?.resumeSubtitle
       || ''
     );
+    const fallbackPreviewUrl = (typeof resume?.imageDataUrl === 'string' && resume.imageDataUrl.startsWith('data:image'))
+      ? resume.imageDataUrl
+      : '';
 
     if (!selectedAnalysis && !fallbackVisionText) {
       setVisionFile(null);
@@ -902,7 +933,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         size: Number(selectedAnalysis?.metadata?.fileSize || resume?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do historico'
+        fileInfo: 'Resultado restaurado do historico',
+        previewUrl: selectedAnalysis?.metadata?.imageDataUrl
+          || selectedUpload?.metadata?.imageDataUrl
+          || fallbackPreviewUrl
       }
     );
     renderVisionResult(selectedAnalysis?.content || fallbackVisionText);
@@ -1064,6 +1098,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
     const base64Image = await readFileAsDataUrl(file);
+    const metadataWithPreview = { ...metadata, imageDataUrl: base64Image };
     const requestedModel = options.model || DEFAULT_VISION_MODEL;
     const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)));
     const maxRetriesPerModel = 2;
@@ -1143,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           role: 'user',
           content: `Imagem enviada: ${metadata.fileName}`,
           context,
-          metadata
+          metadata: metadataWithPreview
         });
       }
 
@@ -1285,9 +1320,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         await handleVisionSelection(file);
       } catch (error) {
         console.error(error);
-        setVisionFile(null);
+        clearVisionSelection({ keepOutput: true });
         renderVisionResult('Falha ao carregar a imagem selecionada.');
       }
+    });
+  }
+
+  if (visionChooseAnotherBtn && visionUpload) {
+    visionChooseAnotherBtn.addEventListener('click', () => {
+      visionUpload.value = '';
+      visionUpload.click();
+    });
+  }
+
+  if (visionClearBtn) {
+    visionClearBtn.addEventListener('click', () => {
+      clearVisionSelection({ outputText: 'Imagem removida. Escolha outra imagem para analisar.' });
+      showFeedback('Imagem removida');
     });
   }
 
@@ -1319,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await handleVisionSelection(file);
       } catch (error) {
         console.error(error);
-        setVisionFile(null);
+        clearVisionSelection({ keepOutput: true });
         renderVisionResult('Falha ao carregar a imagem arrastada.');
       }
     });

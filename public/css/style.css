@@ -38,17 +38,17 @@
   --ben10-shadow-neon-h: 0 0 55px rgba(0, 255, 0, 0.8), 0 0 28px rgba(0, 255, 0, 0.5);
   --ben10-scrollbar:     #00ff00;
 
-  /* TEMA - GOLD */
+  /* TEMA - GOLD (VERSAO MAIS CLARA E NEON) */
   --vinland-primary:       #ffcc00;
   --vinland-primary-rgb:   255, 204, 0;
-  --vinland-primary-hover: #ffdb4d;
-  --vinland-accent:        #fffbeb;
-  --vinland-accent2:       #d97706;
-  --vinland-text-main:     #fffdfa;
-  --vinland-text-muted:    #fbbf24;
+  --vinland-primary-hover: #ffe266;
+  --vinland-accent:        #fff8cc;
+  --vinland-accent2:       #ffda66;
+  --vinland-text-main:     #fffdf2;
+  --vinland-text-muted:    #ffd76a;
   --vinland-border:        #ffcc00;
-  --vinland-shadow-neon:   0 0 28px rgba(255, 204, 0, 0.6);
-  --vinland-shadow-neon-h: 0 0 55px rgba(255, 204, 0, 0.8), 0 0 28px rgba(255, 204, 0, 0.5);
+  --vinland-shadow-neon:   0 0 34px rgba(255, 204, 0, 0.76), 0 0 16px rgba(255, 218, 102, 0.46);
+  --vinland-shadow-neon-h: 0 0 68px rgba(255, 204, 0, 0.98), 0 0 32px rgba(255, 218, 102, 0.66), 0 0 16px rgba(255, 248, 204, 0.52);
   --vinland-scrollbar:     #ffcc00;
 
   /* TEMA - VERMELHO */

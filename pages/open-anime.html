@@ -327,6 +327,10 @@
               <span id="visionFileInfo">Aguardando envio</span>
             </div>
           </div>
+          <div class="vision-preview__actions" id="visionPreviewActions" hidden>
+            <button type="button" class="btn btn-ghost btn-sm" id="visionChooseAnotherBtn">Escolher outra imagem</button>
+            <button type="button" class="btn btn-danger btn-sm" id="visionClearBtn">Limpar imagem</button>
+          </div>
           <button class="btn btn-primary w-100" id="visionAnalyzeBtn" disabled>Analisar imagem</button>
           <div id="visionOutput" class="ocr-result" style="margin-bottom: 40px;">
             Aguardando imagem...
@@ -783,12 +787,34 @@
     font-size: 0.9rem;
   }
 
-  .ocr-result {
+  .vision-preview__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: -4px;
+    margin-bottom: 18px;
+  }
+
+  .vision-preview__actions[hidden] {
+    display: none !important;
+  }
+
+  .ocr-result,
+  #compareResult {
+    position: relative;
     margin-top: 20px;
     background: rgba(var(--bg-dark), 0.4);
     padding: 20px;
     border-radius: 12px;
     min-height: 200px;
+  }
+
+  .ocr-result:hover .msg-copy-btn,
+  .ocr-result:focus-within .msg-copy-btn,
+  #compareResult:hover .msg-copy-btn,
+  #compareResult:focus-within .msg-copy-btn {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 
   .comparison-inputs {
