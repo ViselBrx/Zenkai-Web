@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
+  if (typeof StatsManager !== 'undefined') StatsManager.render('mangas');
 
   const mangaPills = document.getElementById('mangaPills');
   const addMangaBtn = document.getElementById('addMangaBtn');

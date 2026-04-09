@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
+  if (typeof StatsManager !== 'undefined') StatsManager.render('animes');
   const pillsContainer = document.getElementById('animePills');
   const seasonsContainer = document.getElementById('seasonsContainer');
   const panel = document.getElementById('episodePanel');
@@ -589,6 +590,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             iframeSeguro.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
             iframeSeguro.setAttribute('allowfullscreen', '');
             iframeSeguro.setAttribute('loading', 'lazy');
+            iframeSeguro.removeAttribute('referrerpolicy');
             iframeSeguro.removeAttribute('sandbox');
             iframeSeguro.removeAttribute('height');
             iframeSeguro.removeAttribute('width');
@@ -605,9 +607,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (iframe) {
                 // Garantir atributos críticos
                 iframe.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:0;');
-                iframe.setAttribute('allow', 'fullscreen');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
                 iframe.setAttribute('loading', 'lazy');
-                iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-popups allow-forms');
+                iframe.removeAttribute('referrerpolicy');
                 iframe.removeAttribute('height');
                 iframe.removeAttribute('width');
                 iframe.removeAttribute('scrolling');

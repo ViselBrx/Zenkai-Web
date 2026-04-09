@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
+  if (typeof StatsManager !== 'undefined') StatsManager.render('desenhos');
   const pillsContainer = document.getElementById('cartoonPills');
   const seasonsContainer = document.getElementById('seasonsContainer');
   const panel = document.getElementById('episodePanel');

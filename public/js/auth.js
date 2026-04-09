@@ -207,7 +207,7 @@ async function checkAuthStatus() {
 
     // Ocultar botões de login na home se estiver logado
     if (currentPage === 'index.html' || currentPage === '') {
-        const bannerActions = document.querySelector('.home-banner div');
+        const bannerActions = document.getElementById('homeBannerActions');
         if (bannerActions && session) {
             bannerActions.style.display = 'none';
         }
@@ -246,12 +246,48 @@ async function checkAuthStatus() {
 
             const avatarUrl = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
 
+            const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
+            const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
+            const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+            const cachedLvl = parseInt(localStorage.getItem('animehouse_userLevel') || '0');
+            const isVip = cachedLvl >= 50;
+            const auraClass = savedAura !== 'none' ? `class="${savedAura}"` : '';
+
             authContainer.innerHTML = `
-                <a href="cadastro.html" class="btn btn-primary btn-sm" style="padding: 5px 10px; font-size: 0.75rem; box-shadow: none;">⚙️ Painel</a>
-                <a href="perfil.html" title="Meu Perfil" style="display: flex; align-items: center;">
-                    <img src="${avatarUrl}" alt="Perfil" style="width:38px; height:38px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.3); transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-                </a>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-right: 15px;">
+                    <a href="perfil.html" title="Meu Perfil" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                        ${isVip && savedTitle ? `<span style="font-size:1.1rem; color:var(--primary); font-family:'Bangers', cursive; letter-spacing:1px; text-transform: uppercase; text-shadow: 0 0 8px rgba(var(--primary-rgb),0.5);">${savedTitle}</span>` : ''}
+                        
+                        <div style="position: relative; display: flex; align-items: center; justify-content: center;">
+                           ${isVip && savedCrown ? `<div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 1.4rem; z-index: 10; text-shadow: 0 0 10px gold; pointer-events: none;">👑</div>` : ''}
+                           <img id="navAvatar" ${isVip ? auraClass : ''} src="${avatarUrl}" alt="Perfil" style="width:50px; height:50px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                        </div>
+                    </a>
+                </div>
             `;
+
+            // Lógica para sincronizar LVL e Rank do perfil no index
+            setTimeout(() => {
+                const cachedLevel = localStorage.getItem('animehouse_userLevel') || 1;
+                const cachedRank = localStorage.getItem('animehouse_userRank') || 'Novato';
+
+                const badge = document.getElementById('navLevelBadge');
+                if (badge) {
+                    badge.textContent = `LVL ${cachedLevel}`;
+                    badge.style.display = 'block';
+                }
+
+                // Home Banner Status (se existir no index.html)
+                const homeStatus = document.getElementById('homeUserStatus');
+                if (homeStatus) {
+                    homeStatus.style.display = 'block';
+                    const hRank = document.getElementById('homeUserRank');
+                    const hLvl = document.getElementById('homeUserLevel');
+                    
+                    if (hRank) hRank.textContent = cachedRank;
+                    if (hLvl) hLvl.textContent = `LVL ${cachedLevel}`;
+                }
+            }, 300);
         } else {
             if (!authRoutes.includes(currentPage)) {
                 // Visitantes que não estão logados veem apenas o botão de Login

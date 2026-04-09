@@ -47,6 +47,9 @@
         document.querySelectorAll('.theme-opt-btn').forEach(btn => {
             btn.classList.toggle('active', btn.getAttribute('data-theme') === themeToApply);
         });
+        
+        // Dispatch event para listeners que precisam recarregar cores em tempo real (como o Chart.js no dashboard)
+        window.dispatchEvent(new CustomEvent('themeChanged', { detail: themeToApply }));
     }
 
     function injectSwitcher() {

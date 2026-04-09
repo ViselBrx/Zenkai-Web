@@ -1,4 +1,4 @@
-﻿/**
+/**
  * db.js â€” Cliente Supabase AnimeHouse
  * =====================================
  * Modificado para usar Supabase no lugar de armazenamento local!
@@ -115,10 +115,10 @@ function cleanIframe(iframe) {
                 if (src.startsWith('http://')) src = 'https://' + src.slice(7);
 
                 // SubstituiÃ§Ã£o de domÃ­nio (cobre todos os domÃ­nios conhecidos do Redecanais)
-                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
                 el.setAttribute('src', src);
-                el.setAttribute('allow', 'fullscreen');
+                el.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
                 el.setAttribute('allowfullscreen', '');
                 el.setAttribute('frameborder', '0');
                 el.setAttribute('width', '100%');
@@ -136,10 +136,10 @@ function cleanIframe(iframe) {
                 let s = rawSrc;
                 try { s = decodeURIComponent(s); } catch(e) {}
                 if (s.startsWith('//')) s = 'https:' + s;
-                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
                 return `src="${s}"`;
             })
-            .replace(/allow="[^"]*"/gi, 'allow="fullscreen"');
+            .replace(/allow="[^"]*"/gi, 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen"');
     }
 
     // --- Caso 2: sÃ³ a URL ---
@@ -147,10 +147,10 @@ function cleanIframe(iframe) {
     try { url = decodeURIComponent(url); } catch(e) {}
     if (url.startsWith('//')) url = 'https:' + url;
     if (url.startsWith('http://')) url = 'https://' + url.slice(7);
-    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
     if (url.startsWith('https://')) {
-        return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="fullscreen" allowfullscreen></iframe>`;
+        return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
     }
 
     return iframe; // devolve original se nÃ£o reconheceu
@@ -636,6 +636,7 @@ const DB = {
     if (!_store.animeEpisodes[aId]) return {};
     return _store.animeEpisodes[aId][audio] || {};
   },
+  getAnimeEpisodes() { return _store.animeEpisodes; },
   
   async addAnimeEpisode(aId, audio, season, epData) {
     const userId = await getRequiredUserId();

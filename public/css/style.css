@@ -69,7 +69,9 @@
   --tt-classic-primary-rgb:   139, 0, 255;
   --tt-classic-primary-hover: #a020f0;
   --tt-classic-accent:        #c77dff;
-  --tt-classic-accent2:       #1c1b1d;
+  --tt-classic-accent-rgb:    199, 125, 255;
+  --tt-classic-accent2:       #5d00b3;
+  --tt-classic-accent2-rgb:   93, 0, 179;
   --tt-classic-text-main:     #f0e6ff;
   --tt-classic-text-muted:    #b565f5;
   --tt-classic-border:        #8b00ff;
@@ -222,7 +224,9 @@
   --primary-rgb:   var(--tt-classic-primary-rgb);
   --primary-hover: var(--tt-classic-primary-hover);
   --accent:        var(--tt-classic-accent);
+  --accent-rgb:    var(--tt-classic-accent-rgb);
   --accent2:       var(--tt-classic-accent2);
+  --accent2-rgb:   var(--tt-classic-accent2-rgb);
   --text-main:     var(--tt-classic-text-main);
   --text-muted:    var(--tt-classic-text-muted);
   --border:        var(--tt-classic-border);
@@ -556,8 +560,27 @@ body {
 
 /* ===== PAGE HEADER ===== */
 .page-header {
-  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 3rem;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+.page-header .header-main {
+  flex: 1;
+  text-align: left;
+}
+@media (max-width: 768px) {
+  .page-header .header-main {
+    text-align: center;
+  }
 }
 .page-header h1 {
   font-family: 'Bangers', cursive;
@@ -595,6 +618,65 @@ body {
   color: var(--text-muted);
   margin-top: 0.5rem;
   font-size: 1.1rem;
+}
+
+/* ===== STATS WIDGET ===== */
+.stats-widget {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-neon);
+  min-width: 200px;
+  text-align: left;
+  animation: fadeIn 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stats-widget::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+}
+.stats-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.stats-info .label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.65rem;
+}
+.stats-info .count {
+  color: var(--primary);
+  font-family: 'Bangers', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+.stats-progress-container {
+  height: 6px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.stats-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  width: 0%;
+  transition: width 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 15px var(--primary);
 }
 
 /* ===== SEARCH & FILTER BAR ===== */
@@ -1699,3 +1781,70 @@ body:hover .watermark {
 .watched-btn.pop {
   animation: watchedPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ========================================= */
+/* ====== AURAS DE CONQUISTA GLOBAIS ======= */
+/* ========================================= */
+
+.avatar-aura-fire {
+  box-shadow: 
+    0 -15px 20px -2px #ff4500,
+    0 -25px 30px -5px #ff0000,
+    0 10px 15px -2px #ff8c00,
+    inset 0 0 15px #ff4500;
+  border: 3px solid #ff8c00 !important;
+  animation: pulse-fire 0.8s infinite alternate;
+  border-radius: 50%;
+}
+@keyframes pulse-fire {
+  0% { box-shadow: 0 -10px 15px -2px #ff4500, 0 -20px 20px -5px #ff0000, 0 8px 12px -2px #ff8c00, inset 0 0 10px #ff4500; border-color: #ff4500; transform: scale(1); }
+  100% { box-shadow: 0 -20px 30px -2px #ffab00, 0 -35px 40px -5px #ff0000, 0 15px 25px -2px #ff8c00, inset 0 0 20px #ffab00; border-color: #ffd700; transform: scale(1.05); }
+}
+
+.avatar-aura-guardian {
+  box-shadow: 
+    0 -15px 20px -2px #00bfff,
+    0 -25px 30px -5px #0000ff,
+    0 10px 15px -2px #00ffff,
+    inset 0 0 15px #00bfff;
+  border: 3px solid #00ffff !important;
+  animation: pulse-guardian 1.2s infinite alternate;
+  border-radius: 50%;
+}
+@keyframes pulse-guardian {
+  0% { box-shadow: 0 -10px 15px -2px #00bfff, 0 -20px 20px -5px #0000ff, 0 8px 12px -2px #00ffff, inset 0 0 10px #00bfff; transform: scale(1); }
+  100% { box-shadow: 0 -20px 30px -2px #00ffff, 0 -35px 40px -5px #0000ff, 0 15px 25px -2px #00bfff, inset 0 0 20px #00ffff; transform: scale(1.05); }
+}
+
+.avatar-aura-immortal {
+  box-shadow: 
+    0 -15px 20px -2px #8a2be2,
+    0 -25px 30px -5px #4b0082,
+    0 10px 15px -2px #da70d6,
+    inset 0 0 15px #8a2be2;
+  border: 3px solid #ff00ff !important;
+  animation: pulse-immortal 0.9s infinite alternate;
+  border-radius: 50%;
+}
+@keyframes pulse-immortal {
+  0% { box-shadow: 0 -10px 15px -2px #8a2be2, 0 -20px 20px -5px #4b0082, 0 8px 12px -2px #da70d6, inset 0 0 10px #8a2be2; transform: scale(1); }
+  100% { box-shadow: 0 -20px 30px -2px #ff00ff, 0 -35px 40px -5px #4b0082, 0 15px 25px -2px #da70d6, inset 0 0 20px #ff00ff; transform: scale(1.05); }
+}
+
+/* FONTES DINÂMICAS PARA H1 "Catálogo de" */
+.theme-ciano, .theme-default { --title-font: 'Bangers', cursive; }
+.theme-verde, .theme-ben10 { --title-font: 'Audiowide', cursive; }
+.theme-dourado, .theme-vinland { --title-font: 'Righteous', cursive; }
+.theme-vermelho, .theme-aot { --title-font: 'Black Ops One', cursive; }
+.theme-roxo, .theme-tt-classic { --title-font: 'Lilita One', cursive; }
+.theme-laranja, .theme-mutant-rex { --title-font: 'Fredoka One', cursive; }
+.theme-azul, .theme-regular-show { --title-font: 'Nunito', sans-serif; }
+.theme-verde-escuro, .theme-demon-slayer { --title-font: 'Bangers', cursive; }
+.theme-branco, .theme-vagabond { --title-font: 'Poppins', sans-serif; }
+.theme-aqua-verde { --title-font: 'Righteous', cursive; }
+
+.header-main h1 {
+  font-family: var(--title-font, 'Bangers');
+}
+@ k e y f r a m e s   s h i n e - t e x t   {   t o   {   b a c k g r o u n d - p o s i t i o n :   2 0 0 %   c e n t e r ;   }   }  
+ 

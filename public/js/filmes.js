@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
+  if (typeof StatsManager !== 'undefined') StatsManager.render('filmes');
   const grid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
