@@ -207,6 +207,19 @@ function safeResolve(baseDir, requestPath) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname  = decodeURIComponent(parsedUrl.pathname);
+  let normalizedPathname = pathname;
+
+  if (normalizedPathname === '/pages' || normalizedPathname === '/pages/') {
+    normalizedPathname = '/';
+  } else if (normalizedPathname.startsWith('/pages/')) {
+    normalizedPathname = normalizedPathname.slice('/pages'.length);
+  }
+
+  if (normalizedPathname === '/public' || normalizedPathname === '/public/') {
+    normalizedPathname = '/';
+  } else if (normalizedPathname.startsWith('/public/')) {
+    normalizedPathname = normalizedPathname.slice('/public'.length);
+  }
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204, { 
@@ -446,8 +459,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ── ARQUIVOS ESTÁTICOS ──
-  const requestPath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const isHtmlRequest = pathname === '/' || path.extname(requestPath).toLowerCase() === '.html';
+  const requestPath = normalizedPathname === '/' ? 'index.html' : normalizedPathname.replace(/^\/+/, '');
+  const isHtmlRequest = normalizedPathname === '/' || path.extname(requestPath).toLowerCase() === '.html';
   const baseDir = isHtmlRequest ? PAGES_DIR : PUBLIC_DIR;
   const filePath = safeResolve(baseDir, requestPath);
   if (!filePath) { res.writeHead(403); return res.end('Proibido'); }

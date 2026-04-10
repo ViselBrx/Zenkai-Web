@@ -116,8 +116,9 @@
             { href: 'cadastro-animes.html', label: '📝 Cad. Animes', icon: '📝' },
             { href: 'cadastro-filmes.html', label: '📝 Cad. Filmes', icon: '📝' },
             { href: 'mangas.html', label: '📚 Mangas', icon: '📚' },
-            { href: 'agradecimento.html', label: '💖 Agradecimento', icon: '💖' },
-            { href: 'open-anime.html', label: '🤖 Open AnIme', icon: '🤖' }
+            { href: 'loja.html', label: '🎌 SenseiMod Store', icon: '🎌' },
+            { href: 'open-anime.html', label: '🤖 Open AnIme', icon: '🤖' },
+            { href: 'agradecimento.html', label: '💖 Agradecimento', icon: '💖' }
         ];
 
         const existingLinks = links.querySelectorAll('li');
@@ -135,6 +136,17 @@
 
             li.appendChild(link);
             links.appendChild(li);
+        });
+
+        // Restaura a posição do scroll da navbar salva no localStorage
+        const savedScroll = localStorage.getItem('navbarScrollPosition');
+        if (savedScroll) {
+            links.scrollLeft = parseInt(savedScroll);
+        }
+
+        // Salva a posição do scroll sempre que houver rolagem
+        links.addEventListener('scroll', () => {
+            localStorage.setItem('navbarScrollPosition', links.scrollLeft.toString());
         });
 
         const onWheel = (e) => {

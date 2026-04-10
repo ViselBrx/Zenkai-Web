@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — SenseiMod Store</title>
+  <meta name="description" content="Troque seus XP por fichas especiais e resgate recompensas lendárias na SenseiMod Store — a loja oficial do Anime House." />
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/themes.js"></script>
+
+  <style>
+    /* ===== LOJA ARCANA — ESTILOS ===== */
+
+    /* Layout Principal */
+    .loja-shell {
+      max-width: 1340px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+    }
+
+    /* ===== HERO BANNER ===== */
+    .loja-hero {
+      position: relative;
+      border-radius: 22px;
+      overflow: hidden;
+      background: linear-gradient(135deg,
+        rgba(var(--bg-rgb, 10, 5, 20), 0.98) 0%,
+        rgba(var(--primary-rgb), 0.12) 50%,
+        rgba(var(--bg-rgb, 5, 10, 25), 0.98) 100%
+      );
+      border: 1px solid rgba(var(--primary-rgb), 0.35);
+      box-shadow:
+        0 0 60px rgba(var(--primary-rgb), 0.15),
+        0 20px 60px rgba(0, 0, 0, 0.6),
+        inset 0 0 80px rgba(var(--primary-rgb), 0.04);
+      padding: 52px 48px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .loja-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(var(--primary-rgb), 0.12) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 45%),
+        radial-gradient(ellipse at 70% 80%, rgba(80, 200, 120, 0.06) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    /* Partículas flutuantes */
+    .hero-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .hero-particles span {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleFloat var(--dur, 8s) var(--delay, 0s) infinite ease-in-out;
+    }
+    @keyframes particleFloat {
+      0%   { transform: translateY(100%) scale(0); opacity: 0; }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.4; }
+      100% { transform: translateY(-20%) scale(1.2); opacity: 0; }
+    }
+
+    .loja-hero-text { position: relative; z-index: 2; max-width: 620px; }
+
+    .loja-hero-eyebrow {
+      font-family: 'Bangers', cursive;
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+      color: var(--primary);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .loja-hero-eyebrow::before,
+    .loja-hero-eyebrow::after {
+      content: '';
+      flex: 1;
+      max-width: 50px;
+      height: 1px;
+      background: rgba(var(--primary-rgb), 0.5);
+    }
+
+    .loja-hero-title {
+      font-family: 'Bangers', cursive;
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      letter-spacing: 3px;
+      color: var(--text-main);
+      line-height: 1.05;
+      text-shadow:
+        0 0 30px rgba(var(--primary-rgb), 0.5),
+        0 0 60px rgba(var(--primary-rgb), 0.25);
+      margin-bottom: 14px;
+    }
+    .loja-hero-title span { color: var(--primary); }
+
+    .loja-hero-desc {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 500px;
+    }
+
+    /* XP Display no hero */
+    .hero-xp-card {
+      position: relative;
+      z-index: 2;
+      background: rgba(var(--primary-rgb), 0.07);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 18px;
+      padding: 28px 36px;
+      text-align: center;
+      min-width: 220px;
+      box-shadow:
+        0 0 30px rgba(var(--primary-rgb), 0.15),
+        inset 0 0 20px rgba(var(--primary-rgb), 0.04);
+      backdrop-filter: blur(8px);
+    }
+
+    .xp-orb {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary) 0%, rgba(var(--primary-rgb), 0.3) 60%, transparent 100%);
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      box-shadow: 0 0 40px rgba(var(--primary-rgb), 0.6);
+      animation: orbPulse 3s ease-in-out infinite;
+    }
+    @keyframes orbPulse {
+      0%, 100% { box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.5); transform: scale(1); }
+      50%       { box-shadow: 0 0 55px rgba(var(--primary-rgb), 0.8); transform: scale(1.06); }
+    }
+
+    .xp-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .xp-value {
+      font-family: 'Bangers', cursive;
+      font-size: 2.4rem;
+      color: var(--primary);
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.7);
+      line-height: 1;
+    }
+    .xp-rank {
+      margin-top: 10px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      background: rgba(var(--primary-rgb), 0.15);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 700;
+      display: inline-block;
+    }
+
+    /* ===== FICHAS — SEÇÃO ===== */
+    .section-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.4), transparent);
+    }
+    .section-sub {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 24px;
+    }
+
+    /* Grade das 3 fichas */
+    .fichas-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-bottom: 52px;
+    }
+
+    .ficha-card {
+      border-radius: 20px;
+      padding: 28px 24px;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+      cursor: pointer;
+    }
+    .ficha-card:hover {
+      transform: translateY(-8px) scale(1.02);
+    }
+    .ficha-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .ficha-card:hover::before { opacity: 1; }
+
+    /* OURO */
+    .ficha-ouro {
+      background: linear-gradient(160deg, rgba(var(--bg-rgb, 20, 15, 5), 0.95), rgba(var(--bg-rgb, 12, 10, 3), 0.92));
+      border-color: rgba(212, 175, 55, 0.5);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(212, 175, 55, 0.1);
+    }
+    .ficha-ouro:hover {
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), 0 0 50px rgba(212, 175, 55, 0.3);
+      border-color: rgba(212, 175, 55, 0.8);
+    }
+
+    .ficha-diamante {
+      background: linear-gradient(160deg, rgba(var(--bg-rgb, 5, 20, 35), 0.95), rgba(var(--bg-rgb, 3, 12, 25), 0.92));
+      border-color: rgba(100, 200, 255, 0.5);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(100, 200, 255, 0.08);
+    }
+    .ficha-diamante:hover {
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), 0 0 50px rgba(100, 200, 255, 0.25);
+      border-color: rgba(100, 200, 255, 0.8);
+    }
+
+    .ficha-esmeralda {
+      background: linear-gradient(160deg, rgba(var(--bg-rgb, 3, 20, 10), 0.95), rgba(var(--bg-rgb, 2, 12, 7), 0.92));
+      border-color: rgba(50, 220, 120, 0.45);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(50, 220, 120, 0.07);
+    }
+    .ficha-esmeralda:hover {
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), 0 0 50px rgba(50, 220, 120, 0.22);
+      border-color: rgba(50, 220, 120, 0.75);
+    }
+
+    /* Ícone da ficha */
+    .ficha-icon {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      position: relative;
+      z-index: 1;
+      animation: fichaFloat 4s ease-in-out infinite;
+    }
+    @keyframes fichaFloat {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    .ficha-ouro .ficha-icon {
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.05));
+      box-shadow: 0 0 35px rgba(212, 175, 55, 0.4), inset 0 0 15px rgba(212, 175, 55, 0.1);
+      border: 2px solid rgba(212, 175, 55, 0.35);
+    }
+    .ficha-diamante .ficha-icon {
+      background: radial-gradient(circle, rgba(100, 200, 255, 0.2), rgba(100, 200, 255, 0.04));
+      box-shadow: 0 0 35px rgba(100, 200, 255, 0.35), inset 0 0 15px rgba(100, 200, 255, 0.08);
+      border: 2px solid rgba(100, 200, 255, 0.3);
+    }
+    .ficha-esmeralda .ficha-icon {
+      background: radial-gradient(circle, rgba(50, 220, 120, 0.2), rgba(50, 220, 120, 0.04));
+      box-shadow: 0 0 35px rgba(50, 220, 120, 0.35), inset 0 0 15px rgba(50, 220, 120, 0.08);
+      border: 2px solid rgba(50, 220, 120, 0.3);
+    }
+
+    .ficha-name {
+      font-family: 'Bangers', cursive;
+      font-size: 1.7rem;
+      letter-spacing: 2px;
+      position: relative;
+      z-index: 1;
+    }
+    .ficha-ouro     .ficha-name { color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.7); }
+    .ficha-diamante .ficha-name { color: #64c8ff; text-shadow: 0 0 20px rgba(100, 200, 255, 0.7); }
+    .ficha-esmeralda .ficha-name { color: #32dc78; text-shadow: 0 0 20px rgba(50, 220, 120, 0.7); }
+
+    .ficha-taxa {
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.55);
+      position: relative;
+      z-index: 1;
+      line-height: 1.5;
+    }
+    .ficha-taxa strong {
+      font-size: 1.1rem;
+      display: block;
+    }
+    .ficha-ouro     .ficha-taxa strong { color: #d4af37; }
+    .ficha-diamante .ficha-taxa strong { color: #64c8ff; }
+    .ficha-esmeralda .ficha-taxa strong { color: #32dc78; }
+
+    .ficha-req {
+      position: relative;
+      z-index: 1;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .ficha-ouro     .ficha-req { background: rgba(212, 175, 55, 0.15); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.35); }
+    .ficha-diamante .ficha-req { background: rgba(100, 200, 255, 0.12); color: #64c8ff; border: 1px solid rgba(100, 200, 255, 0.3); }
+    .ficha-esmeralda .ficha-req { background: rgba(50, 220, 120, 0.12); color: #32dc78; border: 1px solid rgba(50, 220, 120, 0.3); }
+
+    .ficha-status {
+      position: relative;
+      z-index: 1;
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ficha-status.locked { color: rgba(255, 255, 255, 0.3); }
+    .ficha-status.unlocked { color: #22c55e; }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .ficha-status.locked .status-dot { background: rgba(255, 255, 255, 0.25); }
+    .ficha-status.unlocked .status-dot { background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: dotBlink 1.5s ease infinite; }
+
+    @keyframes dotBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Troca rápida */
+    .ficha-exchange {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .exchange-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .exchange-input {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.3);
+      color: #fff;
+      font-size: 0.88rem;
+      outline: none;
+      text-align: center;
+    }
+    .exchange-input:focus {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .exchange-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .ficha-ouro     .exchange-btn { background: #d4af37; color: #1a1200; }
+    .ficha-diamante .exchange-btn { background: #64c8ff; color: #001a2e; }
+    .ficha-esmeralda .exchange-btn { background: #32dc78; color: #001a0f; }
+    .exchange-btn:hover { opacity: 0.85; transform: scale(1.05); }
+    .exchange-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+    .exchange-result {
+      font-size: 0.75rem;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.4);
+      min-height: 16px;
+    }
+
+    /* ===== FILTROS DO CATÁLOGO ===== */
+    .catalog-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .filter-tab {
+      padding: 8px 20px;
+      border-radius: 30px;
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .filter-tab:hover,
+    .filter-tab.active {
+      background: rgba(var(--primary-rgb), 0.15);
+      color: var(--primary);
+      border-color: var(--primary);
+      box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .filter-currency {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .currency-tab {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.04);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .currency-tab[data-currency="ouro"]     { color: #d4af37; }
+    .currency-tab[data-currency="diamante"] { color: #64c8ff; }
+    .currency-tab[data-currency="esmeralda"]{ color: #32dc78; }
+    .currency-tab.active[data-currency="ouro"]      { background: rgba(212, 175, 55, 0.12); border-color: #d4af37; box-shadow: 0 0 12px rgba(212, 175, 55, 0.25); }
+    .currency-tab.active[data-currency="diamante"]  { background: rgba(100, 200, 255, 0.1); border-color: #64c8ff; box-shadow: 0 0 12px rgba(100, 200, 255, 0.2); }
+    .currency-tab.active[data-currency="esmeralda"] { background: rgba(50, 220, 120, 0.1); border-color: #32dc78; box-shadow: 0 0 12px rgba(50, 220, 120, 0.2); }
+
+    /* ===== GRID DO CATÁLOGO ===== */
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 50px;
+    }
+
+    .catalog-item {
+      background: linear-gradient(160deg, rgba(var(--bg-rgb, 8, 18, 38), 0.9), rgba(var(--bg-rgb, 4, 10, 22), 0.95));
+      border-radius: 16px;
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .catalog-item:hover {
+      transform: translateY(-6px);
+    }
+    .catalog-item.ouro:hover {
+      border-color: rgba(212, 175, 55, 0.45);
+      box-shadow: 0 16px 45px rgba(0,0,0,0.4), 0 0 25px rgba(212, 175, 55, 0.15);
+    }
+    .catalog-item.diamante:hover {
+      border-color: rgba(100, 200, 255, 0.4);
+      box-shadow: 0 16px 45px rgba(0,0,0,0.4), 0 0 25px rgba(100, 200, 255, 0.12);
+    }
+    .catalog-item.esmeralda:hover {
+      border-color: rgba(50, 220, 120, 0.4);
+      box-shadow: 0 16px 45px rgba(0,0,0,0.4), 0 0 25px rgba(50, 220, 120, 0.12);
+    }
+
+    /* Ícone preview do item */
+    .item-preview {
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .catalog-item.ouro     .item-preview { background: linear-gradient(160deg, rgba(212, 175, 55, 0.1), rgba(20, 15, 5, 0.8)); }
+    .catalog-item.diamante .item-preview { background: linear-gradient(160deg, rgba(100, 200, 255, 0.08), rgba(5, 15, 30, 0.8)); }
+    .catalog-item.esmeralda .item-preview { background: linear-gradient(160deg, rgba(50, 220, 120, 0.08), rgba(3, 15, 8, 0.8)); }
+
+    /* Efeito de brilho no preview */
+    .item-preview::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.04), transparent 70%);
+    }
+
+    .item-currency-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+    .catalog-item.ouro     .item-currency-badge { background: rgba(212, 175, 55, 0.25); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.4); }
+    .catalog-item.diamante .item-currency-badge { background: rgba(100, 200, 255, 0.2); color: #64c8ff; border: 1px solid rgba(100, 200, 255, 0.35); }
+    .catalog-item.esmeralda .item-currency-badge{ background: rgba(50, 220, 120, 0.18); color: #32dc78; border: 1px solid rgba(50, 220, 120, 0.3); }
+
+    .item-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .item-category {
+      font-size: 0.67rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .item-name {
+      font-weight: 700;
+      font-size: 0.97rem;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .item-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      flex: 1;
+    }
+
+    .item-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      gap: 10px;
+    }
+
+    .item-price {
+      font-family: 'Bangers', cursive;
+      font-size: 1.3rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .catalog-item.ouro     .item-price { color: #d4af37; }
+    .catalog-item.diamante .item-price { color: #64c8ff; }
+    .catalog-item.esmeralda .item-price { color: #32dc78; }
+
+    .buy-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .catalog-item.ouro     .buy-btn { background: #d4af37; color: #1a1200; }
+    .catalog-item.diamante .buy-btn { background: #64c8ff; color: #001a2e; }
+    .catalog-item.esmeralda .buy-btn { background: #32dc78; color: #001a0f; }
+    .buy-btn:hover { opacity: 0.85; transform: scale(1.06); }
+    .buy-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+    .item-locked {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* ===== POLÍTICA/INFO ===== */
+    .policy-section {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 48px;
+    }
+
+    .policy-card {
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(5, 12, 28, 0.7);
+    }
+
+    .policy-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .policy-icon {
+      font-size: 1.6rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .policy-ouro     .policy-icon { background: rgba(212, 175, 55, 0.12); }
+    .policy-diamante .policy-icon { background: rgba(100, 200, 255, 0.1); }
+    .policy-esmeralda .policy-icon { background: rgba(50, 220, 120, 0.1); }
+
+    .policy-title {
+      font-family: 'Bangers', cursive;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+    }
+    .policy-ouro      .policy-title { color: #d4af37; }
+    .policy-diamante  .policy-title { color: #64c8ff; }
+    .policy-esmeralda .policy-title { color: #32dc78; }
+
+    .policy-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .policy-text li {
+      list-style: none;
+      padding: 3px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .policy-text li::before { content: '→'; opacity: 0.5; flex-shrink: 0; }
+
+    /* ===== TOAST ===== */
+    #lojaToast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 9999;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #lojaToast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    #lojaToast.success {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+    }
+    #lojaToast.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    #lojaToast.info {
+      background: rgba(var(--primary-rgb), 0.12);
+      border: 1px solid rgba(var(--primary-rgb), 0.35);
+      color: var(--primary);
+    }
+
+    /* ===== MODAL COMPRA ===== */
+    .buy-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 5000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .buy-modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .buy-modal {
+      background: linear-gradient(160deg, rgba(8, 18, 40, 0.98), rgba(4, 10, 24, 0.99));
+      border-radius: 20px;
+      padding: 36px;
+      max-width: 420px;
+      width: 90vw;
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      box-shadow: 0 0 60px rgba(var(--primary-rgb), 0.15), 0 30px 80px rgba(0,0,0,0.6);
+      transform: scale(0.85) translateY(40px);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-align: center;
+    }
+    .buy-modal-overlay.open .buy-modal {
+      transform: scale(1) translateY(0);
+    }
+    .modal-item-icon { font-size: 4rem; margin-bottom: 14px; }
+    .modal-item-name {
+      font-family: 'Bangers', cursive;
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .modal-item-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .modal-price-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 22px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+    }
+    .modal-price-label { font-size: 0.8rem; color: var(--text-muted); }
+    .modal-price-val {
+      font-family: 'Bangers', cursive;
+      font-size: 1.5rem;
+      letter-spacing: 1px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+    .modal-cancel-btn {
+      padding: 10px 24px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-cancel-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-main); }
+    .modal-confirm-btn {
+      padding: 10px 28px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .modal-confirm-btn:hover { opacity: 0.85; transform: scale(1.04); }
+
+    /* ===== SECAO VAZIA ===== */
+    .empty-catalog {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+      border: 2px dashed rgba(var(--primary-rgb), 0.2);
+      border-radius: 16px;
+    }
+    .empty-catalog .empty-icon { font-size: 3rem; margin-bottom: 14px; }
+    .empty-catalog p { font-size: 0.9rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .loja-hero { padding: 36px 24px; }
+      .fichas-grid { grid-template-columns: 1fr; }
+      .policy-section { grid-template-columns: 1fr; }
+      .filter-currency { margin-left: 0; }
+    }
+    @media (max-width: 640px) {
+      .loja-hero { flex-direction: column; }
+      .hero-xp-card { width: 100%; }
+      .catalog-filters { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <a href="index.html" style="display:flex;align-items:center;gap:12px;">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;" />
+      <span>Anime</span>House
+    </a>
+  </div>
+  <ul class="navbar-links" id="navLinks"></ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- SHELL PRINCIPAL -->
+<div class="loja-shell">
+
+  <!-- HERO -->
+  <div class="loja-hero" id="lojaHero">
+    <div class="hero-particles" id="heroParticles"></div>
+
+    <div class="loja-hero-text">
+      <div class="loja-hero-eyebrow">🎌 SenseiMod Store</div>
+      <h1 class="loja-hero-title">Converta XP em<br><span>Itens Lendários</span></h1>
+      <p class="loja-hero-desc">
+        O mercado proibido do Anime House. Só quem batalhou de verdade entra aqui.
+        Banners de Guts, auras de Susanoo, títulos épicos e customizações que ninguém mais tem.
+      </p>
+    </div>
+
+    <div class="hero-xp-card">
+      <div class="xp-orb">⚡</div>
+      <div class="xp-label">Seus XP Totais</div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+        <button onclick="document.getElementById('fichaOuroCard').scrollIntoView({behavior:'smooth'})" 
+                title="Troca Reversa (Fichas ➔ XP)" 
+                style="background:rgba(239, 68, 68, 0.15); border:1px solid #ef4444; color:#ef4444; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; font-size:1.1rem; padding: 0;"
+                onmouseover="this.style.background='#ef4444'; this.style.color='#fff';"
+                onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.color='#ef4444';">
+          🔄
+        </button>
+        <div class="xp-value" id="heroXpValue" style="margin:0;">—</div>
+      </div>
+      <div class="xp-rank" id="heroRankBadge">Carregando...</div>
+      <div style="margin-top: 15px; width: 100%;">
+        <a href="compras.html" class="btn btn-primary" style="font-size: 0.85rem; padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4); width: 100%;">
+          📦 Ver Meu Inventário
+        </a>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:12px;justify-content:center;">
+        <div style="text-align:center;">
+          <div style="font-family:'Bangers';font-size:1.3rem;color:#d4af37;" id="heroOuroCount">0</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">OURO</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:'Bangers';font-size:1.3rem;color:#64c8ff;" id="heroDiamanteCount">0</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">DIAMANTE</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-family:'Bangers';font-size:1.3rem;color:#32dc78;" id="heroEsmeraldaCount">0</div>
+          <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">ESMERALDA</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLÍTICA DE TROCA -->
+  <div class="section-title">📜 Política de Troca</div>
+  <p class="section-sub">Cada ficha exige um patamar mínimo para ser adquirida. Alcance o nível necessário e desbloqueie acesso.</p>
+
+  <div class="policy-section">
+    <div class="policy-card policy-ouro">
+      <div class="policy-header">
+        <div class="policy-icon">🥇</div>
+        <div>
+          <div class="policy-title">Ficha de Ouro</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);">Patamar Prata+</div>
+        </div>
+      </div>
+      <ul class="policy-text">
+        <li>5 XP = 1 Ficha de Ouro</li>
+        <li>Itens de entrada: banners básicos, ícones de título</li>
+        <li>Auras comuns e frames de perfil simples</li>
+        <li>Requiere Patamar Prata ou superior</li>
+      </ul>
+    </div>
+    <div class="policy-card policy-diamante">
+      <div class="policy-header">
+        <div class="policy-icon">💎</div>
+        <div>
+          <div class="policy-title">Ficha de Diamante</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);">Patamar Mestre+</div>
+        </div>
+      </div>
+      <ul class="policy-text">
+        <li>10 XP = 1 Ficha de Diamante</li>
+        <li>Itens avançados: auras animadas raras</li>
+        <li>Banners temáticos de animes populares</li>
+        <li>Requer Patamar Mestre ou superior</li>
+      </ul>
+    </div>
+    <div class="policy-card policy-esmeralda">
+      <div class="policy-header">
+        <div class="policy-icon">💚</div>
+        <div>
+          <div class="policy-title">Ficha de Esmeralda</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);">Patamar Guardião+</div>
+        </div>
+      </div>
+      <ul class="policy-text">
+        <li>30 XP = 1 Ficha de Esmeralda</li>
+        <li>Para usuários com vasta coleção registrada</li>
+        <li>Itens únicos: coroas exclusivas, auras lendárias</li>
+        <li>Requer Patamar Guardião</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FICHAS DE TROCA -->
+  <div class="section-title">🔄 Comprar ou Estornar Fichas</div>
+  <p class="section-sub">Troque seu XP por recursos valiosos ou converta de volta em XP (botão vermelho) caso mude de ideia.</p>
+
+  <div class="fichas-grid">
+
+    <!-- OURO -->
+    <div class="ficha-card ficha-ouro" id="fichaOuroCard">
+      <div class="ficha-icon">🥇</div>
+      <div class="ficha-name">FICHA DE OURO</div>
+      <div class="ficha-taxa">
+        <strong>5 XP → 1 🥇</strong>
+        Patamar mínimo: <em>Prata</em>
+      </div>
+      <div class="ficha-req">⚔️ Patamar Prata</div>
+      <div class="ficha-status locked" id="fichaOuroStatus">
+        <div class="status-dot"></div>
+        <span>Verificando patamar…</span>
+      </div>
+      <div class="ficha-exchange">
+        <div class="exchange-row">
+          <input type="number" class="exchange-input" id="ouroQtd" min="1" max="999" placeholder="Qtd" value="1" />
+          <div style="display: flex; gap: 4px; flex: 1;">
+            <button class="exchange-btn" id="ouroExchangeBtn" disabled style="flex: 2;">Trocar</button>
+            <button class="exchange-btn" id="ouroRefundBtn" disabled style="flex: 1; background: var(--danger); color: #fff; font-size: 0.7rem;" title="Devolver ficha por XP">Devolver</button>
+          </div>
+        </div>
+        <div class="exchange-result" id="ouroResult">Custo: 5 XP</div>
+      </div>
+    </div>
+
+    <!-- DIAMANTE -->
+    <div class="ficha-card ficha-diamante" id="fichaDiamanteCard">
+      <div class="ficha-icon">💎</div>
+      <div class="ficha-name">FICHA DE DIAMANTE</div>
+      <div class="ficha-taxa">
+        <strong>10 XP → 1 💎</strong>
+        Patamar mínimo: <em>Mestre</em>
+      </div>
+      <div class="ficha-req">🔱 Patamar Mestre</div>
+      <div class="ficha-status locked" id="fichaDiamanteStatus">
+        <div class="status-dot"></div>
+        <span>Verificando patamar…</span>
+      </div>
+      <div class="ficha-exchange">
+        <div class="exchange-row">
+          <input type="number" class="exchange-input" id="diamanteQtd" min="1" max="999" placeholder="Qtd" value="1" />
+          <div style="display: flex; gap: 4px; flex: 1;">
+            <button class="exchange-btn" id="diamanteExchangeBtn" disabled style="flex: 2;">Trocar</button>
+            <button class="exchange-btn" id="diamanteRefundBtn" disabled style="flex: 1; background: var(--danger); color: #fff; font-size: 0.7rem;" title="Devolver ficha por XP">Devolver</button>
+          </div>
+        </div>
+        <div class="exchange-result" id="diamanteResult">Custo: 10 XP</div>
+      </div>
+    </div>
+
+    <!-- ESMERALDA -->
+    <div class="ficha-card ficha-esmeralda" id="fichaEsmeraldaCard">
+      <div class="ficha-icon">💚</div>
+      <div class="ficha-name">FICHA DE ESMERALDA</div>
+      <div class="ficha-taxa">
+        <strong>30 XP → 1 💚</strong>
+        Patamar mínimo: <em>Guardião</em>
+      </div>
+      <div class="ficha-req">🛡️ Patamar Guardião</div>
+      <div class="ficha-status locked" id="fichaEsmeraldaStatus">
+        <div class="status-dot"></div>
+        <span>Verificando patamar…</span>
+      </div>
+      <div class="ficha-exchange">
+        <div class="exchange-row">
+          <input type="number" class="exchange-input" id="esmeraldaQtd" min="1" max="999" placeholder="Qtd" value="1" />
+          <div style="display: flex; gap: 4px; flex: 1;">
+            <button class="exchange-btn" id="esmeraldaExchangeBtn" disabled style="flex: 2;">Trocar</button>
+            <button class="exchange-btn" id="esmeraldaRefundBtn" disabled style="flex: 1; background: var(--danger); color: #fff; font-size: 0.7rem;" title="Devolver ficha por XP">Devolver</button>
+          </div>
+        </div>
+        <div class="exchange-result" id="esmeraldaResult">Custo: 30 XP</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CATÁLOGO DE ITENS -->
+  <div class="section-title">🎌 Catálogo SenseiMod</div>
+  <p class="section-sub">Explore todos os itens disponíveis. Filtre por categoria ou tipo de ficha.</p>
+
+  <div class="catalog-filters" id="catalogFilters">
+    <button class="filter-tab active" data-category="all">✨ Todos</button>
+    <button class="filter-tab" data-category="banner">🖼️ Banners</button>
+    <button class="filter-tab" data-category="aura">🌀 Auras</button>
+    <button class="filter-tab" data-category="titulo">🏷️ Títulos</button>
+    <button class="filter-tab" data-category="experiencia">🎯 Experiência</button>
+    <button class="filter-tab" data-category="exclusivo">👑 Exclusivos</button>
+
+    <div class="filter-currency">
+      <button class="currency-tab active" data-currency="all">Todos 💰</button>
+      <button class="currency-tab" data-currency="ouro">🥇 Ouro</button>
+      <button class="currency-tab" data-currency="diamante">💎 Diamante</button>
+      <button class="currency-tab" data-currency="esmeralda">💚 Esmeralda</button>
+    </div>
+  </div>
+
+  <div class="catalog-grid" id="catalogGrid"></div>
+
+</div><!-- /loja-shell -->
+
+<!-- MODAL DE COMPRA -->
+<div class="buy-modal-overlay" id="buyModalOverlay">
+  <div class="buy-modal">
+    <div class="modal-item-icon" id="modalIcon">🎁</div>
+    <div class="modal-item-name" id="modalName">Item</div>
+    <p class="modal-item-desc" id="modalDesc">Descrição do item.</p>
+    <div class="modal-price-line">
+      <span class="modal-price-label">Custo:</span>
+      <span class="modal-price-val" id="modalPrice">0</span>
+      <span class="modal-price-label" id="modalCurrencyLabel">fichas</span>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel-btn" id="modalCancel">Cancelar</button>
+      <button class="modal-confirm-btn" id="modalConfirm">Confirmar Compra</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="lojaToast"></div>
+
+<!-- WATERMARK -->
+<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/auth.js"></script>
+<script>
+/* =====================================================
+   LOJA ARCANA — SCRIPT PRINCIPAL
+   ===================================================== */
+
+// ── DADOS DO CATÁLOGO ─────────────────────────────────
+const CATALOG_ITEMS = [
+  // ── OURO ─────────────────────────────────────────────
+  { id: 'banner_claro', name: 'Banner Aurora Simples', desc: 'Um banner suave de cores pastel.', icon: '🌅', category: 'banner', currency: 'ouro', price: 3, req: 'prata' },
+  { id: 'titulo_explorador', name: 'Título: Explorador', desc: 'Exibe o título abaixo do avatar.', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5, req: 'prata' },
+  { id: 'aura_chama', name: 'Aura Chama Simples', desc: 'Chamas sutis ao redor do avatar.', icon: '🔥', category: 'aura', currency: 'ouro', price: 8, req: 'prata' },
+  { id: 'banner_cosmica', name: 'Banner Noite Cósmica', desc: 'Fundo estrelado escuro.', icon: '🌌', category: 'banner', currency: 'ouro', price: 10, req: 'prata' },
+  { id: 'lista_destaque', name: 'Lista Favoritos Destacada', desc: 'Destaque visual especial no perfil.', icon: '📌', category: 'experiencia', currency: 'ouro', price: 7, req: 'prata' },
+  { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', desc: 'Para quem maratona séries.', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6, req: 'prata' },
+  { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', desc: 'Inspirado em Berserk.', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4, req: 'prata' },
+  { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', desc: 'Espírito indomável de Guts.', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5, req: 'prata' },
+  { id: 'aura_chama_naruto', name: 'Aura Modo Sábio', desc: 'Chamas do modo sábio.', icon: '🔥', category: 'aura', currency: 'ouro', price: 7, req: 'prata' },
+  { id: 'aura_ceifador', name: 'Aura: Olhar do Ceifador', desc: 'Inspirado em Death Note.', icon: '📓', category: 'aura', currency: 'ouro', price: 15, req: 'prata' },
+
+  // ── DIAMANTE ──────────────────────────────────────────
+  { id: 'banner_oni', name: 'Banner Oni Samurai', desc: 'Estilo arte japonesa épica.', icon: '🎭', category: 'banner', currency: 'diamante', price: 5, req: 'mestre' },
+  { id: 'aura_thunder', name: 'Aura Relâmpago Elétrico', desc: 'Raios elétricos animados.', icon: '⚡', category: 'aura', currency: 'diamante', price: 8, req: 'mestre' },
+  { id: 'banner_shinobi', name: 'Banner Shinobi Dark', desc: 'Arte ninja sombria.', icon: '🥷', category: 'banner', currency: 'diamante', price: 7, req: 'mestre' },
+  { id: 'titulo_mestre_das_listas', name: 'Título: Mestre das Listas', desc: 'Mais de 100 itens cadastrados.', icon: '📋', category: 'titulo', currency: 'diamante', price: 10, req: 'mestre' },
+  { id: 'aura_sakura', name: 'Aura Pétala de Sakura', desc: 'Pétalas flutuantes.', icon: '🌸', category: 'aura', currency: 'diamante', price: 9, req: 'mestre' },
+  { id: 'modo_cinema', name: 'Modo Cinema Aprimorado', desc: 'Experiência sem distrações.', icon: '🎬', category: 'experiencia', currency: 'diamante', price: 12, req: 'mestre' },
+  { id: 'aura_gelo', name: 'Aura Cristal de Gelo', desc: 'Cristais brilhantes.', icon: '❄️', category: 'aura', currency: 'diamante', price: 11, req: 'mestre' },
+  { id: 'frame_dourado', name: 'Frame Dourado Elite', desc: 'Moldura ornamentada para avatar.', icon: '🪙', category: 'experiencia', currency: 'diamante', price: 15, req: 'mestre' },
+  { id: 'banner_aot', name: 'Banner: Muralha de Shiganshina', desc: 'Sinta o terror do Titã Colossal.', icon: '🧱', img: '', category: 'banner', currency: 'diamante', price: 6, req: 'mestre' },
+  { id: 'aura_susanoo', name: 'Aura Susanoo Perfeito', desc: 'Energia de chakra absoluta.', icon: '⚡', category: 'aura', currency: 'diamante', price: 9, req: 'mestre' },
+  { id: 'banner_ragnarok', name: 'Banner: Arena Ragnarok', desc: 'Palco dos Deuses.', icon: '🏛️', category: 'banner', currency: 'diamante', price: 10, req: 'mestre' },
+  { id: 'aura_stands', name: 'Aura Stand: Star Platinum', desc: 'ORA ORA ORA visual.', icon: '🟣', category: 'aura', currency: 'diamante', price: 12, req: 'mestre' },
+
+  // ── ESMERALDA ─────────────────────────────────────────
+  { id: 'coroa_lendaria', name: 'Coroa Rei dos Animes', desc: 'Símbolo máximo de status.', icon: '👑', category: 'exclusivo', currency: 'esmeralda', price: 3, req: 'guardiao' },
+  { id: 'aura_dragon', name: 'Aura Dragão Arcano', desc: 'Aura mais rara da plataforma.', icon: '🐉', category: 'aura', currency: 'esmeralda', price: 5, req: 'guardiao' },
+  { id: 'banner_cosmos', name: 'Banner Cosmos', desc: 'Efeitos de dobra espacial.', icon: '🌀', category: 'banner', currency: 'esmeralda', price: 4, req: 'guardiao' },
+  { id: 'titulo_guardiao', name: 'Título: Guardião Lenda', desc: 'Reservado aos mestres.', icon: '🛡️', category: 'titulo', currency: 'esmeralda', price: 2, req: 'guardiao' },
+  { id: 'dashboard_premium', name: 'Dashboard Premium Full', desc: 'Estatísticas avançadas completas.', icon: '📊', category: 'experiencia', currency: 'esmeralda', price: 6, req: 'guardiao' },
+  { id: 'coroa_tryhard', name: '💀 Coroa Tryhard', desc: 'Caveira animada exclusiva.', icon: '💀', category: 'exclusivo', currency: 'esmeralda', price: 3, req: 'guardiao' },
+  { id: 'titulo_sensei_mod', name: 'Título: SenseiMod', desc: 'O verdadeiro dono da razão.', icon: '🎓', category: 'titulo', currency: 'esmeralda', price: 5, req: 'guardiao' },
+  { id: 'banner_vinland', name: 'Banner: Vinland Saga', desc: 'Eu não tenho inimigos.', icon: '🛡️', img: '', category: 'banner', currency: 'esmeralda', price: 6, req: 'guardiao' },
+  { id: 'aura_void_saitama', name: 'Aura ONE PUNCH', desc: 'Simplesmente devastador.', icon: '👊', category: 'aura', currency: 'esmeralda', price: 4, req: 'guardiao' },
+  { id: 'placa_colecionador', name: 'Placa Colecionador Mestre', desc: 'Insígnia de maior acervo.', icon: '🏆', category: 'exclusivo', currency: 'esmeralda', price: 8, req: 'guardiao' }
+];
+
+// ── HIERARQUIA DE PATAMARES ───────────────────────────
+const RANK_HIERARCHY = [
+  'Novato', 'Aprendiz', 'Intermediário', 'Avançado',
+  'Prata', 'Ouro', 'Platina', 'Mestre', 'GrandMestre', 'Guardião'
+];
+
+// Rank mínimo para cada ficha
+const FICHA_REQ_RANK = {
+  ouro:      'Prata',
+  diamante:  'Mestre',
+  esmeralda: 'Guardião'
+};
+
+// Custo em XP por ficha
+const FICHA_XP_COST = { ouro: 5, diamante: 10, esmeralda: 30 };
+
+// ── ESTADO LOCAL ──────────────────────────────────────
+const STORE_KEY = 'animehouse_store';
+
+function loadStore() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
+  catch { return { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
+}
+function saveStore(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+
+let store = loadStore();
+
+function rankIndex(r) { return RANK_HIERARCHY.indexOf(r); }
+function canUse(ficha) { return rankIndex(store.rank) >= rankIndex(FICHA_REQ_RANK[ficha]); }
+
+// ── PARTÍCULAS HERO ───────────────────────────────────
+function spawnParticles() {
+  const container = document.getElementById('heroParticles');
+  if (!container) return;
+  const colors = ['rgba(var(--primary-rgb),0.6)', 'rgba(212,175,55,0.5)', 'rgba(50,220,120,0.4)', 'rgba(100,200,255,0.45)'];
+  for (let i = 0; i < 20; i++) {
+    const s = document.createElement('span');
+    const sz = Math.random() * 6 + 2;
+    s.style.cssText = `
+      left: ${Math.random()*100}%;
+      bottom: -10px;
+      width: ${sz}px;
+      height: ${sz}px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      --dur: ${Math.random()*8+5}s;
+      --delay: ${Math.random()*6}s;
+    `;
+    container.appendChild(s);
+  }
+}
+
+// ── ATUALIZAR UI DO HERO ──────────────────────────────
+function updateHeroUI() {
+  const xpEl = document.getElementById('heroXpValue');
+  const rankEl = document.getElementById('heroRankBadge');
+  const ouroEl = document.getElementById('heroOuroCount');
+  const diaEl = document.getElementById('heroDiamanteCount');
+  const esEl = document.getElementById('heroEsmeraldaCount');
+  if (xpEl) xpEl.textContent = store.xp.toLocaleString('pt-BR');
+  if (rankEl) rankEl.textContent = `⚔️ ${store.rank}`;
+  if (ouroEl) ouroEl.textContent = store.ouro;
+  if (diaEl) diaEl.textContent = store.diamante;
+  if (esEl) esEl.textContent = store.esmeralda;
+}
+
+// ── ATUALIZAR STATUS DAS FICHAS ───────────────────────
+function updateFichasStatus() {
+  ['ouro', 'diamante', 'esmeralda'].forEach(ficha => {
+    const statusEl = document.getElementById(`ficha${ficha.charAt(0).toUpperCase()+ficha.slice(1)}Status`);
+    const btn = document.getElementById(`${ficha}ExchangeBtn`);
+    const ok = canUse(ficha);
+
+    if (statusEl) {
+      statusEl.className = `ficha-status ${ok ? 'unlocked' : 'locked'}`;
+      statusEl.innerHTML = `<div class="status-dot"></div><span>${ok ? 'Desbloqueado ✓' : `Requer ${FICHA_REQ_RANK[ficha]}`}</span>`;
+    }
+    if (btn) btn.disabled = !ok;
+    const refundBtn = document.getElementById(`${ficha}RefundBtn`);
+    if (refundBtn) refundBtn.disabled = !ok;
+  });
+}
+
+// ── TOAST ─────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('lojaToast');
+  if (!t) return;
+  clearTimeout(toastTimer);
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  toastTimer = setTimeout(() => { t.className = ''; }, 3500);
+}
+
+// ── INPUT DE QUANTIDADE DAS FICHAS ────────────────────
+function setupExchangeInputs() {
+  ['ouro', 'diamante', 'esmeralda'].forEach(ficha => {
+    const input = document.getElementById(`${ficha}Qtd`);
+    const result = document.getElementById(`${ficha}Result`);
+    const btn = document.getElementById(`${ficha}ExchangeBtn`);
+    const cost = FICHA_XP_COST[ficha];
+
+    const icon = ficha === 'ouro' ? '🥇' : ficha === 'diamante' ? '💎' : '💚';
+
+    function updateResult() {
+      const qtd = parseInt(input.value) || 0;
+      const total = qtd * cost;
+      if (result) result.textContent = `Custo: ${total} XP → ${qtd} ${icon}`;
+    }
+
+    if (input) input.addEventListener('input', updateResult);
+    updateResult();
+
+    if (btn) {
+      btn.addEventListener('click', () => {
+        if (!canUse(ficha)) { showToast(`❌ Patamar insuficiente! Requer ${FICHA_REQ_RANK[ficha]}.`, 'error'); return; }
+        const qtd = parseInt(input.value) || 0;
+        if (qtd < 1) { showToast('⚠️ Digite uma quantidade válida.', 'error'); return; }
+        const total = qtd * cost;
+        if (store.xp < total) {
+          showToast(`❌ XP insuficiente! Você tem ${store.xp} XP e precisa de ${total} XP.`, 'error');
+          return;
+        }
+        store.xp -= total;
+        store[ficha] += qtd;
+        saveStore(store);
+        updateHeroUI();
+        showToast(`✅ Troca realizada! +${qtd} ${icon} (${ficha}) — Saldo: ${store.xp} XP`, 'success');
+      });
+    }
+
+    const refundBtn = document.getElementById(`${ficha}RefundBtn`);
+    if (refundBtn) {
+      refundBtn.addEventListener('click', () => {
+        const qtd = parseInt(input.value) || 0;
+        if (qtd < 1) { showToast('⚠️ Digite uma quantidade válida.', 'error'); return; }
+        if (store[ficha] < qtd) {
+          showToast(`❌ Fichas insuficientes! Você tem ${store[ficha]} ${icon} e quer devolver ${qtd}.`, 'error');
+          return;
+        }
+        const total = qtd * cost;
+        store[ficha] -= qtd;
+        store.xp += total;
+        saveStore(store);
+        updateHeroUI();
+        showToast(`✅ Devolução realizada! -${qtd} ${icon} (${ficha}) +${total} XP recuperados.`, 'success');
+      });
+    }
+  });
+}
+
+// ── RENDERIZAR CATÁLOGO ───────────────────────────────
+let activeCategory = 'all';
+let activeCurrency = 'all';
+
+function renderCatalog() {
+  const grid = document.getElementById('catalogGrid');
+  if (!grid) return;
+
+  const filtered = CATALOG_ITEMS.filter(item => {
+    const catOk = activeCategory === 'all' || item.category === activeCategory;
+    const curOk = activeCurrency === 'all' || item.currency === activeCurrency;
+    return catOk && curOk;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-catalog">
+        <div class="empty-icon">🔍</div>
+        <p>Nenhum item encontrado para esse filtro.</p>
+      </div>`;
+    return;
+  }
+
+  const currencyLabel = { ouro: '🥇 Ouro', diamante: '💎 Diamante', esmeralda: '💚 Esmeralda' };
+  const reqLabel = { prata: 'Patamar Prata', mestre: 'Patamar Mestre', guardiao: 'Patamar Guardião' };
+  const owned = Array.isArray(store.purchased) ? store.purchased : [];
+
+  grid.innerHTML = filtered.map(item => {
+    const alreadyBought = owned.includes(item.id);
+    const fichaOk = canUse(item.currency);
+    const suficiente = store[item.currency] >= item.price;
+    const canBuy = fichaOk && suficiente && !alreadyBought;
+    
+    let lockMsg = '';
+    if (alreadyBought) lockMsg = '✅ Já adquirido';
+    else if (!fichaOk) lockMsg = `🔒 ${reqLabel[item.req]}`;
+    else if (!suficiente) lockMsg = `❌ Requer ${item.price} ${currencyLabel[item.currency]}`;
+
+    return `
+    <div class="catalog-item ${item.currency} ${alreadyBought ? 'owned' : ''}" data-id="${item.id}">
+      <div class="item-preview" style="position:relative; overflow:hidden; background: #000; display: flex; align-items: center; justify-content: center;">
+        ${item.category === 'banner' 
+          ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ''}" class="banner-icon-preview" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+             <span style="display:none; font-size:2rem;">${item.icon}</span>`
+          : `<span>${item.icon}</span>`
+        }
+        <span class="item-currency-badge">${currencyLabel[item.currency]}</span>
+      </div>
+      <div class="item-body">
+        <div class="item-category">${item.category}</div>
+        <div class="item-name">${item.name}</div>
+        <p class="item-desc">${item.desc}</p>
+        <div class="item-footer">
+          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '💚'}</span></div>
+          ${canBuy
+            ? `<button class="buy-btn" onclick="openBuyModal('${item.id}')">Comprar</button>`
+            : `<div class="item-locked">${lockMsg}</div>`
+          }
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── FILTROS ───────────────────────────────────────────
+function setupFilters() {
+  const catBtns = document.querySelectorAll('[data-category]');
+  const curBtns = document.querySelectorAll('[data-currency]');
+
+  catBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      catBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = btn.getAttribute('data-category');
+      renderCatalog();
+    });
+  });
+
+  curBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      curBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCurrency = btn.getAttribute('data-currency');
+      renderCatalog();
+    });
+  });
+}
+
+// ── MODAL DE COMPRA ───────────────────────────────────
+let pendingItemId = null;
+
+function openBuyModal(id) {
+  const item = CATALOG_ITEMS.find(i => i.id === id);
+  if (!item) return;
+  pendingItemId = id;
+
+  const currencyLabel = { ouro: '🥇 Ouro', diamante: '💎 Diamante', esmeralda: '💚 Esmeralda' };
+  const currencyColors = { ouro: '#d4af37', diamante: '#64c8ff', esmeralda: '#32dc78' };
+  const currencyBg     = { ouro: '#1a1200', diamante: '#001a2e', esmeralda: '#001a0f' };
+
+  document.getElementById('modalIcon').textContent = item.icon;
+  document.getElementById('modalName').textContent = item.name;
+  document.getElementById('modalName').style.color = currencyColors[item.currency];
+  document.getElementById('modalDesc').textContent = item.desc;
+  document.getElementById('modalPrice').textContent = `${item.price}`;
+  document.getElementById('modalPrice').style.color = currencyColors[item.currency];
+  document.getElementById('modalCurrencyLabel').textContent = currencyLabel[item.currency];
+
+  const confirmBtn = document.getElementById('modalConfirm');
+  confirmBtn.textContent = `Confirmar — ${item.price} ${item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '💚'}`;
+  confirmBtn.style.background = currencyColors[item.currency];
+  confirmBtn.style.color = currencyBg[item.currency];
+
+  document.getElementById('buyModalOverlay').classList.add('open');
+}
+
+function closeBuyModal() {
+  document.getElementById('buyModalOverlay').classList.remove('open');
+  pendingItemId = null;
+}
+
+function confirmBuy() {
+  if (!pendingItemId) return;
+  const item = CATALOG_ITEMS.find(i => i.id === pendingItemId);
+  if (!item) return;
+
+  if (!canUse(item.currency)) {
+    showToast(`❌ Patamar insuficiente!`, 'error');
+    closeBuyModal();
+    return;
+  }
+  if (store[item.currency] < item.price) {
+    showToast(`❌ Fichas insuficientes!`, 'error');
+    closeBuyModal();
+    return;
+  }
+  if (store.purchased.includes(item.id)) {
+    showToast(`⚠️ Você já possui esse item!`, 'info');
+    closeBuyModal();
+    return;
+  }
+
+  store[item.currency] -= item.price;
+  store.purchased.push(item.id);
+  saveStore(store);
+  updateHeroUI();
+  renderCatalog();
+  closeBuyModal();
+  showToast(`✅ "${item.name}" adquirido com sucesso!`, 'success');
+}
+
+// ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────
+async function syncFromProfile() {
+  const cachedLevel = parseInt(localStorage.getItem('animehouse_userLevel') || '0');
+  const cachedRank  = localStorage.getItem('animehouse_userRank') || 'Novato';
+
+  // XP = nível * 100 (estimativa compatível com o sistema do perfil)
+  const estimatedXP = cachedLevel * 100;
+
+  // Manter fichas já adquiridas, mas atualizar XP e rank
+  if (store.xp === 0 && estimatedXP > 0) {
+    store.xp = estimatedXP;
+  }
+  store.rank = cachedRank;
+
+  // Concessão de recursos para teste (apenas para davizeravisel@gmail.com)
+  if (typeof supaClient !== 'undefined') {
+    const { data: { session } } = await supaClient.auth.getSession();
+    if (session?.user?.email === 'davizeravisel@gmail.com') {
+        const testGrantKey = 'animehouse_test_granted_v1';
+        if (!localStorage.getItem(testGrantKey)) {
+            store.xp += 5000;
+            store.ouro += 50;
+            store.diamante += 20;
+            store.esmeralda += 10;
+            window.BANNER_MAP = {
+                'banner_aot': '',
+                'banner_ragnarok': ''
+            };
+            localStorage.setItem(testGrantKey, 'true');
+            showToast("🎁 Recursos de teste concedidos, Sensei!", "success");
+        }
+    }
+  }
+
+  saveStore(store);
+
+  updateHeroUI();
+  updateFichasStatus();
+  renderCatalog();
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Burger
+  const burger = document.getElementById('navBurger');
+  const navLinks = document.getElementById('navLinks');
+  if (burger && navLinks) burger.addEventListener('click', () => navLinks.classList.toggle('open'));
+
+  // Partículas
+  spawnParticles();
+
+  // Sincronizar perfil
+  syncFromProfile();
+
+  // Configurar trocas
+  setupExchangeInputs();
+
+  // Configurar filtros
+  setupFilters();
+
+  // Modal
+  document.getElementById('modalCancel')?.addEventListener('click', closeBuyModal);
+  document.getElementById('modalConfirm')?.addEventListener('click', confirmBuy);
+  document.getElementById('buyModalOverlay')?.addEventListener('click', e => {
+    if (e.target.id === 'buyModalOverlay') closeBuyModal();
+  });
+});
+</script>
+
+</body>
+</html>

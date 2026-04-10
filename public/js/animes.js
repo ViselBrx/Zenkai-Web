@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function render() {
+  async function render() {
     const term = searchInput.value.toLowerCase();
     const est = filterEstudio.value;
     const temp = filterTemp.value;
@@ -41,13 +41,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
+    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    let userFavs = new Set();
+    try {
+        const favs = await DB.getFavorites('anime');
+        userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Usuário deslogado ou erro ao carregar favoritos.");
+    }
+
     filtered.forEach(a => {
       const card = document.createElement('div');
       card.className = 'card';
+      
+      const isFav = userFavs.has(a.id);
+      
       let imgHtml = a.capa ? `<img src="${a.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">🌸</div>`;
+      
       card.innerHTML = `
         ${imgHtml}${placeholder}
+        <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${a.id}">
+          ${isFav ? '⭐' : '☆'}
+        </button>
         <div class="card-body">
           <div class="card-title">${a.nome}</div>
           <div class="card-meta">
@@ -56,6 +72,26 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="card-badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;">${a.temporadas} Temporada(s)</span>
         </div>
       `;
+      
+      const favBtn = card.querySelector('.card-fav-btn');
+      favBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(a.id, 'anime', { title: a.nome, cover: a.capa });
+          if (res.action === 'added') {
+            favBtn.classList.add('active');
+            favBtn.textContent = '⭐';
+            showToast(`"${a.nome}" adicionado aos favoritos!`);
+          } else {
+            favBtn.classList.remove('active');
+            favBtn.textContent = '☆';
+            showToast(`"${a.nome}" removido dos favoritos.`);
+          }
+        } catch (err) {
+          showToast('Faça login para favoritar!', 'error');
+        }
+      };
+
       card.addEventListener('click', () => openDetailModal(a));
       grid.appendChild(card);
     });

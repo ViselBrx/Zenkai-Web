@@ -1,49 +1,31 @@
 /**
- * js/auth.js — Configuração e Lógica do Supabase
- * ==============================================
- * Aqui você deve colar a URL e a ANON KEY do seu projeto Supabase.
+ * js/auth.js — Configuração e Lógica do Supabase (LIMPO E ORGANIZADO)
  */
 
-// 1. CREDENCIAIS: As credenciais agora vêm do servidor pelo window.ENV (configurado no Render ou .env)
+// 1. CREDENCIAIS
 const SUPABASE_URL = window.ENV?.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co';
 const SUPABASE_ANON_KEY = window.ENV?.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
-// ⚠️ ATENÇÃO: No Render, cole APENAS a CHAVE ANON (PÚBLICA) da sua API no SUPABASE_ANON_KEY! Não cole a secret baseada em "service_role".
 
-// 2. Inicializa o cliente do Supabase
+// 2. Inicializa o cliente
 let supaClient;
-let previousSessionId = null; // Track para evitar reload infinito
+let previousSessionId = null;
 
 if (window.supabase) {
     try {
         supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        window.supabaseClient = supaClient; // Expondo para o db.js
-        console.log("Supabase inicializado com sucesso.");
-
-        // Listener APENAS para detectar mudanças REAIS de autenticação
-        // e recarregar a página quando há uma alternância de usuário
+        window.supabaseClient = supaClient;
+        
         supaClient.auth.onAuthStateChange((event, session) => {
             const currentSessionId = session?.user?.id || null;
-
-            // Só recarrega se a sessão MUDOU (ex: outro usuário logou)
-            // Não recarrega na primeira inicialização ou no reload anterior
             if (previousSessionId !== null && previousSessionId !== currentSessionId) {
-                console.log("Detectada mudança de sessão, recarregando...");
                 window.location.reload();
             }
-
             previousSessionId = currentSessionId;
         });
-    } catch (e) {
-        console.error("Erro ao criar cliente Supabase:", e);
-    }
-} else {
-    console.error("Erro: Biblioteca Supabase não encontrada! Verifique o link do CDN no HTML.");
+    } catch (e) { console.error("Erro Supabase:", e); }
 }
 
-// 3. [Removido] Usamos a função global showToast do db.js com Neon.
-
-
-// 4. Lógica de Login
+// 3. Lógica de Login
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
@@ -53,64 +35,38 @@ if (loginForm) {
         const errorDiv = document.getElementById('loginError');
         const submitBtn = loginForm.querySelector('button[type="submit"]');
 
-        if (SUPABASE_URL === 'COLE_AQUI_SUA_URL_DO_SUPABASE') {
-            errorDiv.textContent = "Erro: Configuração do Supabase ausente. Preencha auth.js.";
-            errorDiv.style.display = 'block';
-            return;
-        }
-
         submitBtn.disabled = true;
         submitBtn.textContent = 'Entrando...';
         errorDiv.style.display = 'none';
 
         try {
-            console.log("Tentando login com:", email);
-            const { data, error } = await supaClient.auth.signInWithPassword({
-                email,
-                password
-            });
-
+            const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
             if (error) {
-                console.error("Erro no login:", error);
-
-                // Verifica se o erro é sobre email não confirmado
-                if (error.message && error.message.includes('Email not confirmed')) {
-                    errorDiv.textContent = "⚠️ Email não confirmado. Verifique seu email para um link de confirmação e tente novamente.";
-                } else {
-                    errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
-                }
-
+                errorDiv.textContent = "Erro: " + (error.message === 'Invalid login credentials' ? 'Email ou senha incorretos.' : error.message);
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Entrar no Painel';
                 return;
             }
 
-            console.log("Login realizado:", data);
-
-            // Verifica se o email foi confirmado
             if (data.user && !data.user.email_confirmed_at) {
-                errorDiv.textContent = "⚠️ Email ainda não confirmado. Verifique seu email para o link de confirmação.";
+                errorDiv.textContent = "⚠️ Confirme seu email antes de entrar.";
                 errorDiv.style.display = 'block';
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Entrar no Painel';
+                submitBtn.textContent = 'Entrar';
                 return;
             }
 
-            // Login bem-sucedido! Redireciona direto
-            console.log("Redirecionando para index.html...");
             window.location.href = 'index.html';
         } catch (err) {
-            console.error("Erro inesperado no login:", err);
-            errorDiv.textContent = "Erro inesperado: " + (err.message || 'Tente novamente');
+            errorDiv.textContent = "Erro inesperado.";
             errorDiv.style.display = 'block';
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Entrar no Painel';
         }
     });
 }
 
-// 5. Lógica de Registro
+// 4. Lógica de Registro
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
@@ -122,12 +78,6 @@ if (registerForm) {
         const successDiv = document.getElementById('registerSuccess');
         const submitBtn = registerForm.querySelector('button[type="submit"]');
 
-        if (SUPABASE_URL === 'COLE_AQUI_SUA_URL_DO_SUPABASE') {
-            errorDiv.textContent = "Erro: Configuração do Supabase ausente. Preencha auth.js.";
-            errorDiv.style.display = 'block';
-            return;
-        }
-
         if (password !== confirmPassword) {
             errorDiv.textContent = "As senhas não coincidem.";
             errorDiv.style.display = 'block';
@@ -136,239 +86,221 @@ if (registerForm) {
 
         submitBtn.disabled = true;
         submitBtn.textContent = 'Registrando...';
-        errorDiv.style.display = 'none';
 
-        console.log("Tentando registro com:", email);
-        const { data, error } = await supaClient.auth.signUp({
-            email,
-            password
-        });
-
+        const { data, error } = await supaClient.auth.signUp({ email, password });
         if (error) {
-            console.error("Erro no registro:", error);
-            errorDiv.textContent = "Erro ao registrar: " + error.message;
+            errorDiv.textContent = error.message;
             errorDiv.style.display = 'block';
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Criar Conta';
         } else {
-            console.log("Registro realizado:", data);
-
-            // Mostra mensagem pedindo confirmação de email
-            if (successDiv) {
-                successDiv.innerHTML = `
-                    <div style="color: var(--success); background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--success); text-align: center;">
-                        ✅ Conta criada com sucesso!<br>
-                        <small>Verifique seu email para confirmar a conta. Depois você poderá fazer login.</small>
-                    </div>
-                `;
-            }
-
-            if (successDiv) successDiv.style.display = 'block';
+            successDiv.style.display = 'block';
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Criar Conta';
-
-            // Mostra seção de reenviar email
-            const resendSection = document.getElementById('resendEmailSection');
-            const resendEmailInput = document.getElementById('resendEmail');
-            if (resendSection && resendEmailInput) {
-                resendEmailInput.value = email; // Preenche com o email do cadastro
-                resendSection.style.display = 'block';
-            }
-
-            // NÃO redireciona automaticamente para dar chance de reenviar
         }
     });
 }
 
-// 6. Lógica Global: Mudar Botoes da Navbar / Proteção de Rota
-async function checkAuthStatus() {
-    if (!supaClient) return;
-
-    const { data: { session } } = await supaClient.auth.getSession();
-    const currentPage = window.location.pathname.split('/').pop();
-
-    // Rotas protegidas (apenas logados)
-    const protectedRoutes = ['cadastro.html', 'cadastro-animes.html', 'cadastro-filmes.html', 'cadastro-desenhos.html'];
-
-    if (protectedRoutes.includes(currentPage)) {
-        if (!session) {
-            // Não tá logado! Manda pro login
-            window.location.href = 'login.html';
-            return;
-        }
+// 5. Banners e Cosméticos
+window.loadBanners = async function() {
+    window.BANNER_MAP = {}; 
+    
+    if (window.supabaseClient) {
+        try {
+            console.log("🛰️ Sincronizando com Storage do Supabase...");
+            const { data: supaBanners } = await window.supabaseClient.from('store_banners').select('id, image_url');
+            
+            if (supaBanners) {
+                supaBanners.forEach(b => {
+                    if (b.image_url) {
+                        const cleanId = b.id.trim();
+                        window.BANNER_MAP[cleanId] = b.image_url;
+                        
+                        // Mapeamentos Inteligentes (Garante compatibilidade com a Loja)
+                        if (cleanId.includes('guts')) window.BANNER_MAP['banner_berserk'] = b.image_url;
+                        if (cleanId.includes('aurora')) window.BANNER_MAP['banner_claro'] = b.image_url;
+                        if (cleanId.includes('shiganshina')) window.BANNER_MAP['banner_aot'] = b.image_url;
+                        if (cleanId.includes('vinland')) window.BANNER_MAP['banner_vinland'] = b.image_url;
+                        
+                        // Se o usuário subir com extensão, mapeia também
+                        const idNoExt = cleanId.replace(/\.[^/.]+$/, "");
+                        window.BANNER_MAP[idNoExt] = b.image_url;
+                    }
+                });
+            }
+            updateNavbarCosmetics();
+        } catch (err) { console.error("❌ Erro Banners:", err); }
     }
+};
 
-    // Rotas de Auth (não acessíveis se já tiver logado)
-    const authRoutes = ['login.html', 'registro.html'];
-    if (authRoutes.includes(currentPage) && session) {
-        window.location.href = 'index.html';
+window.updateNavbarCosmetics = function() {
+    const bannerBg = document.querySelector('.user-nav-banner-bg');
+    const titleEl = document.querySelector('.user-nav-title');
+    const avatarBox = document.querySelector('.user-nav-avatar-box');
+    const navAvatar = document.getElementById('navAvatar');
+
+    // Se o elemento ainda não existe (navbar carregando), tenta novamente em 100ms
+    if (!bannerBg) {
+        setTimeout(updateNavbarCosmetics, 100);
         return;
     }
 
-    // Ocultar botões de login na home se estiver logado
-    if (currentPage === 'index.html' || currentPage === '') {
-        const bannerActions = document.getElementById('homeBannerActions');
-        if (bannerActions && session) {
-            bannerActions.style.display = 'none';
+    const savedBanner = localStorage.getItem('animehouse_customBanner') || 'none';
+    const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
+    const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
+    const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+
+    // 📸 LÓGICA DE BANNER
+    if (savedBanner !== 'none' && window.BANNER_MAP) {
+        const url = window.BANNER_MAP[savedBanner];
+        if (url) {
+            console.log(`🖼️ Aplicando banner: ${savedBanner} -> ${url}`);
+            bannerBg.style.backgroundImage = `url('${url}')`;
+            bannerBg.style.display = 'block';
+            bannerBg.style.opacity = '1';
+        } else {
+            console.warn(`⚠️ Link do banner '${savedBanner}' não encontrado no BANNER_MAP.`);
+            bannerBg.style.display = 'none';
         }
+    } else {
+        bannerBg.style.display = 'none';
     }
 
-    // Nova lógica: Injetar botão de Auth FIXO na navbar
-    const nav = document.querySelector('.navbar');
-    const links = document.querySelector('.navbar-links');
+    // 🎓 TÍTULO
+    if (titleEl) {
+        titleEl.textContent = savedTitle;
+        titleEl.style.display = savedTitle ? 'block' : 'none';
+    }
 
-    if (links && !session) {
-        // Usuário não logado, remove links de administração do menu sanduíche
-        const adminLinks = Array.from(links.querySelectorAll('a')).filter(a => a.href.includes('cadastro.html') || a.href.includes('cadastro-animes.html'));
-        adminLinks.forEach(a => {
-            if (a.parentElement.tagName === 'LI') a.parentElement.remove();
-            else a.remove();
-        });
+    // ✨ AURA
+    avatarBox.className = 'user-nav-avatar-box';
+    if (savedAura !== 'none') {
+        avatarBox.classList.add(savedAura);
+        if (navAvatar) navAvatar.style.border = 'none';
+    } else {
+        if (navAvatar) navAvatar.style.border = '2px solid var(--primary)';
+    }
+
+    // 👑 COROA
+    const existingCrown = avatarBox.querySelector('.crown-nav');
+    if (existingCrown) existingCrown.remove();
+    if (savedCrown) {
+        const crown = document.createElement('div');
+        crown.className = 'crown-nav';
+        crown.innerHTML = '👑';
+        crown.style.cssText = 'position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(10deg); font-size: 1.3rem; z-index: 10; text-shadow: 0 0 8px gold;';
+        avatarBox.appendChild(crown);
+    }
+
+    // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
+    if (window.location.href.includes('perfil.html') && savedBanner !== 'none') {
+        const sidebar = document.querySelector('.history-sidebar') || document.querySelector('.profile-sidebar');
+        const bannerUrl = window.BANNER_MAP ? window.BANNER_MAP[savedBanner] : null;
+
+        if (sidebar && bannerUrl) {
+            console.log("📌 Aplicando banner no Histórico...");
+            sidebar.style.position = 'relative';
+            sidebar.style.overflow = 'hidden';
+            sidebar.style.zIndex = '1';
+            
+            let bgOverlay = sidebar.querySelector('.sidebar-banner-overlay');
+            if (!bgOverlay) {
+                bgOverlay = document.createElement('div');
+                bgOverlay.className = 'sidebar-banner-overlay';
+                bgOverlay.style.cssText = 'position:absolute; inset:0; z-index:-1; transition:0.5s; pointer-events:none;';
+                sidebar.prepend(bgOverlay);
+            }
+            
+            bgOverlay.style.backgroundImage = `linear-gradient(rgba(10, 25, 47, 0.6), rgba(10, 25, 47, 0.9)), url('${bannerUrl}')`;
+            bgOverlay.style.backgroundSize = 'cover';
+            bgOverlay.style.backgroundPosition = 'center';
+            bgOverlay.style.opacity = '0.65'; // Opacidade alta como solicitado
+        }
+    }
+};
+
+window.addEventListener('profileUpdated', (event) => {
+    const detail = event?.detail || {};
+    const navAvatar = document.getElementById('navAvatar');
+    const nextAvatar = String(detail.avatarUrl || detail.avatar_url || '').trim();
+
+    if (navAvatar && nextAvatar) {
+        navAvatar.src = nextAvatar;
+    }
+
+    if (typeof window.updateNavbarCosmetics === 'function') {
+        window.updateNavbarCosmetics();
+    }
+});
+
+window.addEventListener('storage', () => {
+    if (typeof window.updateNavbarCosmetics === 'function') {
+        window.updateNavbarCosmetics();
+    }
+});
+
+// 6. Auth Status & Navbar Injection
+window.checkAuthStatus = async function() {
+    if (!supaClient) return;
+    const { data: { session } } = await supaClient.auth.getSession();
+    const currentPage = window.location.pathname.split('/').pop();
+    const nav = document.querySelector('.navbar');
+
+    // Ocultar botões de login na home se estiver logado
+    if ((currentPage === 'index.html' || currentPage === '') && session) {
+        const bannerActions = document.querySelector('.hero-buttons') || document.getElementById('homeBannerActions');
+        if (bannerActions) {
+            const level = localStorage.getItem('animehouse_userLevel') || '1';
+            const rank = localStorage.getItem('animehouse_userRank') || 'Novato';
+            
+            bannerActions.innerHTML = `
+                <div id="homeUserStatus" style="display: flex; align-items: center; justify-content: center; margin-top: 15px; animation: fadeIn 1.2s ease;">
+                    <div style="display: flex; align-items: center; background: rgba(var(--primary-rgb), 0.15); padding: 6px 20px; border-radius: 50px; border: 1px solid var(--primary); box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4); backdrop-filter: blur(8px);">
+                        <span style="color: var(--primary); font-weight: 900; font-size: 0.85rem; margin-right: 12px; font-family: 'Fredoka', sans-serif; letter-spacing: 1px; text-transform: uppercase;">LVL ${level}</span>
+                        <span style="color: #fff; font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--primary);">
+                            ${rank}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     if (nav) {
-        const existingContainer = document.getElementById('globalAuthContainer');
-        if (existingContainer) existingContainer.remove();
+        const existing = document.getElementById('globalAuthContainer');
+        if (existing) existing.remove();
 
         const authContainer = document.createElement('div');
         authContainer.id = 'globalAuthContainer';
-
-        // Estilo: Compacto no canto
-        authContainer.style.cssText = 'display: flex; gap: 10px; margin-left: auto; margin-right: 5px; align-items: center; z-index: 2000;';
+        authContainer.style.cssText = 'display: flex; gap: 10px; margin-left: auto; align-items: center; z-index: 2000;';
 
         if (session) {
-            // Busca dados do perfil (Avatar)
-            const { data: profile } = await supaClient
-                .from('profiles')
-                .select('avatar_url, username')
-                .eq('id', session.user.id)
-                .single();
-
+            const { data: profile } = await supaClient.from('profiles').select('avatar_url').eq('id', session.user.id).single();
             const avatarUrl = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-
-            const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
-            const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
-            const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
-            const cachedLvl = parseInt(localStorage.getItem('animehouse_userLevel') || '0');
-            const isVip = cachedLvl >= 50;
-            const auraClass = savedAura !== 'none' ? `class="${savedAura}"` : '';
-
+            
             authContainer.innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin-right: 15px;">
-                    <a href="perfil.html" title="Meu Perfil" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
-                        ${isVip && savedTitle ? `<span style="font-size:1.1rem; color:var(--primary); font-family:'Bangers', cursive; letter-spacing:1px; text-transform: uppercase; text-shadow: 0 0 8px rgba(var(--primary-rgb),0.5);">${savedTitle}</span>` : ''}
-                        
-                        <div style="position: relative; display: flex; align-items: center; justify-content: center;">
-                           ${isVip && savedCrown ? `<div style="position: absolute; top: -22px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 1.4rem; z-index: 10; text-shadow: 0 0 10px gold; pointer-events: none;">👑</div>` : ''}
-                           <img id="navAvatar" ${isVip ? auraClass : ''} src="${avatarUrl}" alt="Perfil" style="width:50px; height:50px; border-radius:50%; border:2px solid var(--primary); object-fit:cover; transition: transform 0.3s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                <a href="perfil.html" class="user-nav-link" style="text-decoration: none;">
+                    <div class="user-nav-container">
+                        <div class="user-nav-banner-bg"></div>
+                        <span class="user-nav-title"></span>
+                        <div class="user-nav-avatar-box">
+                           <img id="navAvatar" src="${avatarUrl}" alt="Perfil" style="width:100%; height:100%; border-radius:50%; object-fit:cover; z-index: 5;">
                         </div>
-                    </a>
-                </div>
+                    </div>
+                </a>
             `;
-
-            // Lógica para sincronizar LVL e Rank do perfil no index
-            setTimeout(() => {
-                const cachedLevel = localStorage.getItem('animehouse_userLevel') || 1;
-                const cachedRank = localStorage.getItem('animehouse_userRank') || 'Novato';
-
-                const badge = document.getElementById('navLevelBadge');
-                if (badge) {
-                    badge.textContent = `LVL ${cachedLevel}`;
-                    badge.style.display = 'block';
-                }
-
-                // Home Banner Status (se existir no index.html)
-                const homeStatus = document.getElementById('homeUserStatus');
-                if (homeStatus) {
-                    homeStatus.style.display = 'block';
-                    const hRank = document.getElementById('homeUserRank');
-                    const hLvl = document.getElementById('homeUserLevel');
-                    
-                    if (hRank) hRank.textContent = cachedRank;
-                    if (hLvl) hLvl.textContent = `LVL ${cachedLevel}`;
-                }
-            }, 300);
+            nav.appendChild(authContainer);
+            if (!window.BANNER_MAP) await loadBanners();
+            else updateNavbarCosmetics();
         } else {
-            if (!authRoutes.includes(currentPage)) {
-                // Visitantes que não estão logados veem apenas o botão de Login
-                authContainer.innerHTML = `
-                    <a href="login.html" class="btn btn-ghost btn-sm" style="padding: 6px 12px; font-size: 0.8rem; border-color: var(--primary); color: var(--primary);">👤 Entrar</a>
-                `;
-            }
+            authContainer.innerHTML = `<a href="login.html" class="btn btn-primary btn-sm">👤 Entrar</a>`;
+            nav.appendChild(authContainer);
         }
-
-        // Coloca no final absoluto da navbar para ficar no "canto"
-        nav.appendChild(authContainer);
     }
-}
 
-// Escuta a navbar ser gerada no themes.js e logo em seguida roda auth
+    // Proteção de rotas
+    const protected = ['cadastro.html', 'cadastro-animes.html'];
+    if (protected.includes(currentPage) && !session) window.location.href = 'login.html';
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Pequeno delay pra dar tempo do themes.js injetar os links na navbar
-    setTimeout(checkAuthStatus, 100);
-
-    // 7. Lógica de Reenviar Email de Confirmação
-    const resendBtn = document.getElementById('resendBtn');
-    if (resendBtn) {
-        resendBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('resendEmail').value;
-            const errorDiv = document.getElementById('registerError');
-
-            if (!email) {
-                errorDiv.textContent = "⚠️ Por favor, digite um email válido.";
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            resendBtn.disabled = true;
-            resendBtn.textContent = '⏳ Reenviando...';
-            errorDiv.style.display = 'none';
-
-            try {
-                const { error } = await supaClient.auth.resend({
-                    type: 'signup',
-                    email: email
-                });
-
-                if (error) {
-                    console.error("Erro ao reenviar:", error);
-                    errorDiv.textContent = "❌ Erro ao reenviar: " + (error.message || "Tente novamente mais tarde.");
-                    errorDiv.style.display = 'block';
-                    resendBtn.disabled = false;
-                    resendBtn.textContent = '📧 Reenviar Email de Confirmação';
-                } else {
-                    // Sucesso!
-                    const successDiv = document.getElementById('registerSuccess');
-                    if (successDiv) {
-                        successDiv.innerHTML = `
-                            <div style="color: var(--success); background: rgba(34, 197, 94, 0.1); padding: 12px; border-radius: 8px; border: 1px solid var(--success); text-align: center;">
-                                ✅ Email de confirmação reenviado com sucesso!<br>
-                                <small>Verifique sua caixa de entrada (e pasta SPAM) em: <strong>${email}</strong></small>
-                            </div>
-                        `;
-                        successDiv.style.display = 'block';
-                    }
-
-                    resendBtn.disabled = false;
-                    resendBtn.textContent = '📧 Reenviar Email de Confirmação';
-
-                    // Remove a seção de reenvio após 5 segundos
-                    setTimeout(() => {
-                        const resendSection = document.getElementById('resendEmailSection');
-                        if (resendSection) {
-                            resendSection.style.opacity = '0.5';
-                            resendSection.style.pointerEvents = 'none';
-                        }
-                    }, 5000);
-                }
-            } catch (err) {
-                console.error("Erro inesperado:", err);
-                errorDiv.textContent = "❌ Erro inesperado. Tente novamente.";
-                errorDiv.style.display = 'block';
-                resendBtn.disabled = false;
-                resendBtn.textContent = '📧 Reenviar Email de Confirmação';
-            }
-        });
-    }
+    setTimeout(() => { window.checkAuthStatus(); }, 150);
 });

@@ -957,8 +957,42 @@ const DB = {
         .upsert({ key_name: 'aiConfig', config_data: payload }, { onConflict: 'key_name' });
       if (error) throw new Error(error.message);
       _store.aiConfig = payload; 
+  },
+
+  /* Favoritos Categorizados */
+  async getFavorites(contentType = null) {
+      const supa = getSupa();
+      const userId = await getCurrentUserId();
+      if (!userId) return [];
+      let query = supa.from('user_favorites').select('*').eq('user_id', userId);
+      if (contentType) query = query.eq('content_type', contentType);
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) { console.error(error); return []; }
+      return data || [];
+  },
+
+  async toggleFavorite(contentId, contentType, metadata = {}) {
+      const supa = getSupa();
+      const userId = await getRequiredUserId();
+      const { data: existing } = await supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId).single();
+      if (existing) {
+          await supa.from('user_favorites').delete().eq('id', existing.id);
+          return { action: 'removed' };
+      } else {
+          await supa.from('user_favorites').insert([{ user_id: userId, content_id: contentId, content_type: contentType, metadata: metadata, created_at: new Date().toISOString() }]);
+          return { action: 'added' };
+      }
+  },
+
+  async isFavorite(contentId) {
+      const supa = getSupa();
+      const userId = await getCurrentUserId();
+      if (!userId) return false;
+      const { data } = await supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId).single();
+      return !!data;
   }
 };
+
 
 /* Globals */
 function fileToBase64(file) {

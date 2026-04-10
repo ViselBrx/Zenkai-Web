@@ -340,6 +340,53 @@
       display: inline-block;
     }
 
+    /* Inventory Section Styles */
+    .inventory-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(var(--primary-rgb), 0.2);
+    }
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .inventory-item {
+      background: rgba(var(--bg-card-rgb, 10, 20, 40), 0.4);
+      border: 1px solid rgba(var(--primary-rgb), 0.15);
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    .inventory-item.equipped {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+      background: rgba(var(--primary-rgb), 0.1);
+    }
+    .inv-icon { font-size: 2.5rem; }
+    .inv-name { font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+    .inv-type { font-size: 0.65rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+    
+    .equip-btn {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-equip { background: rgba(var(--primary-rgb), 0.2); color: var(--primary); border: 1px solid var(--primary); }
+    .btn-equip:hover { background: var(--primary); color: #000; }
+    .btn-unequip { background: var(--danger); color: #fff; }
+
     @media (max-width: 980px) {
       .profile-layout {
         grid-template-columns: 1fr;
@@ -351,6 +398,7 @@
         max-height: none;
         overflow: visible;
       }
+      .dashboard-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 560px) {
@@ -700,7 +748,88 @@
       to   { transform: var(--tx, translate(80px,-120px)) scale(0); opacity: 0; }
     }
 
-    /* ===== VIP LOCKED PREVIEW ===== */
+    /* Favorites Section */
+    .favorites-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(var(--primary-rgb), 0.2);
+    }
+    .favorites-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+      scrollbar-width: none;
+    }
+    .favorites-tabs::-webkit-scrollbar { display: none; }
+    .fav-tab {
+      padding: 8px 18px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      border-radius: 50px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: 0.3s;
+    }
+    .fav-tab.active {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+    }
+    .fav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 15px;
+    }
+    .fav-card {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 2/3;
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      transition: 0.3s;
+    }
+    .fav-card:hover { 
+      transform: translateY(-5px) scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .fav-card img { width: 100%; height: 100%; object-fit: cover; }
+    .fav-card-info {
+      position: absolute;
+      bottom: 0; inset-inline: 0;
+      padding: 10px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.9));
+      color: #fff;
+    }
+    .fav-card-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fav-card-remove {
+      position: absolute;
+      top: 5px; right: 5px;
+      background: rgba(255,0,0,0.7);
+      color: #fff;
+      border: none;
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.7rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: 0.2s;
+    }
+    .fav-card-remove:hover { background: red; transform: scale(1.1); }
     .vip-locked-section {
       margin-top: 15px;
       padding-top: 15px;
@@ -823,10 +952,10 @@
         <p>Nenhum item no seu histórico ainda.</p>
       </div>
 
-      <div class="sidebar-footer" style="padding-top: 25px; margin-top: auto; display: flex; align-items: center; gap: 15px;">
-        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px;">
-           <div id="sidebarCrown" style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 2rem; z-index: 10; text-shadow: 0 0 12px gold; pointer-events: none; display: none;">👑</div>
-           <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform 0.3s;" alt="Avatar" />
+      <div class="sidebar-footer" style="padding: 25px 15px; margin-top: auto; display: flex; align-items: center; gap: 15px;">
+        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 85px; height: 85px; padding: 10px;">
+           <div id="sidebarCrown" style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 2.2rem; z-index: 10; text-shadow: 0 0 12px gold; pointer-events: none; display: none;">👑</div>
+           <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform 0.3s; z-index: 5;" alt="Avatar" />
         </div>
         <div class="profile-identity" style="flex: 1; padding-top: 10px;">
           <strong id="displayUsername" style="display:flex; flex-direction:column;">
@@ -867,8 +996,24 @@
         </div>
       </form>
 
-      <a class="back-link" href="index.html">&larr; Voltar ao Início</a>
-      
+      <a class="back-link" href="index.html" style="display: inline-block; margin-bottom: 20px;">&larr; Voltar ao Início</a>
+
+      <!-- 🎌 CENTRAL DE CUSTOMIZAÇÃO (Lista Específica) -->
+      <div class="inventory-section" id="inventorySection" style="margin-top: 30px; border-top: 2px solid rgba(var(--primary-rgb), 0.3); padding-top: 25px; margin-bottom: 25px;">
+        <div class="main-head">
+          <h2 style="color: var(--primary); font-family: 'Bangers'; font-size: 1.8rem; margin-bottom: 5px;">🎌 Meus <span>Especiais</span></h2>
+          <p style="font-size: 0.9rem; margin-bottom: 20px;">Personalize seu visual com os itens que você conquistou.</p>
+        </div>
+
+        <div id="noItemsNote" style="text-align:center; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 12px; display:none;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Você ainda não possui itens específicos. <br> <a href="loja.html" style="color:var(--primary); font-weight:bold;">Visite a SenseiMod Store!</a></p>
+        </div>
+
+        <div class="inventory-grid" id="profileInventory">
+          <!-- Injetado via JS -->
+        </div>
+      </div>
+
       <!-- DASHBOARD DE ESTATÍSTICAS -->
       <section class="profile-dashboard">
         <div class="main-head">
@@ -927,12 +1072,6 @@
                <h4 style="color:var(--primary); font-family: 'Bangers'; font-size: 1.2rem; margin-bottom: 10px;">👑 Benefícios Honórios</h4>
                
                <div style="margin-bottom: 10px; opacity: 0.5; pointer-events: none;" id="vipPerksContent">
-                  <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Meu Título de Sensei:</label>
-                  <div style="display: flex; gap: 8px;">
-                     <input type="text" id="customTitleInput" placeholder="Ex: Mestre Jedi" style="flex:1; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 0.8rem;">
-                     <button type="button" id="saveCustomTitleBtn" class="btn btn-primary" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">Salvar</button>
-                  </div>
-
                   <div style="margin-top: 10px;">
                      <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Aura Mística (Borda):</label>
                      <select id="auraSelector" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 0.8rem;">
@@ -945,7 +1084,7 @@
 
                   <label style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;">
                      <input type="checkbox" id="crownToggle" style="width: 16px; height: 16px; accent-color: var(--primary);">
-                     <span style="font-family:'Bangers'; color: gold; letter-spacing:1px;">EQUIPAR COROA SUPREMA 👑</span>
+                     <span style="font-family:'Bangers'; color: gold; letter-spacing:1px;">EQUIPAR COROA SUPREMA <span id="crownIconDisplay">👑</span></span>
                      <span id="crownLockText" style="font-size: 0.65rem; color: var(--danger); display:none;">(Desbloqueia no LVL 50)</span>
                   </label>
                </div>
@@ -1176,6 +1315,78 @@
     let historyItems = [];
     let historyEventsBound = false;
     let renameTargetItemId = null;
+    let profileInitAttempts = 0;
+    let profileInitStarted = false;
+    let liveProfileFallbackName = 'Usuario';
+    const defaultProfileAvatar = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+
+    function showProfileLoadError(message) {
+      const msg = String(message || 'Nao foi possivel carregar seu perfil agora.');
+      if (historySourceNote) {
+        historySourceNote.textContent = msg;
+        historySourceNote.style.display = 'block';
+      }
+      if (historyEmpty) {
+        historyEmpty.style.display = 'block';
+      }
+      const globalText = document.getElementById('globalStatsText');
+      if (globalText) {
+        globalText.textContent = msg;
+      }
+    }
+
+    function syncLiveProfileUI(overrides = {}) {
+      const usernameInput = document.getElementById('username');
+      const avatarUrlInput = document.getElementById('avatarUrl');
+      const displayUsernameEl = document.getElementById('displayUsername');
+      const displayNameTextEl = displayUsernameEl?.querySelector('span');
+      const displayAvatarEl = document.getElementById('displayAvatar');
+      const displayCustomTitleEl = document.getElementById('displayCustomTitle');
+      const sidebarCrownEl = document.getElementById('sidebarCrown');
+
+      const nextName = String(overrides.username ?? usernameInput?.value ?? '').trim() || liveProfileFallbackName;
+      const nextAvatar = String(overrides.avatarUrl ?? avatarUrlInput?.value ?? '').trim() || defaultProfileAvatar;
+      const nextTitle = String(overrides.customTitle ?? localStorage.getItem('animehouse_customTitle') ?? '').trim();
+      const showCrown = typeof overrides.showCrown === 'boolean'
+        ? overrides.showCrown
+        : localStorage.getItem('animehouse_showCrown') === 'true';
+      const crownIcon = localStorage.getItem('animehouse_customCrownIcon') || '👑';
+
+      if (displayNameTextEl) displayNameTextEl.textContent = nextName;
+      else if (displayUsernameEl) displayUsernameEl.textContent = nextName;
+      if (displayAvatarEl) displayAvatarEl.src = nextAvatar;
+      if (displayCustomTitleEl) displayCustomTitleEl.textContent = nextTitle;
+      
+      if (sidebarCrownEl) {
+        sidebarCrownEl.style.display = showCrown ? 'block' : 'none';
+        sidebarCrownEl.textContent = crownIcon;
+      }
+      
+      const crownIconDisplay = document.getElementById('crownIconDisplay');
+      if (crownIconDisplay) crownIconDisplay.textContent = crownIcon;
+
+      const navAvatar = document.getElementById('navAvatar');
+      if (navAvatar) navAvatar.src = nextAvatar;
+
+      if (typeof window.updateNavbarCosmetics === 'function') {
+        window.updateNavbarCosmetics();
+      }
+    }
+
+    function emitProfileUpdated(detail = {}) {
+      const usernameInput = document.getElementById('username');
+      const avatarUrlInput = document.getElementById('avatarUrl');
+      window.dispatchEvent(new CustomEvent('profileUpdated', {
+        detail: {
+          username: String(detail.username ?? usernameInput?.value ?? '').trim() || liveProfileFallbackName,
+          avatarUrl: String(detail.avatarUrl ?? avatarUrlInput?.value ?? '').trim() || defaultProfileAvatar,
+          customTitle: String(detail.customTitle ?? localStorage.getItem('animehouse_customTitle') ?? '').trim(),
+          showCrown: typeof detail.showCrown === 'boolean'
+            ? detail.showCrown
+            : localStorage.getItem('animehouse_showCrown') === 'true'
+        }
+      }));
+    }
 
     function escapeHtml(value) {
       return String(value || '')
@@ -1338,7 +1549,7 @@
       return historyItems.find(item => String(item.id) === String(itemId)) || null;
     }
 
-    async function refreshHistory() {
+    let refreshHistory = async () => {
       if (typeof HistoryTracker === 'undefined') {
         historyItems = [];
         renderHistory();
@@ -1518,14 +1729,35 @@
     }
 
     const checkClient = setInterval(async () => {
-      if (window.supabaseClient) {
+      profileInitAttempts += 1;
+
+      if (window.supabaseClient && !profileInitStarted) {
         clearInterval(checkClient);
+        profileInitStarted = true;
         await initProfile();
+        return;
+      }
+
+      if (profileInitAttempts >= 100) {
+        clearInterval(checkClient);
+        showProfileLoadError('Nao foi possivel iniciar o cliente do perfil. Recarregue a pagina e confirme se o Supabase foi carregado.');
       }
     }, 100);
 
     async function initProfile() {
+      try {
       const supabase = window.supabaseClient;
+      const usernameInputEl = document.getElementById('username');
+      const avatarUrlInputEl = document.getElementById('avatarUrl');
+      const avatarFileInputEl = document.getElementById('avatarFile');
+      const displayUsernameEl = document.getElementById('displayUsername');
+      const displayNameTextEl = displayUsernameEl?.querySelector('span');
+      const displayAvatarEl = document.getElementById('displayAvatar');
+      const displayEmailEl = document.getElementById('displayEmail');
+      const displayCustomTitleEl = document.getElementById('displayCustomTitle');
+      const sidebarCrownEl = document.getElementById('sidebarCrown');
+      const savedCustomTitle = localStorage.getItem('animehouse_customTitle') || '';
+      const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -1540,19 +1772,28 @@
         .single();
 
       const fallbackName = user.email ? user.email.split('@')[0] : 'Usuário';
+      liveProfileFallbackName = fallbackName;
       const usernameValue = profile?.username || fallbackName;
-      const avatarValue = profile?.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+      const avatarValue = profile?.avatar_url || defaultProfileAvatar;
 
-      document.getElementById('username').value = usernameValue;
-      document.getElementById('avatarUrl').value = profile?.avatar_url || '';
-      document.getElementById('displayUsername').textContent = usernameValue;
-      document.getElementById('displayAvatar').src = avatarValue;
-      document.getElementById('displayEmail').textContent = user.email || '';
-
+      usernameInputEl.value = usernameValue;
+      avatarUrlInputEl.value = profile?.avatar_url || '';
+      syncLiveProfileUI({ username: usernameValue, avatarUrl: avatarValue });
+      if (displayEmailEl) displayEmailEl.textContent = user.email || '';
       bindHistoryEvents();
       await refreshHistory();
 
-      document.getElementById('avatarFile').onchange = async (e) => {
+      usernameInputEl.addEventListener('input', () => {
+        syncLiveProfileUI({ username: usernameInputEl.value });
+        emitProfileUpdated({ username: usernameInputEl.value });
+      });
+
+      avatarUrlInputEl.addEventListener('change', () => {
+        syncLiveProfileUI({ avatarUrl: avatarUrlInputEl.value });
+        emitProfileUpdated({ avatarUrl: avatarUrlInputEl.value });
+      });
+
+      avatarFileInputEl.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -1574,15 +1815,16 @@
           .from('avatars')
           .getPublicUrl(fileName);
 
-        document.getElementById('avatarUrl').value = publicUrl;
-        document.getElementById('displayAvatar').src = publicUrl;
+        avatarUrlInputEl.value = publicUrl;
+        syncLiveProfileUI({ avatarUrl: publicUrl });
+        emitProfileUpdated({ avatarUrl: publicUrl });
         showToast('Imagem cadastrada com sucesso.', 'success', 7000);
       };
 
       document.getElementById('profileForm').onsubmit = async (e) => {
         e.preventDefault();
-        const username = document.getElementById('username').value;
-        const avatar_url = document.getElementById('avatarUrl').value;
+        const username = usernameInputEl.value;
+        const avatar_url = avatarUrlInputEl.value;
 
         const { error: updateError } = await supabase
           .from('profiles')
@@ -1597,8 +1839,14 @@
           showToast('Erro ao salvar: ' + updateError.message, 'error', 7000);
         } else {
           showToast('Perfil atualizado com sucesso.', 'success', 7000);
-          document.getElementById('displayUsername').textContent = username || fallbackName;
-          document.getElementById('displayAvatar').src = avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+          syncLiveProfileUI({
+            username: username || fallbackName,
+            avatarUrl: avatar_url || defaultProfileAvatar
+          });
+          emitProfileUpdated({
+            username: username || fallbackName,
+            avatarUrl: avatar_url || defaultProfileAvatar
+          });
         }
       };
 
@@ -1612,9 +1860,9 @@
       const avatarViewImg = document.getElementById('avatarViewImg');
       const avatarViewClose = document.getElementById('avatarViewClose');
 
-      if (displayAvatar && avatarViewOverlay && avatarViewImg) {
-        displayAvatar.addEventListener('click', () => {
-          avatarViewImg.src = displayAvatar.src;
+      if (displayAvatarEl && avatarViewOverlay && avatarViewImg) {
+        displayAvatarEl.addEventListener('click', () => {
+          avatarViewImg.src = displayAvatarEl.src;
           avatarViewOverlay.classList.add('active');
         });
 
@@ -1909,7 +2157,7 @@
             (savedAuraCheck === 'avatar-aura-guardian' && level < 75) ||
             (savedAuraCheck === 'avatar-aura-immortal' && level < 100)) {
             localStorage.setItem('animehouse_customAura', 'none');
-            displayAvatar?.classList.remove('avatar-aura-fire','avatar-aura-guardian','avatar-aura-immortal');
+            displayAvatarEl?.classList.remove('avatar-aura-fire','avatar-aura-guardian','avatar-aura-immortal');
             const auraSel2 = document.getElementById('auraSelector');
             if (auraSel2) auraSel2.value = 'none';
         }
@@ -1993,123 +2241,235 @@
         if(estimatedTimeEl) estimatedTimeEl.textContent = `${hours}h ${mins}m`;
       }
 
-      // Hook dashboard update into history refresh
-      const originalRefresh = refreshHistory;
-      refreshHistory = async () => {
-        await originalRefresh();
-        updateDashboard();
+      // --- FAVORITOS SYSTEM ---
+      let currentFavType = 'anime';
+
+      async function loadFavorites() {
+        const grid = document.getElementById('favoritesGrid');
+        if (!grid) return;
+        grid.innerHTML = '<div class="history-empty" style="grid-column: 1/-1;"><p>Buscando sua coleção mística...</p></div>';
+        try {
+          const allFavs = await DB.getFavorites(currentFavType);
+          const favs = allFavs.slice(0, 10);
+          grid.innerHTML = '';
+          if (!favs || favs.length === 0) {
+            grid.innerHTML = `<div class="history-empty" style="grid-column: 1/-1;"><p>Nenhum ${currentFavType} favoritado ainda. ⭐</p></div>`;
+            return;
+          }
+            card.innerHTML = `
+              <img src="${cover}" alt="${title}">
+              <div class="fav-card-info">
+                <div class="fav-card-title">${title}</div>
+              </div>
+              <button class="fav-card-remove" data-id="${fav.id}">✕</button>
+            `;
+            card.addEventListener('click', (e) => {
+              if (e.target.classList.contains('fav-card-remove')) return;
+              if (fav.metadata?.url) window.location.href = fav.metadata.url;
+            });
+            card.querySelector('.fav-card-remove').addEventListener('click', async (e) => {
+              e.stopPropagation();
+              if (await DB.removeFavorite(fav.id)) {
+                loadFavorites();
+                showToast('Removido dos favoritos.');
+              }
+            });
+            grid.appendChild(card);
+          });
+        } catch (error) {
+          console.error('Erro ao carregar favoritos:', error);
+          grid.innerHTML = '<div class="history-empty" style="grid-column: 1/-1;"><p>Erro ao carregar sua coleção.</p></div>';
+        }
+      }
+      const favTabs = document.querySelectorAll('.fav-tab');
+      favTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          favTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          currentFavType = tab.dataset.type;
+          loadFavorites();
+        });
+      });
+
+      loadFavorites();
+
+      function updateInventoryUI() {
+        const grid = document.getElementById('profileInventory');
+        const noItemsNote = document.getElementById('noItemsNote');
+        if (!grid) return;
+
+        const storeData = JSON.parse(localStorage.getItem('animehouse_store') || '{}');
+        const purchasedIds = storeData.purchased || [];
+        
+        const itemData = {
+          'coroa_hokage': { name: 'Coroa de Hokage', icon: '👑', type: 'exclusivo', crownId: 'hokage', crownIcon: '👑' },
+          'coroa_tryhard': { name: 'Coroa Tryhard', icon: '💀', type: 'exclusivo', crownId: 'tryhard', crownIcon: '💀' },
+          'placa_colecionador': { name: 'Placa Colecionador', icon: '🏆', type: 'exclusivo' },
+          'dashboard_premium': { name: 'Dashboard Premium', icon: '📊', type: 'experiencia' },
+          'aura_susanoo': { name: 'Aura Susanoo', icon: '⚡', type: 'aura', class: 'avatar-aura-susanoo' },
+          'aura_stands': { name: 'Aura Star Platinum', icon: '🟣', type: 'aura', class: 'avatar-aura-stands' },
+          'aura_dragon': { name: 'Aura Dragão Arcano', icon: '🐉', type: 'aura', class: 'avatar-aura-dragon' },
+          'aura_void_saitama': { name: 'Aura ONE PUNCH', icon: '👊', type: 'aura', class: 'avatar-aura-void' },
+          'titulo_guardiao': { name: 'Título: Guardião Lenda', icon: '🛡️', type: 'titulo', title: '🛡️ Guardião Lenda' },
+          'titulo_sensei_mod': { name: 'Título: SenseiMod', icon: '🎓', type: 'titulo', title: '🎓 SenseiMod' },
+          'banner_aot': { name: 'Banner: Muralha', icon: '🧱', type: 'banner' },
+          'banner_vinland': { name: 'Banner: Vinland', icon: '🛡️', type: 'banner' },
+          'banner_ragnarok': { name: 'Banner: Ragnarok', icon: '🏛️', type: 'banner' },
+          'banner_cosmos': { name: 'Banner Cosmos', icon: '🌀', type: 'banner' }
+        };
+
+        grid.innerHTML = '';
+        let visibleCount = 0;
+
+        purchasedIds.forEach(itemId => {
+          const data = itemData[itemId];
+          if (!data) return;
+          visibleCount++;
+
+          let isEquipped = false;
+          if (data.type === 'aura') {
+            isEquipped = localStorage.getItem('animehouse_customAura') === data.class;
+          } else if (data.type === 'titulo') {
+            isEquipped = localStorage.getItem('animehouse_customTitle') === data.title;
+          } else if (data.type === 'banner') {
+            isEquipped = localStorage.getItem('animehouse_customBanner') === itemId;
+          } else if (data.type === 'exclusivo') {
+            if (data.crownId) {
+              isEquipped = localStorage.getItem('animehouse_customCrownId') === data.crownId && localStorage.getItem('animehouse_showCrown') === 'true';
+            } else {
+              isEquipped = localStorage.getItem(`equipped_${itemId}`) === 'true';
+            }
+          } else if (data.type === 'experiencia') {
+              isEquipped = localStorage.getItem(`equipped_${itemId}`) === 'true';
+          }
+
+          const card = document.createElement('div');
+          card.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
+          card.innerHTML = `
+            <div class="inv-icon">${data.icon}</div>
+            <div class="inv-name">${data.name}</div>
+            <div class="inv-type">${data.type}</div>
+            <button class="equip-btn ${isEquipped ? 'btn-unequip' : 'btn-equip'}" onclick="equipItem('${itemId}')">
+              ${isEquipped ? 'Remover' : 'Equipar'}
+            </button>
+          `;
+          grid.appendChild(card);
+        });
+
+        if (noItemsNote) noItemsNote.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+
+      window.equipItem = function(itemId) {
+          const itemData = {
+            'coroa_hokage': { type: 'exclusivo', crownId: 'hokage', crownIcon: '👑' },
+            'coroa_tryhard': { type: 'exclusivo', crownId: 'tryhard', crownIcon: '💀' },
+            'placa_colecionador': { type: 'exclusivo' },
+            'dashboard_premium': { type: 'experiencia' },
+            'aura_susanoo': { type: 'aura', class: 'avatar-aura-susanoo' },
+            'aura_stands': { type: 'aura', class: 'avatar-aura-stands' },
+            'aura_dragon': { type: 'aura', class: 'avatar-aura-dragon' },
+            'aura_void_saitama': { type: 'aura', class: 'aura-avatar-void' },
+            'titulo_guardiao': { type: 'titulo', title: '🛡️ Guardião Lenda' },
+            'titulo_sensei_mod': { type: 'titulo', title: '🎓 SenseiMod' },
+            'banner_aot': { type: 'banner' },
+            'banner_vinland': { type: 'banner' },
+            'banner_ragnarok': { type: 'banner' },
+            'banner_cosmos': { type: 'banner' }
+          };
+
+          const data = itemData[itemId];
+          if (!data) return;
+
+          if (data.type === 'aura') {
+              const current = localStorage.getItem('animehouse_customAura');
+              localStorage.setItem('animehouse_customAura', current === data.class ? 'none' : data.class);
+          } else if (data.type === 'titulo') {
+              const current = localStorage.getItem('animehouse_customTitle');
+              localStorage.setItem('animehouse_customTitle', current === data.title ? '' : data.title);
+          } else if (data.type === 'banner') {
+              const current = localStorage.getItem('animehouse_customBanner');
+              localStorage.setItem('animehouse_customBanner', current === itemId ? '' : itemId);
+          } else if (data.type === 'exclusivo' && data.crownId) {
+              const currentId = localStorage.getItem('animehouse_customCrownId');
+              const isShowing = localStorage.getItem('animehouse_showCrown') === 'true';
+              
+              if (currentId === data.crownId && isShowing) {
+                  localStorage.setItem('animehouse_showCrown', 'false');
+              } else {
+                  localStorage.setItem('animehouse_showCrown', 'true');
+                  localStorage.setItem('animehouse_customCrownId', data.crownId);
+                  localStorage.setItem('animehouse_customCrownIcon', data.crownIcon);
+              }
+          } else {
+              const key = `equipped_${itemId}`;
+              const current = localStorage.getItem(key) === 'true';
+              localStorage.setItem(key, current ? 'false' : 'true');
+          }
+
+          updateInventoryUI();
+          syncLiveProfileUI();
+          applyAuraToAvatar();
+          window.dispatchEvent(new Event('storage'));
+          emitProfileUpdated();
       };
 
+      function applyAuraToAvatar() {
+          const displayAvatarEl = document.getElementById('displayAvatar');
+          if (!displayAvatarEl) return;
+          displayAvatarEl.classList.remove('avatar-aura-fire','avatar-aura-guardian','avatar-aura-immortal','avatar-aura-susanoo','avatar-aura-stands','avatar-aura-dragon','avatar-aura-void');
+          const aura = localStorage.getItem('animehouse_customAura') || 'none';
+          if (aura !== 'none') displayAvatarEl.classList.add(aura);
+      }
+
+      function showLevelUpToast(level, newRank) {
+          const toast = document.getElementById('levelUpToast');
+          if (!toast) return;
+          const card = document.getElementById('levelUpCard');
+          const lvlText = toast.querySelector('.lvl-badge');
+          const rankBadge = toast.querySelector('.rank-badge');
+          
+          if (lvlText) lvlText.textContent = level;
+          if (rankBadge) {
+              rankBadge.textContent = newRank || localStorage.getItem('animehouse_userRank') || 'Hokage';
+          }
+          
+          toast.classList.remove('hidden');
+          setTimeout(() => {
+              card.classList.add('lvlup-exit');
+              setTimeout(() => {
+                toast.classList.add('hidden');
+                card.classList.remove('lvlup-exit');
+              }, 500);
+          }, 4500);
+      }
+
+      updateInventoryUI();
+      syncLiveProfileUI();
+      applyAuraToAvatar();
       updateDashboard();
 
-      // ====== LEVEL-UP TOAST LOGIC ======
-      function showLevelUpToast(newLevel, newRank) {
-        let toast = document.getElementById('levelUpToast');
-        if (!toast) {
-          toast = document.createElement('div');
-          toast.id = 'levelUpToast';
-          toast.innerHTML = `
-            <div id="levelUpCard">
-              <div class="particles" id="toastParticles"></div>
-              <div class="lvl-label">⚡ LEVEL UP ⚡</div>
-              <div class="lvl-badge" id="toastLevelNum">LVL ${newLevel}</div>
-              <div style="font-size:0.9rem; color: var(--text-muted); margin-top:10px;">Você subiu de nível!</div>
-              ${newRank ? `<div class="rank-badge">🏅 Nova Patente: ${newRank}</div>` : ''}
-              <button onclick="closeLevelUpToast()" style="margin-top:24px; padding:8px 28px; border-radius:50px; border:1px solid rgba(var(--primary-rgb),0.5); background: rgba(var(--primary-rgb),0.15); color:var(--primary); font-family:'Bangers'; font-size:1rem; letter-spacing:1px; cursor:pointer;">CONTINUAR</button>
-            </div>
-          `;
-          document.body.appendChild(toast);
-        } else {
-          const card = document.getElementById('levelUpCard');
-          if (card) card.classList.remove('lvlup-exit');
-          document.getElementById('toastLevelNum').textContent = `LVL ${newLevel}`;
-          const rankBadge = card?.querySelector('.rank-badge');
-          if (newRank) {
-            if (rankBadge) { rankBadge.textContent = `🏅 Nova Patente: ${newRank}`; rankBadge.style.display = 'inline-block'; }
-            else {
-              const rb = document.createElement('div');
-              rb.className = 'rank-badge';
-              rb.textContent = `🏅 Nova Patente: ${newRank}`;
-              card.querySelector('button').before(rb);
-            }
-          } else if (rankBadge) {
-            rankBadge.style.display = 'none';
+      window.addEventListener('storage', (e) => {
+          const keys = ['animehouse_store', 'animehouse_customAura', 'animehouse_customTitle', 'animehouse_customBanner', 'animehouse_showCrown','animehouse_customCrownId','animehouse_customCrownIcon'];
+          if (keys.includes(e.key) || (e.key && e.key.startsWith('equipped_'))) {
+              updateInventoryUI();
+              syncLiveProfileUI();
+              applyAuraToAvatar();
           }
-          toast.classList.remove('hidden');
-        }
-        // Partículas
-        const container = document.getElementById('toastParticles');
-        if (container) {
-          container.innerHTML = '';
-          const dirs = ['translate(-80px,-120px)','translate(80px,-120px)','translate(-120px,0px)','translate(120px,0px)','translate(-60px,120px)','translate(60px,120px)','translate(0px,-140px)','translate(0px,140px)'];
-          dirs.forEach((tx) => {
-            const s = document.createElement('span');
-            s.style.cssText = `left:50%;top:50%;--tx:${tx};`;
-            container.appendChild(s);
-          });
-        }
-        toast.style.display = 'flex';
-      }
-
-      window.closeLevelUpToast = () => {
-        const card = document.getElementById('levelUpCard');
-        if (card) card.classList.add('lvlup-exit');
-        setTimeout(() => {
-          const toast = document.getElementById('levelUpToast');
-          if (toast) toast.classList.add('hidden');
-        }, 500);
-      };
-
-      // Setup VIP Perks logic
-      const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
-      const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
-      
-      const customTitleInp = document.getElementById('customTitleInput');
-      const customTitleDisplay = document.getElementById('displayCustomTitle');
-      const auraSel = document.getElementById('auraSelector');
-      const sbCrown = document.getElementById('sidebarCrown');
-      const crwnToggle = document.getElementById('crownToggle');
-      const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
-
-      if (customTitleInp) customTitleInp.value = savedTitle;
-      if (customTitleDisplay) customTitleDisplay.textContent = savedTitle;
-      if (auraSel) auraSel.value = savedAura;
-      if (crwnToggle) crwnToggle.checked = savedCrown;
-
-      if (displayAvatar && savedAura !== 'none') {
-         displayAvatar.classList.add(savedAura);
-      }
-
-      if (savedCrown && sbCrown) {
-         sbCrown.style.display = 'block';
-      }
-
-      document.getElementById('saveCustomTitleBtn')?.addEventListener('click', () => {
-         const val = customTitleInp.value.trim();
-         localStorage.setItem('animehouse_customTitle', val);
-         if (customTitleDisplay) customTitleDisplay.textContent = val;
-         if (typeof showToast === 'function') showToast('Título atualizado com sucesso!', 'success', 3000);
       });
 
-      auraSel?.addEventListener('change', (e) => {
-         const val = e.target.value;
-         localStorage.setItem('animehouse_customAura', val);
-         displayAvatar.classList.remove('avatar-aura-fire', 'avatar-aura-guardian', 'avatar-aura-immortal');
-         if (val !== 'none') {
-            displayAvatar.classList.add(val);
-         }
+      window.addEventListener('profileUpdated', () => {
+          syncLiveProfileUI();
+          updateInventoryUI();
+          applyAuraToAvatar();
+          updateDashboard();
       });
 
-      crwnToggle?.addEventListener('change', (e) => {
-         const isChecked = e.target.checked;
-         localStorage.setItem('animehouse_showCrown', isChecked ? 'true' : 'false');
-         if (sbCrown) {
-             sbCrown.style.display = isChecked ? 'block' : 'none';
-         }
-      });
+      } catch (error) {
+        console.error('Falha ao inicializar o perfil:', error);
+        showProfileLoadError(error?.message || 'Falha ao carregar os dados do perfil.');
+      }
     }
   });
-</script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+    </script>
 </body>
 </html>

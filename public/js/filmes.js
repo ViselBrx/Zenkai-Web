@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function render() {
+  async function render() {
     const term = searchInput.value.toLowerCase();
     const gen = filterGenero.value;
     const ano = filterAno.value;
@@ -90,17 +90,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
+    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    let userFavs = new Set();
+    try {
+        const favs = await DB.getFavorites('filme');
+        userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Erro ao carregar favoritos de filmes.");
+    }
+
     filtered.forEach(f => {
       const card = document.createElement('div');
       card.className = 'card';
       const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(f.id);
+      const isFav = userFavs.has(f.id);
+      
       let imgHtml = f.capa ? `<img src="${f.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${f.capa ? 'display:none;' : ''}">🎬</div>`;
       const watchedBadge = isWatched 
-        ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);">✓ Assistido</span>`
+        ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);z-index:4;">✓ Assistido</span>`
         : '';
+      
       card.innerHTML = `
-        <div style="position:relative;">${imgHtml}${placeholder}${watchedBadge}</div>
+        <div style="position:relative;">
+          ${imgHtml}${placeholder}${watchedBadge}
+          <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${f.id}">
+             ${isFav ? '⭐' : '☆'}
+          </button>
+        </div>
         <div class="card-body">
           <div class="card-title">${f.nome}</div>
           <div class="card-meta">
@@ -109,6 +126,26 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="card-badge" style="background:rgba(239,68,68,0.15);color:#f87171;">${f.ano ? f.ano : ''}${f.genero ? (f.ano ? ' · ' : '') + f.genero : ''}</span>
         </div>
       `;
+
+      const favBtn = card.querySelector('.card-fav-btn');
+      favBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(f.id, 'filme', { title: f.nome, cover: f.capa });
+          if (res.action === 'added') {
+            favBtn.classList.add('active');
+            favBtn.textContent = '⭐';
+            showToast(`"${f.nome}" adicionado aos favoritos!`);
+          } else {
+            favBtn.classList.remove('active');
+            favBtn.textContent = '☆';
+            showToast(`"${f.nome}" removido dos favoritos.`);
+          }
+        } catch (err) {
+          showToast('Faça login para favoritar!', 'error');
+        }
+      };
+
       card.addEventListener('click', () => openDetailModal(f));
       grid.appendChild(card);
     });

@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => window.openWatchModal(targetId, season), 60);
   }
 
-  function loadCartoons() {
+  async function loadCartoons() {
     const list = DB.getCartoons();
     pillsContainer.innerHTML = '';
     
@@ -116,17 +116,60 @@ document.addEventListener('DOMContentLoaded', async () => {
       panel.style.display = 'none';
       return;
     }
+
+    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    let userFavs = new Set();
+    try {
+        const favs = await DB.getFavorites('desenho');
+        userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Erro ao carregar favoritos de desenhos.");
+    }
     
-    list.forEach(c => {
+    for (const c of list) {
       const btn = document.createElement('button');
       btn.className = 'cartoon-pill';
-      btn.innerHTML = c.capa 
-        ? `<img src="${c.capa}" onerror="this.src='';this.style.background='var(--primary)'"> ${c.nome}`
-        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;">🎬</div> ${c.nome}`;
+      const isFav = userFavs.has(c.id);
       
-      btn.onclick = () => selectCartoon(c.id, btn);
+      const thumb = c.capa 
+        ? `<img src="${c.capa}" onerror="this.src='';this.style.background='var(--primary)'">`
+        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;">🎬</div>`;
+      
+      btn.innerHTML = `
+        ${thumb} 
+        <span>${c.nome}</span>
+        <span class="fav-star ${isFav ? 'active' : ''}" style="margin-left:auto; font-size:1.1rem; cursor:pointer; transition:0.3s; opacity:${isFav ? '1' : '0.6'};">
+            ${isFav ? '⭐' : '☆'}
+        </span>
+      `;
+      
+      const star = btn.querySelector('.fav-star');
+      star.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
+          if (res.action === 'added') {
+            star.classList.add('active');
+            star.textContent = '⭐';
+            star.style.opacity = '1';
+            showToast(`"${c.nome}" adicionado aos favoritos!`);
+          } else {
+            star.classList.remove('active');
+            star.textContent = '☆';
+            star.style.opacity = '0.6';
+            showToast(`"${c.nome}" removido dos favoritos.`);
+          }
+        } catch (err) {
+          showToast('Faça login para favoritar!', 'error');
+        }
+      };
+      
+      btn.addEventListener('click', (e) => {
+          if (e.target.classList.contains('fav-star')) return;
+          selectCartoon(c.id, btn);
+      });
       pillsContainer.appendChild(btn);
-    });
+    }
 
     loadPendingHistoryResume();
     const pendingFromHistory = pendingHistoryResume?.cartoonId || null;
@@ -145,8 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (input) {
       input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-          // Permite que o bug de submissão dupla seja evitado pelo e.preventDefault() no submit do form
-          // mas garante o gatilho.
           epForm.requestSubmit(); 
         }
       });
@@ -528,16 +569,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     watchTitle.textContent = activeTypeForWatch === 'movie' ? `Filme: ${item.title}` : `T${typeOrSeason}:E${item.epNumber} - ${item.title || 'Assistir'}`;
     
-    // Mostra carregando brevemente antes de inserir o iframe
     watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando Vídeo...</div>';
     
     setTimeout(() => {
         watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: Vídeo indisponível.</p>';
     }, 100);
 
-    // Botão de marcar como assistido
     _updateWatchModalBadge(id);
-
     watchModal.classList.add('open');
   };
 
