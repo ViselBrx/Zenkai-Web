@@ -19,6 +19,7 @@ const _DEFAULT = {
     mangaNotes: {},
     filmes: [],
     watched: {},
+    profile: null, // Perfil completo do usuário (incluindo store_data)
     aiConfig: {},
     siteConfig: {}
 };
@@ -183,7 +184,8 @@ async function claimLegacyCatalogForMainAccount(userId) {
 
 
 const DB = {
-  // Inicializa o banco (Baixa tudo do Supabase para a memÃ³ria local)
+  get _store() { return _store; },
+  // Inicializa o banco (Baixa tudo do Supabase para a memória local)
   async init() {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
@@ -206,6 +208,22 @@ const DB = {
 
         // Cada conta enxerga apenas os prÃ³prios registros.
         // ExceÃ§Ã£o controlada: conta principal tambÃ©m enxerga legados sem user_id.
+        // Lógica de Busca Resiliente: Se uma tabela falhar, não derruba o sistema todo
+        const safeFetch = async (query, label) => {
+            try {
+                const { data, error } = await query;
+                if (error) {
+                    console.warn(`⚠️ [DB] Erro ao carregar ${label}:`, error.message);
+                    return [];
+                }
+                return data || [];
+            } catch (err) {
+                console.error(`❌ [DB] Falha crítica na query ${label}:`, err);
+                return [];
+            }
+        };
+
+        // Definição das queries
         const cartoonQuery = isMainAccount
           ? supa.from('cartoons').select('*').or(ownerFilter).order('created_at', { ascending: true })
           : supa.from('cartoons').select('*').eq('user_id', userId).order('created_at', { ascending: true });
@@ -241,24 +259,66 @@ const DB = {
         const filmesQuery = isMainAccount
           ? supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true })
           : supa.from('filmes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-        
+
         const [
-            { data: cartoons }, { data: episodes }, { data: movies },
-            { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols },
-            { data: mangaNotes },
-            { data: filmesData }, { data: settings }
+            cartoons, episodes, movies,
+            animes, animeEps, mangas, mangaVols,
+            mangaNotes, filmesData, settings
         ] = await Promise.all([
-            cartoonQuery,
-            episodesQuery,
-            moviesQuery,
-            animeQuery,
-            animeEpsQuery,
-            mangaQuery,
-            mangaVolsQuery,
-            mangaNotesQuery,
-            filmesQuery,
-            supa.from('settings').select('*')
+            safeFetch(cartoonQuery, 'Cartoons'),
+            safeFetch(episodesQuery, 'Episodes'),
+            safeFetch(moviesQuery, 'Movies'),
+            safeFetch(animeQuery, 'Animes'),
+            safeFetch(animeEpsQuery, 'AnimeEpisodes'),
+            safeFetch(mangaQuery, 'Mangas'),
+            safeFetch(mangaVolsQuery, 'MangaVolumes'),
+            safeFetch(mangaNotesQuery, 'MangaNotes'),
+            safeFetch(filmesQuery, 'Filmes'),
+            safeFetch(supa.from('settings').select('*'), 'Settings')
         ]);
+
+        // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
+        try {
+            const { data: profileData, error: profileError } = await supa.from('profiles').select('*').eq('id', userId).maybeSingle();
+            if (profileError) {
+                console.warn("⚠️ [DB] Erro ao carregar perfil do banco:", profileError.message);
+            } else if (profileData) {
+                _store.profile = profileData;
+                
+                const dbStore = profileData.store_data || { purchased: [], equipped: {} };
+                const localStoreStr = localStorage.getItem('animehouse_store');
+                let localStore = null;
+                try { localStore = localStoreStr ? JSON.parse(localStoreStr) : null; } catch(e){}
+
+                // LÓGICA DE MESCLAGEM (MERGE) - O pulo do gato para não perder favoritos
+                let mergedStore = JSON.parse(JSON.stringify(dbStore));
+                
+                if (localStore) {
+                    // Mescla lista de compras
+                    const localPurchased = Array.isArray(localStore.purchased) ? localStore.purchased : [];
+                    const dbPurchased = Array.isArray(dbStore.purchased) ? dbStore.purchased : [];
+                    mergedStore.purchased = [...new Set([...dbPurchased, ...localPurchased])];
+
+                    // Mescla itens equipados (O estado local 'quente' ganha se houver conflito recente)
+                    const localEquipped = localStore.equipped || {};
+                    const dbEquipped = dbStore.equipped || {};
+                    mergedStore.equipped = { ...dbEquipped, ...localEquipped };
+                }
+
+                _store.profile.store_data = mergedStore;
+                
+                // Sempre sincroniza o resultado final de volta para o localStorage e para o Banco (se houve mudança)
+                localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
+                
+                const hasChanged = JSON.stringify(mergedStore) !== JSON.stringify(dbStore);
+                if (hasChanged) {
+                   console.log("🔄 [DB] Sincronizando dados (Merge Local + Banco)...");
+                   this.saveStoreData(mergedStore);
+                }
+            }
+        } catch (err) {
+            console.error("❌ [DB] Falha crítica ao tentar ler tabela 'profiles':", err);
+        }
 
         const { data: watchedItems, error: watchedError } = await supa
             .from(WATCHED_ITEMS_TABLE)
@@ -974,23 +1034,134 @@ const DB = {
   async toggleFavorite(contentId, contentType, metadata = {}) {
       const supa = getSupa();
       const userId = await getRequiredUserId();
-      const { data: existing } = await supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId).single();
+      
+      // Busca específica com ID e CATEGORIA para evitar ambiguidades
+      const { data: existing } = await supa.from('user_favorites')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('content_id', contentId)
+          .eq('content_type', contentType)
+          .maybeSingle();
+
       if (existing) {
-          await supa.from('user_favorites').delete().eq('id', existing.id);
+          const { error } = await supa.from('user_favorites').delete().eq('id', existing.id);
+          if (error) {
+              console.error("Erro ao remover favorito:", error);
+              return { action: 'error', message: error.message };
+          }
           return { action: 'removed' };
       } else {
-          await supa.from('user_favorites').insert([{ user_id: userId, content_id: contentId, content_type: contentType, metadata: metadata, created_at: new Date().toISOString() }]);
+          const { error } = await supa.from('user_favorites').insert([{ 
+              user_id: userId, 
+              content_id: contentId, 
+              content_type: contentType, 
+              metadata: metadata, 
+              created_at: new Date().toISOString() 
+          }]);
+          
+          if (error) {
+              console.error("Erro ao adicionar favorito:", error);
+              return { action: 'error', message: error.message };
+          }
           return { action: 'added' };
       }
   },
 
-  async isFavorite(contentId) {
+  async isFavorite(contentId, contentType = null) {
       const supa = getSupa();
       const userId = await getCurrentUserId();
       if (!userId) return false;
-      const { data } = await supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId).single();
+      
+      let query = supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId);
+      if (contentType) query = query.eq('content_type', contentType);
+      
+      const { data, error } = await query.maybeSingle();
+      if (error) {
+        console.warn("📌 [isFavorite Check] Erro ou não encontrado:", error.message);
+        return false;
+      }
       return !!data;
-  }
+  },
+
+  async removeFavorite(id) {
+      const supa = getSupa();
+      const { error } = await supa.from('user_favorites').delete().eq('id', id);
+      if (error) { console.error(error); return false; }
+      return true;
+  },
+
+  /* PERKS (Database Driven) */
+  isPerkEquipped(perkId) {
+    let store = null;
+    
+    // 1. Tentar localStorage primeiro (geralmente tem o estado mais recente entre abas)
+    try {
+      const localStore = JSON.parse(localStorage.getItem('animehouse_store'));
+      if (localStore && Array.isArray(localStore.purchased)) {
+        store = localStore;
+      }
+    } catch(e) {}
+
+    // 2. Se não tiver no localStorage, tenta na memória sincronizada
+    if (!store && _store.profile && _store.profile.store_data) {
+      store = _store.profile.store_data;
+    }
+
+    if (!store) return false;
+    
+    const purchased = store.purchased || [];
+    const equipped = store.equipped || {};
+    
+    // 1. Verificação de compra (O pilar mais forte)
+    const hasPurchased = purchased.includes(perkId);
+    
+    // 2. Verificação de Equipado (Banco e Local)
+    const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
+    const isStampedEquipped  = localStorage.getItem(`equipped_${perkId}`) === 'true';
+
+    // Para o perk de favoritos, basta ter o item para ativá-lo (Facilita a vida do usuário)
+    const result = hasPurchased || isStrictlyEquipped || isStampedEquipped;
+
+    if (perkId === 'lista_destaque') {
+      window.perkFavoritos = result; // Atalho para debug no console
+      console.log(`⭐ [Perk System] lista_destaque ativo: ${result}`);
+      if (!result) {
+        console.warn(`📌 [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
+      }
+    }
+
+    return result;
+  },
+
+  async saveStoreData(newStoreData) {
+    // 1. Atualiza localmente na memória (_store) e no LocalStorage IMEDIATAMENTE
+    if (!_store.profile) _store.profile = {};
+    _store.profile.store_data = newStoreData;
+    localStorage.setItem('animehouse_store', JSON.stringify(newStoreData));
+    
+    // 2. Salva no banco via UPSERT (garante criação ou atualização)
+    try {
+      const supa = getSupa();
+      const userId = await getCurrentUserId();
+      if (!userId) return;
+
+      const { error } = await supa
+        .from('profiles')
+        .upsert({ 
+            id: userId, 
+            store_data: newStoreData,
+            updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+
+      if (error) {
+        console.warn("⚠️ [DB] Erro no Upsert:", error.message);
+        // Tenta update convencional se o upsert falhar por qualquer motivo de política
+        await supa.from('profiles').update({ store_data: newStoreData }).eq('id', userId);
+      }
+    } catch (err) {
+      console.error("❌ [DB] Falha crítica ao salvar:", err);
+    }
+  },
 };
 
 

@@ -336,6 +336,7 @@
   <div id="lojaToast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script>
     const STORE_KEY = 'animehouse_store';
@@ -413,16 +414,19 @@
         // Verificar se está equipado
         let isEquipped = false;
         if (item.category === 'aura') isEquipped = localStorage.getItem('animehouse_customAura') === itemId;
-        if (item.category === 'titulo') isEquipped = localStorage.getItem('animehouse_customTitle') === item.name.replace('Título: ', '');
-        if (item.category === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === itemId;
-        if (item.category === 'exclusivo') isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && itemId.includes('coroa');
+        else if (item.category === 'titulo') isEquipped = localStorage.getItem('animehouse_customTitle') === item.name.replace('Título: ', '');
+        else if (item.category === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === itemId;
+        else if (item.category === 'exclusivo') isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && itemId.includes('coroa');
+        else if (item.category === 'experiencia') {
+            isEquipped = store.equipped && (store.equipped[itemId] === true || store.equipped[itemId] === 'true');
+        }
 
         const card = document.createElement('div');
         card.className = `purchased-card ${isEquipped ? 'is-equipped' : ''}`;
         const currencyIcon = item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '💚';
         
         card.innerHTML = `
-          ${isEquipped ? '<div class="equipped-ribbon">USANDO</div>' : ''}
+          ${isEquipped ? '<div class="equipped-dot" title="Item Equipado">✓</div>' : ''}
           <div class="card-banner" style="${item.category === 'banner' ? `background-image: url('${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ''}'); background-size: cover; background-position: center;` : `background: linear-gradient(45deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));`}"></div>
           <div class="item-preview-circle">
             ${item.category === 'banner' 
@@ -438,7 +442,7 @@
 
           <div class="card-actions">
             <button onclick="toggleEquip('${item.id}', '${item.category}', '${item.name.replace('Título: ', '')}')" class="btn-action btn-equip ${isEquipped ? 'equipped' : ''}">
-              ${isEquipped ? '<span>✓</span> Guardar' : '<span>⚡</span> Equipar'}
+              ${isEquipped ? '<span>✓</span> Desmarcar' : '<span>⚡</span> Marcar'}
             </button>
             <button onclick="sellItem('${item.id}')" class="btn-action btn-sell">
               <span>💰</span> Vender
@@ -472,23 +476,36 @@
       itemToSell = null;
     };
 
-    document.getElementById('confirmSellBtn').onclick = function() {
+    document.getElementById('confirmSellBtn').onclick = async function() {
       if (!itemToSell) return;
       const id = itemToSell.id;
       const item = itemToSell;
 
       try {
-          let storeData = localStorage.getItem(STORE_KEY);
-          let store = storeData ? JSON.parse(storeData) : { purchased: [], ouro:0, diamante:0, esmeralda:0 };
+          const storeData = localStorage.getItem(STORE_KEY);
+          let store = storeData ? JSON.parse(storeData) : { purchased: [], equipped: {} };
           
-          store.purchased = store.purchased.filter(itemId => itemId !== id);
+          store.purchased = (store.purchased || []).filter(itemId => itemId !== id);
           
           const moeda = item.currency || 'ouro';
           store[moeda] = (Number(store[moeda]) || 0) + Number(item.price);
           
-          localStorage.setItem(STORE_KEY, JSON.stringify(store));
+          // Desequipar se necessário
+          if (store.equipped) {
+              if (store.equipped.aura === id) store.equipped.aura = 'none';
+              if (store.equipped.banner === id) store.equipped.banner = 'none';
+              if (store.equipped.titulo === item.name.replace('Título: ', '')) store.equipped.titulo = '';
+              if (id.includes('coroa')) store.equipped.crown = false;
+              if (store.equipped[id]) delete store.equipped[id];
+          }
 
-          // Desequipar
+          if (window.DB && window.DB.saveStoreData) {
+              await window.DB.saveStoreData(store);
+          } else {
+              localStorage.setItem(STORE_KEY, JSON.stringify(store));
+          }
+
+          // Fallback desequipar individual (compatibilidadeLegado)
           if (localStorage.getItem('animehouse_customAura') === id) localStorage.setItem('animehouse_customAura', 'none');
           if (localStorage.getItem('animehouse_customBanner') === id) localStorage.setItem('animehouse_customBanner', 'none');
           if (localStorage.getItem('animehouse_customTitle') === item.name.replace('Título: ', '')) localStorage.setItem('animehouse_customTitle', '');
@@ -510,19 +527,47 @@
       if (e.target.id === 'sellModalOverlay') closeSellModal();
     };
 
-    window.toggleEquip = function(id, type, rawName) {
+    window.toggleEquip = async function(id, type, rawName) {
+      let store = JSON.parse(localStorage.getItem(STORE_KEY)) || { purchased: [], equipped: {} };
+      if (!store.equipped) store.equipped = {};
+
       if (type === 'aura') {
         const current = localStorage.getItem('animehouse_customAura');
-        localStorage.setItem('animehouse_customAura', current === id ? 'none' : id);
+        const next = current === id ? 'none' : id;
+        localStorage.setItem('animehouse_customAura', next);
+        store.equipped.aura = next === 'none' ? 'none' : next;
       } else if (type === 'titulo') {
         const current = localStorage.getItem('animehouse_customTitle');
-        localStorage.setItem('animehouse_customTitle', current === rawName ? '' : rawName);
+        const next = current === rawName ? '' : rawName;
+        localStorage.setItem('animehouse_customTitle', next);
+        store.equipped.titulo = next;
       } else if (type === 'banner') {
         const current = localStorage.getItem('animehouse_customBanner');
-        localStorage.setItem('animehouse_customBanner', current === id ? 'none' : id);
+        const next = current === id ? 'none' : id;
+        localStorage.setItem('animehouse_customBanner', next);
+        store.equipped.banner = next;
       } else if (type === 'exclusivo' && id.includes('coroa')) {
         const current = localStorage.getItem('animehouse_showCrown');
-        localStorage.setItem('animehouse_showCrown', current === 'true' ? 'false' : 'true');
+        const next = current === 'true' ? 'false' : 'true';
+        localStorage.setItem('animehouse_showCrown', next);
+        store.equipped.crown = next === 'true';
+        if (next === 'true') {
+          // Tenta achar ícone na lista global
+          const item = ALL_ITEMS.find(i => i.id === id);
+          store.equipped.crownId = id.replace('coroa_', '');
+          store.equipped.crownIcon = item?.icon || '👑';
+        }
+      } else {
+        // Toggle generico para perks (como lista_destaque)
+        const current = store.equipped[id] === true || store.equipped[id] === 'true';
+        store.equipped[id] = !current;
+      }
+
+      // Salva no Supabase via DB.js
+      if (window.DB && window.DB.saveStoreData) {
+        await window.DB.saveStoreData(store);
+      } else {
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
       }
 
       renderInventory();
@@ -530,7 +575,16 @@
       if (typeof showToast === 'function') showToast("Estado de customização atualizado!", "success");
     };
 
-    document.addEventListener('DOMContentLoaded', renderInventory);
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Sincroniza com o banco ao carregar
+      if (window.DB && window.DB.init) {
+        await window.DB.init();
+        if (window.DB._store.profile?.store_data) {
+          localStorage.setItem(STORE_KEY, JSON.stringify(window.DB._store.profile.store_data));
+        }
+      }
+      renderInventory();
+    });
   </script>
 </body>
 </html>

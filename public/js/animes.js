@@ -41,7 +41,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
-    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
+                         ? window.DB.isPerkEquipped('lista_destaque') 
+                         : false;
+
+    // 2. Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('anime');
@@ -50,21 +55,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Usuário deslogado ou erro ao carregar favoritos.");
     }
 
+    // 3. Ordenação condicional: Apenas se o perk estiver ativo
+    if (isPerkActive) {
+      filtered.sort((a, b) => {
+        const aFav = userFavs.has(a.id) ? 1 : 0;
+        const bFav = userFavs.has(b.id) ? 1 : 0;
+        return bFav - aFav; // Favoritos primeiro
+      });
+    }
+
     filtered.forEach(a => {
+      const isFav = userFavs.has(a.id);
       const card = document.createElement('div');
       card.className = 'card';
       
-      const isFav = userFavs.has(a.id);
-      
       let imgHtml = a.capa ? `<img src="${a.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
-      let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">🌸</div>`;
+      let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">⛩️</div>`;
       
-      card.innerHTML = `
-        ${imgHtml}${placeholder}
-        <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${a.id}">
-          ${isFav ? '⭐' : '☆'}
+      const starClass = isPerkActive ? '' : 'is-hidden';
+      const favBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${a.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+          ${isFav ? '★' : '☆'}
         </button>
-        <div class="card-body">
+      `;
+
+      card.innerHTML = `
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
+          ${imgHtml}${placeholder}
+          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+        </div>
+        ${favBtnHtml}
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${a.nome}</div>
           <div class="card-meta">
             <span>${a.estudio || ''}</span>
@@ -73,28 +94,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
       
-      const favBtn = card.querySelector('.card-fav-btn');
-      favBtn.onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await DB.toggleFavorite(a.id, 'anime', { title: a.nome, cover: a.capa });
-          if (res.action === 'added') {
-            favBtn.classList.add('active');
-            favBtn.textContent = '⭐';
-            showToast(`"${a.nome}" adicionado aos favoritos!`);
-          } else {
-            favBtn.classList.remove('active');
-            favBtn.textContent = '☆';
-            showToast(`"${a.nome}" removido dos favoritos.`);
-          }
-        } catch (err) {
-          showToast('Faça login para favoritar!', 'error');
-        }
+      // Clique no card (abre detalhes)
+      card.onclick = () => {
+        activeAnimeId = a.id;
+        loadEpisodes(a.id);
+        render();
+        openDetailModal(a);
       };
 
-      card.addEventListener('click', () => openDetailModal(a));
+      // Clique na estrela (Favoritar)
+      const favBtn = card.querySelector('.fav-star');
+      if (favBtn) {
+        favBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+             await toggleFavorite(a, favBtn);
+          } catch(err) {
+             console.error(err);
+          }
+        };
+      }
+      
       grid.appendChild(card);
     });
+  }
+
+  async function toggleFavorite(item, btn) {
+    try {
+      const res = await DB.toggleFavorite(item.id, 'anime', { title: item.nome, cover: item.capa });
+      const isAdded = res.action === 'added';
+      
+      btn.classList.toggle('active', isAdded);
+      btn.innerHTML = isAdded ? '★' : '☆';
+      btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      
+      showToast(isAdded 
+        ? `"${item.nome}" adicionado aos favoritos!` 
+        : `"${item.nome}" removido dos favoritos.`);
+      
+      // Re-renderizar a grid para aplicar a ordenação (favoritos no topo)
+      await render();
+      
+      // Se houver um botão de favorito no modal aberto, atualiza ele também
+      const modalFavBtn = document.getElementById('detailFavBtn');
+      if (modalFavBtn) {
+        modalFavBtn.classList.toggle('active', isAdded);
+        modalFavBtn.textContent = isAdded ? '★' : '☆';
+      }
+    } catch (err) {
+      showToast('Erro ao atualizar favoritos. Faça login!', 'error');
+    }
   }
 
   /* MODAL */
@@ -106,8 +155,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailTemporadas = document.getElementById('detailTemporadas');
   const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
+  const detailFavBtn = document.getElementById('detailFavBtn');
 
-  function openDetailModal(a) {
+  async function openDetailModal(a) {
     detailTitle.textContent = a.nome;
     detailEstudio.textContent = a.estudio || 'N/A';
     detailTemporadas.textContent = a.temporadas || 1;
@@ -121,6 +171,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       detailCover.style.display = 'none';
       detailPlaceholder.style.display = 'flex';
+    }
+
+    // Check favorite status for modal button
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
+    const isFav = await DB.isFavorite(a.id, 'anime');
+    
+    if (isPerkActive) {
+      detailFavBtn.style.display = 'flex';
+      detailFavBtn.classList.toggle('active', isFav);
+      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+      detailFavBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(a, detailFavBtn);
+      };
+    } else {
+      detailFavBtn.style.display = 'none';
     }
 
     detailWatchBtn.onclick = () => {

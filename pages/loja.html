@@ -447,21 +447,37 @@
       margin-left: auto;
     }
     .currency-tab {
-      padding: 7px 14px;
+      padding: 8px 16px;
       border-radius: 20px;
-      border: 1px solid transparent;
-      background: rgba(255, 255, 255, 0.04);
-      font-size: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 0.82rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.25s ease;
+      color: rgba(255, 255, 255, 0.6);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .currency-tab:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+    .currency-tab[data-currency="all"].active {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
     }
     .currency-tab[data-currency="ouro"]     { color: #d4af37; }
     .currency-tab[data-currency="diamante"] { color: #64c8ff; }
     .currency-tab[data-currency="esmeralda"]{ color: #32dc78; }
-    .currency-tab.active[data-currency="ouro"]      { background: rgba(212, 175, 55, 0.12); border-color: #d4af37; box-shadow: 0 0 12px rgba(212, 175, 55, 0.25); }
-    .currency-tab.active[data-currency="diamante"]  { background: rgba(100, 200, 255, 0.1); border-color: #64c8ff; box-shadow: 0 0 12px rgba(100, 200, 255, 0.2); }
-    .currency-tab.active[data-currency="esmeralda"] { background: rgba(50, 220, 120, 0.1); border-color: #32dc78; box-shadow: 0 0 12px rgba(50, 220, 120, 0.2); }
+    
+    .currency-tab.active[data-currency="ouro"]      { background: rgba(212, 175, 55, 0.2); border-color: #d4af37; color: #fff; box-shadow: 0 0 15px rgba(212, 175, 55, 0.4); }
+    .currency-tab.active[data-currency="diamante"]  { background: rgba(100, 200, 255, 0.2); border-color: #64c8ff; color: #fff; box-shadow: 0 0 15px rgba(100, 200, 255, 0.4); }
+    .currency-tab.active[data-currency="esmeralda"] { background: rgba(50, 220, 120, 0.2); border-color: #32dc78; color: #fff; box-shadow: 0 0 15px rgba(50, 220, 120, 0.4); }
 
     /* ===== GRID DO CATÁLOGO ===== */
     .catalog-grid {
@@ -1068,6 +1084,7 @@
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/db.js"></script>
 <script src="js/auth.js"></script>
 <script>
 /* =====================================================
@@ -1138,7 +1155,12 @@ function loadStore() {
   try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
   catch { return { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
 }
-function saveStore(s) { localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+async function saveStore(s) { 
+  localStorage.setItem(STORE_KEY, JSON.stringify(s)); 
+  if (window.DB && window.DB.saveStoreData) {
+    await window.DB.saveStoreData(s);
+  }
+}
 
 let store = loadStore();
 
@@ -1408,16 +1430,42 @@ function confirmBuy() {
   }
 
   store[item.currency] -= item.price;
+  if (!store.purchased) store.purchased = [];
   store.purchased.push(item.id);
-  saveStore(store);
-  updateHeroUI();
-  renderCatalog();
-  closeBuyModal();
-  showToast(`✅ "${item.name}" adquirido com sucesso!`, 'success');
+
+  // Estrutura de itens equipados para os novos perks
+  if (!store.equipped) store.equipped = {};
+  if (item.category === 'experiencia') {
+      store.equipped[item.id] = true;
+      localStorage.setItem(`equipped_${item.id}`, 'true');
+  }
+
+  saveStore(store).then(() => {
+    updateHeroUI();
+    renderCatalog();
+    closeBuyModal();
+    showToast(`✅ "${item.name}" adquirido e sincronizado com o banco!`, 'success');
+  });
 }
 
 // ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────
 async function syncFromProfile() {
+  if (window.DB && window.DB.init) {
+    await window.DB.init();
+    
+    // Mesclar dados do banco no objeto local 'store'
+    if (window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+        const dbStore = window.DB._store.profile.store_data;
+        // Mesclar propriedades (ouro, diamante, esmeralda, xp, purchased, equipped)
+        if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
+        if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
+        if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
+        if (dbStore.xp !== undefined) store.xp = dbStore.xp;
+        if (dbStore.purchased) store.purchased = dbStore.purchased;
+        if (dbStore.equipped) store.equipped = dbStore.equipped;
+    }
+  }
+
   const cachedLevel = parseInt(localStorage.getItem('animehouse_userLevel') || '0');
   const cachedRank  = localStorage.getItem('animehouse_userRank') || 'Novato';
 
@@ -1431,21 +1479,27 @@ async function syncFromProfile() {
   store.rank = cachedRank;
 
   // Concessão de recursos para teste (apenas para davizeravisel@gmail.com)
-  if (typeof supaClient !== 'undefined') {
-    const { data: { session } } = await supaClient.auth.getSession();
+  if (typeof window.supabaseClient !== 'undefined' || typeof supaClient !== 'undefined') {
+    const supa = window.supabaseClient || supaClient;
+    const { data: { session } } = await supa.auth.getSession();
     if (session?.user?.email === 'davizeravisel@gmail.com') {
-        const testGrantKey = 'animehouse_test_granted_v1';
+        const testGrantKey = 'animehouse_test_granted_v3'; // Mudado para v3 para aplicar a correção do NaN
         if (!localStorage.getItem(testGrantKey)) {
-            store.xp += 5000;
-            store.ouro += 50;
-            store.diamante += 20;
-            store.esmeralda += 10;
+            store.xp = (isNaN(store.xp) || !store.xp) ? 0 : store.xp;
+            store.ouro = (isNaN(store.ouro) || !store.ouro) ? 0 : store.ouro;
+            store.diamante = (isNaN(store.diamante) || !store.diamante) ? 0 : store.diamante;
+            store.esmeralda = (isNaN(store.esmeralda) || !store.esmeralda) ? 0 : store.esmeralda;
+
+            store.xp += 8500;
+            store.ouro += 120;
+            store.diamante += 80;
+            store.esmeralda += 35;
             window.BANNER_MAP = {
                 'banner_aot': '',
                 'banner_ragnarok': ''
             };
             localStorage.setItem(testGrantKey, 'true');
-            showToast("🎁 Recursos de teste concedidos, Sensei!", "success");
+            if(window.showToast) showToast("🎁 Recursos extras creditados! Você pode readquirir seus itens.", "success");
         }
     }
   }

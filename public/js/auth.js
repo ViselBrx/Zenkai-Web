@@ -119,6 +119,11 @@ window.loadBanners = async function() {
                         if (cleanId.includes('aurora')) window.BANNER_MAP['banner_claro'] = b.image_url;
                         if (cleanId.includes('shiganshina')) window.BANNER_MAP['banner_aot'] = b.image_url;
                         if (cleanId.includes('vinland')) window.BANNER_MAP['banner_vinland'] = b.image_url;
+                        if (cleanId.includes('cosmica')) window.BANNER_MAP['banner_cosmica'] = b.image_url;
+                        if (cleanId.includes('oni')) window.BANNER_MAP['banner_oni'] = b.image_url;
+                        if (cleanId.includes('shinobi')) window.BANNER_MAP['banner_shinobi'] = b.image_url;
+                        if (cleanId.includes('ragnarok')) window.BANNER_MAP['banner_ragnarok'] = b.image_url;
+                        if (cleanId.includes('cosmos')) window.BANNER_MAP['banner_cosmos'] = b.image_url;
                         
                         // Se o usuário subir com extensão, mapeia também
                         const idNoExt = cleanId.replace(/\.[^/.]+$/, "");
@@ -136,6 +141,11 @@ window.updateNavbarCosmetics = function() {
     const titleEl = document.querySelector('.user-nav-title');
     const avatarBox = document.querySelector('.user-nav-avatar-box');
     const navAvatar = document.getElementById('navAvatar');
+    const burger = document.getElementById('navBurger');
+    
+    // 💡 Cursor fixes
+    if (burger) burger.style.cursor = 'pointer';
+    document.querySelectorAll('.navbar-links a').forEach(a => a.style.cursor = 'pointer');
 
     // Se o elemento ainda não existe (navbar carregando), tenta novamente em 100ms
     if (!bannerBg) {
@@ -143,10 +153,17 @@ window.updateNavbarCosmetics = function() {
         return;
     }
 
-    const savedBanner = localStorage.getItem('animehouse_customBanner') || 'none';
-    const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
-    const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
-    const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+    // 💡 Dados do Banco (Preferencial)
+    let sData = null;
+    if (window.DB && window.DB._store && window.DB._store.profile) {
+        sData = window.DB._store.profile.store_data || {};
+    }
+
+    const savedBanner = (sData && sData.equipped && sData.equipped.banner) || localStorage.getItem('animehouse_customBanner') || 'none';
+    const savedAura   = (sData && sData.equipped && sData.equipped.aura)   || localStorage.getItem('animehouse_customAura')   || 'none';
+    const savedTitle  = (sData && sData.equipped && sData.equipped.titulo) || localStorage.getItem('animehouse_customTitle')  || '';
+    const savedCrown  = (sData && sData.equipped && sData.equipped.crown)  || localStorage.getItem('animehouse_showCrown') === 'true';
+    const hasFrame    = (sData && sData.equipped && sData.equipped.frame_dourado) || localStorage.getItem('equipped_frame_dourado') === 'true';
 
     // 📸 LÓGICA DE BANNER
     if (savedBanner !== 'none' && window.BANNER_MAP) {
@@ -170,14 +187,26 @@ window.updateNavbarCosmetics = function() {
         titleEl.style.display = savedTitle ? 'block' : 'none';
     }
 
-    // ✨ AURA
-    avatarBox.className = 'user-nav-avatar-box';
+    // ✨ AURA & FRAME
+    const auraClasses = [
+        'aura-common-chama', 'aura-common-naruto',
+        'aura-rare-ceifador', 'aura-rare-thunder', 'aura-rare-susanoo', 'aura-rare-sakura',
+        'aura-epic-gelo', 'aura-epic-stands', 'aura-epic-void',
+        'aura-legendary-dragon',
+        'avatar-aura-fire', 'avatar-aura-guardian', 'avatar-aura-immortal',
+        'frame-dourado'
+    ];
+    avatarBox.classList.remove(...auraClasses);
+    
     if (savedAura !== 'none') {
         avatarBox.classList.add(savedAura);
-        if (navAvatar) navAvatar.style.border = 'none';
-    } else {
-        if (navAvatar) navAvatar.style.border = '2px solid var(--primary)';
     }
+    
+    if (hasFrame) {
+        avatarBox.classList.add('frame-dourado');
+    }
+
+    if (navAvatar) navAvatar.style.border = 'none';
 
     // 👑 COROA
     const existingCrown = avatarBox.querySelector('.crown-nav');

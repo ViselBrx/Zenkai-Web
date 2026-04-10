@@ -3,83 +3,173 @@
 
 /* ===== VARIÁVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
 /* Auras da Loja SenseiMod */
-.aura_chama,
+/* ===== MYSTICAL AURAS (CLASSIFIED BY RARITY/PRICE) ===== */
+
+/* [COMMON] - Low Price (3-8 Ouro) */
+.aura-common-chama,
+.aura_chama {
+  box-shadow: 0 0 12px #f40, 0 0 20px rgba(255, 68, 0, 0.4) !important;
+  border-radius: 50% !important;
+  animation: aura-simple-pulse 2s infinite alternate;
+}
+
+.aura-common-naruto,
 .aura_chama_naruto {
-  box-shadow: 0 0 15px #f40, 0 0 25px #f80 !important;
-  border: 2px solid #f40 !important;
+  box-shadow: 0 0 12px #fd0, 0 0 20px rgba(255, 221, 0, 0.4) !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: aura-simple-pulse 2.2s infinite alternate;
 }
 
+/* [RARE] - Medium Price (10-15 Ouro / 8-9 Diamante) */
+.aura-rare-ceifador,
 .aura_ceifador {
-  box-shadow: 0 0 15px #404, 0 0 30px #000 !important;
-  border: 2px solid #202 !important;
+  /* Purple Core + Blinking Grey Shadow */
+  box-shadow: 0 0 15px #80f, 0 0 30px #408 !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: ceifadorRarityPulse 1.2s infinite alternate !important;
 }
 
+@keyframes ceifadorRarityPulse {
+  0% {
+    box-shadow: 0 0 10px #80f, 0 0 20px #408, 0 0 15px rgba(100, 100, 100, 0.3) !important;
+    filter: brightness(0.8);
+  }
+
+  100% {
+    box-shadow: 0 0 25px #a0f, 0 0 50px #60a, 0 0 45px rgba(200, 200, 200, 0.8) !important;
+    filter: brightness(1.2);
+  }
+}
+
+.aura-rare-thunder,
 .aura_thunder {
-  box-shadow: 0 0 15px #0ff, 0 0 30px #fff !important;
-  border: 2px solid #0ff !important;
+  box-shadow: 0 0 15px #0ff, 0 0 30px #00bfff, 0 0 10px #fff !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: aura-electric-pulse 0.2s infinite;
 }
 
+.aura-rare-susanoo,
 .aura_susanoo {
-  box-shadow: 0 0 25px #a0f, 0 0 45px #50a !important;
-  border: 3px solid #f0f !important;
+  box-shadow: 0 0 20px #9400d3, 0 0 45px #4b0082, 0 0 30px rgba(138, 43, 226, 0.5) !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: aura-medium-pulse 2s infinite alternate;
 }
 
+.aura-rare-sakura,
 .aura_sakura {
-  box-shadow: 0 0 12px #f9c, 0 0 25px #fff !important;
-  border: 2px solid #f9c !important;
+  box-shadow: 0 0 12px #f9c, 0 0 25px #fff, 0 0 15px rgba(255, 182, 193, 0.4) !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: aura-medium-pulse 2.5s infinite alternate;
 }
 
-.aura_infinity {
-  box-shadow: 0 0 20px #04f, 0 0 40px #000 !important;
-  border: 2px solid #fff !important;
-  border-radius: 50% !important;
-  z-index: 10;
-}
-
-.aura_stands {
-  box-shadow: 0 0 20px #f0f, 0 0 40px #80f !important;
-  border: 2px solid #f0f !important;
-  border-radius: 50% !important;
-  z-index: 10;
-}
-
-.aura_dragon {
-  box-shadow: 0 0 20px #0f8, 0 0 40px #044 !important;
-  border: 2px solid #0f0 !important;
-  border-radius: 50% !important;
-  z-index: 10;
-}
-
-.aura_dragon_haoshoku {
-  box-shadow: 0 0 30px #f00, 0 0 50px #000 !important;
-  border: 3px solid #900 !important;
-  border-radius: 50% !important;
-  z-index: 10;
-}
-
-.aura_void_saitama {
-  box-shadow: 0 0 40px #fff, 0 0 80px rgba(255, 255, 255, 0.4) !important;
-  border: 3px solid #eee !important;
-  border-radius: 50% !important;
-  z-index: 10;
-}
-
+/* [EPIC] - High Price (11-12 Diamante / 4 Esmeralda) */
+.aura-epic-gelo,
 .aura_gelo {
-  box-shadow: 0 0 15px #6cf, 0 0 30px #fff !important;
-  border: 2px solid #6cf !important;
+  box-shadow: 0 0 20px #6cf, 0 0 40px #fff, inset 0 0 15px #6cf !important;
   border-radius: 50% !important;
-  z-index: 10;
+  animation: aura-epic-pulse 1.8s infinite alternate;
 }
+
+.aura-epic-stands,
+.avatar-aura-stands {
+  box-shadow: 0 0 25px #9b59b6, 0 0 50px #6c3483, 0 0 20px #d2b4de !important;
+  border-radius: 50% !important;
+  animation: aura-epic-pulse 1.5s infinite alternate;
+}
+
+.aura-epic-void,
+.aura-avatar-void,
+.aura_void_saitama {
+  box-shadow: 0 0 30px #fff, 0 0 60px rgba(255, 255, 255, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+  border-radius: 50% !important;
+  animation: aura-void-pulse 2s infinite alternate;
+}
+
+/* [LEGENDARY] - Max Price (5 Esmeralda+) */
+.aura-legendary-dragon,
+.aura_dragon {
+  background: padding-box, conic-gradient(from var(--a), #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00) border-box !important;
+  border: 4px solid transparent !important;
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.4), 0 0 60px rgba(var(--primary-rgb), 0.3) !important;
+  border-radius: 50% !important;
+  animation: aura-legendary-rotate 4s linear infinite, aura-epic-pulse 2s infinite alternate;
+}
+
+@property --a {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes aura-legendary-rotate {
+  to {
+    --a: 360deg;
+  }
+}
+
+/* Shared Animations */
+@keyframes aura-simple-pulse {
+  from {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes aura-medium-pulse {
+  from {
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  to {
+    box-shadow: 0 0 25px currentColor, 0 0 40px currentColor;
+  }
+}
+
+@keyframes aura-electric-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+
+  50% {
+    opacity: 0.8;
+    filter: brightness(1.5);
+  }
+}
+
+@keyframes aura-epic-pulse {
+  from {
+    transform: scale(0.97);
+    filter: hue-rotate(0deg);
+  }
+
+  to {
+    transform: scale(1.03);
+    filter: hue-rotate(15deg);
+  }
+}
+
+@keyframes aura-void-pulse {
+  0% {
+    box-shadow: 0 0 20px #fff;
+  }
+
+  50% {
+    box-shadow: 0 0 40px #fff, 0 0 70px rgba(255, 255, 255, 0.4);
+  }
+
+  100% {
+    box-shadow: 0 0 20px #fff;
+  }
+}
+
 
 /* ===== NOVOS COSMÉTICOS (Banners e Títulos) ===== */
 .user-nav-container {
@@ -88,15 +178,16 @@
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.05);
+  /* Fundo quase transparente para não ofuscar o banner */
   /* Base de contraste leve */
   padding: 2px 6px;
   border-radius: 50px;
   border: 1px solid rgba(var(--primary-rgb), 0.4);
   overflow: hidden;
   transition: all 0.4s ease;
-  min-width: 155px;
-  height: 52px;
+  min-width: 175px;
+  height: 60px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
   isolation: isolate;
   /* Cria um novo contexto de camadas */
@@ -106,12 +197,13 @@
   position: absolute;
   inset: 0;
   background-size: cover;
-  background-position: center 30%; /* Foca melhor na parte principal da arte */
+  background-position: center;
+  /* Centralização perfeita sugerida pelo usuário */
   background-repeat: no-repeat;
-  opacity: 0.9;
+  opacity: 1;
   z-index: -1;
   transition: transform 0.6s ease;
-  filter: brightness(0.7) contrast(1.2); /* Mais contraste para o texto brilhar */
+  filter: brightness(1) saturate(1.2);
 }
 
 .user-nav-container:hover .user-nav-banner-bg {
@@ -143,7 +235,7 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  border: 2px solid #fff;
+  border: none;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   flex-shrink: 0;
   display: flex;
@@ -564,6 +656,11 @@ button {
   width: 14px;
   height: 12px;
 }
+
+.profile-bubble {
+  cursor: pointer;
+}
+
 
 ::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.3) !important;
@@ -1093,6 +1190,10 @@ body {
   transform: scale(0.97);
 }
 
+.btn {
+  cursor: pointer;
+}
+
 .btn-primary {
   background: var(--primary);
   color: var(--bg-dark);
@@ -1170,6 +1271,8 @@ body {
   border-radius: var(--radius);
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   overflow: hidden;
+  position: relative;
+  /* Essencial para os botões absolutamente posicionados dentro */
   transition: all var(--transition);
   cursor: pointer;
   display: flex;
@@ -1205,6 +1308,11 @@ body {
 .ai-card img {
   transition: transform 0.5s ease;
 }
+
+.history-open {
+  cursor: pointer;
+}
+
 
 .card:hover img {
   transform: scale(1.1);
@@ -1338,6 +1446,56 @@ td {
   border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
   vertical-align: middle;
+}
+
+/* History Category Filters */
+.history-filters {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--primary-rgb), 0.3) transparent;
+}
+
+.history-filters::-webkit-scrollbar {
+  height: 4px;
+}
+
+.history-filters::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.history-filters::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-rgb), 0.3);
+  border-radius: 10px;
+}
+
+.history-filter-btn {
+  padding: 5px 12px;
+  background: rgba(var(--primary-rgb), 0.08);
+  border: 1px solid rgba(var(--primary-rgb), 0.15);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.history-filter-btn:hover {
+  background: rgba(var(--primary-rgb), 0.15);
+  color: var(--text-main);
+  border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+.history-filter-btn.active {
+  background: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+  box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
 }
 
 tr:last-child td {
@@ -1993,7 +2151,8 @@ tr:hover td {
 .undo-toast.fade-out {
   opacity: 0;
   transform: translateY(20px);
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 /* ===== HOME LINKS E GLOBAIS ===== */
@@ -2434,33 +2593,28 @@ body:hover .watermark {
   }
 }
 
-.aura_chama {
-  box-shadow: 0 0 15px #f40, 0 0 35px #f00, 0 0 60px #ff8c00;
-  border: 3px solid #f40 !important;
+/* ===== AURAS DA LOJA (classes usadas pelo perfil.html) ===== */
+
+/* AURAS DA LOJA - COMPATIBILITY OVERRIDES */
+.avatar-aura-susanoo {
   border-radius: 50%;
-  animation: aura-pulse-fire 1.5s infinite alternate;
+  box-shadow: 0 0 25px #9400d3, 0 0 50px #4b0082;
 }
 
-.aura_susanoo {
-  box-shadow: 0 0 25px #9400d3, 0 0 50px #4b0082, 0 0 80px #8a2be2;
-  border: 4px solid #f0f !important;
+.avatar-aura-stands {
   border-radius: 50%;
-  animation: aura-pulse-generic 2s infinite alternate;
+  box-shadow: 0 0 20px #9b59b6;
 }
 
-.aura_thunder {
-  box-shadow: 0 0 20px #0ff, 0 0 45px #00bfff, 0 0 70px #fff;
-  border: 3px solid #0ff !important;
+.avatar-aura-dragon {
   border-radius: 50%;
-  animation: aura-pulse-lightning 0.15s infinite;
 }
 
-.aura_ceifador {
-  box-shadow: 0 0 20px #404, 0 0 40px #1a1a1a, 0 0 60px #000;
-  border: 3px solid #303 !important;
+.avatar-aura-void {
   border-radius: 50%;
-  animation: aura-fade 3s infinite alternate;
 }
+
+
 
 .aura_sakura {
   box-shadow: 0 0 15px #f9c, 0 0 35px #ffb6c1, 0 0 55px #fff;
@@ -2477,42 +2631,89 @@ body:hover .watermark {
 }
 
 .aura_void_saitama {
-  box-shadow: 0 0 50px #fff, 0 0 100px rgba(255, 255, 255, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 50px #fff, 0 0 100px rgba(255, 255, 255, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.5);
   border: 4px solid #eee !important;
   border-radius: 50%;
   animation: aura-void 2.5s infinite alternate;
 }
 
 @keyframes aura-pulse-fire {
-  0% { filter: brightness(1) contrast(1.2); transform: scale(1); }
-  100% { filter: brightness(1.4) contrast(1.5); transform: scale(1.04); }
+  0% {
+    filter: brightness(1) contrast(1.2);
+    transform: scale(1);
+  }
+
+  100% {
+    filter: brightness(1.4) contrast(1.5);
+    transform: scale(1.04);
+  }
 }
 
 @keyframes aura-pulse-lightning {
-  0% { transform: translate(0,0) skewX(0deg); opacity: 0.9; }
-  25% { transform: translate(1px,-1px) skewX(1deg); opacity: 1; }
-  50% { transform: translate(-1px,1px) skewX(-1deg); opacity: 0.8; }
-  100% { transform: translate(0,0) skewX(0deg); opacity: 1; }
+  0% {
+    transform: translate(0, 0) skewX(0deg);
+    opacity: 0.9;
+  }
+
+  25% {
+    transform: translate(1px, -1px) skewX(1deg);
+    opacity: 1;
+  }
+
+  50% {
+    transform: translate(-1px, 1px) skewX(-1deg);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate(0, 0) skewX(0deg);
+    opacity: 1;
+  }
 }
 
 @keyframes aura-pulse-generic {
-  from { transform: scale(1); opacity: 0.8; }
-  to { transform: scale(1.06); opacity: 1; }
+  from {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  to {
+    transform: scale(1.06);
+    opacity: 1;
+  }
 }
 
 @keyframes aura-fade {
-  from { filter: grayscale(1) blur(1px); }
-  to { filter: grayscale(0) blur(0px); }
+  from {
+    filter: grayscale(1) blur(1px);
+  }
+
+  to {
+    filter: grayscale(0) blur(0px);
+  }
 }
 
 @keyframes aura-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px) scale(1.02); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px) scale(1.02);
+  }
 }
 
 @keyframes aura-void {
-  0% { box-shadow: 0 0 40px #fff, 0 0 80px rgba(255,255,255,0.3); }
-  100% { box-shadow: 0 0 70px #fff, 0 0 130px rgba(255,255,255,0.6); transform: scale(1.05); }
+  0% {
+    box-shadow: 0 0 40px #fff, 0 0 80px rgba(255, 255, 255, 0.3);
+  }
+
+  100% {
+    box-shadow: 0 0 70px #fff, 0 0 130px rgba(255, 255, 255, 0.6);
+    transform: scale(1.05);
+  }
 }
 
 .profile-banner-custom {
@@ -2582,9 +2783,9 @@ body:hover .watermark {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   display: flex;
   align-items: center;
@@ -2593,6 +2794,7 @@ body:hover .watermark {
   z-index: 5;
   transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .card-fav-btn:hover {
   transform: scale(1.15);
   background: var(--primary);
@@ -2600,9 +2802,404 @@ body:hover .watermark {
   border-color: var(--primary);
   box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.5);
 }
+
 .card-fav-btn.active {
   background: var(--primary);
   color: #000;
   border-color: var(--primary);
   box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+}
+
+/* ===== PERKS DE ITENS ESPECIAIS (PERFIL) ===== */
+
+/* 1. Moldura Elite (Frame Dourado) */
+.frame-dourado {
+  border: 3px solid gold !important;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 215, 0, 0.3) !important;
+  position: relative;
+  animation: frame-glow 2s infinite alternate;
+}
+
+@keyframes frame-glow {
+  from {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+  }
+
+  to {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.2);
+  }
+}
+
+/* 2. Modo Cinema (Ambiental) */
+body.modo-cinema {
+  background: #050505 !important;
+  background-image: none !important;
+}
+
+body.modo-cinema .profile-shell,
+body.modo-cinema .profile-main,
+body.modo-cinema .history-sidebar {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Painel Premium (Dashboard) */
+.premium-dashboard-badge {
+  background: linear-gradient(45deg, #ffd700, #ffa500);
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-left: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.premium-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed rgba(var(--primary-rgb), 0.3);
+}
+
+/* 4. Placa de Colecionador */
+.collector-plaque {
+  background: linear-gradient(135deg, #e5e4e2 0%, #b4b4b4 50%, #e5e4e2 100%);
+  border: 1px solid #fff;
+  border-radius: 4px;
+  padding: 6px 12px;
+  margin-top: 10px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.collector-plaque::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: plaque-shimmer 3s infinite;
+}
+
+@keyframes plaque-shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+.plaque-text {
+  color: #333;
+  font-family: 'Bangers', cursive;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* 5. Lista Destaque (Favoritos) — Premium */
+.destaque-favoritos .fav-card {
+  position: relative;
+  border: 2px solid rgba(var(--primary-rgb), 0.5) !important;
+  box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);
+  animation: fav-highlight-pulse 2s infinite ease-in-out;
+}
+
+.fav-pin {
+  position: absolute;
+  top: -10px;
+  left: -8px;
+  font-size: 1.5rem;
+  z-index: 10;
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+  animation: pinBounce 1.5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes fav-highlight-pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+    border-color: rgba(var(--primary-rgb), 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.5);
+    border-color: var(--primary);
+  }
+
+  100% {
+    box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+    border-color: rgba(var(--primary-rgb), 0.4);
+  }
+}
+
+@keyframes pinBounce {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+
+  50% {
+    transform: translateY(-5px) rotate(5deg);
+  }
+}
+
+/* 6. Botões de Favorito */
+.card-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-size: 1rem;
+}
+
+.card-fav-btn:hover {
+  transform: scale(1.2);
+  background: rgba(var(--primary-rgb), 0.8);
+  border-color: var(--primary);
+  box-shadow: 0 0 15px var(--primary);
+}
+
+.card-fav-btn.active,
+.fav-star.active,
+#detailFavBtn.active {
+  color: #ffca28 !important;
+  background: rgba(var(--primary-rgb), 0.2) !important;
+  border-color: #ffca28 !important;
+  text-shadow: 0 0 12px rgba(255, 202, 40, 0.9), 0 0 20px rgba(255, 202, 40, 0.4);
+  animation: starPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  opacity: 1 !important;
+}
+
+@keyframes starPop {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.4);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+#detailFavBtn {
+  transition: all 0.3s ease;
+}
+
+#detailFavBtn:hover {
+  background: rgba(var(--primary-rgb), 0.1);
+  color: var(--primary);
+}
+
+/* ===== FAVORITOS DESTACADOS (INVENTÁRIO STYLE) ===== */
+.equipped-ribbon {
+  position: absolute;
+  top: 15px;
+  right: -30px;
+  background: #22c55e;
+  color: #fff;
+  padding: 5px 35px;
+  font-weight: 900;
+  font-size: 0.6rem;
+  transform: rotate(45deg);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.card.highlighted-fav {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.4) !important;
+  transform: translateY(-5px) scale(1.02);
+}
+
+.btn-equip-fav {
+  background: rgba(var(--primary-rgb), 0.15);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-unequip-fav {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid #22c55e;
+  border-radius: 8px;
+}
+
+/* 7. Estilos para Favoritos (Unificado para Animes, Mangás, Filmes e Desenhos) */
+.fav-star, .card-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(4px);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  font-size: 1.2rem;
+}
+
+.fav-star:hover, .card-fav-btn:hover {
+  transform: scale(1.15);
+  background: rgba(0, 0, 0, 0.7);
+  border-color: #ffca28;
+}
+
+.fav-star.active, .card-fav-btn.active {
+  background: var(--primary);
+  color: #ffca28 !important;
+  border-color: #ffca28;
+  box-shadow: 0 0 20px rgba(255, 202, 40, 0.5);
+  text-shadow: 0 0 10px rgba(255, 202, 40, 0.8);
+}
+
+.equipped-ribbon {
+    position: absolute;
+    top: 12px;
+    left: -32px;
+    background: var(--primary);
+    color: #fff;
+    padding: 4px 35px;
+    font-weight: 800;
+    font-size: 0.55rem;
+    transform: rotate(-45deg);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    z-index: 15;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Novo Indicador de Equipado Discreto */
+.equipped-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    background: #22c55e;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 900;
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    z-index: 20;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    animation: dotPulse 2s infinite;
+}
+
+@keyframes dotPulse {
+    0% { transform: scale(1); box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+    50% { transform: scale(1.1); box-shadow: 0 0 15px rgba(34, 197, 94, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+}
+
+.inventory-item.equipped {
+    border-color: #22c55e !important;
+    background: rgba(34, 197, 94, 0.05) !important;
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.15) !important;
+}
+
+.card {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Estrela de Favoritos Unificada e Premium */
+.fav-star {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    width: 34px !important;
+    height: 34px !important;
+    background: rgba(0, 0, 0, 0.45) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 1.3rem !important;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    z-index: 9999 !important; /* Garantir que fique acima de TUDO */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+}
+
+.fav-star.is-hidden {
+    display: none !important;
+}
+
+.fav-star:hover {
+    transform: scale(1.15) rotate(15deg);
+    background: rgba(var(--primary-rgb), 0.6) !important;
+    border-color: var(--primary) !important;
+}
+
+.fav-star.active {
+    background: var(--primary) !important;
+    color: #ffca28 !important;
+    border-color: #ffca28 !important;
+    box-shadow: 0 0 20px rgba(255, 202, 40, 0.4) !important;
+    text-shadow: 0 0 10px rgba(255, 202, 40, 0.8) !important;
+}
+
+.fav-star-container {
+    position: relative;
+    display: inline-block;
 }

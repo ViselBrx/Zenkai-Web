@@ -117,7 +117,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
+                         ? window.DB.isPerkEquipped('lista_destaque') 
+                         : false;
+
+    // 2. Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('desenho');
@@ -125,50 +130,73 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         console.warn("Erro ao carregar favoritos de desenhos.");
     }
+
+    // 3. Ordenação condicional
+    if (isPerkActive) {
+      list.sort((a, b) => {
+        const aFav = userFavs.has(a.id) ? 1 : 0;
+        const bFav = userFavs.has(b.id) ? 1 : 0;
+        return bFav - aFav; // Favoritos primeiro
+      });
+    }
     
     for (const c of list) {
+      const isFav = userFavs.has(c.id);
+      const container = document.createElement('div');
+      container.className = 'fav-star-container';
+      container.style.width = '100%';
+
       const btn = document.createElement('button');
       btn.className = 'cartoon-pill';
-      const isFav = userFavs.has(c.id);
+      if (c.id === activeCartoonId) btn.classList.add('active');
       
       const thumb = c.capa 
         ? `<img src="${c.capa}" onerror="this.src='';this.style.background='var(--primary)'">`
         : `<div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;">🎬</div>`;
       
       btn.innerHTML = `
-        ${thumb} 
-        <span>${c.nome}</span>
-        <span class="fav-star ${isFav ? 'active' : ''}" style="margin-left:auto; font-size:1.1rem; cursor:pointer; transition:0.3s; opacity:${isFav ? '1' : '0.6'};">
-            ${isFav ? '⭐' : '☆'}
-        </span>
+        <div class="card-click-area" style="display:flex; align-items:center; width:100%; height:100%; border-radius:inherit;">
+          ${thumb} 
+          <span>${c.nome}</span>
+        </div>
       `;
-      
-      const star = btn.querySelector('.fav-star');
-      star.onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
-          if (res.action === 'added') {
-            star.classList.add('active');
-            star.textContent = '⭐';
-            star.style.opacity = '1';
-            showToast(`"${c.nome}" adicionado aos favoritos!`);
-          } else {
-            star.classList.remove('active');
-            star.textContent = '☆';
-            star.style.opacity = '0.6';
-            showToast(`"${c.nome}" removido dos favoritos.`);
-          }
-        } catch (err) {
-          showToast('Faça login para favoritar!', 'error');
-        }
+
+      btn.querySelector('.card-click-area').onclick = () => {
+        selectCartoon(c.id, btn);
       };
+
+      // Estrela frontal
+      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${c.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="width:24px; height:24px; font-size:0.9rem; top:5px; right:5px;">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
+      container.innerHTML = btn.outerHTML + starBtnHtml;
       
-      btn.addEventListener('click', (e) => {
-          if (e.target.classList.contains('fav-star')) return;
-          selectCartoon(c.id, btn);
-      });
-      pillsContainer.appendChild(btn);
+      const finalBtnArea = container.querySelector('.card-click-area');
+      finalBtnArea.onclick = () => selectCartoon(c.id, container.querySelector('.cartoon-pill'));
+
+      const star = container.querySelector('.fav-star');
+      if (star) {
+        star.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+            const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
+            const isAdded = res.action === 'added';
+            star.classList.toggle('active', isAdded);
+            star.innerHTML = isAdded ? '★' : '☆';
+            star.title = isAdded ? 'Desmarcar' : 'Marcar';
+            showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
+            await loadCartoons(); // Recarregar para reordenar
+          } catch (err) {
+            showToast('Faça login para favoritar!', 'error');
+          }
+        };
+      }
+
+      pillsContainer.appendChild(container);
     }
 
     loadPendingHistoryResume();

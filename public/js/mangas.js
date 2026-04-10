@@ -81,13 +81,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     mangaPills.innerHTML = '';
 
-    // OTIMIZAÇÃO: Busca favoritos uma única vez
+    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
+                         ? window.DB.isPerkEquipped('lista_destaque') 
+                         : false;
+
+    // 2. Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('manga');
         userFavs = new Set(favs.map(f => f.content_id));
     } catch (e) {
         console.warn("Erro ao carregar favoritos de mangás.");
+    }
+
+    // 3. Ordenação condicional
+    if (isPerkActive) {
+      mangas.sort((a, b) => {
+        const aFav = userFavs.has(a.id) ? 1 : 0;
+        const bFav = userFavs.has(b.id) ? 1 : 0;
+        return bFav - aFav; // Favoritos primeiro
+      });
     }
     
     mangas.forEach(m => {
@@ -97,19 +111,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       const isFav = userFavs.has(m.id);
       const initial = m.nome.charAt(0).toUpperCase();
-      // Thumbnail: mostra a capa do mangá (grande) ou inicial grande
       const coverHtml = m.capa
         ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
+      const starClass = isPerkActive ? '' : 'is-hidden';
+      const favBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${m.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
       card.innerHTML = `
-        <div style="position:relative;">
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${coverHtml}
-          <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${m.id}" style="width:28px; height:28px; font-size:0.8rem;">
-            ${isFav ? '⭐' : '☆'}
-          </button>
+          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+          ${favBtnHtml}
         </div>
-        <div class="card-body">
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${m.nome}</div>
           <div style="display:flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: auto;">
              <span class="card-badge" style="margin-top:0;">📚 Ver Estante</span>
@@ -120,35 +139,35 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
-      
-      const favBtn = card.querySelector('.card-fav-btn');
-      favBtn.onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await DB.toggleFavorite(m.id, 'manga', { title: m.nome, cover: m.capa });
-          if (res.action === 'added') {
-            favBtn.classList.add('active');
-            favBtn.textContent = '⭐';
-            showToast(`"${m.nome}" adicionado aos favoritos!`);
-          } else {
-            favBtn.classList.remove('active');
-            favBtn.textContent = '☆';
-            showToast(`"${m.nome}" removido dos favoritos.`);
-          }
-        } catch (err) {
-          showToast('Faça login para favoritar!', 'error');
-        }
-      };
 
-      // Clique rápido para selecionar
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.pill-edit-btn') || e.target.closest('.pill-delete-btn') || e.target.closest('.card-fav-btn')) return; // ignora botões de ação
+      // Clique no card (seleciona e rola)
+      card.onclick = () => {
         activeMangaId = m.id;
+        selectedVolId = null;
         renderMangaPills(); // Atualiza card ativo
         renderVolumes();
-        // Rolar a tela suavemente até a estante
-        document.getElementById('volumesPanel').scrollIntoView({behavior: 'smooth', block: 'start'});
-      });
+        
+        const target = document.getElementById('volumesPanel') || document.getElementById('mangaDetailContent');
+        if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+      };
+      
+      const favBtn = card.querySelector('.fav-star');
+      if (favBtn) {
+        favBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+            const res = await DB.toggleFavorite(m.id, 'manga', { title: m.nome, cover: m.capa });
+            const isAdded = res.action === 'added';
+            favBtn.classList.toggle('active', isAdded);
+            favBtn.innerHTML = isAdded ? '★' : '☆';
+            favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
+            if (window.showToast) showToast(isAdded ? `"${m.nome}" adicionado aos favoritos!` : `"${m.nome}" removido dos favoritos.`);
+            await renderMangaPills(); // Re-render para aplicar ordenação
+          } catch (err) {
+            if (window.showToast) showToast('Faça login para favoritar!', 'error');
+          }
+        };
+      }
 
       // Clique no lápis: abrir modal no modo edição
       card.querySelector('.pill-edit-btn').addEventListener('click', (e) => {

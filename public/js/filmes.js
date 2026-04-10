@@ -90,35 +90,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
-    // OTIMIZAÇÃO: Busca todos os favoritos uma única vez
+    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
+                         ? window.DB.isPerkEquipped('lista_destaque') 
+                         : false;
+
+    // 2. Buscar favoritos
     let userFavs = new Set();
     try {
-        const favs = await DB.getFavorites('filme');
-        userFavs = new Set(favs.map(f => f.content_id));
+      const favs = await DB.getFavorites('filme');
+      userFavs = new Set(favs.map(f => f.content_id));
     } catch (e) {
-        console.warn("Erro ao carregar favoritos de filmes.");
+      console.warn("Erro ao carregar favoritos de filmes.");
+    }
+
+    // 3. Ordenação condicional
+    if (isPerkActive) {
+      filtered.sort((a, b) => {
+        const aFav = userFavs.has(a.id) ? 1 : 0;
+        const bFav = userFavs.has(b.id) ? 1 : 0;
+        return bFav - aFav; // Favoritos primeiro
+      });
     }
 
     filtered.forEach(f => {
+      const isFav = userFavs.has(f.id);
       const card = document.createElement('div');
       card.className = 'card';
       const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(f.id);
-      const isFav = userFavs.has(f.id);
-      
+
       let imgHtml = f.capa ? `<img src="${f.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${f.capa ? 'display:none;' : ''}">🎬</div>`;
-      const watchedBadge = isWatched 
+      const watchedBadge = isWatched
         ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);z-index:4;">✓ Assistido</span>`
         : '';
-      
+
+      const starClass = isPerkActive ? '' : 'is-hidden';
+      const favBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${f.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
       card.innerHTML = `
-        <div style="position:relative;">
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${imgHtml}${placeholder}${watchedBadge}
-          <button class="card-fav-btn ${isFav ? 'active' : ''}" data-id="${f.id}">
-             ${isFav ? '⭐' : '☆'}
-          </button>
+          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
         </div>
-        <div class="card-body">
+        ${favBtnHtml}
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${f.nome}</div>
           <div class="card-meta">
             <span>${f.diretor || ''}</span>
@@ -127,28 +147,51 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
 
-      const favBtn = card.querySelector('.card-fav-btn');
-      favBtn.onclick = async (e) => {
-        e.stopPropagation();
-        try {
-          const res = await DB.toggleFavorite(f.id, 'filme', { title: f.nome, cover: f.capa });
-          if (res.action === 'added') {
-            favBtn.classList.add('active');
-            favBtn.textContent = '⭐';
-            showToast(`"${f.nome}" adicionado aos favoritos!`);
-          } else {
-            favBtn.classList.remove('active');
-            favBtn.textContent = '☆';
-            showToast(`"${f.nome}" removido dos favoritos.`);
-          }
-        } catch (err) {
-          showToast('Faça login para favoritar!', 'error');
-        }
-      };
+      // Clique no card (abre detalhes)
+      card.onclick = () => openDetailModal(f);
 
-      card.addEventListener('click', () => openDetailModal(f));
+      // Clique na estrela (Favoritar)
+      const favBtn = card.querySelector('.fav-star');
+      if (favBtn) {
+        favBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+             await toggleFavorite(f, favBtn);
+          } catch(err) {
+             console.error(err);
+          }
+        };
+      }
+
       grid.appendChild(card);
     });
+  }
+
+  async function toggleFavorite(item, btn) {
+    try {
+      const res = await DB.toggleFavorite(item.id, 'filme', { title: item.nome, cover: item.capa });
+      const isAdded = res.action === 'added';
+
+      btn.classList.toggle('active', isAdded);
+      btn.innerHTML = isAdded ? '★' : '☆';
+      btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+
+      showToast(isAdded
+        ? `"${item.nome}" adicionado aos favoritos!`
+        : `"${item.nome}" removido dos favoritos.`);
+
+      // Re-renderizar a grid para aplicar a ordenação (favoritos no topo)
+      await render();
+
+      // Se houver um botão de favorito no modal aberto, atualiza ele também
+      const modalFavBtn = document.getElementById('detailFavBtn');
+      if (modalFavBtn) {
+        modalFavBtn.classList.toggle('active', isAdded);
+        modalFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+      }
+    } catch (err) {
+      showToast('Erro ao atualizar favoritos. Faça login!', 'error');
+    }
   }
 
   /* MODAL DETALHES */
@@ -160,8 +203,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailAno = document.getElementById('detailAno');
   const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
+  const detailFavBtn = document.getElementById('detailFavBtn');
 
-  function openDetailModal(f) {
+  async function openDetailModal(f) {
     detailTitle.textContent = f.nome;
     detailDiretor.textContent = f.diretor || 'N/A';
     detailAno.textContent = f.ano || 'N/A';
@@ -175,6 +219,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       detailCover.style.display = 'none';
       detailPlaceholder.style.display = 'flex';
+    }
+
+    // Check favorite status for modal button
+    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
+    const isFav = await DB.isFavorite(f.id, 'filme');
+
+    if (isPerkActive) {
+      detailFavBtn.style.display = 'flex';
+      detailFavBtn.classList.toggle('active', isFav);
+      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+      detailFavBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(f, detailFavBtn);
+      };
+    } else {
+      detailFavBtn.style.display = 'none';
     }
 
     // Botão de marcar como assistido no modal de detalhes
