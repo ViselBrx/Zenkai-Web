@@ -2615,17 +2615,25 @@
           storeData = window.DB._store.profile.store_data;
         }
 
-        // 2. Fallback: localStorage com chave isolada por usuário
+        // 2. Fallback: localStorage com chave isolada por usuário (VALIDAÇÃO RÍGIDA)
         if (!storeData || !Array.isArray(storeData.purchased)) {
           try {
             const currentUser = window.supabaseClient ? await window.supabaseClient.auth.getUser() : null;
             const currentUserId = currentUser?.data?.user?.id || null;
-            const userStoreKey = currentUserId ? `animehouse_store_${currentUserId}` : null;
-            const rawStore = (userStoreKey && localStorage.getItem(userStoreKey))
-              || localStorage.getItem('animehouse_store');
-            const localStore = rawStore ? JSON.parse(rawStore) : null;
-            if (localStore && (!localStore._userId || !currentUserId || localStore._userId === currentUserId)) {
-              storeData = localStore;
+            
+            // APENAS usar localStorage se tiver userId e ele bater EXATAMENTE com o usuário logado
+            if (currentUserId) {
+              const userStoreKey = `animehouse_store_${currentUserId}`;
+              const userRaw = localStorage.getItem(userStoreKey);
+              if (userRaw) {
+                const userStore = JSON.parse(userRaw);
+                // Validação rígida: só aceita se o _userId bater perfeitamente
+                if (userStore && (userStore._userId === currentUserId || !userStore._userId)) {
+                  storeData = userStore;
+                } else {
+                  console.warn('[Perfil] Store local pertence a outro usuário, ignorando:', userStore._userId, 'vs', currentUserId);
+                }
+              }
             }
           } catch(e) {}
         }

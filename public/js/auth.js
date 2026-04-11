@@ -18,9 +18,9 @@ if (window.supabase) {
         supaClient.auth.onAuthStateChange((event, session) => {
             const currentSessionId = session?.user?.id || null;
             if (previousSessionId !== null && previousSessionId !== currentSessionId) {
-                // Ao trocar de usuário, limpar o localStorage genérico para evitar vazamento de dados
-                // (cada usuário tem sua própria chave animehouse_store_<userId>)
+                // Ao trocar de usuário, limpar TODO o localStorage para evitar vazamento de dados
                 try {
+                    // Limpar chaves genéricas
                     localStorage.removeItem('animehouse_store');
                     localStorage.removeItem('animehouse_customAura');
                     localStorage.removeItem('animehouse_customBanner');
@@ -31,14 +31,17 @@ if (window.supabase) {
                     localStorage.removeItem('animehouse_prevLevel');
                     localStorage.removeItem('animehouse_prevRank');
                     localStorage.removeItem('animehouse_test_granted_v3');
-                    // Limpar chaves de itens equipados
+                    
+                    // Limpar TODAS as chaves isoladas por usuário (animehouse_store_<userId>)
                     const keysToRemove = [];
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
-                        if (key && key.startsWith('equipped_')) keysToRemove.push(key);
+                        if (key && (key.startsWith('equipped_') || key.startsWith('animehouse_store_'))) {
+                            keysToRemove.push(key);
+                        }
                     }
                     keysToRemove.forEach(k => localStorage.removeItem(k));
-                    console.log('🔒 [Auth] Dados locais genéricos limpos ao trocar de usuário.');
+                    console.log('🔒 [Auth] Todos os dados locais limpos ao trocar de usuário. Chaves removidas:', keysToRemove.length);
                 } catch(e) {}
                 window.location.reload();
             }
