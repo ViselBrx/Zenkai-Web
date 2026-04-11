@@ -1055,6 +1055,8 @@ const DB = {
               user_id: userId, 
               content_id: contentId, 
               content_type: contentType, 
+              title: metadata.title || '',
+              cover_url: metadata.cover || '',
               metadata: metadata, 
               created_at: new Date().toISOString() 
           }]);

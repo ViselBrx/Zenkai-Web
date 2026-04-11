@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS public.user_favorites (
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     content_id TEXT NOT NULL,
     content_type TEXT NOT NULL, -- 'anime', 'manga', 'filme', 'desenho'
+    title TEXT, -- Título do item para exibição rápida
+    cover_url TEXT, -- URL da capa para exibição rápida
     metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT now(),
     

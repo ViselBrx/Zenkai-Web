@@ -147,10 +147,25 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
         
+        // Se já é o manga ativo, apenas rola para os volumes
+        if (activeMangaId === m.id) {
+          const target = document.getElementById('volumesPanel') || document.getElementById('mangaDetailContent');
+          if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+          return;
+        }
+        
+        // Se é um novo manga, ativa e renderiza
         activeMangaId = m.id;
         selectedVolId = null;
-        renderMangaPills(); // Atualiza card ativo
         renderVolumes();
+        
+        // Apenas atualiza o visual do card ativo sem re-renderizar toda a lista
+        document.querySelectorAll('#mangaPills .card').forEach(c => {
+          c.classList.remove('active-card');
+          c.style.borderColor = '';
+        });
+        card.classList.add('active-card');
+        card.style.borderColor = 'var(--primary)';
         
         const target = document.getElementById('volumesPanel') || document.getElementById('mangaDetailContent');
         if (target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
@@ -167,7 +182,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             favBtn.innerHTML = isAdded ? '★' : '☆';
             favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
             if (window.showToast) showToast(isAdded ? `"${m.nome}" adicionado aos favoritos!` : `"${m.nome}" removido dos favoritos.`);
-            await renderMangaPills(); // Re-render para aplicar ordenação
+            // Não re-renderiza a lista inteira, apenas atualiza o visual do botão
+            // A ordenação será aplicada na próxima navegação ou reload
           } catch (err) {
             if (window.showToast) showToast('Faça login para favoritar!', 'error');
           }
