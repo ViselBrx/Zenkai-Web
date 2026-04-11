@@ -2522,7 +2522,7 @@
             grid.innerHTML = `<div class="history-empty" style="grid-column: 1/-1;"><p>Nenhum ${currentFavType} favoritado ainda. ⭐</p></div>`;
             return;
           }
-          const hasHighlights = window.DB && window.DB.isPerkEquipped('lista_destaque');
+          const hasHighlights = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
 
           favs.forEach(fav => {
             const title = fav.title || 'Sem título';
@@ -2742,7 +2742,7 @@
         const hasCinema = window.DB.isPerkEquipped('modo_cinema');
         const hasPremium = window.DB.isPerkEquipped('dashboard_premium');
         const hasPlaque = window.DB.isPerkEquipped('placa_colecionador');
-        const hasHighlights = window.DB.isPerkEquipped('lista_destaque');
+        const hasHighlights = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
 
         // 1. Moldura
         const avatar = document.getElementById('displayAvatar');

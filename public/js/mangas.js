@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const starClass = isPerkActive ? '' : 'is-hidden';
       const favBtnHtml = `
-        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${m.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${m.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
           ${isFav ? '★' : '☆'}
         </button>
       `;

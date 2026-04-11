@@ -1121,8 +1121,8 @@ const DB = {
     const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
     const isStampedEquipped  = localStorage.getItem(`equipped_${perkId}`) === 'true';
 
-    // Para o perk de favoritos, basta ter o item para ativá-lo (Facilita a vida do usuário)
-    const result = hasPurchased || isStrictlyEquipped || isStampedEquipped;
+    // Para o perk de favoritos, respeitamos se está equipado ou não (conforme pedido do usuário)
+    const result = isStrictlyEquipped || isStampedEquipped;
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
