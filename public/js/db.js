@@ -1165,18 +1165,29 @@ const DB = {
       localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
       localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
 
-      const { error } = await supa
+      // Tenta update primeiro (mais seguro para políticas RLS existentes)
+      const { error: updateError } = await supa
         .from('profiles')
-        .upsert({ 
-            id: userId, 
+        .update({ 
             store_data: newStoreData,
             updated_at: new Date().toISOString()
-        }, { onConflict: 'id' });
+        })
+        .eq('id', userId);
 
-      if (error) {
-        console.warn("⚠️ [DB] Erro no Upsert:", error.message);
-        // Tenta update convencional se o upsert falhar por qualquer motivo de política
-        await supa.from('profiles').update({ store_data: newStoreData }).eq('id', userId);
+      if (updateError) {
+        console.warn("⚠️ [DB] Erro no Update, tentando Upsert:", updateError.message);
+        // Tenta upsert se o update falhar (ex: perfil ainda não existe)
+        const { error: upsertError } = await supa
+          .from('profiles')
+          .upsert({ 
+              id: userId, 
+              store_data: newStoreData,
+              updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+          
+        if (upsertError) console.error("❌ [DB] Erro crítico no Upsert:", upsertError.message);
+      } else {
+        console.log("✅ [DB] Store salvo com sucesso no Supabase.");
       }
     } catch (err) {
       console.error("❌ [DB] Falha crítica ao salvar:", err);

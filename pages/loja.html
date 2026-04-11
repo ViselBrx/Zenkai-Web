@@ -1486,16 +1486,21 @@ function confirmBuy() {
       localStorage.setItem(`equipped_${item.id}`, 'true');
   }
 
+  console.log('[Loja] Salvando compra:', { itemId: item.id, itemName: item.name, purchased: store.purchased });
   saveStore(store).then(() => {
-    // Garantir que o DB._store também está atualizado (para o perfil.html ler corretamente)
+    console.log('[Loja] Compra salva no Supabase. Atualizando DB._store...');
     if (window.DB && window.DB._store) {
       if (!window.DB._store.profile) window.DB._store.profile = {};
       window.DB._store.profile.store_data = { ...store };
+      console.log('[Loja] DB._store atualizado:', window.DB._store.profile.store_data.purchased);
     }
     updateHeroUI();
     renderCatalog();
     closeBuyModal();
     showToast(`✅ "${item.name}" adquirido e sincronizado com o banco!`, 'success');
+  }).catch(err => {
+    console.error('[Loja] Erro ao salvar compra:', err);
+    showToast(`❌ Erro ao salvar a compra. Tente novamente.`, 'error');
   });
 }
 // ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────────

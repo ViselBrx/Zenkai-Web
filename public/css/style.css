@@ -31,12 +31,12 @@
 
 @keyframes ceifadorRarityPulse {
   0% {
-    box-shadow: 0 0 10px #80f, 0 0 20px #408, 0 0 15px rgba(100, 100, 100, 0.3) !important;
+    box-shadow: 0 0 10px #80f, 0 0 20px #408, 0 0 15px rgba(100, 100, 100, 0.3);
     filter: brightness(0.8);
   }
 
   100% {
-    box-shadow: 0 0 25px #a0f, 0 0 50px #60a, 0 0 45px rgba(200, 200, 200, 0.8) !important;
+    box-shadow: 0 0 25px #a0f, 0 0 50px #60a, 0 0 45px rgba(200, 200, 200, 0.8);
     filter: brightness(1.2);
   }
 }
