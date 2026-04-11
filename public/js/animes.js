@@ -95,11 +95,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
       
       // Clique no card (abre detalhes)
-      card.onclick = () => {
-        activeAnimeId = a.id;
-        loadEpisodes(a.id);
-        render();
-        openDetailModal(a);
+      card.onclick = (e) => {
+        // Se clicar em qualquer área que não seja o botão de favoritar
+        if (!e.target.closest('.fav-star')) {
+          activeAnimeId = a.id;
+          openDetailModal(a);
+        }
       };
 
       // Clique na estrela (Favoritar)

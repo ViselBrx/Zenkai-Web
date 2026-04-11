@@ -1318,6 +1318,12 @@ body {
   transform: scale(1.1);
 }
 
+/* Garante que a imagem não saia do card no hover */
+.card, .card-click-area {
+  overflow: hidden !important;
+  position: relative;
+}
+
 .card-cover {
   width: 100%;
   aspect-ratio: 3/4;
@@ -3080,7 +3086,7 @@ body.modo-cinema .history-sidebar {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 25;
+  z-index: 100; /* Garante que fique na frente de tudo */
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   backdrop-filter: blur(4px);
   text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);

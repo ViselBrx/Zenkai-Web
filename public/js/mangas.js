@@ -141,7 +141,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
 
       // Clique no card (seleciona e rola)
-      card.onclick = () => {
+      card.onclick = (e) => {
+        // Ignora se clicar nos botões de editar/deletar/favoritar
+        if (e.target.closest('.pill-edit-btn') || e.target.closest('.pill-delete-btn') || e.target.closest('.fav-star')) {
+          return;
+        }
+        
         activeMangaId = m.id;
         selectedVolId = null;
         renderMangaPills(); // Atualiza card ativo
