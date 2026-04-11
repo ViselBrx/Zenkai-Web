@@ -2615,13 +2615,13 @@
           storeData = window.DB._store.profile.store_data;
         }
 
-        // 2. Fallback: localStorage com chave isolada por usuário (VALIDAÇÃO RÍGIDA)
+        // 2. Fallback: localStorage ISOLADO por usuário (SEM fallback genérico - isolamento radical)
         if (!storeData || !Array.isArray(storeData.purchased)) {
           try {
             const currentUser = window.supabaseClient ? await window.supabaseClient.auth.getUser() : null;
             const currentUserId = currentUser?.data?.user?.id || null;
             
-            // APENAS usar localStorage se tiver userId e ele bater EXATAMENTE com o usuário logado
+            // APENAS usar localStorage isolado se tiver userId
             if (currentUserId) {
               const userStoreKey = `animehouse_store_${currentUserId}`;
               const userRaw = localStorage.getItem(userStoreKey);
@@ -2630,9 +2630,12 @@
                 // Validação rígida: só aceita se o _userId bater perfeitamente
                 if (userStore && (userStore._userId === currentUserId || !userStore._userId)) {
                   storeData = userStore;
+                  console.log('[Perfil] Store carregado do localStorage isolado:', currentUserId);
                 } else {
-                  console.warn('[Perfil] Store local pertence a outro usuário, ignorando:', userStore._userId, 'vs', currentUserId);
+                  console.warn('[Perfil] SEGURANÇA: Store local pertence a outro usuário, ignorando!');
                 }
+              } else {
+                console.log('[Perfil] Nenhum store isolado encontrado para:', currentUserId);
               }
             }
           } catch(e) {}

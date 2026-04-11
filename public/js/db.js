@@ -198,6 +198,12 @@ const DB = {
             return;
         }
 
+        // LIMPEZA FORÇADA: Remover localStorage genérico para evitar vazamento entre contas
+        try {
+            localStorage.removeItem('animehouse_store');
+            console.log('🧹 [DB] localStorage genérico limpo ao inicializar com userId:', userId);
+        } catch(e) {}
+
         const { data: { user } } = await supa.auth.getUser();
         const isMainAccount = user?.email?.toLowerCase() === MAIN_ACCOUNT_EMAIL;
         if (isMainAccount) {
