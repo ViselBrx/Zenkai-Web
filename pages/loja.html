@@ -1487,6 +1487,11 @@ function confirmBuy() {
   }
 
   saveStore(store).then(() => {
+    // Garantir que o DB._store também está atualizado (para o perfil.html ler corretamente)
+    if (window.DB && window.DB._store) {
+      if (!window.DB._store.profile) window.DB._store.profile = {};
+      window.DB._store.profile.store_data = { ...store };
+    }
     updateHeroUI();
     renderCatalog();
     closeBuyModal();
@@ -1607,12 +1612,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // Partículas
   spawnParticles();
 
-  // Renderizar catálogo imediatamente com dados do localStorage (feedback instantâneo)
-  store = loadStore(null);
-  renderCatalog();
-
-  // Sincronizar perfil (atualiza com dados do banco)
-  syncFromProfile();
+  // Carregar store com userId correto desde o início (evita mostrar dados de outro usuário)
+  // Aguarda o supabaseClient estar pronto (injetado pelo auth.js)
+  (async () => {
+    let initUserId = null;
+    let attempts = 0;
+    while (!window.supabaseClient && attempts < 50) {
+      await new Promise(r => setTimeout(r, 100));
+      attempts++;
+    }
+    try {
+      if (window.supabaseClient) {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        initUserId = user?.id || null;
+      }
+    } catch(e) {}
+    store = loadStore(initUserId);
+    renderCatalog();
+    // Sincronizar perfil (atualiza com dados do banco)
+    await syncFromProfile();
+  })();
 
   // Configurar trocas
   setupExchangeInputs();

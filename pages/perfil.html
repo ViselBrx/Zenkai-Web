@@ -2044,9 +2044,19 @@
       // e applySpecialPerks funcionem sem esperar o DB.init() completo do dashboard
       if (profile?.store_data && window.DB) {
         if (!window.DB._store.profile) window.DB._store.profile = {};
-        window.DB._store.profile.store_data = profile.store_data;
-        // Sincroniza também no localStorage como fallback
-        localStorage.setItem('animehouse_store', JSON.stringify(profile.store_data));
+        // Garantir que o store_data tenha o _userId para isolamento correto
+        const storeWithUser = { ...profile.store_data, _userId: user.id };
+        window.DB._store.profile.store_data = storeWithUser;
+        // Sincroniza no localStorage com chave isolada por usuário E genérica
+        localStorage.setItem(`animehouse_store_${user.id}`, JSON.stringify(storeWithUser));
+        localStorage.setItem('animehouse_store', JSON.stringify(storeWithUser));
+      } else if (!profile?.store_data && window.DB) {
+        // Perfil existe mas sem store_data: inicializar vazio para evitar leitura de outro usuário
+        if (!window.DB._store.profile) window.DB._store.profile = {};
+        const emptyStore = { purchased: [], equipped: {}, xp: 0, ouro: 0, diamante: 0, esmeralda: 0, rank: 'Novato', _userId: user.id };
+        window.DB._store.profile.store_data = emptyStore;
+        localStorage.setItem(`animehouse_store_${user.id}`, JSON.stringify(emptyStore));
+        localStorage.setItem('animehouse_store', JSON.stringify(emptyStore));
       }
 
       bindHistoryEvents();
@@ -2593,32 +2603,34 @@
         const noItemsNote = document.getElementById('noItemsNote');
         if (!grid) return;
 
+        // Mostrar estado de carregamento enquanto busca dados
+        if (noItemsNote) noItemsNote.style.display = 'none';
+        grid.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted); font-size: 0.85rem;">Carregando seus itens...</div>';
+
         // Declaração local da variável para evitar ReferenceError
         let storeData = null;
 
-        // 1. Tentar ler o localStorage usando a chave isolada por usuário (evita vazamento entre contas)
-        try {
-          const currentUser = window.supabaseClient ? await window.supabaseClient.auth.getUser() : null;
-          const currentUserId = currentUser?.data?.user?.id || null;
-          const userStoreKey = currentUserId ? `animehouse_store_${currentUserId}` : null;
-          // Prioridade: chave isolada por usuário; fallback para chave genérica apenas se pertencer ao mesmo usuário
-          const rawStore = (userStoreKey && localStorage.getItem(userStoreKey))
-            || localStorage.getItem('animehouse_store');
-          const localStore = rawStore ? JSON.parse(rawStore) : null;
-          if (localStore && Array.isArray(localStore.purchased) && localStore.purchased.length > 0) {
-            // Só usa se não pertencer a outro usuário
-            if (!localStore._userId || !currentUserId || localStore._userId === currentUserId) {
-              storeData = localStore;
-            }
-          }
-        } catch(e) {}
-
-        // 2. Se vazio, fallback para DB._store da memória
-        if (!storeData && window.DB?._store?.profile?.store_data) {
+        // 1. Prioridade absoluta: DB._store da memória (já sincronizado com o banco pelo initProfile)
+        if (window.DB?._store?.profile?.store_data) {
           storeData = window.DB._store.profile.store_data;
         }
 
-        // 3. Fallback para buscar diretamente no banco caso seja o primeiro load e tudo esteja vazio
+        // 2. Fallback: localStorage com chave isolada por usuário
+        if (!storeData || !Array.isArray(storeData.purchased)) {
+          try {
+            const currentUser = window.supabaseClient ? await window.supabaseClient.auth.getUser() : null;
+            const currentUserId = currentUser?.data?.user?.id || null;
+            const userStoreKey = currentUserId ? `animehouse_store_${currentUserId}` : null;
+            const rawStore = (userStoreKey && localStorage.getItem(userStoreKey))
+              || localStorage.getItem('animehouse_store');
+            const localStore = rawStore ? JSON.parse(rawStore) : null;
+            if (localStore && (!localStore._userId || !currentUserId || localStore._userId === currentUserId)) {
+              storeData = localStore;
+            }
+          } catch(e) {}
+        }
+
+        // 3. Fallback final: buscar diretamente no banco (garante que compras recentes aparecem)
         if (!storeData || !Array.isArray(storeData.purchased) || storeData.purchased.length === 0) {
           if (window.supabaseClient) {
             try {
@@ -2630,8 +2642,7 @@
                   .eq('id', user.id)
                   .maybeSingle();
                 if (profileFresh?.store_data) {
-                  storeData = profileFresh.store_data;
-                  if (!storeData._userId) storeData._userId = user.id;
+                  storeData = { ...profileFresh.store_data, _userId: user.id };
                   if (window.DB) {
                     if (!window.DB._store.profile) window.DB._store.profile = {};
                     window.DB._store.profile.store_data = storeData;
@@ -2648,7 +2659,7 @@
         
         const purchasedIds = Array.isArray(storeData.purchased) ? storeData.purchased : [];
         const equipped = storeData.equipped || {};
-        grid.innerHTML = '';
+        grid.innerHTML = ''; // Limpar o estado de carregamento
         let visibleCount = 0;
 
         purchasedIds.forEach(itemId => {

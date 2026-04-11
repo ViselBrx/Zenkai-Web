@@ -249,6 +249,13 @@
   outline: none !important;
 }
 
+/* O frame-dourado NÃO deve aplicar borda na bolinha da navbar */
+.user-nav-avatar-box.frame-dourado {
+  border: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+
 :root {
   /* BACKGROUNDS (Padrão para todos) */
   --bg-dark: #050f1f;
