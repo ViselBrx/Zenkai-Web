@@ -3072,40 +3072,7 @@ body.modo-cinema .history-sidebar {
 }
 
 /* 7. Estilos para Favoritos (Unificado para Animes, Mangás, Filmes e Desenhos) */
-.fav-star, .card-fav-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 100; /* Garante que fique na frente de tudo */
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  backdrop-filter: blur(4px);
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-  font-size: 1.2rem;
-}
 
-.fav-star:hover, .card-fav-btn:hover {
-  transform: scale(1.15);
-  background: rgba(0, 0, 0, 0.7);
-  border-color: #ffca28;
-}
-
-.fav-star.active, .card-fav-btn.active {
-  background: var(--primary);
-  color: #ffca28 !important;
-  border-color: #ffca28;
-  box-shadow: 0 0 20px rgba(255, 202, 40, 0.5);
-  text-shadow: 0 0 10px rgba(255, 202, 40, 0.8);
-}
 
 .equipped-ribbon {
     position: absolute;
@@ -3167,7 +3134,7 @@ body.modo-cinema .history-sidebar {
 .fav-star {
     position: absolute !important;
     top: 10px !important;
-    right: 10px !important;
+    left: 10px !important;
     width: 34px !important;
     height: 34px !important;
     background: rgba(0, 0, 0, 0.45) !important;

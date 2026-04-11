@@ -142,6 +142,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     list.forEach(c => {
       const isFav = userFavs.has(c.id);
+      const container = document.createElement('div');
+      container.style.position = 'relative';
+      container.style.display = 'inline-block';
+      
       const btn = document.createElement('button');
       btn.className = 'cartoon-pill';
       if (c.id === activeCartoonId) btn.classList.add('active');
@@ -153,7 +157,39 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.innerHTML = `${thumb} ${c.nome}`;
       
       btn.onclick = () => selectCartoon(c.id, btn);
-      pillsContainer.appendChild(btn);
+      container.appendChild(btn);
+      
+      // Adicionar estrela de favoritos
+      const starClass = isPerkActive ? '' : 'is-hidden';
+      const favBtn = document.createElement('button');
+      favBtn.className = `fav-star ${isFav ? 'active' : ''} ${starClass}`;
+      favBtn.dataset.id = c.id;
+      favBtn.title = isFav ? 'Desmarcar' : 'Marcar';
+      favBtn.innerHTML = isFav ? '★' : '☆';
+      favBtn.style.position = 'absolute';
+      favBtn.style.top = '5px';
+      favBtn.style.left = '5px';
+      favBtn.style.width = '28px';
+      favBtn.style.height = '28px';
+      favBtn.style.fontSize = '0.9rem';
+      
+      favBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
+          const isAdded = res.action === 'added';
+          favBtn.classList.toggle('active', isAdded);
+          favBtn.innerHTML = isAdded ? '★' : '☆';
+          favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
+          showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
+          await loadCartoons();
+        } catch (err) {
+          showToast('Faça login para favoritar!', 'error');
+        }
+      };
+      
+      container.appendChild(favBtn);
+      pillsContainer.appendChild(container);
     });
 
     loadPendingHistoryResume();

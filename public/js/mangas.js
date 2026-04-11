@@ -182,8 +182,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             favBtn.innerHTML = isAdded ? '★' : '☆';
             favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
             if (window.showToast) showToast(isAdded ? `"${m.nome}" adicionado aos favoritos!` : `"${m.nome}" removido dos favoritos.`);
-            // Não re-renderiza a lista inteira, apenas atualiza o visual do botão
-            // A ordenação será aplicada na próxima navegação ou reload
+            // Re-renderiza a lista para aplicar a ordenação (favoritos no topo) se o perk estiver ativo
+            await renderMangaPills();
           } catch (err) {
             if (window.showToast) showToast('Faça login para favoritar!', 'error');
           }
