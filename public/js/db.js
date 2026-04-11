@@ -278,6 +278,8 @@ const DB = {
         ]);
 
         // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
+        // Chave de localStorage isolada por usuário para garantir que cada conta tenha seus próprios dados
+        const userStoreKey = `animehouse_store_${userId}`;
         try {
             const { data: profileData, error: profileError } = await supa.from('profiles').select('*').eq('id', userId).maybeSingle();
             if (profileError) {
@@ -286,7 +288,8 @@ const DB = {
                 _store.profile = profileData;
                 
                 const dbStore = profileData.store_data || { purchased: [], equipped: {} };
-                const localStoreStr = localStorage.getItem('animehouse_store');
+                // Usar chave isolada por user_id; fallback para chave genérica apenas se não houver chave isolada
+                const localStoreStr = localStorage.getItem(userStoreKey) || localStorage.getItem('animehouse_store');
                 let localStore = null;
                 try { localStore = localStoreStr ? JSON.parse(localStoreStr) : null; } catch(e){}
 
@@ -294,20 +297,30 @@ const DB = {
                 let mergedStore = JSON.parse(JSON.stringify(dbStore));
                 
                 if (localStore) {
-                    // Mescla lista de compras
-                    const localPurchased = Array.isArray(localStore.purchased) ? localStore.purchased : [];
-                    const dbPurchased = Array.isArray(dbStore.purchased) ? dbStore.purchased : [];
-                    mergedStore.purchased = [...new Set([...dbPurchased, ...localPurchased])];
+                    // Só mescla se o store local pertence a este usuário (ou não tem _userId definido)
+                    const localUserId = localStore._userId;
+                    if (!localUserId || localUserId === userId) {
+                        // Mescla lista de compras
+                        const localPurchased = Array.isArray(localStore.purchased) ? localStore.purchased : [];
+                        const dbPurchased = Array.isArray(dbStore.purchased) ? dbStore.purchased : [];
+                        mergedStore.purchased = [...new Set([...dbPurchased, ...localPurchased])];
 
-                    // Mescla itens equipados (O estado local 'quente' ganha se houver conflito recente)
-                    const localEquipped = localStore.equipped || {};
-                    const dbEquipped = dbStore.equipped || {};
-                    mergedStore.equipped = { ...dbEquipped, ...localEquipped };
+                        // Mescla itens equipados (O estado local 'quente' ganha se houver conflito recente)
+                        const localEquipped = localStore.equipped || {};
+                        const dbEquipped = dbStore.equipped || {};
+                        mergedStore.equipped = { ...dbEquipped, ...localEquipped };
+                    } else {
+                        console.log("🔒 [DB] Store local pertence a outro usuário, ignorando para isolamento.");
+                    }
                 }
 
+                // Marcar o store com o user_id para isolamento futuro
+                mergedStore._userId = userId;
                 _store.profile.store_data = mergedStore;
                 
-                // Sempre sincroniza o resultado final de volta para o localStorage e para o Banco (se houve mudança)
+                // Sempre sincroniza o resultado final de volta para o localStorage isolado por usuário
+                localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
+                // Manter compatibilidade com a chave genérica (para páginas que ainda a usam)
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
                 
                 const hasChanged = JSON.stringify(mergedStore) !== JSON.stringify(dbStore);
@@ -1139,6 +1152,7 @@ const DB = {
     // 1. Atualiza localmente na memória (_store) e no LocalStorage IMEDIATAMENTE
     if (!_store.profile) _store.profile = {};
     _store.profile.store_data = newStoreData;
+    // Salvar na chave genérica (compatibilidade)
     localStorage.setItem('animehouse_store', JSON.stringify(newStoreData));
     
     // 2. Salva no banco via UPSERT (garante criação ou atualização)
@@ -1146,6 +1160,10 @@ const DB = {
       const supa = getSupa();
       const userId = await getCurrentUserId();
       if (!userId) return;
+      // Salvar também na chave isolada por usuário para isolamento total
+      const storeWithUserId = { ...newStoreData, _userId: userId };
+      localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
+      localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
 
       const { error } = await supa
         .from('profiles')

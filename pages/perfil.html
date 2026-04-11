@@ -1333,6 +1333,9 @@
             <div class="stat-header">
               <span>🕒</span> Última Atividade
             </div>
+            <div style="padding: 10px 0;">
+              <p id="lastActivityTitle" style="font-size: 1rem; font-weight: bold; color: var(--text); margin: 0 0 4px 0;">—</p>
+              <p id="lastActivityDate" style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">Nenhuma atividade registrada ainda.</p>
             </div>
           </div>
 
@@ -2434,11 +2437,22 @@
         localStorage.setItem('animehouse_prevRank',  rank);
 
         // 2. Patentes
+        // Verificar se o usuário tem patentes desbloqueadas manualmente (via store_data.unlocked_ranks)
+        let unlockedRanks = [];
+        try {
+          const localStore = JSON.parse(localStorage.getItem('animehouse_store') || '{}');
+          const dbStore = window.DB?._store?.profile?.store_data || {};
+          const storeToCheck = (localStore.unlocked_ranks || dbStore.unlocked_ranks || []);
+          unlockedRanks = Array.isArray(storeToCheck) ? storeToCheck : [];
+        } catch(e) {}
         const patents = document.querySelectorAll('.patent-badge');
         patents.forEach(badge => {
           const label = badge.getAttribute('data-label');
           let unlocked = false;
-          if (label === "Bronze" && level >= 1) unlocked = true;
+          // Primeiro: verificar desbloqueio manual (via store_data.unlocked_ranks)
+          if (unlockedRanks.includes(label)) unlocked = true;
+          // Segundo: verificar por nível (sistema padrão)
+          else if (label === "Bronze" && level >= 1) unlocked = true;
           else if (label === "Prata" && level >= 5) unlocked = true;
           else if (label === "Ouro" && level >= 10) unlocked = true;
           else if (label === "Mestre" && level >= 20) unlocked = true;

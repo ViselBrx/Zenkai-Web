@@ -1463,6 +1463,8 @@ async function syncFromProfile() {
         if (dbStore.xp !== undefined) store.xp = dbStore.xp;
         if (dbStore.purchased) store.purchased = dbStore.purchased;
         if (dbStore.equipped) store.equipped = dbStore.equipped;
+        // Carregar patentes desbloqueadas manualmente
+        if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
     }
   }
 
@@ -1477,33 +1479,22 @@ async function syncFromProfile() {
     store.xp = estimatedXP;
   }
   store.rank = cachedRank;
-
-  // Concessão de recursos para teste (apenas para davizeravisel@gmail.com)
-  if (typeof window.supabaseClient !== 'undefined' || typeof supaClient !== 'undefined') {
-    const supa = window.supabaseClient || supaClient;
-    const { data: { session } } = await supa.auth.getSession();
-    if (session?.user?.email === 'davizeravisel@gmail.com') {
-        const testGrantKey = 'animehouse_test_granted_v3'; // Mudado para v3 para aplicar a correção do NaN
-        if (!localStorage.getItem(testGrantKey)) {
-            store.xp = (isNaN(store.xp) || !store.xp) ? 0 : store.xp;
-            store.ouro = (isNaN(store.ouro) || !store.ouro) ? 0 : store.ouro;
-            store.diamante = (isNaN(store.diamante) || !store.diamante) ? 0 : store.diamante;
-            store.esmeralda = (isNaN(store.esmeralda) || !store.esmeralda) ? 0 : store.esmeralda;
-
-            store.xp += 8500;
-            store.ouro += 120;
-            store.diamante += 80;
-            store.esmeralda += 35;
-            window.BANNER_MAP = {
-                'banner_aot': '',
-                'banner_ragnarok': ''
-            };
-            localStorage.setItem(testGrantKey, 'true');
-            if(window.showToast) showToast("🎁 Recursos extras creditados! Você pode readquirir seus itens.", "success");
-        }
+  // Se o usuário tem patentes desbloqueadas manualmente, promover o rank para o mais alto desbloqueado
+  if (Array.isArray(store.unlocked_ranks) && store.unlocked_ranks.length > 0) {
+    const rankOrder = ['Novato', 'Aprendiz', 'Intermediário', 'Avançado', 'Prata', 'Ouro', 'Platina', 'Mestre', 'GrandMestre', 'Guardião'];
+    const highestUnlocked = store.unlocked_ranks.reduce((best, rank) => {
+      const idx = rankOrder.indexOf(rank);
+      const bestIdx = rankOrder.indexOf(best);
+      return idx > bestIdx ? rank : best;
+    }, store.rank || 'Novato');
+    // Promover o rank do store para o mais alto desbloqueado manualmente
+    if (rankOrder.indexOf(highestUnlocked) > rankOrder.indexOf(store.rank)) {
+      store.rank = highestUnlocked;
     }
   }
 
+  // Recursos agora são gerenciados diretamente no banco de dados (store_data no Supabase)
+  // Não há mais concessões hardcoded por email - todos os dados vêm do banco
   saveStore(store);
 
   updateHeroUI();

@@ -18,6 +18,28 @@ if (window.supabase) {
         supaClient.auth.onAuthStateChange((event, session) => {
             const currentSessionId = session?.user?.id || null;
             if (previousSessionId !== null && previousSessionId !== currentSessionId) {
+                // Ao trocar de usuário, limpar o localStorage genérico para evitar vazamento de dados
+                // (cada usuário tem sua própria chave animehouse_store_<userId>)
+                try {
+                    localStorage.removeItem('animehouse_store');
+                    localStorage.removeItem('animehouse_customAura');
+                    localStorage.removeItem('animehouse_customBanner');
+                    localStorage.removeItem('animehouse_customTitle');
+                    localStorage.removeItem('animehouse_showCrown');
+                    localStorage.removeItem('animehouse_userLevel');
+                    localStorage.removeItem('animehouse_userRank');
+                    localStorage.removeItem('animehouse_prevLevel');
+                    localStorage.removeItem('animehouse_prevRank');
+                    localStorage.removeItem('animehouse_test_granted_v3');
+                    // Limpar chaves de itens equipados
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('equipped_')) keysToRemove.push(key);
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    console.log('🔒 [Auth] Dados locais genéricos limpos ao trocar de usuário.');
+                } catch(e) {}
                 window.location.reload();
             }
             previousSessionId = currentSessionId;
