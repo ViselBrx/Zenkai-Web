@@ -228,7 +228,12 @@ window.updateNavbarCosmetics = function() {
         avatarBox.classList.add('frame-dourado');
     }
 
-    if (navAvatar) navAvatar.style.border = 'none';
+    // Garantir que a <img> nunca tenha borda ou sombra amarela
+    if (navAvatar) {
+        navAvatar.style.border = 'none';
+        navAvatar.style.boxShadow = 'none';
+        navAvatar.style.outline = 'none';
+    }
 
     // 👑 COROA
     const existingCrown = avatarBox.querySelector('.crown-nav');

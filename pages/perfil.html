@@ -1419,38 +1419,43 @@
 <script>
   // --- CONFIGURAÇÃO GLOBAL DE ITENS (Sincronizado com loja.html) ---
   const ITEM_CONFIG = {
-    'coroa_lendaria': { name: 'Coroa Rei dos Animes', icon: '👑', type: 'exclusivo', crownId: 'hokage', crownIcon: '👑', rarity: 'legendary' },
-    'coroa_tryhard': { name: 'Coroa Tryhard', icon: '💀', type: 'exclusivo', crownId: 'tryhard', crownIcon: '💀', rarity: 'legendary' },
-    'placa_colecionador': { name: 'Placa Colecionador Mestre', icon: '🏆', type: 'exclusivo', rarity: 'legendary' },
-    'aura_chama': { name: 'Aura Chama Simples', icon: '🔥', type: 'aura', class: 'aura-common-chama', rarity: 'common' },
-    'aura_chama_naruto': { name: 'Aura Modo Sábio', icon: '🔥', type: 'aura', class: 'aura-common-naruto', rarity: 'common' },
-    'aura_ceifador': { name: 'Aura do Ceifador', icon: '📓', type: 'aura', class: 'aura-rare-ceifador', rarity: 'rare' },
-    'aura_thunder': { name: 'Aura Relâmpago', icon: '⚡', type: 'aura', class: 'aura-rare-thunder', rarity: 'rare' },
-    'aura_susanoo': { name: 'Aura Susanoo', icon: '⚡', type: 'aura', class: 'aura-rare-susanoo', rarity: 'rare' },
-    'aura_sakura': { name: 'Aura Sakura', icon: '🌸', type: 'aura', class: 'aura-rare-sakura', rarity: 'rare' },
-    'aura_gelo': { name: 'Aura Gelo', icon: '❄️', type: 'aura', class: 'aura-epic-gelo', rarity: 'epic' },
-    'aura_stands': { name: 'Aura Star Platinum', icon: '🟣', type: 'aura', class: 'aura-epic-stands', rarity: 'epic' },
-    'aura_void_saitama': { name: 'Aura ONE PUNCH', icon: '👊', type: 'aura', class: 'aura-epic-void', rarity: 'epic' },
-    'aura_dragon': { name: 'Aura Dragão Arcano', icon: '🐉', type: 'aura', class: 'aura-legendary-dragon', rarity: 'legendary' },
-    'titulo_explorador': { name: 'Título: Explorador', icon: '🗺️', type: 'titulo', title: '🗺️ Explorador', rarity: 'common' },
-    'titulo_caçador': { name: 'Título: Caçador', icon: '🎯', type: 'titulo', title: '🎯 Caçador de Episódios', rarity: 'common' },
-    'titulo_espadachim': { name: 'Título: Espadachim Solitário', icon: '🗡️', type: 'titulo', title: '🗡️ Espadachim Solitário', rarity: 'common' },
-    'titulo_mestre_das_listas': { name: 'Título: Mestre das Listas', icon: '📋', type: 'titulo', title: '📋 Mestre das Listas', rarity: 'rare' },
-    'titulo_guardiao': { name: 'Título: Guardião Lenda', icon: '🛡️', type: 'titulo', title: '🛡️ Guardião Lenda', rarity: 'epic' },
-    'titulo_sensei_mod': { name: 'Título: SenseiMod', icon: '🎓', type: 'titulo', title: '🎓 SenseiMod', rarity: 'legendary' },
-    'banner_claro': { name: 'Banner Aurora', icon: '🌅', type: 'banner', rarity: 'common' },
-    'banner_berserk': { name: 'Banner Berserk', icon: '⚔️', type: 'banner', rarity: 'rare' },
-    'banner_cosmica': { name: 'Banner Cósmica', icon: '🌌', type: 'banner', rarity: 'epic' },
-    'banner_oni': { name: 'Banner Oni Samurai', icon: '🎭', type: 'banner', rarity: 'epic' },
-    'banner_shinobi': { name: 'Banner Shinobi Dark', icon: '🥷', type: 'banner', rarity: 'epic' },
-    'banner_aot': { name: 'Banner AOT Muralha', icon: '🧱', type: 'banner', rarity: 'epic' },
-    'banner_ragnarok': { name: 'Banner Ragnarok', icon: '🏛️', type: 'banner', rarity: 'epic' },
-    'banner_cosmos': { name: 'Banner Cosmos', icon: '🌀', type: 'banner', rarity: 'legendary' },
-    'banner_vinland': { name: 'Banner Vinland Saga', icon: '🛡️', type: 'banner', rarity: 'legendary' },
-    'lista_destaque': { name: 'Favoritos Destacados', icon: '📌', type: 'experiencia', rarity: 'common' },
-    'modo_cinema': { name: 'Modo Cinema', icon: '🎬', type: 'experiencia', rarity: 'rare' },
-    'frame_dourado': { name: 'Moldura Elite', icon: '🪙', type: 'experiencia', rarity: 'epic' },
-    'dashboard_premium': { name: 'Painel Premium', icon: '📊', type: 'experiencia', rarity: 'legendary' }
+    // Exclusivos / Coroas
+    'coroa_lendaria':          { name: 'Coroa Rei dos Animes',       icon: '👑', type: 'exclusivo',  crownId: 'hokage',  crownIcon: '👑', rarity: 'legendary' },
+    'coroa_tryhard':           { name: 'Coroa Tryhard',               icon: '💀', type: 'exclusivo',  crownId: 'tryhard', crownIcon: '💀', rarity: 'legendary' },
+    'placa_colecionador':      { name: 'Placa Colecionador Mestre',   icon: '🏆', type: 'exclusivo',  rarity: 'legendary' },
+    // Auras
+    'aura_chama':              { name: 'Aura Chama Simples',          icon: '🔥', type: 'aura',      class: 'aura-common-chama',    rarity: 'common' },
+    'aura_chama_naruto':       { name: 'Aura Modo Sábio',             icon: '🔥', type: 'aura',      class: 'aura-common-naruto',   rarity: 'common' },
+    'aura_ceifador':           { name: 'Aura do Ceifador',            icon: '📓', type: 'aura',      class: 'aura-rare-ceifador',   rarity: 'rare' },
+    'aura_thunder':            { name: 'Aura Relâmpago Elétrico',     icon: '⚡', type: 'aura',      class: 'aura-rare-thunder',    rarity: 'rare' },
+    'aura_susanoo':            { name: 'Aura Susanoo Perfeito',       icon: '⚡', type: 'aura',      class: 'aura-rare-susanoo',    rarity: 'rare' },
+    'aura_sakura':             { name: 'Aura Pétala de Sakura',       icon: '🌸', type: 'aura',      class: 'aura-rare-sakura',     rarity: 'rare' },
+    'aura_gelo':               { name: 'Aura Cristal de Gelo',        icon: '❄️', type: 'aura',      class: 'aura-epic-gelo',       rarity: 'epic' },
+    'aura_stands':             { name: 'Aura Stand: Star Platinum',   icon: '🟣', type: 'aura',      class: 'aura-epic-stands',     rarity: 'epic' },
+    'aura_void_saitama':       { name: 'Aura ONE PUNCH',              icon: '👊', type: 'aura',      class: 'aura-epic-void',       rarity: 'epic' },
+    'aura_dragon':             { name: 'Aura Dragão Arcano',          icon: '🐉', type: 'aura',      class: 'aura-legendary-dragon',rarity: 'legendary' },
+    // Títulos
+    'titulo_explorador':       { name: 'Título: Explorador',          icon: '🗺️', type: 'titulo',    title: '🗺️ Explorador',             rarity: 'common' },
+    'titulo_caçador':          { name: 'Título: Caçador de Episódios', icon: '🎯', type: 'titulo',    title: '🎯 Caçador de Episódios',   rarity: 'common' },
+    'titulo_espadachim':       { name: 'Título: Espadachim Solitário',icon: '🗡️', type: 'titulo',    title: '🗡️ Espadachim Solitário',  rarity: 'common' },
+    'titulo_mestre_das_listas':{ name: 'Título: Mestre das Listas',   icon: '📋', type: 'titulo',    title: '📋 Mestre das Listas',       rarity: 'rare' },
+    'titulo_guardiao':         { name: 'Título: Guardião Lenda',      icon: '🛡️', type: 'titulo',    title: '🛡️ Guardião Lenda',         rarity: 'epic' },
+    'titulo_sensei_mod':       { name: 'Título: SenseiMod',            icon: '🎓', type: 'titulo',    title: '🎓 SenseiMod',               rarity: 'legendary' },
+    // Banners
+    'banner_claro':            { name: 'Banner Aurora Simples',       icon: '🌅', type: 'banner',    rarity: 'common' },
+    'banner_berserk':          { name: 'Banner: Eclipse de Guts',     icon: '⚔️', type: 'banner',    rarity: 'rare' },
+    'banner_cosmica':          { name: 'Banner Noite Cósmica',         icon: '🌌', type: 'banner',    rarity: 'epic' },
+    'banner_oni':              { name: 'Banner Oni Samurai',           icon: '🎭', type: 'banner',    rarity: 'epic' },
+    'banner_shinobi':          { name: 'Banner Shinobi Dark',          icon: '🥷', type: 'banner',    rarity: 'epic' },
+    'banner_aot':              { name: 'Banner: Muralha de Shiganshina',icon: '🧱', type: 'banner',    rarity: 'epic' },
+    'banner_ragnarok':         { name: 'Banner: Arena Ragnarok',       icon: '🏛️', type: 'banner',    rarity: 'epic' },
+    'banner_cosmos':           { name: 'Banner Cosmos',                icon: '🌀', type: 'banner',    rarity: 'legendary' },
+    'banner_vinland':          { name: 'Banner: Vinland Saga',         icon: '🛡️', type: 'banner',    rarity: 'legendary' },
+    // Experiência / Perks
+    'lista_destaque':          { name: 'Lista Favoritos Destacada',    icon: '📌', type: 'experiencia', rarity: 'common' },
+    'modo_cinema':             { name: 'Modo Cinema Aprimorado',       icon: '🎦', type: 'experiencia', rarity: 'rare' },
+    'frame_dourado':           { name: 'Frame Dourado Elite',          icon: '🪙', type: 'experiencia', rarity: 'epic' },
+    'dashboard_premium':       { name: 'Dashboard Premium Full',       icon: '📊', type: 'experiencia', rarity: 'legendary' }
   };
 
   function showToast(msg, type = 'success', ms = 7000) {
@@ -2790,9 +2795,17 @@
           if (hasFrame) avatar.classList.add('frame-dourado');
           else avatar.classList.remove('frame-dourado');
         }
+        // Aplicar frame ao container da bolinha (user-nav-avatar-box), não à <img>
+        const navAvatarBox = document.querySelector('.user-nav-avatar-box');
+        if (navAvatarBox) {
+          if (hasFrame) navAvatarBox.classList.add('frame-dourado');
+          else navAvatarBox.classList.remove('frame-dourado');
+        }
+        // Garantir que a <img> nunca tenha borda
         if (navAvatar) {
-          if (hasFrame) navAvatar.classList.add('frame-dourado');
-          else navAvatar.classList.remove('frame-dourado');
+          navAvatar.classList.remove('frame-dourado');
+          navAvatar.style.border = 'none';
+          navAvatar.style.boxShadow = 'none';
         }
 
         // 2. Cinema

@@ -806,6 +806,26 @@
     }
     .modal-confirm-btn:hover { opacity: 0.85; transform: scale(1.04); }
 
+    /* ===== ITEM JÁ COMPRADO ===== */
+    .catalog-item.owned {
+      opacity: 0.75;
+      position: relative;
+    }
+    .catalog-item.owned::after {
+      content: '✅ Adquirido';
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      color: #86efac;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      z-index: 10;
+    }
+
     /* ===== SECAO VAZIA ===== */
     .empty-catalog {
       grid-column: 1 / -1;
@@ -1473,8 +1493,7 @@ function confirmBuy() {
     showToast(`✅ "${item.name}" adquirido e sincronizado com o banco!`, 'success');
   });
 }
-
-// ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────
+// ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────────
 async function syncFromProfile() {
   // Obter o ID do usuário atual ANTES de qualquer leitura de localStorage
   let currentUserId = null;
@@ -1500,13 +1519,44 @@ async function syncFromProfile() {
           if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
           if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
           if (dbStore.xp !== undefined) store.xp = dbStore.xp;
-          if (dbStore.purchased) store.purchased = dbStore.purchased;
-          if (dbStore.equipped) store.equipped = dbStore.equipped;
+          // Mesclar purchased: união entre local e banco para não perder compras
+          if (dbStore.purchased) {
+            const localPurchased = Array.isArray(store.purchased) ? store.purchased : [];
+            store.purchased = [...new Set([...dbStore.purchased, ...localPurchased])];
+          }
+          if (dbStore.equipped) store.equipped = { ...(store.equipped || {}), ...dbStore.equipped };
           // Carregar patentes desbloqueadas manualmente
           if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
         } else {
           console.log('🔒 [Loja] Dados do banco pertencem a outro usuário, ignorando.');
         }
+    } else if (currentUserId && window.supabaseClient) {
+      // Fallback: buscar diretamente no banco se DB._store não tiver os dados
+      try {
+        const { data: profileFresh } = await window.supabaseClient
+          .from('profiles')
+          .select('store_data')
+          .eq('id', currentUserId)
+          .maybeSingle();
+        if (profileFresh?.store_data) {
+          const dbStore = profileFresh.store_data;
+          if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
+          if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
+          if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
+          if (dbStore.xp !== undefined) store.xp = dbStore.xp;
+          if (dbStore.purchased) {
+            const localPurchased = Array.isArray(store.purchased) ? store.purchased : [];
+            store.purchased = [...new Set([...dbStore.purchased, ...localPurchased])];
+          }
+          if (dbStore.equipped) store.equipped = { ...(store.equipped || {}), ...dbStore.equipped };
+          if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
+          // Atualizar DB._store para consistência
+          if (window.DB) {
+            if (!window.DB._store.profile) window.DB._store.profile = {};
+            window.DB._store.profile.store_data = { ...dbStore, ...store, _userId: currentUserId };
+          }
+        }
+      } catch(e) { console.warn('[Loja] Fallback banco falhou:', e); }
     }
   }
 
@@ -1557,7 +1607,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Partículas
   spawnParticles();
 
-  // Sincronizar perfil
+  // Renderizar catálogo imediatamente com dados do localStorage (feedback instantâneo)
+  store = loadStore(null);
+  renderCatalog();
+
+  // Sincronizar perfil (atualiza com dados do banco)
   syncFromProfile();
 
   // Configurar trocas

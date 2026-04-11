@@ -242,6 +242,13 @@
   justify-content: center;
 }
 
+/* Garantir que a imagem do avatar na navbar nunca tenha borda ou sombra indesejada */
+#navAvatar {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 :root {
   /* BACKGROUNDS (Padrão para todos) */
   --bg-dark: #050f1f;
