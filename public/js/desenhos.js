@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
           </div>
           <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(233,69,96,0.7));color:#fff;font-weight:700;">
+          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
             FILME
           </div>
         </div>
@@ -254,6 +254,14 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         </div>
       `;
+      // Botão de marcação
+      if (typeof createWatchedBtn !== 'undefined') {
+        const labelDiv = card.querySelector('.episode-label > div');
+        const wBtn = createWatchedBtn(m.id, (id, nowWatched) => {
+          card.classList.toggle('is-watched', nowWatched);
+        }, 'desenho_movie');
+        labelDiv.prepend(wBtn);
+      }
       grid.appendChild(card);
     });
 
@@ -265,80 +273,176 @@ document.addEventListener('DOMContentLoaded', async () => {
     seasonsContainer.innerHTML = '';
     if (!activeCartoonId) return;
 
-    const seasons = DB.getEpisodesFor(activeCartoonId);
-    const seasonNumbers = Object.keys(seasons).sort((a, b) => Number(a) - Number(b));
+    // Animação de entrada
+    seasonsContainer.classList.remove('content-animate');
+    void seasonsContainer.offsetWidth; // Trigger reflow
+    seasonsContainer.classList.add('content-animate');
 
-    if (seasonNumbers.length === 0) {
-      seasonsContainer.innerHTML = `<div class="empty-state" style="padding:2rem;">📭 Nenhuma temporada cadastrada ainda.</div>`;
+    const allEps = DB.getEpisodesFor(activeCartoonId);
+    const seasons = Object.keys(allEps).map(Number).sort((a,b) => a-b);
+
+    if (seasons.length === 0 && DB.getMoviesFor(activeCartoonId).length === 0) {
+      seasonsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:2rem;">Nenhum conteúdo cadastrado.</p>';
       return;
     }
 
-    seasonNumbers.forEach(s => {
-      const eps = seasons[s].sort((a, b) => Number(a.epNumber) - Number(b.epNumber));
-      const watchedCount = typeof Watched !== 'undefined' ? Watched.countWatched(eps.map(e => e.id)) : 0;
-      const progress = eps.length > 0 ? Math.round((watchedCount / eps.length) * 100) : 0;
-
+    seasons.forEach(seasonNum => {
+      const seasonKey = `s_${activeCartoonId}_${seasonNum}`;
+      if (window.pendingDeletions && window.pendingDeletions.has(seasonKey)) return;
+      const eps = allEps[seasonNum].sort((a,b) => Number(a.epNumber) - Number(b.epNumber));
+      
       const sec = document.createElement('div');
-      sec.className = 'season-section content-animate';
-      sec.innerHTML = `
-        <div class="season-header open" onclick="toggleSeason(this)">
-          <div style="display:flex;align-items:center;gap:15px;">
-            <div class="season-toggle-icon">▼</div>
-            <h3>Temporada ${s}</h3>
-            <span class="badge-pill">${eps.length} Episódio${eps.length > 1 ? 's' : ''}</span>
-          </div>
-          <div class="season-progress">
-            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progress}%"></div></div>
-            <span style="font-size:0.8rem;font-weight:700;color:var(--success);min-width:35px;">${progress}%</span>
-          </div>
+      sec.className = 'season-section';
+      
+      const head = document.createElement('div');
+      head.className = 'season-header';
+      head.innerHTML = `
+        <div style="display:flex;align-items:center;gap:15px;">
+          <h3 style="color:#a78bfa">Temporada ${seasonNum}</h3>
+          <span class="badge-pill badge-purple">${eps.length} Eps</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:15px;">
+          <button class="btn btn-danger btn-sm" onclick="deleteSeason(event, ${seasonNum})">Excluir Temp.</button>
+          <span class="season-chevron">▼</span>
         </div>
       `;
 
       const grid = document.createElement('div');
       grid.className = 'episodes-grid open';
+      head.classList.add('open');
       
+      head.onclick = (e) => {
+        if (e.target.tagName === 'BUTTON') return;
+        grid.classList.toggle('open');
+        head.classList.toggle('open');
+      };
+
+      const epIds = eps.map(ep => ep.id);
+
+      // Barra de progresso da temporada
+      if (typeof createSeasonProgress !== 'undefined') {
+        const progressEl = createSeasonProgress(epIds);
+        const headInnerLeft = head.querySelector('div');
+        if (headInnerLeft) headInnerLeft.appendChild(progressEl);
+      }
+
       eps.forEach(ep => {
         if (window.pendingDeletions && window.pendingDeletions.has(ep.id)) return;
         const card = document.createElement('div');
         const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(ep.id);
         card.className = 'episode-card' + (isWatched ? ' is-watched' : '');
         card.innerHTML = `
-          <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${ep.id}', ${s})">
+          <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${ep.id}', ${seasonNum})">
             <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
-              <span style="font-size:2.5rem;opacity:0.3;">📺</span>
+              <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
             </div>
             <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
-            <div style="position:absolute;bottom:0;left:0;right:0;padding:8px 12px;background:linear-gradient(transparent, rgba(0,0,0,0.8));color:#fff;font-size:0.8rem;font-weight:700;">
-              EPISÓDIO ${ep.epNumber}
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
+              Episódio ${ep.epNumber}
             </div>
           </div>
           <div class="episode-label" style="justify-content:space-between">
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || `Episódio ${ep.epNumber}`}">${ep.title || `Episódio ${ep.epNumber}`}</span>
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
             <div style="display:flex;gap:5px;align-items:center;">
-              <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
-              <button class="btn btn-ghost btn-sm" onclick="deleteEpisode(event, '${ep.id}')" style="padding:2px 5px;font-size:0.8rem;color:var(--danger)">🗑️</button>
+              <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
             </div>
           </div>
         `;
+        // Botão de marcação
+        if (typeof createWatchedBtn !== 'undefined') {
+          const labelDiv = card.querySelector('.episode-label > div');
+          const wBtn = createWatchedBtn(ep.id, (id, nowWatched) => {
+            card.classList.toggle('is-watched', nowWatched);
+            // Atualiza barra de progresso
+            const progressEl = head.querySelector('.season-progress');
+            if (progressEl && typeof Watched !== 'undefined') {
+              const total = epIds.length;
+              const watched = Watched.countWatched(epIds);
+              const pct = total === 0 ? 0 : Math.round((watched / total) * 100);
+              const fill = progressEl.querySelector('.season-progress-fill');
+              const label = progressEl.querySelector('.season-progress-label');
+              if (fill) fill.style.width = pct + '%';
+              if (label) {
+                label.textContent = `${watched}/${total} assistidos`;
+                label.classList.toggle('complete', watched === total);
+              }
+            }
+          }, 'desenho_episode');
+          labelDiv.prepend(wBtn);
+        }
         grid.appendChild(card);
       });
 
+      sec.appendChild(head);
       sec.appendChild(grid);
       seasonsContainer.appendChild(sec);
     });
   }
 
-  window.toggleSeason = (header) => {
-    const grid = header.nextElementSibling;
-    const icon = header.querySelector('.season-toggle-icon');
-    const isOpen = grid.classList.toggle('open');
-    header.classList.toggle('open', isOpen);
-    icon.textContent = isOpen ? '▼' : '▶';
+  let editingEpId = null;
+  let editingSeason = null;
+  let editingMovieId = null;
+
+  window.editEpisode = (e, epId, seasonNum) => {
+    e.stopPropagation();
+    const sEps = DB.getEpisodesFor(activeCartoonId)[seasonNum];
+    const ep = sEps ? sEps.find(x => x.id === epId) : null;
+    if (!ep) return;
+
+    resetEpForm();
+    entryType.value = 'episode';
+    entryType.dispatchEvent(new Event('change'));
+
+    editingEpId = epId;
+    editingSeason = seasonNum;
+
+    epSeason.value = seasonNum;
+    epNumber.value = ep.epNumber;
+    epTitle.value = ep.title || '';
+    epIframe.value = ep.iframe;
+
+    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.style.background = 'var(--primary)';
+    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Episódio';
+    
+    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
   };
 
-  // --- CRUD EPISÓDIOS ---
-  let editingEpId = null;
-  let editingMovieId = null;
+  window.editMovie = (e, movieId) => {
+    e.stopPropagation();
+    const m = DB.getMovieById(movieId);
+    if (!m) return;
+
+    resetEpForm();
+    entryType.value = 'movie';
+    entryType.dispatchEvent(new Event('change'));
+
+    editingMovieId = movieId;
+
+    epTitle.value = m.title || '';
+    epIframe.value = m.iframe;
+
+    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.style.background = 'var(--primary)';
+    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Filme';
+    
+    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.deleteSeason = async (e, seasonNum) => {
+    e.stopPropagation();
+    if (!confirm(`Tem certeza que deseja excluir toda a Temporada ${seasonNum}?`)) return;
+    try {
+      const eps = DB.getEpisodesFor(activeCartoonId)[seasonNum] || [];
+      for (const ep of eps) {
+        await DB.deleteEpisode(ep.id);
+      }
+      showToast('Temporada excluída!');
+      renderContent();
+    } catch (err) {
+      showToast('Erro ao excluir temporada!', 'error');
+    }
+  };
 
   epForm.onsubmit = async (e) => {
     e.preventDefault();
@@ -387,58 +491,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function resetEpForm() {
     editingEpId = null;
+    editingSeason = null;
     editingMovieId = null;
     epTitle.value = '';
     epIframe.value = '';
-    formActionTitle.textContent = entryType.value === 'movie' ? '➕ Adicionar Filme' : '➕ Adicionar Episódio';
     addEpBtn.textContent = 'Adicionar';
+    addEpBtn.style.background = '';
+    formActionTitle.textContent = entryType.value === 'movie' ? '➕ Adicionar Filme' : '➕ Adicionar Episódio';
   }
-
-  window.editEpisode = (e, id) => {
-    e.stopPropagation();
-    const ep = DB.getEpisodeById(id);
-    if (!ep) return;
-    editingEpId = id;
-    editingMovieId = null;
-    entryType.value = 'episode';
-    groupSeason.style.display = 'block';
-    groupNumber.style.display = 'block';
-    epSeason.value = ep.temporada;
-    epNumber.value = ep.ep_number;
-    epTitle.value = ep.title || '';
-    epIframe.value = ep.iframe;
-    formActionTitle.textContent = '✏️ Editar Episódio';
-    addEpBtn.textContent = 'Salvar';
-    epForm.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  window.editMovie = (e, id) => {
-    e.stopPropagation();
-    const m = DB.getMovieById(id);
-    if (!m) return;
-    editingMovieId = id;
-    editingEpId = null;
-    entryType.value = 'movie';
-    groupSeason.style.display = 'none';
-    groupNumber.style.display = 'none';
-    epTitle.value = m.title || '';
-    epIframe.value = m.iframe;
-    formActionTitle.textContent = '✏️ Editar Filme';
-    addEpBtn.textContent = 'Salvar';
-    epForm.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  window.deleteEpisode = async (e, id) => {
-    e.stopPropagation();
-    if (!confirm('Tem certeza que deseja excluir este episódio?')) return;
-    try {
-      await DB.deleteEpisode(id);
-      showToast('Episódio excluído!');
-      renderContent();
-    } catch (err) {
-      showToast('Erro ao excluir!', 'error');
-    }
-  };
 
   // --- WATCH MODAL ---
   window.openWatchModal = (id, seasonOrMovie) => {
