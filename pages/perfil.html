@@ -2588,11 +2588,23 @@
         const noItemsNote = document.getElementById('noItemsNote');
         if (!grid) return;
 
-        // 1. Tentar ler o localStorage (fonte mais "viva" compartilhada entre a loja e o perfil)
+        // Declaração local da variável para evitar ReferenceError
+        let storeData = null;
+
+        // 1. Tentar ler o localStorage usando a chave isolada por usuário (evita vazamento entre contas)
         try {
-          const localStore = JSON.parse(localStorage.getItem('animehouse_store'));
+          const currentUser = window.supabaseClient ? await window.supabaseClient.auth.getUser() : null;
+          const currentUserId = currentUser?.data?.user?.id || null;
+          const userStoreKey = currentUserId ? `animehouse_store_${currentUserId}` : null;
+          // Prioridade: chave isolada por usuário; fallback para chave genérica apenas se pertencer ao mesmo usuário
+          const rawStore = (userStoreKey && localStorage.getItem(userStoreKey))
+            || localStorage.getItem('animehouse_store');
+          const localStore = rawStore ? JSON.parse(rawStore) : null;
           if (localStore && Array.isArray(localStore.purchased) && localStore.purchased.length > 0) {
-            storeData = localStore;
+            // Só usa se não pertencer a outro usuário
+            if (!localStore._userId || !currentUserId || localStore._userId === currentUserId) {
+              storeData = localStore;
+            }
           }
         } catch(e) {}
 

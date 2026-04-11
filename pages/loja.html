@@ -1150,19 +1150,45 @@ const FICHA_XP_COST = { ouro: 5, diamante: 10, esmeralda: 30 };
 
 // ── ESTADO LOCAL ──────────────────────────────────────
 const STORE_KEY = 'animehouse_store';
+const _STORE_EMPTY = () => ({ xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [], equipped: {} });
 
-function loadStore() {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
-  catch { return { xp: 0, rank: 'Novato', ouro: 0, diamante: 0, esmeralda: 0, purchased: [] }; }
+// Carrega o store respeitando isolamento por usuário.
+// Se o localStorage genérico pertencer a outro usuário, retorna um store vazio.
+function loadStore(currentUserId) {
+  try {
+    // 1. Prioridade: chave isolada por usuário
+    if (currentUserId) {
+      const userRaw = localStorage.getItem(`animehouse_store_${currentUserId}`);
+      if (userRaw) {
+        const parsed = JSON.parse(userRaw);
+        if (parsed && (!parsed._userId || parsed._userId === currentUserId)) return parsed;
+      }
+    }
+    // 2. Fallback: chave genérica — só usa se não tiver _userId de outro usuário
+    const genericRaw = localStorage.getItem(STORE_KEY);
+    if (genericRaw) {
+      const parsed = JSON.parse(genericRaw);
+      if (parsed) {
+        if (!currentUserId || !parsed._userId || parsed._userId === currentUserId) return parsed;
+        // Pertence a outro usuário — ignora e retorna vazio
+        console.log('🔒 [Loja] Store genérico pertence a outro usuário, ignorando.');
+      }
+    }
+  } catch(e) {}
+  return _STORE_EMPTY();
 }
+
 async function saveStore(s) { 
-  localStorage.setItem(STORE_KEY, JSON.stringify(s)); 
   if (window.DB && window.DB.saveStoreData) {
     await window.DB.saveStoreData(s);
+  } else {
+    // Fallback se DB ainda não estiver pronto
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
   }
 }
 
-let store = loadStore();
+// Inicializa com store vazio; será populado corretamente em syncFromProfile()
+let store = _STORE_EMPTY();
 
 function rankIndex(r) { return RANK_HIERARCHY.indexOf(r); }
 function canUse(ficha) { return rankIndex(store.rank) >= rankIndex(FICHA_REQ_RANK[ficha]); }
@@ -1450,21 +1476,37 @@ function confirmBuy() {
 
 // ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────
 async function syncFromProfile() {
+  // Obter o ID do usuário atual ANTES de qualquer leitura de localStorage
+  let currentUserId = null;
+  try {
+    if (window.supabaseClient) {
+      const { data: { user } } = await window.supabaseClient.auth.getUser();
+      currentUserId = user?.id || null;
+    }
+  } catch(e) { console.warn('[Loja] Não foi possível obter usuário:', e); }
+
+  // Reinicializa o store com os dados corretos do usuário atual (isolado por userId)
+  store = loadStore(currentUserId);
+
   if (window.DB && window.DB.init) {
     await window.DB.init();
     
-    // Mesclar dados do banco no objeto local 'store'
+    // O banco é a fonte de verdade: substituir dados locais pelos do banco
     if (window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
         const dbStore = window.DB._store.profile.store_data;
-        // Mesclar propriedades (ouro, diamante, esmeralda, xp, purchased, equipped)
-        if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
-        if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
-        if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
-        if (dbStore.xp !== undefined) store.xp = dbStore.xp;
-        if (dbStore.purchased) store.purchased = dbStore.purchased;
-        if (dbStore.equipped) store.equipped = dbStore.equipped;
-        // Carregar patentes desbloqueadas manualmente
-        if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
+        // Só usa dados do banco se pertencerem ao usuário atual
+        if (!dbStore._userId || !currentUserId || dbStore._userId === currentUserId) {
+          if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
+          if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
+          if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
+          if (dbStore.xp !== undefined) store.xp = dbStore.xp;
+          if (dbStore.purchased) store.purchased = dbStore.purchased;
+          if (dbStore.equipped) store.equipped = dbStore.equipped;
+          // Carregar patentes desbloqueadas manualmente
+          if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
+        } else {
+          console.log('🔒 [Loja] Dados do banco pertencem a outro usuário, ignorando.');
+        }
     }
   }
 
@@ -1492,6 +1534,9 @@ async function syncFromProfile() {
       store.rank = highestUnlocked;
     }
   }
+
+  // Marcar o store com o userId para isolamento entre usuários
+  if (currentUserId) store._userId = currentUserId;
 
   // Recursos agora são gerenciados diretamente no banco de dados (store_data no Supabase)
   // Não há mais concessões hardcoded por email - todos os dados vêm do banco
