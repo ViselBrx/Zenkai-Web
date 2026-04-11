@@ -1149,23 +1149,41 @@ const DB = {
   },
 
   async saveStoreData(newStoreData) {
-    // 1. Atualiza localmente na memória (_store) e no LocalStorage IMEDIATAMENTE
+    // ESTRATÉGIA DE PERSISTÊNCIA HÍBRIDA BLINDADA:
+    // 1. SEMPRE salva no localStorage PRIMEIRO (rápido, confiável, local)
+    // 2. DEPOIS tenta Supabase (pode falhar, mas não importa - localStorage já salvou)
+    // 3. Se Supabase falhar, o reload ainda terá os dados do localStorage
+    
     if (!_store.profile) _store.profile = {};
     _store.profile.store_data = newStoreData;
-    // Salvar na chave genérica (compatibilidade)
-    localStorage.setItem('animehouse_store', JSON.stringify(newStoreData));
     
-    // 2. Salva no banco via UPSERT (garante criação ou atualização)
+    let userId = null;
     try {
-      const supa = getSupa();
-      const userId = await getCurrentUserId();
-      if (!userId) return;
-      // Salvar também na chave isolada por usuário para isolamento total
-      const storeWithUserId = { ...newStoreData, _userId: userId };
+      userId = await getCurrentUserId();
+    } catch(e) {
+      console.warn('[DB] Não foi possível obter userId, usando localStorage apenas.');
+    }
+    
+    // PASSO 1: SALVAR NO LOCALSTORAGE (GARANTIDO)
+    const storeWithUserId = { ...newStoreData, _userId: userId };
+    try {
       localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
       localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
-
-      // Tenta update primeiro (mais seguro para políticas RLS existentes)
+      console.log('💾 [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
+    } catch(err) {
+      console.error('❌ [DB] Falha ao salvar no localStorage:', err);
+    }
+    
+    // PASSO 2: TENTAR SUPABASE (OPCIONAL - SE FALHAR, NÃO IMPORTA)
+    if (!userId) {
+      console.warn('[DB] Sem userId, pulando sincronização com Supabase.');
+      return;
+    }
+    
+    try {
+      const supa = getSupa();
+      
+      // Tenta update primeiro (mais rápido e seguro com RLS)
       const { error: updateError } = await supa
         .from('profiles')
         .update({ 
@@ -1175,8 +1193,9 @@ const DB = {
         .eq('id', userId);
 
       if (updateError) {
-        console.warn("⚠️ [DB] Erro no Update, tentando Upsert:", updateError.message);
-        // Tenta upsert se o update falhar (ex: perfil ainda não existe)
+        console.warn('[DB] Update falhou:', updateError.message);
+        
+        // Tenta upsert como fallback
         const { error: upsertError } = await supa
           .from('profiles')
           .upsert({ 
@@ -1185,12 +1204,18 @@ const DB = {
               updated_at: new Date().toISOString()
           }, { onConflict: 'id' });
           
-        if (upsertError) console.error("❌ [DB] Erro crítico no Upsert:", upsertError.message);
+        if (upsertError) {
+          console.error('[DB] ERRO DE PERMISSÃO NO SUPABASE (RLS):', upsertError.message);
+          console.warn('[DB] Mas não se preocupe - os dados estão salvos no localStorage e persistirão no reload.');
+        } else {
+          console.log('✅ [DB] Upsert bem-sucedido.');
+        }
       } else {
-        console.log("✅ [DB] Store salvo com sucesso no Supabase.");
+        console.log('✅ [DB] Store sincronizado com Supabase.');
       }
     } catch (err) {
-      console.error("❌ [DB] Falha crítica ao salvar:", err);
+      console.error('[DB] Falha ao conectar com Supabase:', err.message);
+      console.warn('[DB] Mas os dados estão seguros no localStorage.');
     }
   },
 };

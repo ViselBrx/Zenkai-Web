@@ -1199,11 +1199,31 @@ function loadStore(currentUserId) {
 }
 
 async function saveStore(s) { 
+  // Sempre salva no localStorage PRIMEIRO (garantido)
+  try {
+    let userId = null;
+    try {
+      if (window.supabaseClient) {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        userId = user?.id;
+      }
+    } catch(e) {}
+    
+    const storeWithUser = { ...s, _userId: userId };
+    localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUser));
+    localStorage.setItem(STORE_KEY, JSON.stringify(storeWithUser));
+    console.log('💾 [Loja] Store salvo no localStorage (GARANTIDO)');
+  } catch(err) {
+    console.error('❌ [Loja] Falha ao salvar no localStorage:', err);
+  }
+  
+  // Depois tenta Supabase (pode falhar, não importa)
   if (window.DB && window.DB.saveStoreData) {
-    await window.DB.saveStoreData(s);
-  } else {
-    // Fallback se DB ainda não estiver pronto
-    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    try {
+      await window.DB.saveStoreData(s);
+    } catch(err) {
+      console.error('[Loja] Falha ao sincronizar com Supabase, mas localStorage está seguro:', err);
+    }
   }
 }
 
