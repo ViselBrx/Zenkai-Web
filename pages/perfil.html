@@ -2626,10 +2626,12 @@
                   .maybeSingle();
                 if (profileFresh?.store_data) {
                   storeData = profileFresh.store_data;
+                  if (!storeData._userId) storeData._userId = user.id;
                   if (window.DB) {
                     if (!window.DB._store.profile) window.DB._store.profile = {};
                     window.DB._store.profile.store_data = storeData;
                   }
+                  localStorage.setItem(`animehouse_store_${user.id}`, JSON.stringify(storeData));
                   localStorage.setItem('animehouse_store', JSON.stringify(storeData));
                 }
               }
@@ -2738,7 +2740,18 @@
               localStorage.setItem(`equipped_${itemId}`, nextState ? 'true' : 'false');
           }
 
+          // Marcar com userId para isolamento
+          if (!storeData._userId && window.supabaseClient) {
+            try {
+              const { data: { user } } = await window.supabaseClient.auth.getUser();
+              if (user) storeData._userId = user.id;
+            } catch(e) {}
+          }
+
           // Salvar localmente imediatamente (Instant feedback)
+          if (storeData._userId) {
+            localStorage.setItem(`animehouse_store_${storeData._userId}`, JSON.stringify(storeData));
+          }
           localStorage.setItem('animehouse_store', JSON.stringify(storeData));
 
           // Salvar no Banco
@@ -2833,7 +2846,6 @@
           const displayAvatarEl = document.getElementById('displayAvatar');
           if (!displayAvatarEl) return;
           
-          // Remove all possible aura classes
           const auraClasses = [
             'aura-common-chama', 'aura-common-naruto',
             'aura-rare-ceifador', 'aura-rare-thunder', 'aura-rare-susanoo', 'aura-rare-sakura',
@@ -2848,8 +2860,14 @@
              const sData = window.DB._store.profile.store_data;
              aura = (sData.equipped && sData.equipped.aura) || 'none';
           }
+          if (aura === 'none') {
+             const customAura = localStorage.getItem('animehouse_customAura');
+             if (customAura && customAura !== 'none') aura = customAura;
+          }
 
-          if (aura !== 'none') displayAvatarEl.classList.add(aura);
+          if (aura && aura !== 'none') {
+             displayAvatarEl.classList.add(aura);
+          }
       }
 
       function showLevelUpToast(level, newRank) {
