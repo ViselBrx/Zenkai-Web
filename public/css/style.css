@@ -1327,12 +1327,16 @@ body {
 }
 
 
-.card:hover img {
-  transform: scale(1.1);
+.card:hover .card-cover {
+  transform: scale(1.08);
 }
 
-/* Garante que a imagem não saia do card no hover */
-.card, .card-click-area {
+/* Mantém a capa cortada no container sem prender elementos externos */
+.card {
+  overflow: visible !important;
+}
+
+.card-click-area {
   overflow: hidden !important;
   position: relative;
 }
@@ -1343,6 +1347,7 @@ body {
   object-fit: cover;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
+  transform-origin: center center;
 }
 
 .card-cover-placeholder {
@@ -3084,25 +3089,34 @@ body.modo-cinema .history-sidebar {
   border-radius: 8px;
 }
 
-/* 7. Estilos para Favoritos (Unificado para Animes, Mangás, Filmes e Desenhos) */
-
-
-.equipped-ribbon {
-    position: absolute;
-    top: 12px;
-    left: -32px;
-    background: var(--primary);
-    color: #fff;
-    padding: 4px 35px;
-    font-weight: 800;
-    font-size: 0.55rem;
-    transform: rotate(-45deg);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    z-index: 15;
-    pointer-events: none;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid rgba(255,255,255,0.1);
+/* Selo de favorito nos cards (discreto; a estrela já indica no canto superior esquerdo) */
+.fav-ribbon {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  left: auto;
+  top: auto;
+  transform: none;
+  margin: 0;
+  max-width: calc(100% - 56px);
+  padding: 3px 7px;
+  font-weight: 600;
+  font-size: 0.5rem;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(var(--primary-rgb), 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  z-index: 12;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Novo Indicador de Equipado Discreto */
@@ -3146,8 +3160,8 @@ body.modo-cinema .history-sidebar {
 /* Estrela de Favoritos Unificada e Premium */
 .fav-star {
     position: absolute !important;
-    top: 10px !important;
-    left: 10px !important;
+    top: 8px !important;
+    left: 8px !important;
     width: 34px !important;
     height: 34px !important;
     background: rgba(0, 0, 0, 0.45) !important;
@@ -3161,10 +3175,16 @@ body.modo-cinema .history-sidebar {
     cursor: pointer !important;
     font-size: 1.3rem !important;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-    z-index: 9999 !important; /* Garantir que fique acima de TUDO */
+    z-index: 30 !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
     padding: 0 !important;
     line-height: 1 !important;
+}
+
+.fav-star-sm {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.9rem !important;
 }
 
 .fav-star.is-hidden {

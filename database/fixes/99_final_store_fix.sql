@@ -13,13 +13,14 @@ ADD COLUMN IF NOT EXISTS store_data JSONB DEFAULT '{"purchased": [], "equipped":
 -- 2. RESETAR POLÍTICAS DE SEGURANÇA (RLS) PARA O PERFIL
 -- Isso garante que o sistema tenha permissão para LER e GRAVAR no seu perfil.
 DROP POLICY IF EXISTS "Qualquer um pode ver perfis" ON public.profiles;
+DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 DROP POLICY IF EXISTS "Usuários podem criar seu próprio perfil" ON public.profiles;
 DROP POLICY IF EXISTS "Usuários podem editar seu próprio perfil" ON public.profiles;
 
--- Permissão de Leitura (Qualquer um logado ou não pode ver o perfil básico)
-CREATE POLICY "Qualquer um pode ver perfis" 
+-- Leitura: apenas o próprio usuário (evita vazar store_data / inventário)
+CREATE POLICY "profiles_select_own"
 ON public.profiles FOR SELECT 
-USING (true);
+USING (auth.uid() = id);
 
 -- Permissão de Inserção (O próprio usuário cria seu perfil ao registrar)
 CREATE POLICY "Usuários podem criar seu próprio perfil" 

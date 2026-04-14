@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Renderizar a lista de mangás em formato de pílulas (seletor)
   async function renderMangaPills() {
     const term = searchManga.value.toLowerCase();
-    const mangas = DB.getMangas().filter(m => {
+    const mangas = DB.getMangas().map((m, index) => ({ ...m, _originIndex: index })).filter(m => {
         if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return false;
         return m.nome.toLowerCase().includes(term);
     });
@@ -81,12 +81,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     mangaPills.innerHTML = '';
 
-    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
-                         ? window.DB.isPerkEquipped('lista_destaque') 
-                         : false;
-
-    // 2. Buscar favoritos
+    // Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('manga');
@@ -95,19 +90,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Erro ao carregar favoritos de mangás.");
     }
 
-    // 3. Ordenação condicional
-    if (isPerkActive) {
-      mangas.sort((a, b) => {
-        const aFav = userFavs.has(a.id) ? 1 : 0;
-        const bFav = userFavs.has(b.id) ? 1 : 0;
-        return bFav - aFav; // Favoritos primeiro
-      });
-    }
+    // Favoritos no topo, demais itens na ordem original
+    mangas.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
     
     mangas.forEach(m => {
       const card = document.createElement('div');
       card.className = 'card' + (m.id === activeMangaId ? ' active-card' : '');
       if (m.id === activeMangaId) card.style.borderColor = 'var(--primary)';
+      card.dataset.originIndex = String(m._originIndex);
+      card.dataset.contentId = m.id;
       
       const isFav = userFavs.has(m.id);
       const initial = m.nome.charAt(0).toUpperCase();
@@ -115,9 +111,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
-      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starClass = '';
       const favBtnHtml = `
-        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${m.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${m.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
           ${isFav ? '★' : '☆'}
         </button>
       `;
@@ -125,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${coverHtml}
-          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+          ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
           ${favBtnHtml}
         </div>
         <div class="card-body card-click-area" style="cursor:pointer;">
@@ -156,7 +152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Se é um novo manga, ativa e renderiza
         activeMangaId = m.id;
-        selectedVolId = null;
         renderVolumes();
         
         // Apenas atualiza o visual do card ativo sem re-renderizar toda a lista
@@ -178,14 +173,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             const res = await DB.toggleFavorite(m.id, 'manga', { title: m.nome, cover: m.capa });
             const isAdded = res.action === 'added';
-            favBtn.classList.toggle('active', isAdded);
-            favBtn.innerHTML = isAdded ? '★' : '☆';
-            favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
+            DB.applyFavoriteCardChrome(card, isAdded);
+            DB.reorderFavoriteCards(mangaPills);
             if (window.showToast) showToast(isAdded ? `"${m.nome}" adicionado aos favoritos!` : `"${m.nome}" removido dos favoritos.`);
-            // Re-renderiza a lista para aplicar a ordenação (favoritos no topo) se o perk estiver ativo
-            await renderMangaPills();
           } catch (err) {
-            if (window.showToast) showToast('Faça login para favoritar!', 'error');
+            if (window.showToast) showToast(err.message || 'Erro ao favoritar.', 'error');
           }
         };
       }
@@ -651,4 +643,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Init
   renderMangaPills();
   renderVolumes();
+
+  window.addEventListener('profileUpdated', () => { renderMangaPills(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) renderMangaPills();
+  });
 });

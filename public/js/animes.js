@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterTemp = document.getElementById('filterTemporadas');
 
   let animes = DB.getAnimes();
+  let activeAnimeId = null;
 
   function initFilters() {
     const estudios = [...new Set(animes.map(a => a.estudio).filter(Boolean))].sort();
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const est = filterEstudio.value;
     const temp = filterTemp.value;
 
-    const filtered = animes.filter(a => {
+    const filtered = animes.map((a, index) => ({ ...a, _originIndex: index })).filter(a => {
       const matchName = a.nome.toLowerCase().includes(term);
       const matchEst = est === '' || a.estudio === est;
       let matchTemp = true;
@@ -41,12 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
-    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
-                         ? window.DB.isPerkEquipped('lista_destaque') 
-                         : false;
-
-    // 2. Buscar favoritos
+    // Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('anime');
@@ -55,26 +51,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Usuário deslogado ou erro ao carregar favoritos.");
     }
 
-    // 3. Ordenação condicional: Apenas se o perk estiver ativo
-    if (isPerkActive) {
-      filtered.sort((a, b) => {
-        const aFav = userFavs.has(a.id) ? 1 : 0;
-        const bFav = userFavs.has(b.id) ? 1 : 0;
-        return bFav - aFav; // Favoritos primeiro
-      });
-    }
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
 
     filtered.forEach(a => {
       const isFav = userFavs.has(a.id);
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.originIndex = String(a._originIndex);
+      card.dataset.contentId = a.id;
       
       let imgHtml = a.capa ? `<img src="${a.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">⛩️</div>`;
       
-      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starClass = '';
       const favBtnHtml = `
-        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${a.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${a.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
           ${isFav ? '★' : '☆'}
         </button>
       `;
@@ -82,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${imgHtml}${placeholder}
-          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+          ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
         </div>
         ${favBtnHtml}
         <div class="card-body card-click-area" style="cursor:pointer;">
@@ -124,26 +121,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await DB.toggleFavorite(item.id, 'anime', { title: item.nome, cover: item.capa });
       const isAdded = res.action === 'added';
-      
-      btn.classList.toggle('active', isAdded);
-      btn.innerHTML = isAdded ? '★' : '☆';
-      btn.title = isAdded ? 'Desmarcar' : 'Marcar';
-      
-      showToast(isAdded 
-        ? `"${item.nome}" adicionado aos favoritos!` 
+
+      const card = btn.closest('.card') || DB.findFavoriteCardByContentId(grid, item.id);
+      if (card) DB.applyFavoriteCardChrome(card, isAdded);
+      else {
+        btn.classList.toggle('active', isAdded);
+        btn.innerHTML = isAdded ? '★' : '☆';
+        btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      }
+
+      DB.reorderFavoriteCards(grid);
+
+      showToast(isAdded
+        ? `"${item.nome}" adicionado aos favoritos!`
         : `"${item.nome}" removido dos favoritos.`);
-      
-      // Re-renderizar a grid para aplicar a ordenação (favoritos no topo)
-      await render();
-      
-      // Se houver um botão de favorito no modal aberto, atualiza ele também
+
       const modalFavBtn = document.getElementById('detailFavBtn');
-      if (modalFavBtn) {
+      if (modalFavBtn && activeAnimeId === item.id) {
         modalFavBtn.classList.toggle('active', isAdded);
-        modalFavBtn.textContent = isAdded ? '★' : '☆';
+        modalFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
       }
     } catch (err) {
-      showToast('Erro ao atualizar favoritos. Faça login!', 'error');
+      showToast(err.message || 'Erro ao atualizar favoritos.', 'error');
     }
   }
 
@@ -175,20 +174,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Check favorite status for modal button
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
     const isFav = await DB.isFavorite(a.id, 'anime');
-    
-    if (isPerkActive) {
-      detailFavBtn.style.display = 'flex';
-      detailFavBtn.classList.toggle('active', isFav);
-      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
-      detailFavBtn.onclick = (e) => {
-        e.stopPropagation();
-        toggleFavorite(a, detailFavBtn);
-      };
-    } else {
-      detailFavBtn.style.display = 'none';
-    }
+    detailFavBtn.style.display = 'flex';
+    detailFavBtn.classList.toggle('active', isFav);
+    detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+    detailFavBtn.onclick = (e) => {
+      e.stopPropagation();
+      toggleFavorite(a, detailFavBtn);
+    };
 
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
@@ -214,4 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initFilters();
   render();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });

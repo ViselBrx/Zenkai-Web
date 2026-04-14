@@ -1118,7 +1118,6 @@ const CATALOG_ITEMS = [
   { id: 'titulo_explorador', name: 'Título: Explorador', desc: 'Exibe o título abaixo do avatar.', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5, req: 'prata' },
   { id: 'aura_chama', name: 'Aura Chama Simples', desc: 'Chamas sutis ao redor do avatar.', icon: '🔥', category: 'aura', currency: 'ouro', price: 8, req: 'prata' },
   { id: 'banner_cosmica', name: 'Banner Noite Cósmica', desc: 'Fundo estrelado escuro.', icon: '🌌', category: 'banner', currency: 'ouro', price: 10, req: 'prata' },
-  { id: 'lista_destaque', name: 'Lista Favoritos Destacada', desc: 'Destaque visual especial no perfil.', icon: '📌', category: 'experiencia', currency: 'ouro', price: 7, req: 'prata' },
   { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', desc: 'Para quem maratona séries.', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6, req: 'prata' },
   { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', desc: 'Inspirado em Berserk.', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4, req: 'prata' },
   { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', desc: 'Espírito indomável de Guts.', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5, req: 'prata' },
@@ -1214,20 +1213,19 @@ async function saveStore(s) {
     } catch(e) {}
     
     const storeWithUser = { ...s, _userId: userId };
-    localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUser));
-    localStorage.setItem(STORE_KEY, JSON.stringify(storeWithUser));
-    console.log('💾 [Loja] Store salvo no localStorage (GARANTIDO)');
+    if (userId) {
+      localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUser));
+      localStorage.setItem(STORE_KEY, JSON.stringify(storeWithUser));
+      console.log('💾 [Loja] Store salvo no localStorage (GARANTIDO)');
+    } else {
+      console.warn('[Loja] Sem usuário logado — não gravando store (evita misturar contas).');
+    }
   } catch(err) {
     console.error('❌ [Loja] Falha ao salvar no localStorage:', err);
   }
   
-  // Depois tenta Supabase (pode falhar, não importa)
   if (window.DB && window.DB.saveStoreData) {
-    try {
-      await window.DB.saveStoreData(s);
-    } catch(err) {
-      console.error('[Loja] Falha ao sincronizar com Supabase, mas localStorage está seguro:', err);
-    }
+    await window.DB.saveStoreData(s);
   }
 }
 
@@ -1478,7 +1476,7 @@ function closeBuyModal() {
   pendingItemId = null;
 }
 
-function confirmBuy() {
+async function confirmBuy() {
   if (!pendingItemId) return;
   const item = CATALOG_ITEMS.find(i => i.id === pendingItemId);
   if (!item) return;
@@ -1503,7 +1501,6 @@ function confirmBuy() {
   if (!store.purchased) store.purchased = [];
   store.purchased.push(item.id);
 
-  // Estrutura de itens equipados para os novos perks
   if (!store.equipped) store.equipped = {};
   if (item.category === 'experiencia') {
       store.equipped[item.id] = true;
@@ -1511,25 +1508,31 @@ function confirmBuy() {
   }
 
   console.log('[Loja] Salvando compra:', { itemId: item.id, itemName: item.name, purchased: store.purchased });
-  saveStore(store).then(() => {
-    console.log('[Loja] Compra salva no Supabase. Atualizando DB._store...');
+  try {
+    await saveStore(store);
     if (window.DB && window.DB._store) {
       if (!window.DB._store.profile) window.DB._store.profile = {};
-      window.DB._store.profile.store_data = { ...store };
-      console.log('[Loja] DB._store atualizado:', window.DB._store.profile.store_data.purchased);
+      let uid = null;
+      if (window.supabaseClient) {
+        const { data: { user } } = await window.supabaseClient.auth.getUser();
+        uid = user?.id ?? null;
+      }
+      window.DB._store.profile.store_data = { ...store, _userId: uid };
     }
     updateHeroUI();
     renderCatalog();
     closeBuyModal();
-    showToast(`✅ "${item.name}" adquirido e sincronizado com o banco!`, 'success');
-  }).catch(err => {
+    showToast(`✅ "${item.name}" adquirido e salvo na sua conta!`, 'success');
+    try {
+      window.dispatchEvent(new CustomEvent('profileUpdated', { detail: { source: 'loja-compra' } }));
+    } catch (e) { /* ignore */ }
+  } catch (err) {
     console.error('[Loja] Erro ao salvar compra:', err);
-    showToast(`❌ Erro ao salvar a compra. Tente novamente.`, 'error');
-  });
+    showToast(`❌ Erro ao salvar no servidor. Verifique a conexão e tente de novo.`, 'error');
+  }
 }
 // ── SINCRONIZAR COM DADOS REAIS DO PERFIL ─────────────────
 async function syncFromProfile() {
-  // Obter o ID do usuário atual ANTES de qualquer leitura de localStorage
   let currentUserId = null;
   try {
     if (window.supabaseClient) {
@@ -1538,56 +1541,47 @@ async function syncFromProfile() {
     }
   } catch(e) { console.warn('[Loja] Não foi possível obter usuário:', e); }
 
-  // Reinicializa o store com os dados corretos do usuário atual (isolado por userId)
   store = loadStore(currentUserId);
+  const localPurchased = Array.isArray(store.purchased) ? [...store.purchased] : [];
+  const localEquipped = store.equipped && typeof store.equipped === 'object' ? { ...store.equipped } : {};
 
   if (window.DB && window.DB.init) {
     await window.DB.init();
-    
-    // O banco é a fonte de verdade: substituir dados locais pelos do banco
+
     if (window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
         const dbStore = window.DB._store.profile.store_data;
-        // Só usa dados do banco se pertencerem ao usuário atual
-        if (!dbStore._userId || !currentUserId || dbStore._userId === currentUserId) {
+        if (currentUserId && dbStore._userId && dbStore._userId !== currentUserId) {
+          console.warn('[Loja] store_data no perfil não corresponde à sessão; ignorando merge do banco.');
+        } else if (!dbStore._userId || !currentUserId || dbStore._userId === currentUserId) {
           if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
           if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
           if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
           if (dbStore.xp !== undefined) store.xp = dbStore.xp;
-          // Mesclar purchased: união entre local e banco para não perder compras
-          if (dbStore.purchased) {
-            const localPurchased = Array.isArray(store.purchased) ? store.purchased : [];
-            store.purchased = [...new Set([...dbStore.purchased, ...localPurchased])];
-          }
-          if (dbStore.equipped) store.equipped = { ...(store.equipped || {}), ...dbStore.equipped };
-          // Carregar patentes desbloqueadas manualmente
+          const dbP = Array.isArray(dbStore.purchased) ? [...dbStore.purchased] : [];
+          store.purchased = [...new Set([...dbP, ...localPurchased])];
+          store.equipped = { ...localEquipped, ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {}) };
           if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
-        } else {
-          console.log('🔒 [Loja] Dados do banco pertencem a outro usuário, ignorando.');
         }
     } else if (currentUserId && window.supabaseClient) {
-      // Fallback: buscar diretamente no banco se DB._store não tiver os dados
       try {
         const { data: profileFresh } = await window.supabaseClient
           .from('profiles')
           .select('store_data')
           .eq('id', currentUserId)
           .maybeSingle();
-        if (profileFresh?.store_data) {
-          const dbStore = profileFresh.store_data;
+        if (profileFresh != null) {
+          const dbStore = profileFresh.store_data || {};
           if (dbStore.ouro !== undefined) store.ouro = dbStore.ouro;
           if (dbStore.diamante !== undefined) store.diamante = dbStore.diamante;
           if (dbStore.esmeralda !== undefined) store.esmeralda = dbStore.esmeralda;
           if (dbStore.xp !== undefined) store.xp = dbStore.xp;
-          if (dbStore.purchased) {
-            const localPurchased = Array.isArray(store.purchased) ? store.purchased : [];
-            store.purchased = [...new Set([...dbStore.purchased, ...localPurchased])];
-          }
-          if (dbStore.equipped) store.equipped = { ...(store.equipped || {}), ...dbStore.equipped };
+          const dbP = Array.isArray(dbStore.purchased) ? [...dbStore.purchased] : [];
+          store.purchased = [...new Set([...dbP, ...localPurchased])];
+          store.equipped = { ...localEquipped, ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {}) };
           if (dbStore.unlocked_ranks) store.unlocked_ranks = dbStore.unlocked_ranks;
-          // Atualizar DB._store para consistência
           if (window.DB) {
             if (!window.DB._store.profile) window.DB._store.profile = {};
-            window.DB._store.profile.store_data = { ...dbStore, ...store, _userId: currentUserId };
+            window.DB._store.profile.store_data = { ...store, _userId: currentUserId };
           }
         }
       } catch(e) { console.warn('[Loja] Fallback banco falhou:', e); }
@@ -1619,12 +1613,13 @@ async function syncFromProfile() {
     }
   }
 
-  // Marcar o store com o userId para isolamento entre usuários
   if (currentUserId) store._userId = currentUserId;
 
-  // Recursos agora são gerenciados diretamente no banco de dados (store_data no Supabase)
-  // Não há mais concessões hardcoded por email - todos os dados vêm do banco
-  saveStore(store);
+  try {
+    await saveStore(store);
+  } catch (e) {
+    console.warn('[Loja] Não foi possível gravar no Supabase agora; dados seguem no aparelho.', e?.message || e);
+  }
 
   updateHeroUI();
   updateFichasStatus();

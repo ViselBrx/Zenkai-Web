@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let filmes = DB.getFilmes();
   let pendingHistoryResume = null;
+  let openFilmDetailId = null;
 
   function loadPendingHistoryResume() {
     if (typeof HistoryTracker === 'undefined') {
@@ -76,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const gen = filterGenero.value;
     const ano = filterAno.value;
 
-    const filtered = filmes.filter(f => {
+    const filtered = filmes.map((f, index) => ({ ...f, _originIndex: index })).filter(f => {
       const matchName = f.nome.toLowerCase().includes(term);
       const matchGenero = gen === '' || f.genero === gen;
       const matchAno = ano === '' || String(f.ano) === ano;
@@ -90,12 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
-    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
-                         ? window.DB.isPerkEquipped('lista_destaque') 
-                         : false;
-
-    // 2. Buscar favoritos
+    // Buscar favoritos
     let userFavs = new Set();
     try {
       const favs = await DB.getFavorites('filme');
@@ -104,19 +100,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn("Erro ao carregar favoritos de filmes.");
     }
 
-    // 3. Ordenação condicional
-    if (isPerkActive) {
-      filtered.sort((a, b) => {
-        const aFav = userFavs.has(a.id) ? 1 : 0;
-        const bFav = userFavs.has(b.id) ? 1 : 0;
-        return bFav - aFav; // Favoritos primeiro
-      });
-    }
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
 
     filtered.forEach(f => {
       const isFav = userFavs.has(f.id);
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.originIndex = String(f._originIndex);
+      card.dataset.contentId = f.id;
       const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(f.id);
 
       let imgHtml = f.capa ? `<img src="${f.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
@@ -125,9 +122,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);z-index:4;">✓ Assistido</span>`
         : '';
 
-      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starClass = '';
       const favBtnHtml = `
-        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${f.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${f.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
           ${isFav ? '★' : '☆'}
         </button>
       `;
@@ -135,7 +132,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${imgHtml}${placeholder}${watchedBadge}
-          ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+          ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
         </div>
         ${favBtnHtml}
         <div class="card-body card-click-area" style="cursor:pointer;">
@@ -172,25 +169,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res = await DB.toggleFavorite(item.id, 'filme', { title: item.nome, cover: item.capa });
       const isAdded = res.action === 'added';
 
-      btn.classList.toggle('active', isAdded);
-      btn.innerHTML = isAdded ? '★' : '☆';
-      btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      const card = btn.closest('.card') || DB.findFavoriteCardByContentId(grid, item.id);
+      if (card) DB.applyFavoriteCardChrome(card, isAdded);
+      else {
+        btn.classList.toggle('active', isAdded);
+        btn.innerHTML = isAdded ? '★' : '☆';
+        btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      }
+
+      DB.reorderFavoriteCards(grid);
 
       showToast(isAdded
         ? `"${item.nome}" adicionado aos favoritos!`
         : `"${item.nome}" removido dos favoritos.`);
-
-      // Re-renderizar a grid para aplicar a ordenação (favoritos no topo)
-      await render();
-
-      // Se houver um botão de favorito no modal aberto, atualiza ele também
-      const modalFavBtn = document.getElementById('detailFavBtn');
-      if (modalFavBtn) {
-        modalFavBtn.classList.toggle('active', isAdded);
-        modalFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
-      }
     } catch (err) {
-      showToast('Erro ao atualizar favoritos. Faça login!', 'error');
+      showToast(err.message || 'Erro ao atualizar favoritos.', 'error');
     }
   }
 
@@ -203,9 +196,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailAno = document.getElementById('detailAno');
   const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
-  const detailFavBtn = document.getElementById('detailFavBtn');
-
   async function openDetailModal(f) {
+    openFilmDetailId = f.id;
     detailTitle.textContent = f.nome;
     detailDiretor.textContent = f.diretor || 'N/A';
     detailAno.textContent = f.ano || 'N/A';
@@ -219,22 +211,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       detailCover.style.display = 'none';
       detailPlaceholder.style.display = 'flex';
-    }
-
-    // Check favorite status for modal button
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
-    const isFav = await DB.isFavorite(f.id, 'filme');
-
-    if (isPerkActive) {
-      detailFavBtn.style.display = 'flex';
-      detailFavBtn.classList.toggle('active', isFav);
-      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
-      detailFavBtn.onclick = (e) => {
-        e.stopPropagation();
-        toggleFavorite(f, detailFavBtn);
-      };
-    } else {
-      detailFavBtn.style.display = 'none';
     }
 
     // Botão de marcar como assistido no modal de detalhes
@@ -259,6 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     detailWatchBtn.onclick = () => {
+      openFilmDetailId = null;
       detailModal.classList.remove('open');
       openWatchModal(f);
     };
@@ -267,6 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('detailClose').addEventListener('click', () => {
+    openFilmDetailId = null;
     detailModal.classList.remove('open');
     detailCover.src = '';
   });
@@ -319,4 +297,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFilters();
   render();
   tryResumeFilmPlayback();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });

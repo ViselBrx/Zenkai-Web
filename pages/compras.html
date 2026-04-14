@@ -347,7 +347,6 @@
       { id: 'titulo_explorador', name: 'Título: Explorador', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5 },
       { id: 'aura_chama', name: 'Aura Chama Simples', icon: '🔥', category: 'aura', currency: 'ouro', price: 8 },
       { id: 'banner_cosmica', name: 'Banner Noite Cósmica', icon: '🌌', category: 'banner', currency: 'ouro', price: 10 },
-      { id: 'lista_destaque', name: 'Lista Favoritos Destacada', icon: '📌', category: 'experiencia', currency: 'ouro', price: 7 },
       { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6 },
       { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4 },
       { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5 },
@@ -385,8 +384,19 @@
       setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
+    function getComprasStore() {
+      if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+        try { return JSON.parse(JSON.stringify(window.DB._store.profile.store_data)); } catch (e) {}
+      }
+      try {
+        const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (s && typeof s === 'object') return s;
+      } catch (e) {}
+      return { purchased: [], equipped: {} };
+    }
+
     function renderInventory() {
-      const store = JSON.parse(localStorage.getItem(STORE_KEY)) || { purchased: [] };
+      const store = getComprasStore();
       const container = document.getElementById('inventoryContainer');
       
       // Limpa sempre para evitar fantasmas de itens vendidos
@@ -482,8 +492,7 @@
       const item = itemToSell;
 
       try {
-          const storeData = localStorage.getItem(STORE_KEY);
-          let store = storeData ? JSON.parse(storeData) : { purchased: [], equipped: {} };
+          let store = getComprasStore();
           
           store.purchased = (store.purchased || []).filter(itemId => itemId !== id);
           
@@ -528,7 +537,7 @@
     };
 
     window.toggleEquip = async function(id, type, rawName) {
-      let store = JSON.parse(localStorage.getItem(STORE_KEY)) || { purchased: [], equipped: {} };
+      let store = getComprasStore();
       if (!store.equipped) store.equipped = {};
 
       if (type === 'aura') {

@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function loadCartoons() {
-    const list = DB.getCartoons();
+    const list = DB.getCartoons().map((c, index) => ({ ...c, _originIndex: index }));
     pillsContainer.innerHTML = '';
     
     if (list.length === 0) {
@@ -117,12 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    // 1. Checar se o perk de favoritos está ativo (VIA BANCO)
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
-                         ? window.DB.isPerkEquipped('lista_destaque') 
-                         : false;
-
-    // 2. Buscar favoritos
+    // Buscar favoritos
     let userFavs = new Set();
     try {
         const favs = await DB.getFavorites('desenho');
@@ -131,20 +126,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Erro ao carregar favoritos de desenhos.");
     }
 
-    // 3. Ordenação condicional
-    if (isPerkActive) {
-      list.sort((a, b) => {
-        const aFav = userFavs.has(a.id) ? 1 : 0;
-        const bFav = userFavs.has(b.id) ? 1 : 0;
-        return bFav - aFav; // Favoritos primeiro
-      });
-    }
+    // Favoritos no topo, demais itens na ordem original
+    list.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
     
     list.forEach(c => {
       const isFav = userFavs.has(c.id);
       const container = document.createElement('div');
       container.style.position = 'relative';
       container.style.display = 'inline-block';
+      container.dataset.originIndex = String(c._originIndex);
+      container.dataset.cartoonId = c.id;
       
       const btn = document.createElement('button');
       btn.className = 'cartoon-pill';
@@ -160,19 +156,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       container.appendChild(btn);
       
       // Adicionar estrela de favoritos
-      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starClass = '';
       const favBtn = document.createElement('button');
       favBtn.className = `fav-star ${isFav ? 'active' : ''} ${starClass}`;
       favBtn.dataset.id = c.id;
       favBtn.title = isFav ? 'Desmarcar' : 'Marcar';
       favBtn.innerHTML = isFav ? '★' : '☆';
-      favBtn.style.position = 'absolute';
-      favBtn.style.top = '10px';
-      favBtn.style.left = '10px';
-      favBtn.style.right = 'auto';
-      favBtn.style.width = '28px';
-      favBtn.style.height = '28px';
-      favBtn.style.fontSize = '0.9rem';
+      favBtn.classList.add('fav-star-sm');
       
       favBtn.onclick = async (e) => {
         e.stopPropagation();
@@ -183,9 +173,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           favBtn.innerHTML = isAdded ? '★' : '☆';
           favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
           showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
-          await loadCartoons();
+          DB.reorderFavoritePillWrappers(pillsContainer);
         } catch (err) {
-          showToast('Faça login para favoritar!', 'error');
+          showToast(err.message || 'Erro ao favoritar.', 'error');
         }
       };
       
@@ -420,10 +410,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   let editingSeason = null;
   let editingMovieId = null;
 
+  function getActiveMovieById(movieId) {
+    return DB.getMoviesFor(activeCartoonId).find((movie) => movie.id === movieId) || null;
+  }
+
+  function getActiveEpisodeById(epId, seasonNum = null) {
+    const seasons = DB.getEpisodesFor(activeCartoonId);
+    if (seasonNum !== null && seasonNum !== undefined) {
+      const seasonEpisodes = seasons[seasonNum] || [];
+      return seasonEpisodes.find((ep) => ep.id === epId) || null;
+    }
+
+    for (const seasonEpisodes of Object.values(seasons)) {
+      const found = (seasonEpisodes || []).find((ep) => ep.id === epId);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  function showCancelBtn() {
+    if (document.getElementById('cancelEditBtn')) return;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.id = 'cancelEditBtn';
+    cancelBtn.className = 'btn btn-ghost';
+    cancelBtn.style.marginLeft = '10px';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = resetEpForm;
+    addEpBtn.parentNode.appendChild(cancelBtn);
+  }
+
   window.editEpisode = (e, epId, seasonNum) => {
     e.stopPropagation();
-    const sEps = DB.getEpisodesFor(activeCartoonId)[seasonNum];
-    const ep = sEps ? sEps.find(x => x.id === epId) : null;
+    const ep = getActiveEpisodeById(epId, seasonNum);
     if (!ep) return;
 
     resetEpForm();
@@ -438,93 +458,114 @@ document.addEventListener('DOMContentLoaded', async () => {
     epTitle.value = ep.title || '';
     epIframe.value = ep.iframe;
 
-    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.textContent = 'Salvar Alteracoes';
     addEpBtn.style.background = 'var(--primary)';
-    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Episódio';
-    
+    if (formActionTitle) formActionTitle.textContent = 'Editar Episodio';
+
     document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    showCancelBtn();
   };
 
   window.editMovie = (e, movieId) => {
     e.stopPropagation();
-    const m = DB.getMovieById(movieId);
-    if (!m) return;
+    const movie = getActiveMovieById(movieId);
+    if (!movie) return;
 
     resetEpForm();
     entryType.value = 'movie';
     entryType.dispatchEvent(new Event('change'));
 
     editingMovieId = movieId;
+    epTitle.value = movie.title || '';
+    epIframe.value = movie.iframe || '';
 
-    epTitle.value = m.title || '';
-    epIframe.value = m.iframe;
-
-    addEpBtn.textContent = 'Salvar Alterações';
+    addEpBtn.textContent = 'Salvar Filme';
     addEpBtn.style.background = 'var(--primary)';
-    if (formActionTitle) formActionTitle.textContent = '✏️ Editar Filme';
-    
+    if (formActionTitle) formActionTitle.textContent = 'Editar Filme';
+
     document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    showCancelBtn();
   };
 
   window.deleteSeason = async (e, seasonNum) => {
     e.stopPropagation();
     if (!confirm(`Tem certeza que deseja excluir toda a Temporada ${seasonNum}?`)) return;
+
     try {
-      const eps = DB.getEpisodesFor(activeCartoonId)[seasonNum] || [];
-      for (const ep of eps) {
-        await DB.deleteEpisode(ep.id);
-      }
-      showToast('Temporada excluída!');
+      await DB.deleteSeason(activeCartoonId, seasonNum);
+      if (editingSeason === seasonNum) resetEpForm();
+      showToast('Temporada excluida!');
       renderContent();
     } catch (err) {
-      showToast('Erro ao excluir temporada!', 'error');
+      showToast(err.message || 'Erro ao excluir temporada!', 'error');
     }
   };
 
-  epForm.onsubmit = async (e) => {
-    e.preventDefault();
-    if (!activeCartoonId) return;
+  if (epForm) {
+    epForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeCartoonId) return showToast('Selecione um desenho primeiro', 'error');
 
-    const type = entryType.value;
-    const season = epSeason.value;
-    const number = epNumber.value;
-    const title = epTitle.value.trim();
-    const iframe = epIframe.value.trim();
+      const type = entryType.value;
+      const title = epTitle.value.trim();
+      let iframe = epIframe.value.trim();
 
-    if (!iframe) return showToast('O iframe ou URL é obrigatório!', 'error');
+      if (!iframe || (type === 'movie' && !title)) {
+        return showToast('Preencha os campos obrigatorios (*)', 'error');
+      }
 
-    addEpBtn.disabled = true;
-    addEpBtn.textContent = 'Salvando...';
+      if (iframe.startsWith('http') && !iframe.includes('<iframe')) {
+        iframe = `<iframe src="${iframe}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
+      }
 
-    try {
-      if (type === 'movie') {
-        const payload = { cartoon_id: activeCartoonId, title, iframe };
-        if (editingMovieId) {
-          await DB.updateMovie(editingMovieId, payload);
-          showToast('Filme atualizado!');
+      addEpBtn.disabled = true;
+      addEpBtn.textContent = 'Salvando...';
+
+      try {
+        if (type === 'movie') {
+          const movieData = { title, iframe };
+          if (editingMovieId) {
+            await DB.updateMovie(activeCartoonId, editingMovieId, movieData);
+            showToast('Filme atualizado!');
+            resetEpForm();
+          } else {
+            await DB.addMovie(activeCartoonId, movieData);
+            epTitle.value = '';
+            epIframe.value = '';
+            showToast('Filme adicionado!');
+          }
         } else {
-          await DB.addMovie(payload);
-          showToast('Filme adicionado!');
+          const season = parseInt(epSeason.value, 10);
+          const number = parseInt(epNumber.value, 10);
+          if (!season || !number) {
+            return showToast('Preencha temporada e numero', 'error');
+          }
+
+          const epData = { epNumber: number, title, iframe };
+          if (editingEpId) {
+            await DB.updateEpisode(activeCartoonId, editingSeason, season, editingEpId, epData);
+            showToast('Episodio atualizado!');
+            resetEpForm();
+          } else {
+            await DB.addEpisode(activeCartoonId, season, epData);
+            epNumber.value = number + 1;
+            epTitle.value = '';
+            epIframe.value = '';
+            showToast('Episodio adicionado!');
+          }
         }
-      } else {
-        const payload = { cartoon_id: activeCartoonId, temporada: season, ep_number: number, title, iframe };
-        if (editingEpId) {
-          await DB.updateEpisode(editingEpId, payload);
-          showToast('Episódio atualizado!');
-        } else {
-          await DB.addEpisode(payload);
-          showToast('Episódio adicionado!');
+
+        renderContent();
+      } catch (err) {
+        showToast(err.message || 'Erro ao salvar!', 'error');
+      } finally {
+        addEpBtn.disabled = false;
+        if (!editingEpId && !editingMovieId) {
+          addEpBtn.textContent = 'Adicionar';
         }
       }
-      resetEpForm();
-      renderContent();
-    } catch (err) {
-      showToast('Erro ao salvar!', 'error');
-    } finally {
-      addEpBtn.disabled = false;
-      addEpBtn.textContent = 'Adicionar';
-    }
-  };
+    });
+  }
 
   function resetEpForm() {
     editingEpId = null;
@@ -533,61 +574,110 @@ document.addEventListener('DOMContentLoaded', async () => {
     epTitle.value = '';
     epIframe.value = '';
     addEpBtn.textContent = 'Adicionar';
-    addEpBtn.style.background = '';
-    formActionTitle.textContent = entryType.value === 'movie' ? '➕ Adicionar Filme' : '➕ Adicionar Episódio';
+    addEpBtn.style.background = 'var(--accent2)';
+    if (formActionTitle) formActionTitle.textContent = entryType.value === 'movie' ? 'Adicionar Filme' : 'Adicionar Episodio';
+    const cancelBtn = document.getElementById('cancelEditBtn');
+    if (cancelBtn) cancelBtn.remove();
   }
 
-  // --- WATCH MODAL ---
   window.openWatchModal = (id, seasonOrMovie) => {
-    activeEpisodeId = id;
-    activeSeasonForWatch = seasonOrMovie;
-    activeTypeForWatch = seasonOrMovie === 'movie' ? 'movie' : 'episode';
+    let item;
 
-    const item = activeTypeForWatch === 'movie' ? DB.getMovieById(id) : DB.getEpisodeById(id);
+    if (seasonOrMovie === 'movie') {
+      item = getActiveMovieById(id);
+      activeTypeForWatch = 'movie';
+      activeSeasonForWatch = null;
+    } else {
+      item = getActiveEpisodeById(id, seasonOrMovie);
+      activeTypeForWatch = 'episode';
+      activeSeasonForWatch = seasonOrMovie;
+    }
+
     if (!item) return;
+    activeEpisodeId = id;
 
-    watchTitle.textContent = activeTypeForWatch === 'movie' ? item.title : `Temporada ${seasonOrMovie} - Ep ${item.ep_number}`;
-    watchFrame.innerHTML = DB.cleanIframe(item.iframe);
-    
-    updateWatchedBadge(id);
     trackHistoryView(item, seasonOrMovie);
+
+    watchTitle.textContent = activeTypeForWatch === 'movie'
+      ? `Filme: ${item.title || 'Assistir'}`
+      : `T${seasonOrMovie}:E${item.epNumber} - ${item.title || 'Assistir'}`;
+
+    watchFrame.innerHTML = '<div style="color:var(--primary); font-family:Bangers; font-size:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;"><span class="spinner"></span> Carregando...</div>';
+
+    setTimeout(() => {
+      watchFrame.innerHTML = item.iframe || '<p style="color:var(--danger)">Erro: video indisponivel.</p>';
+
+      const iframeEl = watchFrame.querySelector('iframe');
+      if (!item.iframe) return;
+
+      if (iframeEl) {
+        iframeEl.setAttribute('style', 'width:100%;height:100%;border:none;border-radius:0;');
+        iframeEl.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
+        iframeEl.setAttribute('allowfullscreen', '');
+        iframeEl.setAttribute('loading', 'lazy');
+        iframeEl.removeAttribute('referrerpolicy');
+        iframeEl.removeAttribute('sandbox');
+        iframeEl.removeAttribute('height');
+        iframeEl.removeAttribute('width');
+        iframeEl.removeAttribute('scrolling');
+      }
+    }, 100);
+
+    updateWatchedBadge(id);
     watchModal.classList.add('open');
   };
 
-  document.getElementById('watchClose').onclick = () => {
+  const closeWatch = () => {
     watchModal.classList.remove('open');
+    const iframes = watchFrame.querySelectorAll('iframe');
+    iframes.forEach((iframeEl) => {
+      iframeEl.src = '';
+    });
     watchFrame.innerHTML = '';
   };
+  document.getElementById('watchClose').onclick = closeWatch;
 
   watchDeleteBtn.onclick = async () => {
     if (!activeEpisodeId) return;
     if (!confirm('Excluir este item permanentemente?')) return;
+
     try {
-      if (activeTypeForWatch === 'movie') await DB.deleteMovie(activeEpisodeId);
-      else await DB.deleteEpisode(activeEpisodeId);
-      watchModal.classList.remove('open');
+      if (activeTypeForWatch === 'movie') {
+        await DB.deleteMovie(activeCartoonId, activeEpisodeId);
+      } else {
+        await DB.deleteEpisode(activeCartoonId, activeSeasonForWatch, activeEpisodeId);
+      }
+      closeWatch();
       renderContent();
-      showToast('Excluído com sucesso!');
+      showToast('Excluido com sucesso!');
     } catch (err) {
-      showToast('Erro ao excluir!', 'error');
+      showToast(err.message || 'Erro ao excluir!', 'error');
     }
   };
 
-  // --- WATCHED SYSTEM ---
   const watchedBadge = document.getElementById('watchedModalBadge');
   function updateWatchedBadge(id) {
     const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(id);
     watchedBadge.className = 'watched-modal-badge ' + (isWatched ? 'is-watched' : 'not-watched');
-    watchedBadge.textContent = isWatched ? '✓ Assistido' : '○ Marcar como Assistido';
+    watchedBadge.textContent = isWatched ? 'Assistido' : 'Marcar como Assistido';
+
+    const contentType = activeTypeForWatch === 'movie' ? 'desenho_movie' : 'desenho_episode';
+    watchedBadge.onclick = async () => {
+      if (typeof Watched === 'undefined') return;
+      try {
+        const isNowWatched = await Watched.toggle(id, contentType);
+        watchedBadge.className = 'watched-modal-badge ' + (isNowWatched ? 'is-watched' : 'not-watched');
+        watchedBadge.textContent = isNowWatched ? 'Assistido' : 'Marcar como Assistido';
+        renderContent();
+        if (typeof StatsManager !== 'undefined') StatsManager.render('desenhos');
+      } catch (err) {
+        showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+      }
+    };
   }
-
-  watchedBadge.onclick = async () => {
-    if (!activeEpisodeId || typeof Watched === 'undefined') return;
-    const isNowWatched = await Watched.toggle(activeEpisodeId);
-    updateWatchedBadge(activeEpisodeId);
-    renderContent();
-    if (typeof StatsManager !== 'undefined') StatsManager.render('desenhos');
-  };
-
   loadCartoons();
+  window.addEventListener('profileUpdated', () => { loadCartoons(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) loadCartoons();
+  });
 });

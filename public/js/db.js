@@ -67,6 +67,35 @@ async function getRequiredUserId() {
     return userId;
 }
 
+/** Valida JWT com o servidor (mais confiável que só getSession no storage). */
+async function resolveAuthUserId() {
+    const supa = getSupa();
+    const { data: { user }, error } = await supa.auth.getUser();
+    if (error) console.warn('[DB] getUser:', error.message);
+    if (user?.id) return user.id;
+    const { data: { session } } = await supa.auth.getSession();
+    return session?.user?.id || null;
+}
+
+/** Garante JSON puro para a coluna JSONB (sem _userId, sem referências quebradas). */
+function sanitizeStoreDataForDb(raw) {
+    const o = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+    delete o._userId;
+    try {
+        return JSON.parse(JSON.stringify(o));
+    } catch (e) {
+        return {
+            purchased: [],
+            equipped: {},
+            xp: 0,
+            ouro: 0,
+            diamante: 0,
+            esmeralda: 0,
+            rank: 'Novato'
+        };
+    }
+}
+
 // Verificar se o usuÃ¡rio pode editar/deletar um item
 async function checkItemOwnership(itemId, table) {
     try {
@@ -292,47 +321,39 @@ const DB = {
                 console.warn("⚠️ [DB] Erro ao carregar perfil do banco:", profileError.message);
             } else if (profileData) {
                 _store.profile = profileData;
-                
+
                 const dbStore = profileData.store_data || { purchased: [], equipped: {} };
-                // Usar chave isolada por user_id; fallback para chave genérica apenas se não houver chave isolada
-                const localStoreStr = localStorage.getItem(userStoreKey) || localStorage.getItem('animehouse_store');
-                let localStore = null;
-                try { localStore = localStoreStr ? JSON.parse(localStoreStr) : null; } catch(e){}
-
-                // LÓGICA DE MESCLAGEM (MERGE) - O pulo do gato para não perder favoritos
-                let mergedStore = JSON.parse(JSON.stringify(dbStore));
-                
-                if (localStore) {
-                    // Só mescla se o store local pertence a este usuário (ou não tem _userId definido)
-                    const localUserId = localStore._userId;
-                    if (!localUserId || localUserId === userId) {
-                        // Mescla lista de compras
-                        const localPurchased = Array.isArray(localStore.purchased) ? localStore.purchased : [];
-                        const dbPurchased = Array.isArray(dbStore.purchased) ? dbStore.purchased : [];
-                        mergedStore.purchased = [...new Set([...dbPurchased, ...localPurchased])];
-
-                        // Mescla itens equipados (O estado local 'quente' ganha se houver conflito recente)
-                        const localEquipped = localStore.equipped || {};
-                        const dbEquipped = dbStore.equipped || {};
-                        mergedStore.equipped = { ...dbEquipped, ...localEquipped };
-                    } else {
-                        console.log("🔒 [DB] Store local pertence a outro usuário, ignorando para isolamento.");
+                let localParsed = null;
+                try {
+                    const raw = localStorage.getItem(userStoreKey);
+                    if (raw) {
+                        const p = JSON.parse(raw);
+                        if (p && p._userId === userId) localParsed = p;
                     }
-                }
+                } catch (e) { /* ignore */ }
 
-                // Marcar o store com o user_id para isolamento futuro
+                const dbP = Array.isArray(dbStore.purchased) ? [...dbStore.purchased] : [];
+                const localP = localParsed && Array.isArray(localParsed.purchased) ? [...localParsed.purchased] : [];
+
+                const mergedStore = JSON.parse(JSON.stringify(dbStore));
+                mergedStore.purchased = [...new Set([...dbP, ...localP])];
+                mergedStore.equipped = {
+                    ...(localParsed?.equipped && typeof localParsed.equipped === 'object' ? localParsed.equipped : {}),
+                    ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {})
+                };
+
                 mergedStore._userId = userId;
                 _store.profile.store_data = mergedStore;
-                
-                // Sempre sincroniza o resultado final de volta para o localStorage isolado por usuário
+
                 localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
-                // Manter compatibilidade com a chave genérica (para páginas que ainda a usam)
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
-                
-                const hasChanged = JSON.stringify(mergedStore) !== JSON.stringify(dbStore);
-                if (hasChanged) {
-                   console.log("🔄 [DB] Sincronizando dados (Merge Local + Banco)...");
-                   this.saveStoreData(mergedStore);
+
+                if (mergedStore.purchased.length > dbP.length) {
+                    try {
+                        await this.saveStoreData(mergedStore);
+                    } catch (healErr) {
+                        console.warn('[DB] Compras locais não sincronizadas ao servidor neste carregamento:', healErr?.message || healErr);
+                    }
                 }
             }
         } catch (err) {
@@ -1066,8 +1087,13 @@ const DB = {
           const { error } = await supa.from('user_favorites').delete().eq('id', existing.id);
           if (error) {
               console.error("Erro ao remover favorito:", error);
-              return { action: 'error', message: error.message };
+              throw new Error(error.message || 'Falha ao remover favorito.');
           }
+          try {
+            window.dispatchEvent(new CustomEvent('favoritesChanged', {
+              detail: { contentId, contentType, action: 'removed' }
+            }));
+          } catch (_) { /* ignore */ }
           return { action: 'removed' };
       } else {
           const { error } = await supa.from('user_favorites').insert([{ 
@@ -1082,10 +1108,73 @@ const DB = {
           
           if (error) {
               console.error("Erro ao adicionar favorito:", error);
-              return { action: 'error', message: error.message };
+              throw new Error(error.message || 'Falha ao adicionar favorito.');
           }
+          try {
+            window.dispatchEvent(new CustomEvent('favoritesChanged', {
+              detail: { contentId, contentType, action: 'added' }
+            }));
+          } catch (_) { /* ignore */ }
           return { action: 'added' };
       }
+  },
+
+  /** Atualiza o botão de favorito num .card sem re-render da lista */
+  applyFavoriteCardChrome(card, isFav) {
+      if (!card) return;
+      const star = card.querySelector('.fav-star');
+      if (star) {
+        const label = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
+        star.classList.toggle('active', isFav);
+        star.innerHTML = isFav ? '★' : '☆';
+        star.title = label;
+        star.setAttribute('aria-label', label);
+        star.setAttribute('aria-pressed', String(isFav));
+      }
+
+      const area = card.querySelector('.card-click-area');
+      const ribbon = area?.querySelector('.fav-ribbon');
+      if (ribbon) ribbon.remove();
+  },
+
+  /** Reordena filhos `.card` do grid: favoritos no topo, ordem original preservada */
+  reorderFavoriteCards(grid) {
+      if (!grid) return;
+      const cards = [...grid.querySelectorAll(':scope > .card')];
+      if (cards.length <= 1) return;
+      cards.sort((a, b) => {
+        const aFav = a.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        const bFav = b.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        const ai = parseInt(a.dataset.originIndex, 10);
+        const bi = parseInt(b.dataset.originIndex, 10);
+        return (Number.isFinite(ai) ? ai : 0) - (Number.isFinite(bi) ? bi : 0);
+      });
+      cards.forEach((c) => grid.appendChild(c));
+  },
+
+  findFavoriteCardByContentId(grid, contentId) {
+      if (!grid || contentId == null || contentId === '') return null;
+      const id = String(contentId);
+      const esc = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      const star = grid.querySelector(`.fav-star[data-id="${esc}"]`);
+      return star ? star.closest('.card') : null;
+  },
+
+  /** Wrappers de pílula (desenhos): filhos diretos com .fav-star interno */
+  reorderFavoritePillWrappers(container) {
+      if (!container) return;
+      const items = [...container.children];
+      if (items.length <= 1) return;
+      items.sort((a, b) => {
+        const aFav = a.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        const bFav = b.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        const ai = parseInt(a.dataset.originIndex, 10);
+        const bi = parseInt(b.dataset.originIndex, 10);
+        return (Number.isFinite(ai) ? ai : 0) - (Number.isFinite(bi) ? bi : 0);
+      });
+      items.forEach((el) => container.appendChild(el));
   },
 
   async isFavorite(contentId, contentType = null) {
@@ -1114,34 +1203,47 @@ const DB = {
   /* PERKS (Database Driven) */
   isPerkEquipped(perkId) {
     let store = null;
-    
-    // 1. Tentar localStorage primeiro (geralmente tem o estado mais recente entre abas)
-    try {
-      const localStore = JSON.parse(localStorage.getItem('animehouse_store'));
-      if (localStore && Array.isArray(localStore.purchased)) {
-        store = localStore;
-      }
-    } catch(e) {}
 
-    // 2. Se não tiver no localStorage, tenta na memória sincronizada
-    if (!store && _store.profile && _store.profile.store_data) {
+    // 1) Prioridade para memória sincronizada (estado atual da sessão)
+    if (_store.profile && _store.profile.store_data) {
       store = _store.profile.store_data;
     }
 
-    if (!store) return false;
-    
-    const purchased = store.purchased || [];
-    const equipped = store.equipped || {};
-    
-    // 1. Verificação de compra (O pilar mais forte)
-    const hasPurchased = purchased.includes(perkId);
-    
-    // 2. Verificação de Equipado (Banco e Local)
-    const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
-    const isStampedEquipped  = localStorage.getItem(`equipped_${perkId}`) === 'true';
+    // 2) Fallback por usuário isolado, quando disponível
+    if (!store || !Array.isArray(store.purchased)) {
+      try {
+        const currentUserId = _store.profile?.id || store?._userId || null;
+        if (currentUserId) {
+          const isolatedStore = JSON.parse(localStorage.getItem(`animehouse_store_${currentUserId}`) || 'null');
+          if (isolatedStore && Array.isArray(isolatedStore.purchased)) {
+            store = isolatedStore;
+          }
+        }
+      } catch (e) {}
+    }
 
-    // Para o perk de favoritos, respeitamos se está equipado ou não (conforme pedido do usuário)
-    const result = isStrictlyEquipped || isStampedEquipped;
+    // 3) Chave genérica só se for explicitamente deste usuário
+    if (!store || !Array.isArray(store.purchased)) {
+      try {
+        const uid = _store.profile?.id;
+        const localStore = JSON.parse(localStorage.getItem('animehouse_store') || 'null');
+        if (localStore && Array.isArray(localStore.purchased) && uid && localStore._userId === uid) {
+          store = localStore;
+        }
+      } catch (e) {}
+    }
+
+    if (!store) return false;
+
+    const purchased = Array.isArray(store.purchased) ? store.purchased : [];
+    const equipped = store.equipped || {};
+    const hasPurchased = purchased.includes(perkId);
+    const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
+    const isStampedEquipped = localStorage.getItem(`equipped_${perkId}`) === 'true';
+    // Fallback tolerante: se a compra ainda não sincronizou no store_data,
+    // mas o item está equipado localmente, mantemos o perk ativo.
+    const result = (hasPurchased && (isStrictlyEquipped || isStampedEquipped))
+      || (!hasPurchased && (isStrictlyEquipped || isStampedEquipped));
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
@@ -1155,76 +1257,116 @@ const DB = {
   },
 
   async saveStoreData(newStoreData) {
-    // ESTRATÉGIA DE PERSISTÊNCIA HÍBRIDA BLINDADA:
-    // 1. SEMPRE salva no localStorage PRIMEIRO (rápido, confiável, local)
-    // 2. DEPOIS tenta Supabase (pode falhar, mas não importa - localStorage já salvou)
-    // 3. Se Supabase falhar, o reload ainda terá os dados do localStorage
-    
     if (!_store.profile) _store.profile = {};
     _store.profile.store_data = newStoreData;
-    
+
     let userId = null;
     try {
-      userId = await getCurrentUserId();
-    } catch(e) {
-      console.warn('[DB] Não foi possível obter userId, usando localStorage apenas.');
+      userId = await resolveAuthUserId();
+    } catch (e) {
+      console.warn('[DB] resolveAuthUserId falhou:', e?.message);
     }
-    
-    // PASSO 1: SALVAR NO LOCALSTORAGE (GARANTIDO)
-    const storeWithUserId = { ...newStoreData, _userId: userId };
+    if (!userId) {
+      try {
+        userId = await getCurrentUserId();
+      } catch (e) {}
+    }
+
+    const storeForDb = sanitizeStoreDataForDb(newStoreData);
+
+    const storeWithUserId = { ...storeForDb, _userId: userId };
     try {
-      localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
-      localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
-      console.log('💾 [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
-    } catch(err) {
+      if (userId) {
+        localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
+        localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
+        console.log('💾 [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
+      } else {
+        console.warn('[DB] Sem userId — não gravando animehouse_store (evita vazamento entre contas).');
+      }
+    } catch (err) {
       console.error('❌ [DB] Falha ao salvar no localStorage:', err);
     }
-    
-    // PASSO 2: TENTAR SUPABASE (OPCIONAL - SE FALHAR, NÃO IMPORTA)
+
     if (!userId) {
       console.warn('[DB] Sem userId, pulando sincronização com Supabase.');
       return;
     }
-    
+
+    let supa;
     try {
-      const supa = getSupa();
-      
-      // Tenta update primeiro (mais rápido e seguro com RLS)
-      const { error: updateError } = await supa
+      supa = getSupa();
+    } catch (e) {
+      console.warn('[DB] Cliente Supabase ausente — só cache local.');
+      return;
+    }
+
+    const ts = new Date().toISOString();
+
+    const { error: rpcErr } = await supa.rpc('animehouse_save_store_data', {
+      p_store: storeForDb
+    });
+
+    if (!rpcErr) {
+      console.log('✅ [DB] Store persistido via RPC animehouse_save_store_data.');
+      return;
+    }
+
+    const msg = String(rpcErr.message || rpcErr.details || '');
+    const rpcMissing =
+      /does not exist|could not find|schema cache/i.test(msg) ||
+      rpcErr.code === '42883' ||
+      rpcErr.code === 'PGRST202';
+
+    if (rpcMissing) {
+      console.warn('[DB] RPC animehouse_save_store_data indisponível — usando REST. Rode database/fixes/14_animehouse_save_store_data_rpc.sql no Supabase.');
+    } else {
+      console.warn('[DB] RPC animehouse_save_store_data:', rpcErr.message || rpcErr);
+    }
+
+    try {
+      const { data: updatedRows, error: updateError } = await supa
         .from('profiles')
-        .update({ 
-            store_data: newStoreData,
-            updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+        .update({ store_data: storeForDb, updated_at: ts })
+        .eq('id', userId)
+        .select('id');
+
+      const updateOk = !updateError && updatedRows && updatedRows.length > 0;
+
+      if (updateOk) {
+        console.log('✅ [DB] Store sincronizado com Supabase (update).');
+        return;
+      }
 
       if (updateError) {
         console.warn('[DB] Update falhou:', updateError.message);
-        
-        // Tenta upsert como fallback
-        const { error: upsertError } = await supa
-          .from('profiles')
-          .upsert({ 
-              id: userId, 
-              store_data: newStoreData,
-              updated_at: new Date().toISOString()
-          }, { onConflict: 'id' });
-          
-        if (upsertError) {
-          console.error('[DB] ERRO DE PERMISSÃO NO SUPABASE (RLS):', upsertError.message);
-          console.warn('[DB] Mas não se preocupe - os dados estão salvos no localStorage e persistirão no reload.');
-        } else {
-          console.log('✅ [DB] Upsert bem-sucedido.');
-        }
-      } else {
-        console.log('✅ [DB] Store sincronizado com Supabase.');
       }
+
+      const { error: upsertError } = await supa
+        .from('profiles')
+        .upsert(
+          {
+            id: userId,
+            store_data: storeForDb,
+            updated_at: ts
+          },
+          { onConflict: 'id' }
+        );
+
+      if (upsertError) {
+        console.error('[DB] Upsert store_data falhou:', upsertError.message);
+        throw upsertError;
+      }
+      console.log('✅ [DB] Store salvo via upsert (fallback REST).');
     } catch (err) {
-      console.error('[DB] Falha ao conectar com Supabase:', err.message);
-      console.warn('[DB] Mas os dados estão seguros no localStorage.');
+      console.error('[DB] Falha ao persistir store_data no Supabase:', err?.message || err);
+      throw err;
     }
   },
 };
+
+if (typeof window !== 'undefined') {
+  window.DB = DB;
+}
 
 
 /* Globals */

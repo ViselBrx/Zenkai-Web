@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterTemp = document.getElementById('filterTemporadas');
 
   let cartoons = DB.getCartoons();
+  let openCartoonDetailId = null;
 
   function initFilters() {
     const produtoras = [...new Set(cartoons.map(c => c.produtora).filter(Boolean))].sort();
@@ -22,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prod = filterProd.value;
     const temp = filterTemp.value;
 
-    const filtered = cartoons.filter(c => {
+    const filtered = cartoons.map((c, index) => ({ ...c, _originIndex: index })).filter(c => {
       const matchName = c.nome.toLowerCase().includes(term);
       const matchProd = prod === '' || c.produtora === prod;
       let matchTemp = true;
@@ -33,12 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchName && matchProd && matchTemp;
     });
 
-    // 1. Checar se o perk de favoritos está ativo
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' 
-                         ? window.DB.isPerkEquipped('lista_destaque') 
-                         : false;
-
-    // 2. Buscar favoritos do usuário
+    // Buscar favoritos do usuário
     let userFavs = new Set();
     try {
         const favData = await DB.getFavorites('desenho');
@@ -47,14 +43,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Usuário deslogado ou sem favoritos.");
     }
 
-    // 3. Ordenação condicional
-    if (isPerkActive) {
-      filtered.sort((a, b) => {
-        const aFav = userFavs.has(a.id) ? 1 : 0;
-        const bFav = userFavs.has(b.id) ? 1 : 0;
-        return bFav - aFav; 
-      });
-    }
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
 
     grid.innerHTML = '';
     if (filtered.length === 0) {
@@ -67,12 +62,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isFav = userFavs.has(c.id);
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.originIndex = String(c._originIndex);
+      card.dataset.contentId = c.id;
       let imgHtml = c.capa ? `<img src="${c.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${c.capa ? 'display:none;' : ''}">🎬</div>`;
       
-      const starClass = isPerkActive ? '' : 'is-hidden';
+      const starClass = '';
       const favStarHtml = `
-        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${c.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}" style="top:10px; left:10px; right:auto;">
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${c.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
           ${isFav ? '★' : '☆'}
         </button>
       `;
@@ -80,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div style="position:relative; cursor:pointer;" class="card-click-area">
            ${imgHtml}${placeholder}
-           ${isFav && isPerkActive ? '<div class="equipped-ribbon">FAVORITO</div>' : ''}
+           ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
         </div>
         ${favStarHtml}
         <div class="card-body card-click-area" style="cursor:pointer;">
@@ -101,13 +98,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           try {
             const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
             const isAdded = res.action === 'added';
-            star.classList.toggle('active', isAdded);
-            star.innerHTML = isAdded ? '★' : '☆';
-            star.title = isAdded ? 'Desmarcar' : 'Marcar';
+            DB.applyFavoriteCardChrome(card, isAdded);
+            DB.reorderFavoriteCards(grid);
             if (window.showToast) showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
-            render(); // Re-render para aplicar ordenação
+            if (openCartoonDetailId === c.id && detailFavBtn) {
+              detailFavBtn.classList.toggle('active', isAdded);
+              detailFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+            }
           } catch (err) {
-            if (window.showToast) showToast('Faça login para favoritar!', 'error');
+            if (window.showToast) showToast(err.message || 'Erro ao favoritar.', 'error');
           }
         };
       }
@@ -127,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailFavBtn = document.getElementById('detailFavBtn');
 
   async function openDetailModal(c) {
+    openCartoonDetailId = c.id;
     detailTitle.textContent = c.nome;
     detailProdutora.textContent = c.produtora || 'N/A';
     detailTemporadas.textContent = c.temporadas || 1;
@@ -142,26 +142,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Favoritos no Modal
-    const isPerkActive = window.DB && typeof window.DB.isPerkEquipped === 'function' ? window.DB.isPerkEquipped('lista_destaque') : false;
     const isFav = await DB.isFavorite(c.id, 'desenho');
 
     if (detailFavBtn) {
-      if (isPerkActive) {
-        detailFavBtn.style.display = 'flex';
-        detailFavBtn.classList.toggle('active', isFav);
-        detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
-        detailFavBtn.onclick = async (e) => {
-          e.stopPropagation();
+      detailFavBtn.style.display = 'flex';
+      detailFavBtn.classList.toggle('active', isFav);
+      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+      detailFavBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
           const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
           const isAdded = res.action === 'added';
           detailFavBtn.classList.toggle('active', isAdded);
           detailFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
           if (window.showToast) showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
-          render();
-        };
-      } else {
-        detailFavBtn.style.display = 'none';
-      }
+          const gridCard = DB.findFavoriteCardByContentId(grid, c.id);
+          if (gridCard) DB.applyFavoriteCardChrome(gridCard, isAdded);
+          DB.reorderFavoriteCards(grid);
+        } catch (err) {
+          if (window.showToast) showToast(err.message || 'Erro ao favoritar.', 'error');
+        }
+      };
     }
 
     detailWatchBtn.onclick = () => {
@@ -172,6 +173,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('detailClose').addEventListener('click', () => {
+    openCartoonDetailId = null;
     detailModal.classList.remove('open');
     detailCover.src = '';
   });
@@ -188,4 +190,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initFilters();
   render();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });
