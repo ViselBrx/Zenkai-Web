@@ -246,7 +246,9 @@ window.loadBanners = async function () {
         if (window.BANNER_MAP["banner_cosmos"]) {
           console.log("✅ banner_cosmos está disponível!");
         } else {
-          console.warn("⚠️ banner_cosmos NÃO encontrado no BANNER_MAP");
+          // Hard-fix para banner_cosmos
+          window.BANNER_MAP["banner_cosmos"] = "https://bxifddhrbxbmimjkgwzr.supabase.co/storage/v1/object/public/banners/banner_cosmos.png";
+          console.log("🛠️ banner_cosmos mapeado via HARD-FIX");
         }
       } else {
         console.warn("⚠️ Nenhum banner retornado do Supabase");
@@ -406,6 +408,9 @@ window.updateNavbarCosmetics = function () {
     const sbCrown = document.getElementById("sidebarCrown");
     if (sbCrown) {
       sbCrown.style.display = savedCrown ? "block" : "none";
+      if (savedCrown) {
+        sbCrown.textContent = localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+      }
     }
   }
 
@@ -422,7 +427,7 @@ window.updateNavbarCosmetics = function () {
   if (savedCrown) {
     const crown = document.createElement("div");
     crown.className = "crown-nav";
-    crown.innerHTML = "👑";
+    crown.innerHTML = localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
     crown.style.cssText =
       "position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(10deg); font-size: 1.3rem; z-index: 10; text-shadow: 0 0 8px gold;";
     avatarBox.appendChild(crown);

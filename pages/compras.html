@@ -707,7 +707,7 @@
                 },
                 {
                     id: "coroa_tryhard",
-                    name: "💀 Coroa Tryhard",
+                    name: "Caveira do Carrasco",
                     icon: "💀",
                     category: "exclusivo",
                     currency: "esmeralda",
@@ -821,8 +821,8 @@
                             itemId;
                     else if (item.category === "exclusivo")
                         isEquipped =
-                            localStorage.getItem("animehouse_showCrown") ===
-                                "true" && itemId.includes("coroa");
+                            localStorage.getItem("animehouse_showCrown") === "true" && 
+                            localStorage.getItem("animehouse_equippedCrownId") === itemId;
                     else if (item.category === "experiencia") {
                         isEquipped =
                             store.equipped &&
@@ -1029,17 +1029,28 @@
                     localStorage.setItem("animehouse_customBanner", next);
                     store.equipped.banner = next;
                 } else if (type === "exclusivo" && id.includes("coroa")) {
-                    const current = localStorage.getItem(
-                        "animehouse_showCrown",
-                    );
-                    const next = current === "true" ? "false" : "true";
-                    localStorage.setItem("animehouse_showCrown", next);
-                    store.equipped.crown = next === "true";
-                    if (next === "true") {
-                        // Tenta achar ícone na lista global
+                    const currentId = localStorage.getItem("animehouse_equippedCrownId");
+                    const isAlreadyEquipped = (localStorage.getItem("animehouse_showCrown") === "true" && currentId === id);
+
+                    if (isAlreadyEquipped) {
+                        // Desequipar
+                        localStorage.setItem("animehouse_showCrown", "false");
+                        localStorage.removeItem("animehouse_equippedCrownId");
+                        localStorage.removeItem("animehouse_equippedCrownIcon");
+                        store.equipped.crown = false;
+                        store.equipped.crownId = "";
+                        store.equipped.crownIcon = "";
+                    } else {
+                        // Equipar (e automaticamente desequipar a anterior se houver)
+                        localStorage.setItem("animehouse_showCrown", "true");
+                        localStorage.setItem("animehouse_equippedCrownId", id);
                         const item = ALL_ITEMS.find((i) => i.id === id);
-                        store.equipped.crownId = id.replace("coroa_", "");
-                        store.equipped.crownIcon = item?.icon || "👑";
+                        const icon = item?.icon || "👑";
+                        localStorage.setItem("animehouse_equippedCrownIcon", icon);
+                        
+                        store.equipped.crown = true;
+                        store.equipped.crownId = id;
+                        store.equipped.crownIcon = icon;
                     }
                 } else if (type === "tema") {
                     const isActive =

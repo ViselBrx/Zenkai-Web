@@ -348,6 +348,16 @@ const DB = {
                 localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
 
+                // Sincronizar cosméticos e tema cromático (Garante que o tema siga a conta do usuário)
+                if (mergedStore.equipped && mergedStore.equipped.tema_cromatico === true) {
+                    localStorage.setItem('equipped_tema_cromatico', 'true');
+                    localStorage.setItem('animehouse_tema_cromatico', 'true');
+                    // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
+                    if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
+                        window.setTheme('theme-cromatico');
+                    }
+                }
+
                 if (mergedStore.purchased.length > dbP.length) {
                     try {
                         await this.saveStoreData(mergedStore);
@@ -1240,10 +1250,13 @@ const DB = {
     const hasPurchased = purchased.includes(perkId);
     const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
     const isStampedEquipped = localStorage.getItem(`equipped_${perkId}`) === 'true';
-    // Fallback tolerante: se a compra ainda não sincronizou no store_data,
-    // mas o item está equipado localmente, mantemos o perk ativo.
-    const result = (hasPurchased && (isStrictlyEquipped || isStampedEquipped))
-      || (!hasPurchased && (isStrictlyEquipped || isStampedEquipped));
+
+    // Se o usuário não está logado, nenhum perk deve estar ativo (itens desequipam)
+    const uid = _store.profile?.id;
+    if (!uid) return false;
+
+    // Regra rígida: só pode estar equipado se foi comprado
+    const result = hasPurchased && (isStrictlyEquipped || isStampedEquipped);
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console

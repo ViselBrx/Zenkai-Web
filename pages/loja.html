@@ -2068,7 +2068,7 @@
                 },
                 {
                     id: "coroa_tryhard",
-                    name: "💀 Coroa Tryhard",
+                    name: "Caveira do Carrasco",
                     desc: "Caveira animada exclusiva.",
                     icon: "💀",
                     category: "exclusivo",
@@ -2603,7 +2603,7 @@
       <div class="item-preview" style="position:relative; overflow:hidden; background: #000; display: flex; align-items: center; justify-content: center;">
         ${
             item.category === "banner"
-                ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" class="banner-icon-preview" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" class="banner-icon-preview" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
              <span style="display:none; font-size:2rem;">${item.icon}</span>`
                 : `<span>${item.icon}</span>`
         }

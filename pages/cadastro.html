@@ -82,10 +82,10 @@
       </div>
       <div class="form-group">
         <label for="capa">Capa (Upload de Arquivo local ou URL)</label>
-        <div style="display:flex;gap:10px;align-items:center;">
-          <input id="capaFile" class="form-control" type="file" accept="image/*" style="flex:1" />
+        <div class="form-row">
+          <input id="capaFile" class="form-control" type="file" accept="image/*" />
           <span style="font-size:0.8rem;color:var(--text-muted)">ou</span>
-          <input id="capa" class="form-control" type="url" placeholder="https://..." style="flex:1" />
+          <input id="capa" class="form-control" type="url" placeholder="https://..." />
         </div>
         <div id="capaPreview" style="margin-top:10px;display:none;">
           <img id="capaImg" src="" alt="Preview" style="width:80px;height:106px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
