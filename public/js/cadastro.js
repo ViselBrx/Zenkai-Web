@@ -159,11 +159,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   cartoonForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSalvar = document.getElementById('saveBtn');
-    btnSalvar.disabled = true;
-    btnSalvar.textContent = '⏳ Salvando...';
+    
+    // Se já estiver salvando, não faz nada
+    if (btnSalvar.disabled) return;
 
     const nome = document.getElementById('nome').value.trim();
-    if (!nome) { btnSalvar.disabled = false; return showToast('Nome é obrigatório', 'error'); }
+    if (!nome) {
+        showToast('Nome é obrigatório', 'error');
+        return;
+    }
+
+    btnSalvar.disabled = true;
+    const originalText = btnSalvar.textContent;
+    btnSalvar.textContent = '⏳ Salvando...';
 
     const data = {
       nome,
@@ -196,7 +204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast('Erro ao salvar!', 'error');
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.textContent = '💾 Salvar';
+      btnSalvar.textContent = originalText;
     }
   });
 

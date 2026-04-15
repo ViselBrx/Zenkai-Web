@@ -158,13 +158,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   filmeForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSalvar = document.getElementById('saveBtn');
-    btnSalvar.disabled = true;
-    btnSalvar.innerHTML = '⏳ Salvando...';
+    
+    // Se já estiver salvando, não faz nada
+    if (btnSalvar.disabled) return;
 
     const nome = document.getElementById('nome').value.trim();
     const iframeVal = document.getElementById('iframe').value.trim();
-    if (!nome) { btnSalvar.disabled = false; return showToast('Nome é obrigatório', 'error'); }
-    if (!iframeVal) { btnSalvar.disabled = false; return showToast('O link/iframe é obrigatório', 'error'); }
+
+    if (!nome) {
+        showToast('Nome é obrigatório', 'error');
+        return;
+    }
+    if (!iframeVal) {
+        showToast('O link/iframe é obrigatório', 'error');
+        return;
+    }
+
+    btnSalvar.disabled = true;
+    const originalText = btnSalvar.innerHTML;
+    btnSalvar.innerHTML = '⏳ Salvando...';
 
     const data = {
       nome,
@@ -199,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast('Erro ao salvar: ' + err.message, 'error');
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.innerHTML = '💾 Salvar';
+      btnSalvar.innerHTML = originalText;
     }
   });
 

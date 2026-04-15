@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => window.openWatchModal(targetId, season), 60);
   }
 
-  function loadAnimes() {
-    const list = DB.getAnimes();
+  async function loadAnimes() {
+    const list = DB.getAnimes().map((a, index) => ({ ...a, _originIndex: index }));
     pillsContainer.innerHTML = '';
     
     if (list.length === 0) {
@@ -135,23 +135,78 @@ document.addEventListener('DOMContentLoaded', async () => {
       panel.style.display = 'none';
       return;
     }
+
+    // Buscar favoritos
+    let userFavs = new Set();
+    try {
+        const favs = await DB.getFavorites('anime');
+        userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Erro ao carregar favoritos de animes.");
+    }
+
+    // Favoritos no topo, demais itens na ordem original
+    list.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
     
     list.forEach(a => {
+      const isFav = userFavs.has(a.id);
+      const container = document.createElement('div');
+      container.style.position = 'relative';
+      container.style.display = 'inline-block';
+      container.dataset.originIndex = String(a._originIndex);
+      container.dataset.animeId = a.id;
+      
       const btn = document.createElement('button');
       btn.className = 'cartoon-pill';
-      btn.innerHTML = a.capa 
-        ? `<img src="${a.capa}" onerror="this.src='';this.style.background='var(--accent2)'"> ${a.nome}`
-        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">⛩️</div> ${a.nome}`;
+      if (a.id === activeAnimeId) btn.classList.add('active');
+      
+      const thumb = a.capa 
+        ? `<img src="${a.capa}" loading="lazy" onerror="this.src='';this.style.background='var(--accent2)'">`
+        : `<div style="width:26px;height:26px;border-radius:50%;background:var(--accent2);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">⛩️</div>`;
+      
+      btn.innerHTML = `${thumb} ${a.nome}`;
       
       btn.onclick = () => selectAnime(a.id, btn);
-      pillsContainer.appendChild(btn);
+      container.appendChild(btn);
+      
+      // Adicionar estrela de favoritos
+      const starClass = '';
+      const favBtn = document.createElement('button');
+      favBtn.className = `fav-star ${isFav ? 'active' : ''} ${starClass}`;
+      favBtn.dataset.id = a.id;
+      favBtn.title = isFav ? 'Desmarcar' : 'Marcar';
+      favBtn.innerHTML = isFav ? '★' : '☆';
+      favBtn.classList.add('fav-star-sm');
+      
+      favBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(a.id, 'anime', { title: a.nome, cover: a.capa });
+          const isAdded = res.action === 'added';
+          favBtn.classList.toggle('active', isAdded);
+          favBtn.innerHTML = isAdded ? '★' : '☆';
+          favBtn.title = isAdded ? 'Desmarcar' : 'Marcar';
+          showToast(isAdded ? `"${a.nome}" adicionado aos favoritos!` : `"${a.nome}" removido dos favoritos.`);
+          DB.reorderFavoritePillWrappers(pillsContainer);
+        } catch (err) {
+          showToast(err.message || 'Erro ao favoritar.', 'error');
+        }
+      };
+      
+      container.appendChild(favBtn);
+      pillsContainer.appendChild(container);
     });
 
     loadPendingHistoryResume();
     const pendingFromHistory = pendingHistoryResume?.animeId || null;
     const pending = pendingFromHistory || localStorage.getItem('selectedAnime');
     if (pending) {
-      const btn = [...pillsContainer.children].find(b => b.textContent.includes(DB.getAnimeById(pending)?.nome));
+      const btn = [...pillsContainer.querySelectorAll('.cartoon-pill')].find(b => b.textContent.includes(DB.getAnimeById(pending)?.nome));
       if (btn) selectAnime(pending, btn);
       if (!pendingFromHistory) localStorage.removeItem('selectedAnime');
     } else {
@@ -697,5 +752,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   });
 
-  loadAnimes();
+  await loadAnimes();
+  window.addEventListener('profileUpdated', () => { loadAnimes(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) loadAnimes();
+  });
 });

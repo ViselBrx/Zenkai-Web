@@ -74,31 +74,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um analista visual de elite e enciclopédia geek. Você tem todo o tempo e espaço do mundo para processar. Sua PRIMEIRA MISSÃO IRREVOGÁVEL é identificar O QUE e QUEM está na imagem com a máxima precisão possível. Se for um anime, cite o personagem e o nome da obra. Se for real, cite quem/o que é.',
-    'Raciocine logicamente antes de responder e entregue um laudo massivo, coerente e com altíssima riqueza de detalhes.',
-    'Regras de Formatação Obrigatórias:',
-    '1. Use APENAS a estrutura abaixo, utilizando EXATAMENTE três hashtags (###) para os grandes títulos para que o sistema capte as cores do tema do painel.',
-    '2. Nunca adivinhe algo que não está lá, mas deduz e interprete todas as pistas visíveis com maestria.',
+    'Atue como um analista visual de elite e enciclopédia geek global. Sua missão é realizar uma perícia técnica na imagem.',
+    'Se você NÃO conseguir identificar a origem exata (anime/estúdio/obra), NÃO invente. Em vez disso, forneça uma análise visual e temática PROFUNDA como resposta alternativa.',
     '',
-    '### 🆔 Identificação e Origem',
-    '- Revele com firmeza O QUE (ou QUEM) é o foco central. Dê nomes: Qual o personagem? É de qual franquia, anime, jogo ou mangá? É uma pessoa real? (Ex: "Trata-se inequivocamente de Sasuke Uchiha do anime Naruto").',
-    '- Qual a relevância desse personagem/item no seu contexto de origem?',
+    '### 🆔 Identificação e Origem Real',
+    '- **Veredito de Origem:** Identifique a obra se tiver certeza absoluta. Caso contrário, declare como "Origem Indeterminada" e descreva qual o arquétipo ou estilo que a imagem evoca (ex: "Estilo Shonen Moderno", "Cyberpunk", "Vibe Retrô anos 90").',
+    '- **Personagens/Foco:** Nomeie se souber, ou descreva as características marcantes do sujeito (ex: "Um jovem espadachim com olhos carmesim e vestes de samurai futurista").',
     '',
-    '### 🔎 Análise Anatômica e Vestuário',
-    '- Faça a decupagem milimétrica do visual: descreva a paleta de cores predominante, o corte das roupas, o material das texturas, acessórios e proporções.',
-    '- Analise a expressão facial, a linguagem corporal e qual sentimento a figura está exalando no momento do frame.',
+    '### 🔎 Perícia Técnica e Estilo',
+    '- **DNA Visual:** Analise o traço. É detalhado? Minimalista? Quais técnicas de pintura ou animação você percebe? (ex: "Uso intenso de luz volumétrica e partículas que lembram o estilo do Makoto Shinkai").',
+    '- **Análise de Cores e Luz:** Como a paleta de cores influencia a emoção da cena.',
     '',
-    '### 🖼️ Cenário e Cinematografia',
-    '- Qual é o estilo artístico? (ex: estilo de animação dos anos 90, foto hiper-realista, arte conceitual, pintura ukiyo-e).',
-    '- O que há no plano de fundo? Como a iluminação, sombras e elementos distantes ajudam a compor o clima da cena?',
+    '### 📝 Pistas, Textos e Marcas',
+    '- **Rastros:** Transcreva qualquer texto visível. Identifique logos ou assinaturas que possam dar pistas sobre o artista ou estúdio.',
+    '- **Vibe e Contexto:** O que a imagem transmite? É uma cena de ação? Um momento de paz? Uma arte promocional?',
     '',
-    '### 📝 Pistas Ocultas e Textos',
-    '- Transcreva QUALQUER texto, logo, interface gráfica ou assinatura legível.',
-    '- Você percebe algum easter egg ou detalhe muito discreto que conte uma história?',
-    '',
-    '### 🎯 Veredito',
-    '- Resume a cena e entregue uma curiosidade sobre a obra ou contexto da imagem (Ex: "Este estilo de arte foi feito pelo estúdio MAPPA...").',
-    'IMPORTANTE: Responda obrigatoriamente e apenas em português.'
+    '### 🎯 Veredito e Curiosidade',
+    '- Resumo final: "Mesmo sem a origem exata, esta imagem destaca-se por..." e entregue uma curiosidade sobre o estilo artístico ou o gênero identificado.',
+    'IMPORTANTE: Responda obrigatoriamente em português, mantendo um tom profissional, investigativo e empolgado. ✨'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
@@ -1251,8 +1244,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (toggleInfoCardBtn && infoCard) {
     toggleInfoCardBtn.addEventListener('click', () => {
-      const isVisible = infoCard.style.display !== 'none';
-      infoCard.style.display = isVisible ? 'none' : 'block';
+      // Usar getComputedStyle para detectar o estado real, independente de como foi definido
+      const currentDisplay = window.getComputedStyle(infoCard).display;
+      if (currentDisplay === 'none') {
+        infoCard.style.display = 'block';
+        // Scroll suave para mostrar o conteúdo expandido se necessário
+        infoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        infoCard.style.display = 'none';
+      }
     });
   }
 
