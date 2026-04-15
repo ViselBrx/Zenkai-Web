@@ -4,9 +4,10 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/api/ai/proxy", "destination": "/api/ai/proxy.js" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/", "destination": "/pages/index.html" },
+    { "source": "/pages/(.*)\\.(css|js|png|jpg|jpeg|webp|gif|svg|ico|png)", "destination": "/public/$1.$2" },
     { "source": "/(.*)\\.html", "destination": "/pages/$1.html" },
-    { "source": "/pages/(.*)\\.(css|js|png|jpg|jpeg|webp|gif|svg|ico)", "destination": "/public/$1.$2" },
     { "source": "/css/(.*)", "destination": "/public/css/$1" },
     { "source": "/js/(.*)", "destination": "/public/js/$1" },
     { "source": "/assets/(.*)", "destination": "/public/assets/$1" },
