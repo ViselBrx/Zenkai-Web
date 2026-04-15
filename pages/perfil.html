@@ -658,20 +658,26 @@
       background-image: linear-gradient(145deg, rgba(30, 20, 40, 0.95), rgba(20, 15, 30, 0.98)),
                         linear-gradient(45deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff, #ff0080) !important;
       background-size: 100% 100%, 400% 400% !important;
-      animation: border-glow-chromatic 4s ease-in-out infinite, gradient-shift 6s ease infinite !important;
+      animation: border-glow-chromatic 8s ease-in-out infinite, gradient-shift 10s ease-in-out infinite !important;
       position: relative;
       overflow: hidden;
+      will-change: box-shadow;
+      /* Containment: o browser pinta este card de forma isolada, sem afetar o layout externo */
+      contain: layout style paint;
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     .item-card-emerald::before {
       content: '';
       position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(from 0deg, transparent, rgba(255, 0, 128, 0.1), transparent, rgba(0, 255, 255, 0.1), transparent, rgba(255, 215, 0, 0.1), transparent);
-      animation: rotate 10s linear infinite;
+      top: -25%;
+      left: -25%;
+      width: 150%;
+      height: 150%;
+      background: conic-gradient(from 0deg, transparent, rgba(255, 0, 128, 0.06), transparent, rgba(0, 255, 255, 0.06), transparent, rgba(255, 215, 0, 0.06), transparent);
+      animation: rotate 25s linear infinite;
       pointer-events: none;
+      will-change: transform;
     }
     .item-card-emerald::after {
       content: '';
@@ -680,15 +686,17 @@
       left: -100%;
       width: 100%;
       height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-      animation: chromatic-shine 3s linear infinite;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+      animation: chromatic-shine 7s ease-in-out infinite;
       pointer-events: none;
+      will-change: transform;
     }
     .item-card-emerald .item-icon {
-      animation: chromatic-rainbow 5s ease-in-out infinite;
+      animation: chromatic-rainbow 9s ease-in-out infinite;
       text-shadow: 0 0 20px rgba(255, 0, 128, 0.6), 0 0 40px rgba(0, 255, 255, 0.4);
       z-index: 1;
       position: relative;
+      will-change: filter;
     }
     .item-card-emerald .item-rarity {
       background: linear-gradient(90deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff, #ff0080);
@@ -696,21 +704,23 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: chromatic-shine 3s linear infinite, chromatic-rainbow 4s ease-in-out infinite;
+      animation: chromatic-shine 12s ease-in-out infinite, chromatic-rainbow 14s ease-in-out infinite;
       font-weight: 800;
       position: relative;
       z-index: 1;
+      will-change: filter;
     }
     .btn-equip-chromatic {
       background: linear-gradient(135deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff) !important;
       background-size: 300% auto !important;
       color: #fff !important;
       border: none !important;
-      animation: chromatic-shine-btn 3s linear infinite, gradient-shift 5s ease infinite !important;
+      animation: chromatic-shine-btn 10s ease-in-out infinite, gradient-shift 10s ease-in-out infinite !important;
       font-weight: 800 !important;
       text-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
       position: relative;
       z-index: 1;
+      will-change: background-position;
     }
     @keyframes chromatic-shine-btn {
       0% { background-position: -200% center; }
@@ -728,8 +738,9 @@
       background: linear-gradient(135deg, #ff0080, #00ffff, #ff0080) !important;
       background-size: 200% auto !important;
       color: #fff !important;
-      animation: chromatic-shine 2s linear infinite !important;
+      animation: chromatic-shine 8s ease-in-out infinite !important;
       text-shadow: 0 0 5px rgba(0,0,0,0.5) !important;
+      will-change: background-position;
     }
     @keyframes rotate {
       from { transform: rotate(0deg); }
@@ -2639,7 +2650,11 @@
           if (item.category === 'exclusivo' && item.id.includes('coroa')) {
             return localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === item.id;
           }
-          if (item.category === 'tema') return sessionStorage.getItem('theme') === 'theme-cromatico';
+          if (item.category === 'tema') return (
+            sessionStorage.getItem('theme') === 'theme-cromatico' ||
+            localStorage.getItem('animehouse_tema_cromatico') === 'true' ||
+            localStorage.getItem('equipped_tema_cromatico') === 'true'
+          );
           return false;
         }
 
@@ -2823,6 +2838,8 @@
             if (window.setTheme) window.setTheme('theme-ciano');
             store.equipped.tema_cromatico = false;
             localStorage.removeItem('animehouse_tema_cromatico');
+            localStorage.removeItem('equipped_tema_cromatico');
+            sessionStorage.setItem('theme', 'theme-ciano');
           }
         } else {
           // Equipar

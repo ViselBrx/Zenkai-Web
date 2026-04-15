@@ -250,7 +250,6 @@ window.loadBanners = async function () {
           window.BANNER_MAP["banner_cosmos"] = "https://bxifddhrbxbmimjkgwzr.supabase.co/storage/v1/object/public/banners/banner_cosmos.png";
           console.log("🛠️ banner_cosmos mapeado via HARD-FIX");
         }
-        }
       } else {
         console.warn("⚠️ Nenhum banner retornado do Supabase");
       }

@@ -13,6 +13,26 @@
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease;
 }
 
+/*
+ * PERFORMANCE (perfil.html): Os cards de inventário e compras acumulam múltiplas animações CSS
+ * simultaneamente (border-glow, gradient-shift, rotate, chromatic-shine) + a transition global
+ * de background-color/border-color que re-dispara em cada frame do --chromatic-hue.
+ * Suprimir transitions de layout nesses cards específicos garante FPS sem afetar mais nada.
+ */
+.theme-cromatico .inventory-item-card,
+.theme-cromatico .purchased-card,
+.theme-cromatico .item-card-emerald,
+.theme-cromatico .history-sidebar,
+.theme-cromatico .history-item,
+.theme-cromatico .history-list,
+.theme-cromatico .btn,
+.theme-cromatico .btn-equip-chromatic,
+.theme-cromatico .equipped-badge-chromatic,
+.theme-cromatico .card-badge,
+.theme-cromatico .badge-pill {
+    transition: transform 0.2s ease, opacity 0.2s ease !important;
+}
+
 /* GPU Acceleration para elementos com animações frequentes */
 .cartoon-pill, 
 .episode-card, 
@@ -1322,7 +1342,9 @@
 }
 
 .theme-cromatico {
-    animation: chromatic-hue-cycle 12s linear infinite;
+    animation: chromatic-hue-cycle 20s linear infinite;
+    will-change: background-color; /* hint de GPU: essa propriedade muda continuamente */
+    isolation: isolate;            /* cria stacking context próprio, evitando vazamento de compositing */
     --primary: hsl(var(--chromatic-hue), 100%, 50%);
     --primary-rgb: 255, 255, 255; /* Changed from 255, 0, 0 to white to remove forced red neon */
     --primary-hover: hsl(var(--chromatic-hue), 100%, 60%); /* Claro 1 */
@@ -2413,6 +2435,7 @@ body {
     width: 100%;
     aspect-ratio: 3/4;
     object-fit: cover;
+    object-position: top center;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     transform-origin: center center;
@@ -2647,6 +2670,7 @@ tr:hover td {
     width: 100%;
     max-width: 600px;
     max-height: 85vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     position: relative;
