@@ -23,20 +23,6 @@
       margin-top: 20px;
     }
 
-    /* Sidebar / Config */
-    .ai-sidebar {
-      background: transparent;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(var(--primary-rgb), 0.2);
-      border-radius: var(--radius);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      box-shadow: var(--shadow-neon);
-    }
-
     .ai-card {
       background: transparent;
       border: 1px solid rgba(var(--primary-rgb), 0.1);
@@ -52,14 +38,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    /* Main Area / Chat */
-    .ai-main {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      height: 100%;
     }
 
     .ai-chat-window {
@@ -240,7 +218,7 @@
           </div>
           <div class="ai-config-item">
             <span class="ai-config-label">Inteligência atual</span>
-            <strong>Google Gemini 2.5 Flash (chat e visão) + Gemini 2.5 Flash Lite (comparação)</strong>
+            <strong>Groq — Llama 3.3 70B (chat e comparação) + Cloudflare Llama 11B (análise de imagens)</strong>
           </div>
           <div class="ai-config-item">
             <span class="ai-config-label">Como funciona</span>
@@ -254,14 +232,14 @@
 
         <div class="ai-theme-panel">
           <div class="ai-theme-panel__header">
-            <span class="ai-config-label">Tema ativo</span>
+            <span class="ai-config-label">Cor ativa</span>
             <div class="ai-theme-chip">
               <span class="ai-theme-chip__color" id="themeColorPreview"></span>
-              <strong id="themeName">Tema padrão</strong>
+              <strong id="themeName">Ciano</strong>
             </div>
           </div>
           <p class="ai-side-note">
-            As cores desta tela acompanham automaticamente o tema global do site.
+            As cores desta tela acompanham automaticamente a cor global do site.
           </p>
         </div>
 
@@ -327,6 +305,10 @@
               <span id="visionFileInfo">Aguardando envio</span>
             </div>
           </div>
+          <div class="vision-preview__actions" id="visionPreviewActions" hidden>
+            <button type="button" class="btn btn-ghost btn-sm" id="visionChooseAnotherBtn">Escolher outra imagem</button>
+            <button type="button" class="btn btn-danger btn-sm" id="visionClearBtn">Limpar imagem</button>
+          </div>
           <button class="btn btn-primary w-100" id="visionAnalyzeBtn" disabled>Analisar imagem</button>
           <div id="visionOutput" class="ocr-result" style="margin-bottom: 40px;">
             Aguardando imagem...
@@ -364,7 +346,7 @@
 
   /* Painel Esquerdo */
   .ai-panel-tools {
-    width: 300px;
+    width: var(--sidebar-width, 300px);
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -473,7 +455,7 @@
   }
 
   .msg-content {
-    padding-right: 42px;
+    padding-right: 104px;
     line-height: 1.55;
   }
 
@@ -483,12 +465,15 @@
     margin: 0 0 10px;
   }
 
+  .msg-content h2,
   .msg-content h3,
   .msg-content h4,
   .msg-content h5,
+  #compareResult h2,
   #compareResult h3,
   #compareResult h4,
   #compareResult h5,
+  #visionOutput h2,
   #visionOutput h3,
   #visionOutput h4,
   #visionOutput h5 {
@@ -534,20 +519,25 @@
 
   .msg-copy-btn {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 28px;
-    height: 28px;
-    border: 1px solid rgba(var(--primary-rgb), 0.18);
-    border-radius: 8px;
-    background: rgba(var(--bg-card), 0.65);
+    top: 12px;
+    right: 12px;
+    min-width: 40px;
+    height: 32px;
+    padding: 0 11px;
+    gap: 7px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    background: rgba(var(--bg-card), 0.82);
+    backdrop-filter: blur(10px);
     color: var(--text-muted);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
-    transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transform: translateY(4px) scale(0.98);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+    transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
   }
 
   .msg-copy-btn svg {
@@ -560,21 +550,65 @@
     stroke-linejoin: round;
   }
 
+  .msg-copy-btn span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .msg.user .msg-copy-btn {
+    background: rgba(var(--primary-rgb), 0.14);
+    color: rgba(255, 255, 255, 0.92);
+    border-color: rgba(var(--primary-rgb), 0.3);
+  }
+
   .msg:hover .msg-copy-btn,
   .msg:focus-within .msg-copy-btn {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
 
   .msg-copy-btn:hover {
-    color: var(--primary);
+    color: var(--text-main);
     border-color: rgba(var(--primary-rgb), 0.45);
-    transform: translateY(-1px);
+    background: rgba(var(--primary-rgb), 0.16);
+    box-shadow: 0 14px 28px rgba(var(--primary-rgb), 0.18);
+  }
+
+  .msg-copy-btn:focus-visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    outline: none;
+    color: var(--text-main);
+    border-color: rgba(var(--primary-rgb), 0.55);
+    box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.18), 0 14px 28px rgba(var(--primary-rgb), 0.18);
   }
 
   .msg-copy-btn.copied {
     opacity: 1;
-    color: #22c55e;
+    color: #dcfce7;
+    background: rgba(34, 197, 94, 0.18);
     border-color: rgba(34, 197, 94, 0.55);
+    transform: translateY(0) scale(1);
+    box-shadow: 0 14px 28px rgba(34, 197, 94, 0.2);
+  }
+
+  @media (max-width: 720px) {
+    .msg-content {
+      padding-right: 56px;
+    }
+
+    .msg-copy-btn {
+      opacity: 0.96;
+      transform: translateY(0) scale(1);
+      padding: 0;
+    }
+
+    .msg-copy-btn span {
+      display: none;
+    }
   }
 
   .ai-config-summary {
@@ -731,12 +765,34 @@
     font-size: 0.9rem;
   }
 
-  .ocr-result {
+  .vision-preview__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: -4px;
+    margin-bottom: 18px;
+  }
+
+  .vision-preview__actions[hidden] {
+    display: none !important;
+  }
+
+  .ocr-result,
+  #compareResult {
+    position: relative;
     margin-top: 20px;
     background: rgba(var(--bg-dark), 0.4);
     padding: 20px;
     border-radius: 12px;
     min-height: 200px;
+  }
+
+  .ocr-result:hover .msg-copy-btn,
+  .ocr-result:focus-within .msg-copy-btn,
+  #compareResult:hover .msg-copy-btn,
+  #compareResult:focus-within .msg-copy-btn {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 
   .comparison-inputs {
@@ -747,7 +803,7 @@
   }
   .vs-text { font-family: 'Bangers'; font-size: 1.8rem; color: var(--primary); }
   .ai-page-fix {
-    padding: 20px !important;
+    padding: 40px 20px;
     height: calc(100vh - 100px);
     overflow: hidden;
     display: flex;
@@ -799,46 +855,6 @@
     color: var(--text-muted);
     font-size: 0.82rem;
     text-align: center;
-  }
-
-  .ai-content-area,
-  .ai-chat-window,
-  .ai-input-wrapper,
-  .ai-card,
-  .ai-tab-v,
-  .ai-tab-v.active,
-  .ai-panel-tools {
-    border-color: rgba(var(--primary-rgb), 0.35) !important;
-  }
-
-  .ai-content-area {
-    box-shadow: 0 0 26px rgba(var(--primary-rgb), 0.25), inset 0 0 22px rgba(var(--primary-rgb), 0.06);
-    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(0, 0, 0, 0.25));
-  }
-
-  .ai-card,
-  .ai-chat-window,
-  .ai-input-wrapper {
-    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(var(--bg-card), 0.55));
-    box-shadow: 0 0 22px rgba(var(--primary-rgb), 0.22);
-  }
-
-  .ai-tab-v.active {
-    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.35);
-    color: var(--text-main);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.24), rgba(var(--primary-rgb), 0.08));
-  }
-
-  .msg.bot {
-    border-color: rgba(var(--primary-rgb), 0.4);
-    box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.2);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.13), rgba(0, 0, 0, 0.25));
-  }
-
-  .msg.user {
-    border-color: rgba(var(--primary-rgb), 0.45);
-    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.25);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.18), rgba(0, 0, 0, 0.2));
   }
 </style>
 

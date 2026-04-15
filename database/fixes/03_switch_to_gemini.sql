@@ -4,7 +4,7 @@
 -- Assume table 'settings' exists (from seed_ai_key_setting.js)
 UPDATE public.settings 
 SET config_data = jsonb_build_object(
-  'geminiKey', 'AIzaSyARpueH2oQddQ5vWS-4vY03SeNHPcpO470',
+  'geminiKey', 'AIzaSyBHhW93QyscFtxkqC4lrVEco37b3pO3Guw',
   'provider', 'gemini'
 )
 WHERE key_name = 'aiConfig';

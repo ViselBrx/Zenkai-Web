@@ -40,8 +40,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visionPreviewImg = document.getElementById('visionPreviewImg');
   const visionFileName = document.getElementById('visionFileName');
   const visionFileInfo = document.getElementById('visionFileInfo');
+  const visionPreviewActions = document.getElementById('visionPreviewActions');
+  const visionChooseAnotherBtn = document.getElementById('visionChooseAnotherBtn');
+  const visionClearBtn = document.getElementById('visionClearBtn');
 
-  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF]|�)/;
+  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF])/
 
   function normalizeBrokenEncoding(value) {
     const text = String(value ?? '');
@@ -56,36 +59,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  const SYSTEM_PROMPT = normalizeBrokenEncoding('Você é o Open AnIme, o assistente virtual do site Anime House. Você é amigável, prestativo e sabe tudo sobre animes e desenhos. Use emojis nas respostas. Mantenha o contexto da conversa.');
-  const GREETING_MESSAGE = normalizeBrokenEncoding('Olá! Eu sou o **Open AnIme**. Como posso ajudar você hoje? Posso recomendar animes, explicar episódios ou desenvolver ideias para o seu site!');
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House. REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS. Nunca alucine ou invente cânones. Raciocine passo-a-passo antes de escrever. Ao responder, não dê apenas o básico: traga informações extras genuínas, curiosidades fantásticas e aprofundamento real. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎌 — seu assistente de animes e desenhos no Anime House! Posso recomendar títulos com explicações detalhadas, discutir personagens, analisar arcos de história, comparar poderes ou ajudar a desenvolver ideias para o site. O que você quer explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
-  const COMPARE_GEMINI_MODEL = 'gemini-2.5-flash-lite';
-  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.5-flash';
+  const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
+  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
+  const COMPARE_FALLBACK_GROQ_MODEL = 'llama3-8b-8192';
   const COMPARE_MAX_TOKENS = 1400;
   const COMPARE_TEMPERATURE = 0.35;
-  const VISION_MAX_TOKENS = 1800;
-  const VISION_MIN_COMPLETION_CHARS = 700;
+  const VISION_MAX_TOKENS = 2500;
+  const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Faça uma análise visual completa e detalhada da imagem em português.',
-    'Formato obrigatório da resposta (Markdown):',
-    '## Resumo geral',
-    '- Descreva a cena em 4-8 linhas, sem ser superficial.',
-    '## Elementos visuais importantes',
-    '- Personagens/pessoas, roupas, expressões, poses, objetos, cenário, iluminação, estilo artístico e qualidade da imagem.',
-    '## Texto visível (OCR)',
-    '- Transcreva TODO texto visível exatamente como aparece (incluindo números, siglas e palavras parciais).',
-    '- Se algo estiver ilegível, indique [ilegível] no trecho correspondente.',
-    '## Pistas de origem',
-    '- Cite possíveis pistas de origem (anime, jogo, plataforma, marca, idioma, interface, watermark), sem inventar fatos.',
-    '## Incertezas e limitações',
-    '- Liste pontos em que há baixa confiança e por quê.',
-    'Regra: não responda de forma curta. Prefira completude e precisão.'
+    'Atue como um analista visual de elite e enciclopédia geek global. Sua missão é realizar uma perícia técnica na imagem.',
+    'Se você NÃO conseguir identificar a origem exata (anime/estúdio/obra), NÃO invente. Em vez disso, forneça uma análise visual e temática PROFUNDA como resposta alternativa.',
+    '',
+    '### 🆔 Identificação e Origem Real',
+    '- **Veredito de Origem:** Identifique a obra se tiver certeza absoluta. Caso contrário, declare como "Origem Indeterminada" e descreva qual o arquétipo ou estilo que a imagem evoca (ex: "Estilo Shonen Moderno", "Cyberpunk", "Vibe Retrô anos 90").',
+    '- **Personagens/Foco:** Nomeie se souber, ou descreva as características marcantes do sujeito (ex: "Um jovem espadachim com olhos carmesim e vestes de samurai futurista").',
+    '',
+    '### 🔎 Perícia Técnica e Estilo',
+    '- **DNA Visual:** Analise o traço. É detalhado? Minimalista? Quais técnicas de pintura ou animação você percebe? (ex: "Uso intenso de luz volumétrica e partículas que lembram o estilo do Makoto Shinkai").',
+    '- **Análise de Cores e Luz:** Como a paleta de cores influencia a emoção da cena.',
+    '',
+    '### 📝 Pistas, Textos e Marcas',
+    '- **Rastros:** Transcreva qualquer texto visível. Identifique logos ou assinaturas que possam dar pistas sobre o artista ou estúdio.',
+    '- **Vibe e Contexto:** O que a imagem transmite? É uma cena de ação? Um momento de paz? Uma arte promocional?',
+    '',
+    '### 🎯 Veredito e Curiosidade',
+    '- Resumo final: "Mesmo sem a origem exata, esta imagem destaca-se por..." e entregue uma curiosidade sobre o estilo artístico ou o gênero identificado.',
+    'IMPORTANTE: Responda obrigatoriamente em português, mantendo um tom profissional, investigativo e empolgado. ✨'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
-
+  const COPY_BUTTON_LABEL = 'Copiar';
+  const COPIED_BUTTON_LABEL = 'Copiado';
+  const VISION_FALLBACK_PREVIEW = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
@@ -118,21 +130,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  function getResumeChatThreadId() {
-    if (!resumeData) return '';
-    const candidate = String(resumeData.threadId || resumeData.contentId || '').trim();
+  function getResumeChatThreadId(resume = resumeData) {
+    if (!resume) return '';
+    const candidate = String(resume.threadId || resume.contentId || '').trim();
     if (!candidate || candidate === 'open_anime_chat') return '';
     return candidate;
   }
 
-  function getResumeCompareHistoryId() {
-    if (!resumeData) return '';
-    return String(resumeData.historyContentId || resumeData.compareId || resumeData.contentId || '').trim();
+  function getResumeCompareHistoryId(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.historyContentId || resume.compareId || resume.contentId || '').trim();
   }
 
-  function getResumeVisionHistoryId() {
-    if (!resumeData) return '';
-    return String(resumeData.historyContentId || resumeData.visionId || resumeData.contentId || '').trim();
+  function getResumeVisionHistoryId(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.historyContentId || resume.visionId || resume.contentId || '').trim();
+  }
+
+  function getResumeType(resume = resumeData) {
+    if (!resume) return '';
+    return String(resume.mediaType || resume.contentType || '').trim();
   }
 
   if (chatInput) {
@@ -163,22 +180,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const themeLabels = {
-    'theme-default': 'Tema padrão',
-    '': 'Tema padrão',
-    'theme-ben10': 'Ben 10',
-    'theme-vinland': 'Vinland Saga',
-    'theme-aot': 'Attack on Titan',
-    'theme-tt-classic': 'Jovens Titãs',
-    'theme-mutant-rex': 'Mutante Rex',
-    'theme-regular-show': 'Regular Show',
-    'theme-demon-slayer': 'Demon Slayer',
-    'theme-vagabond': 'Vagabond'
+    'theme-ciano': 'Ciano',
+    'theme-default': 'Ciano',
+    '': 'Ciano',
+    'theme-verde': 'Verde',
+    'theme-ben10': 'Verde',
+    'theme-dourado': 'Dourado',
+    'theme-vinland': 'Dourado',
+    'theme-vermelho': 'Vermelho',
+    'theme-aot': 'Vermelho',
+    'theme-roxo': 'Roxo',
+    'theme-tt-classic': 'Roxo',
+    'theme-laranja': 'Laranja',
+    'theme-mutant-rex': 'Laranja',
+    'theme-azul': 'Azul',
+    'theme-regular-show': 'Azul',
+    'theme-verde-escuro': 'Verde escuro',
+    'theme-demon-slayer': 'Verde escuro',
+    'theme-branco': 'Branco',
+    'theme-vagabond': 'Branco',
+    'theme-aqua-verde': 'Aqua verde'
   };
 
   function updateThemeInfo() {
     if (themeName) {
-      const currentTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-default';
-      themeName.textContent = themeLabels[currentTheme] || 'Tema personalizado';
+      const rawTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-ciano';
+      const currentTheme = typeof window.normalizeTheme === 'function'
+        ? window.normalizeTheme(rawTheme)
+        : rawTheme;
+      themeName.textContent = themeLabels[currentTheme] || 'Cor personalizada';
     }
     if (themeColorPreview) {
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7c3aed';
@@ -226,20 +256,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 1800);
   }
 
+  function updateCopyButton(button, copied = false) {
+    if (!button) return;
+
+    const label = copied ? COPIED_BUTTON_LABEL : COPY_BUTTON_LABEL;
+    button.classList.toggle('copied', copied);
+    button.innerHTML = `${copied ? COPIED_ICON : COPY_ICON}<span>${label}</span>`;
+    button.title = copied ? 'Mensagem copiada' : 'Copiar mensagem';
+    button.setAttribute('aria-label', copied ? 'Mensagem copiada' : 'Copiar mensagem');
+  }
+
+  function writeTextToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    return new Promise((resolve, reject) => {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '-9999px';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      try {
+        const copied = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        if (!copied) {
+          reject(new Error('Comando de cópia indisponível.'));
+          return;
+        }
+        resolve();
+      } catch (error) {
+        document.body.removeChild(textarea);
+        reject(error);
+      }
+    });
+  }
+
   async function copyText(text, button) {
     try {
-      await navigator.clipboard.writeText(text);
+      await writeTextToClipboard(text);
       if (button) {
-        const original = button.dataset.originalIcon || button.innerHTML;
-        button.dataset.originalIcon = original;
-        button.innerHTML = COPIED_ICON;
-        button.classList.add('copied');
-        setTimeout(() => {
-          button.innerHTML = original;
-          button.classList.remove('copied');
-        }, 1400);
+        clearTimeout(button.copyResetTimeout);
+        updateCopyButton(button, true);
+        button.copyResetTimeout = setTimeout(() => {
+          updateCopyButton(button, false);
+        }, 1600);
       }
-      showFeedback('Mensagem copiada');
+      showFeedback(button?.dataset.feedbackMessage || 'Mensagem copiada');
     } catch (error) {
       console.error('Erro ao copiar mensagem:', error);
       showFeedback('Não foi possível copiar a mensagem');
@@ -387,6 +455,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function extractVisionText(result) {
+    if (typeof result?.choices?.[0]?.message?.content === 'string') {
+      return result.choices[0].message.content.trim();
+    }
     if (typeof result?.candidates?.[0]?.content?.parts?.[0]?.text === 'string') {
       return result.candidates[0].content.parts[0].text.trim();
     }
@@ -408,7 +479,54 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderVisionResult(text) {
     if (!visionOutput) return;
     const normalizedText = normalizeBrokenEncoding(text || 'Nenhum resultado retornado.');
-    visionOutput.innerHTML = `<strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}`;
+    visionOutput.innerHTML = `<div class="msg-content"><strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+
+    const existingCopyBtn = visionOutput.querySelector('.msg-copy-btn');
+    if (existingCopyBtn) existingCopyBtn.remove();
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.title = 'Copiar análise';
+    copyBtn.setAttribute('aria-label', 'Copiar análise');
+    copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    updateCopyButton(copyBtn, false);
+    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    visionOutput.appendChild(copyBtn);
+  }
+
+  function renderComparisonResult(text) {
+    if (!compareResult) return;
+    const normalizedText = normalizeBrokenEncoding(text || '');
+    if (!normalizedText) {
+      compareResult.style.display = 'none';
+      return;
+    }
+    compareResult.style.display = 'block';
+    compareResult.innerHTML = `<div class="msg-content"><strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+
+    const existingCopyBtn = compareResult.querySelector('.msg-copy-btn');
+    if (existingCopyBtn) existingCopyBtn.remove();
+    
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'msg-copy-btn';
+    copyBtn.type = 'button';
+    copyBtn.title = 'Copiar análise';
+    copyBtn.setAttribute('aria-label', 'Copiar análise');
+    copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    updateCopyButton(copyBtn, false);
+    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    compareResult.appendChild(copyBtn);
+
+  }
+
+  function clearVisionSelection(options = {}) {
+    setVisionFile(null);
+    if (visionUpload) {
+      visionUpload.value = '';
+    }
+    if (options.keepOutput) return;
+    renderVisionResult(options.outputText || 'Aguardando imagem...');
   }
 
   function setVisionFile(file, options = {}) {
@@ -424,6 +542,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!selectedVisionFile) {
       visionDropZone.classList.remove('is-ready');
       if (visionPreview) visionPreview.hidden = true;
+      if (visionPreviewActions) visionPreviewActions.hidden = true;
       if (visionPreviewImg) visionPreviewImg.removeAttribute('src');
       if (visionFileName) visionFileName.textContent = 'Nenhuma imagem selecionada';
       if (visionFileInfo) visionFileInfo.textContent = 'Aguardando envio';
@@ -433,14 +552,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     visionDropZone.classList.add('is-ready');
 
     if (visionPreview) visionPreview.hidden = false;
+    if (visionPreviewActions) visionPreviewActions.hidden = false;
     if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
     if (visionFileInfo) {
       visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} - ${formatFileSize(selectedVisionFile.size)}`;
     }
 
     if (visionPreviewImg) {
-      visionPreviewImg.src = options.previewUrl
-        || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
+      const previewSrc = typeof options.previewUrl === 'string'
+        ? options.previewUrl.trim()
+        : '';
+      visionPreviewImg.src = previewSrc || VISION_FALLBACK_PREVIEW;
     }
   }
 
@@ -460,8 +582,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.type = 'button';
     copyBtn.title = 'Copiar mensagem';
     copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-    copyBtn.innerHTML = COPY_ICON;
-    copyBtn.dataset.originalIcon = COPY_ICON;
+    copyBtn.dataset.feedbackMessage = type === 'bot' ? 'Resposta copiada' : 'Mensagem copiada';
+    updateCopyButton(copyBtn, false);
     copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
 
     div.appendChild(content);
@@ -590,9 +712,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function initializeChatView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
-    const resumedThreadId = getResumeChatThreadId();
+    const resume = options.resume || resumeData;
+    const resumedThreadId = getResumeChatThreadId(resume);
     currentChatThreadId = resumedThreadId || buildUniqueId('open_anime_chat_thread');
     chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
+    renderChatFromMessages(chatHistory);
 
     if (restoreSaved && resumedThreadId) {
       const persisted = await loadAIHistoryMessages({
@@ -615,12 +739,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function initializeComparisonView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
     if (compareResult) {
       compareResult.style.display = 'none';
       compareResult.innerHTML = '';
     }
 
-    const selectedCompareHistoryId = getResumeCompareHistoryId();
+    const selectedCompareHistoryId = getResumeCompareHistoryId(resume);
     if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
       return;
     }
@@ -633,14 +758,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectedComparison = persisted.find(msg => msg.role === 'assistant');
     if (!selectedComparison) return;
 
-    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resumeData?.char1 || '';
-    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resumeData?.char2 || '';
+    if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resume?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resume?.char2 || '';
     compareResult.style.display = 'block';
     compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizeBrokenEncoding(selectedComparison.content || ''))}`;
   }
 
   async function initializeVisionView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
 
     if (visionOutput) {
       visionOutput.textContent = 'Aguardando imagem...';
@@ -651,7 +777,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const selectedVisionHistoryId = getResumeVisionHistoryId();
+    const selectedVisionHistoryId = getResumeVisionHistoryId(resume);
     if (!selectedVisionHistoryId || !visionOutput) {
       setVisionFile(null);
       return;
@@ -663,6 +789,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       limit: 20
     });
     const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    const selectedUpload = persisted.find((msg) => (
+      msg.role === 'user'
+      && typeof msg?.metadata?.imageDataUrl === 'string'
+      && msg.metadata.imageDataUrl.startsWith('data:image')
+    ));
     if (!selectedAnalysis) {
       setVisionFile(null);
       return;
@@ -675,15 +806,138 @@ document.addEventListener('DOMContentLoaded', async () => {
         size: Number(selectedAnalysis.metadata?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do histórico'
+        fileInfo: 'Resultado restaurado do histórico',
+        previewUrl: selectedAnalysis?.metadata?.imageDataUrl || selectedUpload?.metadata?.imageDataUrl || ''
       }
     );
     renderVisionResult(selectedAnalysis.content || '');
   }
 
+  async function openConversationFromHistory(nextResume) {
+    const resumeType = getResumeType(nextResume);
+    if (!resumeType) return false;
+
+    resumeData = nextResume || null;
+
+    if (resumeType === 'ai_chat') {
+      await initializeChatView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('chat');
+      updateChatScrollInfo();
+      return true;
+    }
+
+    if (resumeType === 'ai_compare') {
+      await initializeComparisonView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('compare');
+      return true;
+    }
+
+    if (resumeType === 'ai_vision') {
+      await initializeVisionView({ restoreSaved: true, resume: nextResume });
+      activateToolTab('vision');
+      return true;
+    }
+
+    return false;
+  }
+
+  async function initializeComparisonView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
+    if (compareResult) {
+      compareResult.style.display = 'none';
+      compareResult.innerHTML = '';
+    }
+
+    const selectedCompareHistoryId = getResumeCompareHistoryId(resume);
+    if (!restoreSaved || !compareResult || !selectedCompareHistoryId) {
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'compare',
+      metadataContains: { historyContentId: selectedCompareHistoryId },
+      limit: 20
+    });
+    const selectedComparison = persisted.find(msg => msg.role === 'assistant');
+    const fallbackAnalysis = normalizeBrokenEncoding(
+      resume?.analysis
+      || resume?.resumeSubtitle
+      || ''
+    );
+
+    if (char1Inp) char1Inp.value = selectedComparison?.metadata?.char1 || resume?.char1 || '';
+    if (char2Inp) char2Inp.value = selectedComparison?.metadata?.char2 || resume?.char2 || '';
+    if (!selectedComparison && !fallbackAnalysis) {
+      return;
+    }
+
+    renderComparisonResult(selectedComparison?.content || fallbackAnalysis);
+  }
+
+  async function initializeVisionView(options = {}) {
+    const restoreSaved = options.restoreSaved === true;
+    const resume = options.resume || resumeData;
+
+    if (visionOutput) {
+      visionOutput.textContent = 'Aguardando imagem...';
+    }
+
+    if (!restoreSaved) {
+      setVisionFile(null);
+      return;
+    }
+
+    const selectedVisionHistoryId = getResumeVisionHistoryId(resume);
+    if (!selectedVisionHistoryId || !visionOutput) {
+      setVisionFile(null);
+      return;
+    }
+
+    const persisted = await loadAIHistoryMessages({
+      context: 'vision',
+      metadataContains: { historyContentId: selectedVisionHistoryId },
+      limit: 20
+    });
+    const selectedAnalysis = persisted.find(msg => msg.role === 'assistant');
+    const selectedUpload = persisted.find((msg) => (
+      msg.role === 'user'
+      && typeof msg?.metadata?.imageDataUrl === 'string'
+      && msg.metadata.imageDataUrl.startsWith('data:image')
+    ));
+    const fallbackVisionText = normalizeBrokenEncoding(
+      resume?.description
+      || resume?.resumeSubtitle
+      || ''
+    );
+    const fallbackPreviewUrl = (typeof resume?.imageDataUrl === 'string' && resume.imageDataUrl.startsWith('data:image'))
+      ? resume.imageDataUrl
+      : '';
+
+    if (!selectedAnalysis && !fallbackVisionText) {
+      setVisionFile(null);
+      return;
+    }
+
+    setVisionFile(
+      {
+        name: selectedAnalysis?.metadata?.fileName || resume?.fileName || 'imagem-restaurada',
+        type: selectedAnalysis?.metadata?.fileType || resume?.fileType || 'image/*',
+        size: Number(selectedAnalysis?.metadata?.fileSize || resume?.fileSize || 0)
+      },
+      {
+        fileInfo: 'Resultado restaurado do historico',
+        previewUrl: selectedAnalysis?.metadata?.imageDataUrl
+          || selectedUpload?.metadata?.imageDataUrl
+          || fallbackPreviewUrl
+      }
+    );
+    renderVisionResult(selectedAnalysis?.content || fallbackVisionText);
+  }
+
   async function callAI(prompt, options = {}) {
-    const target = 'gemini';
-    const model = options.model || DEFAULT_GEMINI_MODEL;
+    const target = 'groq';
+    const model = options.model || DEFAULT_GROQ_MODEL;
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
@@ -713,7 +967,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
       const modelQueue = context === 'compare'
-        ? Array.from(new Set([model, COMPARE_FALLBACK_GEMINI_MODEL, DEFAULT_GEMINI_MODEL].filter(Boolean)))
+        ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
         : [model];
 
       const maxRetriesPerModel = 2;
@@ -807,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               tab: isCompare ? 'compare' : 'chat',
               threadId: isCompare ? '' : currentChatThreadId,
               historyContentId: isCompare ? metadata.historyContentId : '',
+              analysis: isCompare ? aiResponse : '',
               char1: metadata.char1 || '',
               char2: metadata.char2 || ''
             }
@@ -836,8 +1091,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
     const base64Image = await readFileAsDataUrl(file);
-    const requestedModel = options.model || DEFAULT_GEMINI_MODEL;
-    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_GEMINI_MODEL].filter(Boolean)));
+    const metadataWithPreview = { ...metadata, imageDataUrl: base64Image };
+    const requestedModel = options.model || DEFAULT_VISION_MODEL;
+    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)));
     const maxRetriesPerModel = 2;
 
     async function requestVisionText(promptText) {
@@ -851,11 +1107,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              target: 'gemini',
+              target: 'groq',
               body: {
                 model: selectedModel,
-                image: base64Image,
-                prompt: promptText,
+                messages: [
+                  {
+                    role: 'user',
+                    content: [
+                      { type: 'text', text: promptText },
+                      { type: 'image_url', image_url: { url: base64Image } }
+                    ]
+                  }
+                ],
+                
+                
+                
                 max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
               }
             })
@@ -865,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (res.ok) {
             const text = normalizeBrokenEncoding(extractVisionText(result));
             if (!text) {
-              lastError = new Error('O Gemini não retornou uma descrição utilizável para esta imagem.');
+              lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
             } else {
               return text;
             }
@@ -905,13 +1171,13 @@ document.addEventListener('DOMContentLoaded', async () => {
           role: 'user',
           content: `Imagem enviada: ${metadata.fileName}`,
           context,
-          metadata
+          metadata: metadataWithPreview
         });
       }
 
       let aiResponse = await requestVisionText(VISION_PROMPT);
 
-      if (aiResponse.length < VISION_MIN_COMPLETION_CHARS) {
+      if (false) { // aiResponse.length < VISION_MIN_COMPLETION_CHARS
         try {
           const refinementPrompt = [
             VISION_PROMPT,
@@ -943,7 +1209,9 @@ document.addEventListener('DOMContentLoaded', async () => {
               tab: 'vision',
               historyContentId: metadata.historyContentId,
               fileName: metadata.fileName,
-              description: aiResponse.slice(0, 1600)
+              fileType: metadata.fileType || '',
+              fileSize: metadata.fileSize || 0,
+              description: aiResponse
             }
           });
         }
@@ -976,8 +1244,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (toggleInfoCardBtn && infoCard) {
     toggleInfoCardBtn.addEventListener('click', () => {
-      const isVisible = infoCard.style.display !== 'none';
-      infoCard.style.display = isVisible ? 'none' : 'block';
+      // Usar getComputedStyle para detectar o estado real, independente de como foi definido
+      const currentDisplay = window.getComputedStyle(infoCard).display;
+      if (currentDisplay === 'none') {
+        infoCard.style.display = 'block';
+        // Scroll suave para mostrar o conteúdo expandido se necessário
+        infoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        infoCard.style.display = 'none';
+      }
     });
   }
 
@@ -989,6 +1264,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('click', (event) => {
     if (event.target.closest('.theme-opt-btn')) {
       setTimeout(updateThemeInfo, 20);
+    }
+  });
+
+  window.addEventListener('historytracker:resume', async (event) => {
+    const handled = await openConversationFromHistory(event?.detail || null);
+    if (handled) {
+      showFeedback('Conversa aberta do historico');
+    }
+  });
+
+  window.addEventListener('popstate', async (event) => {
+    const handled = await openConversationFromHistory(event?.state?.historyTrackerResume || null);
+    if (handled) {
+      showFeedback('Conversa restaurada');
     }
   });
 
@@ -1031,9 +1320,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         await handleVisionSelection(file);
       } catch (error) {
         console.error(error);
-        setVisionFile(null);
+        clearVisionSelection({ keepOutput: true });
         renderVisionResult('Falha ao carregar a imagem selecionada.');
       }
+    });
+  }
+
+  if (visionChooseAnotherBtn && visionUpload) {
+    visionChooseAnotherBtn.addEventListener('click', () => {
+      visionUpload.value = '';
+      visionUpload.click();
+    });
+  }
+
+  if (visionClearBtn) {
+    visionClearBtn.addEventListener('click', () => {
+      clearVisionSelection({ outputText: 'Imagem removida. Escolha outra imagem para analisar.' });
+      showFeedback('Imagem removida');
     });
   }
 
@@ -1065,7 +1368,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await handleVisionSelection(file);
       } catch (error) {
         console.error(error);
-        setVisionFile(null);
+        clearVisionSelection({ keepOutput: true });
         renderVisionResult('Falha ao carregar a imagem arrastada.');
       }
     });
@@ -1079,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       visionAnalyzeBtn.disabled = true;
-      renderVisionResult('Analisando imagem com Gemini AI...');
+      renderVisionResult('Analisando imagem com Groq Vision (Llama 4 Scout)...');
 
       try {
         const { aiResponse } = await callVisionAI(selectedVisionFile, {
@@ -1112,29 +1415,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista técnico de batalhas entre personagens de anime/desenho. Responda em português com objetividade, sem enrolação, e sempre entregue todas as seções solicitadas.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre personagens de anime e desenho animado. Sua missão é fazer análises profundas, detalhadas e bem argumentadas, sempre em português. Nunca encurte a análise — explore cada atributo com exemplos reais do universo do personagem, cite poderes específicos e momentos canônicos que justifiquem as notas. Seja apaixonado e técnico ao mesmo tempo.';
     const prompt = [
-      `Compare ${c1} vs ${c2}.`,
+      `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
       'Formato obrigatório da resposta (Markdown):',
-      '## Panorama rápido',
-      '- Quem tem vantagem geral e por que em 2-3 linhas.',
-      '## Atributos (notas de 0 a 10)',
-      '- Força',
-      '- Velocidade',
-      '- Inteligência tática',
-      '- Resistência',
-      '- Habilidades especiais',
-      '- Controle emocional',
-      '## Cenários',
-      '1. Duelo direto (sem preparo)',
-      '2. Duelo com 24h de preparo',
-      '3. Campo neutro com civis por perto',
-      '## Pontos fracos de cada um',
+      '## Panorama geral',
+      '- Apresente brevemente os dois personagens (origem, universo, nível de poder geral).',
+      '- Explique em 3-4 linhas quem tem vantagem inicial e por quê.',
+      '## Atributos detalhados (nota de 0 a 10 com justificativa)',
+      '- **Força física**: cite exemplos canônicos de feitos de força.',
+      '- **Velocidade e reflexos**: cite exemplos de movimentos ou reações notáveis.',
+      '- **Inteligência tática**: como cada um age sob pressão e em batalha.',
+      '- **Resistência e durabilidade**: capacidade de absorver dano e continuar lutando.',
+      '- **Habilidades especiais e técnicas únicas**: liste as principais com breve descrição.',
+      '- **Controle emocional**: como as emoções afetam o desempenho em combate.',
+      '## Cenários de batalha',
+      '1. **Duelo direto sem preparo** — quem leva vantagem no impulso inicial?',
+      '2. **Duelo com 24h de preparo** — como cada um se prepararia e o que mudaria?',
+      '3. **Campo neutro com civis ao redor** — como as limitações morais/táticas afetam o resultado?',
+      '## Pontos fracos e vulnerabilidades',
+      '- Liste os principais pontos fracos de cada personagem com exemplos.',
       '## Veredito final',
-      '- Vencedor provável',
-      '- Condições para o azarão virar o jogo',
-      '- Nível de confiança em %',
-      'Regra: se faltar dado canônico, diga explicitamente "informação insuficiente" e continue a análise mesmo assim.'
+      '- **Vencedor mais provável** e argumentação sólida.',
+      '- **Condições em que o azarão pode virar o jogo.**',
+      '- **Nível de confiança no veredito (%)** e grau de incerteza.',
+      '- **Curiosidade bônus**: algo interessante sobre a rivalidade ou universo dos dois.',
+      'Regra: se faltar dado canônico, diga "informação insuficiente" e continue a análise. Nunca deixe uma seção em branco.'
     ].join('\n');
 
     try {
@@ -1142,14 +1448,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         useChatContext: false,
         persistToAIHistory: true,
         context: 'compare',
-        model: COMPARE_GEMINI_MODEL,
+        model: DEFAULT_GROQ_MODEL,
         temperature: COMPARE_TEMPERATURE,
-        max_tokens: COMPARE_MAX_TOKENS,
+        max_tokens: 2500,
         systemPrompt: compareSystemPrompt,
         metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
       });
 
-      compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(analysis)}`;
+      renderComparisonResult(analysis);
     } finally {
       isComparing = false;
       compareBtn.disabled = false;

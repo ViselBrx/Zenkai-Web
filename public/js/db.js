@@ -1,11 +1,49 @@
-﻿/**
+/**
  * db.js â€” Cliente Supabase AnimeHouse
  * =====================================
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
 
-const _DEFAULT = { cartoons: [], episodes: {}, movies: {}, animes: [], animeEpisodes: {}, animeMovies: {}, mangas: [], mangaVolumes: {}, mangaNotes: {}, filmes: [], aiConfig: {}, siteConfig: {} };
+const WATCHED_ITEMS_TABLE = 'user_watched_items';
+const WATCHED_ITEMS_SETUP_HINT = 'Execute database/schema/08_watched_items.sql no Supabase para ativar o checklist permanente.';
+
+const _DEFAULT = {
+    cartoons: [],
+    episodes: {},
+    movies: {},
+    animes: [],
+    animeEpisodes: {},
+    animeMovies: {},
+    mangas: [],
+    mangaVolumes: {},
+    mangaNotes: {},
+    filmes: [],
+    watched: {},
+    profile: null, // Perfil completo do usuário (incluindo store_data)
+    aiConfig: {},
+    siteConfig: {}
+};
 let _store = JSON.parse(JSON.stringify(_DEFAULT));
+
+function isMissingRelationError(error) {
+    const msg = String(error?.message || '');
+    return error?.code === 'PGRST205'
+        || /relation .* does not exist/i.test(msg)
+        || /Could not find the table/i.test(msg);
+}
+
+function buildWatchedPersistenceError(error) {
+    if (isMissingRelationError(error)) {
+        return new Error(`Checklist permanente indisponível. ${WATCHED_ITEMS_SETUP_HINT}`);
+    }
+    return new Error(error?.message || 'Falha ao salvar o checklist permanente.');
+}
+
+function clearWatchedItems(ids = []) {
+    ids.forEach(id => {
+        if (id) delete _store.watched[id];
+    });
+}
 
 // Checa se o supabase estÃ¡ disponÃ­vel (injetado via auth.js)
 function getSupa() {
@@ -27,6 +65,35 @@ async function getRequiredUserId() {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('Sessão expirada. Faça login novamente.');
     return userId;
+}
+
+/** Valida JWT com o servidor (mais confiável que só getSession no storage). */
+async function resolveAuthUserId() {
+    const supa = getSupa();
+    const { data: { user }, error } = await supa.auth.getUser();
+    if (error) console.warn('[DB] getUser:', error.message);
+    if (user?.id) return user.id;
+    const { data: { session } } = await supa.auth.getSession();
+    return session?.user?.id || null;
+}
+
+/** Garante JSON puro para a coluna JSONB (sem _userId, sem referências quebradas). */
+function sanitizeStoreDataForDb(raw) {
+    const o = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
+    delete o._userId;
+    try {
+        return JSON.parse(JSON.stringify(o));
+    } catch (e) {
+        return {
+            purchased: [],
+            equipped: {},
+            xp: 0,
+            ouro: 0,
+            diamante: 0,
+            esmeralda: 0,
+            rank: 'Novato'
+        };
+    }
 }
 
 // Verificar se o usuÃ¡rio pode editar/deletar um item
@@ -78,10 +145,10 @@ function cleanIframe(iframe) {
                 if (src.startsWith('http://')) src = 'https://' + src.slice(7);
 
                 // SubstituiÃ§Ã£o de domÃ­nio (cobre todos os domÃ­nios conhecidos do Redecanais)
-                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+                src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
                 el.setAttribute('src', src);
-                el.setAttribute('allow', 'fullscreen');
+                el.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; fullscreen');
                 el.setAttribute('allowfullscreen', '');
                 el.setAttribute('frameborder', '0');
                 el.setAttribute('width', '100%');
@@ -99,10 +166,10 @@ function cleanIframe(iframe) {
                 let s = rawSrc;
                 try { s = decodeURIComponent(s); } catch(e) {}
                 if (s.startsWith('//')) s = 'https:' + s;
-                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+                s = s.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
                 return `src="${s}"`;
             })
-            .replace(/allow="[^"]*"/gi, 'allow="fullscreen"');
+            .replace(/allow="[^"]*"/gi, 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen"');
     }
 
     // --- Caso 2: sÃ³ a URL ---
@@ -110,10 +177,10 @@ function cleanIframe(iframe) {
     try { url = decodeURIComponent(url); } catch(e) {}
     if (url.startsWith('//')) url = 'https:' + url;
     if (url.startsWith('http://')) url = 'https://' + url.slice(7);
-    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.cafe');
+    url = url.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
     if (url.startsWith('https://')) {
-        return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="fullscreen" allowfullscreen></iframe>`;
+        return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
     }
 
     return iframe; // devolve original se nÃ£o reconheceu
@@ -146,7 +213,8 @@ async function claimLegacyCatalogForMainAccount(userId) {
 
 
 const DB = {
-  // Inicializa o banco (Baixa tudo do Supabase para a memÃ³ria local)
+  get _store() { return _store; },
+  // Inicializa o banco (Baixa tudo do Supabase para a memória local)
   async init() {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
@@ -159,6 +227,12 @@ const DB = {
             return;
         }
 
+        // LIMPEZA FORÇADA: Remover localStorage genérico para evitar vazamento entre contas
+        try {
+            localStorage.removeItem('animehouse_store');
+            console.log('🧹 [DB] localStorage genérico limpo ao inicializar com userId:', userId);
+        } catch(e) {}
+
         const { data: { user } } = await supa.auth.getUser();
         const isMainAccount = user?.email?.toLowerCase() === MAIN_ACCOUNT_EMAIL;
         if (isMainAccount) {
@@ -169,6 +243,22 @@ const DB = {
 
         // Cada conta enxerga apenas os prÃ³prios registros.
         // ExceÃ§Ã£o controlada: conta principal tambÃ©m enxerga legados sem user_id.
+        // Lógica de Busca Resiliente: Se uma tabela falhar, não derruba o sistema todo
+        const safeFetch = async (query, label) => {
+            try {
+                const { data, error } = await query;
+                if (error) {
+                    console.warn(`⚠️ [DB] Erro ao carregar ${label}:`, error.message);
+                    return [];
+                }
+                return data || [];
+            } catch (err) {
+                console.error(`❌ [DB] Falha crítica na query ${label}:`, err);
+                return [];
+            }
+        };
+
+        // Definição das queries
         const cartoonQuery = isMainAccount
           ? supa.from('cartoons').select('*').or(ownerFilter).order('created_at', { ascending: true })
           : supa.from('cartoons').select('*').eq('user_id', userId).order('created_at', { ascending: true });
@@ -204,24 +294,103 @@ const DB = {
         const filmesQuery = isMainAccount
           ? supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true })
           : supa.from('filmes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-        
+
         const [
-            { data: cartoons }, { data: episodes }, { data: movies },
-            { data: animes }, { data: animeEps }, { data: mangas }, { data: mangaVols },
-            { data: mangaNotes },
-            { data: filmesData }, { data: settings }
+            cartoons, episodes, movies,
+            animes, animeEps, mangas, mangaVols,
+            mangaNotes, filmesData, settings
         ] = await Promise.all([
-            cartoonQuery,
-            episodesQuery,
-            moviesQuery,
-            animeQuery,
-            animeEpsQuery,
-            mangaQuery,
-            mangaVolsQuery,
-            mangaNotesQuery,
-            filmesQuery,
-            supa.from('settings').select('*')
+            safeFetch(cartoonQuery, 'Cartoons'),
+            safeFetch(episodesQuery, 'Episodes'),
+            safeFetch(moviesQuery, 'Movies'),
+            safeFetch(animeQuery, 'Animes'),
+            safeFetch(animeEpsQuery, 'AnimeEpisodes'),
+            safeFetch(mangaQuery, 'Mangas'),
+            safeFetch(mangaVolsQuery, 'MangaVolumes'),
+            safeFetch(mangaNotesQuery, 'MangaNotes'),
+            safeFetch(filmesQuery, 'Filmes'),
+            safeFetch(supa.from('settings').select('*'), 'Settings')
         ]);
+
+        // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
+        // Chave de localStorage isolada por usuário para garantir que cada conta tenha seus próprios dados
+        const userStoreKey = `animehouse_store_${userId}`;
+        try {
+            const { data: profileData, error: profileError } = await supa.from('profiles').select('*').eq('id', userId).maybeSingle();
+            if (profileError) {
+                console.warn("⚠️ [DB] Erro ao carregar perfil do banco:", profileError.message);
+            } else if (profileData) {
+                _store.profile = profileData;
+
+                const dbStore = profileData.store_data || { purchased: [], equipped: {} };
+                let localParsed = null;
+                try {
+                    const raw = localStorage.getItem(userStoreKey);
+                    if (raw) {
+                        const p = JSON.parse(raw);
+                        if (p && p._userId === userId) localParsed = p;
+                    }
+                } catch (e) { /* ignore */ }
+
+                const dbP = Array.isArray(dbStore.purchased) ? [...dbStore.purchased] : [];
+                const localP = localParsed && Array.isArray(localParsed.purchased) ? [...localParsed.purchased] : [];
+
+                const mergedStore = JSON.parse(JSON.stringify(dbStore));
+                mergedStore.purchased = [...new Set([...dbP, ...localP])];
+                mergedStore.equipped = {
+                    ...(localParsed?.equipped && typeof localParsed.equipped === 'object' ? localParsed.equipped : {}),
+                    ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {})
+                };
+
+                mergedStore._userId = userId;
+                _store.profile.store_data = mergedStore;
+
+                localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
+                localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
+
+                // Sincronizar cosméticos e tema cromático (Garante que o tema siga a conta do usuário)
+                if (mergedStore.equipped && mergedStore.equipped.tema_cromatico === true) {
+                    localStorage.setItem('equipped_tema_cromatico', 'true');
+                    localStorage.setItem('animehouse_tema_cromatico', 'true');
+                    // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
+                    if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
+                        window.setTheme('theme-cromatico');
+                    }
+                }
+
+                if (mergedStore.purchased.length > dbP.length) {
+                    try {
+                        await this.saveStoreData(mergedStore);
+                    } catch (healErr) {
+                        console.warn('[DB] Compras locais não sincronizadas ao servidor neste carregamento:', healErr?.message || healErr);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error("❌ [DB] Falha crítica ao tentar ler tabela 'profiles':", err);
+        }
+
+        const { data: watchedItems, error: watchedError } = await supa
+            .from(WATCHED_ITEMS_TABLE)
+            .select('id, content_id, content_type, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: true });
+
+        if (watchedError) {
+            if (isMissingRelationError(watchedError)) {
+                console.warn(WATCHED_ITEMS_SETUP_HINT);
+            } else {
+                console.warn('Não foi possível carregar o checklist permanente:', watchedError.message || watchedError);
+            }
+        } else if (watchedItems) {
+            watchedItems.forEach(item => {
+                _store.watched[item.content_id] = {
+                    id: item.id,
+                    content_type: item.content_type,
+                    created_at: item.created_at
+                };
+            });
+        }
 
         // Formatar para bater com o padrÃ£o antigo do _store
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
@@ -407,8 +576,15 @@ const DB = {
     const { error } = await getSupa().from('cartoons').delete().eq('id', id);
     if (error) { console.error(error); throw new Error(error.message); }
 
+    const seasonEntries = Object.values(_store.episodes[id] || {}).flat();
+    const movieEntries = _store.movies[id] || [];
+    clearWatchedItems([
+        ...seasonEntries.map(ep => ep.id),
+        ...movieEntries.map(movie => movie.id)
+    ]);
     _store.cartoons = _store.cartoons.filter(c => c.id !== id);
     delete _store.episodes[id];
+    delete _store.movies[id];
   },
 
   /* Cartoons: EpisÃ³dios */
@@ -469,14 +645,17 @@ const DB = {
     const { error } = await getSupa().from('episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
+    clearWatchedItems([epId]);
     if (_store.episodes[cId]?.[season]) {
       _store.episodes[cId][season] = _store.episodes[cId][season].filter(e => e.id !== epId);
     }
   },
   
   async deleteSeason(cId, season) {
+    const deletedIds = (_store.episodes[cId]?.[season] || []).map(ep => ep.id);
     const { error } = await getSupa().from('episodes').delete().eq('cartoon_id', cId).eq('temporada', String(season));
     if (error) throw new Error(error.message);
+    clearWatchedItems(deletedIds);
     if (_store.episodes[cId]) delete _store.episodes[cId][season];
   },
 
@@ -517,6 +696,7 @@ const DB = {
     await checkItemOwnership(mId, 'movies');
     const { error } = await getSupa().from('movies').delete().eq('id', mId);
     if (error) throw new Error(error.message);
+    clearWatchedItems([mId]);
     if (_store.movies[cId]) _store.movies[cId] = _store.movies[cId].filter(m => m.id !== mId);
   },
 
@@ -552,8 +732,13 @@ const DB = {
     const { error } = await getSupa().from('animes').delete().eq('id', id);
     if (error) throw new Error(error.message);
 
+    const animeEpisodeIds = Object.values(_store.animeEpisodes[id] || {})
+      .flatMap(audioGroup => Object.values(audioGroup || {}).flat().map(ep => ep.id));
+    const animeMovieIds = (_store.animeMovies[id] || []).map(movie => movie.id);
+    clearWatchedItems([...animeEpisodeIds, ...animeMovieIds]);
     _store.animes = _store.animes.filter(a => a.id !== id);
     delete _store.animeEpisodes[id];
+    delete _store.animeMovies[id];
   },
 
   /* Animes: EpisÃ³dios */
@@ -561,6 +746,7 @@ const DB = {
     if (!_store.animeEpisodes[aId]) return {};
     return _store.animeEpisodes[aId][audio] || {};
   },
+  getAnimeEpisodes() { return _store.animeEpisodes; },
   
   async addAnimeEpisode(aId, audio, season, epData) {
     const userId = await getRequiredUserId();
@@ -619,16 +805,19 @@ const DB = {
     const { error } = await getSupa().from('anime_episodes').delete().eq('id', epId);
     if (error) throw new Error(error.message);
 
+    clearWatchedItems([epId]);
     if (_store.animeEpisodes[aId]?.[audio]?.[season]) {
       _store.animeEpisodes[aId][audio][season] = _store.animeEpisodes[aId][audio][season].filter(e => e.id !== epId);
     }
   },
 
   async deleteAnimeSeason(aId, audio, season) {
+    const deletedIds = (_store.animeEpisodes[aId]?.[audio]?.[season] || []).map(ep => ep.id);
     const { error } = await getSupa().from('anime_episodes').delete()
         .eq('anime_id', aId).eq('idioma', audio).eq('temporada', String(season));
     if (error) throw new Error(error.message);
 
+    clearWatchedItems(deletedIds);
     if (_store.animeEpisodes[aId]?.[audio]) { 
       delete _store.animeEpisodes[aId][audio][season]; 
     }
@@ -650,12 +839,14 @@ const DB = {
   },
   async deleteAnimeMovie(aId, mId) {
       if (_store.animeMovies[aId]) {
+          clearWatchedItems([mId]);
           _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
       }
   },
 
   /* MangÃ¡s */
   getMangas() { return [..._store.mangas]; },
+  getMangaById(id) { return _store.mangas.find(m => m.id === id) || null; },
   async addManga(data) {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
@@ -680,7 +871,9 @@ const DB = {
     await checkItemOwnership(id, 'mangas');
     const { error } = await getSupa().from('mangas').delete().eq('id', id);
     if (error) throw new Error(error.message);
+    clearWatchedItems((_store.mangaVolumes[id] || []).map(v => v.id));
     _store.mangas = _store.mangas.filter(m => m.id !== id);
+    delete _store.mangaVolumes[id];
   },
 
   getMangaVolumesFor(mangaId) {
@@ -723,6 +916,7 @@ const DB = {
     const { error } = await getSupa().from('manga_volumes').delete().eq('id', volId);
     if (error) throw new Error(error.message);
     
+    clearWatchedItems([volId]);
     if (_store.mangaVolumes[mangaId]) {
         _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].filter(v => v.id !== volId);
     }
@@ -810,7 +1004,59 @@ const DB = {
     await checkItemOwnership(id, 'filmes');
     const { error } = await getSupa().from('filmes').delete().eq('id', id);
     if (error) throw new Error(error.message);
+    clearWatchedItems([id]);
     _store.filmes = _store.filmes.filter(f => f.id !== id);
+  },
+
+  /* Checklist Permanente */
+  isWatched(contentId) {
+    return Boolean(contentId && _store.watched[contentId]);
+  },
+  countWatched(ids = []) {
+    return ids.reduce((total, id) => total + (_store.watched[id] ? 1 : 0), 0);
+  },
+  getAllWatched() {
+    return new Set(Object.keys(_store.watched));
+  },
+  async setWatched(contentId, watched, contentType = 'generic') {
+    if (!contentId) return false;
+
+    const supa = getSupa();
+    const userId = await getRequiredUserId();
+
+    if (watched) {
+      const payload = {
+        user_id: userId,
+        content_id: contentId,
+        content_type: contentType
+      };
+
+      const { data, error } = await supa
+        .from(WATCHED_ITEMS_TABLE)
+        .upsert([payload], { onConflict: 'user_id,content_id' })
+        .select('id, content_type, created_at')
+        .single();
+
+      if (error) throw buildWatchedPersistenceError(error);
+
+      _store.watched[contentId] = {
+        id: data?.id,
+        content_type: data?.content_type || contentType,
+        created_at: data?.created_at || Date.now()
+      };
+      return true;
+    }
+
+    const { error } = await supa
+      .from(WATCHED_ITEMS_TABLE)
+      .delete()
+      .eq('user_id', userId)
+      .eq('content_id', contentId);
+
+    if (error) throw buildWatchedPersistenceError(error);
+
+    delete _store.watched[contentId];
+    return false;
   },
 
   /* IA Config */
@@ -821,8 +1067,320 @@ const DB = {
         .upsert({ key_name: 'aiConfig', config_data: payload }, { onConflict: 'key_name' });
       if (error) throw new Error(error.message);
       _store.aiConfig = payload; 
-  }
+  },
+
+  /* Favoritos Categorizados */
+  async getFavorites(contentType = null) {
+      const supa = getSupa();
+      const userId = await getCurrentUserId();
+      if (!userId) return [];
+      let query = supa.from('user_favorites').select('*').eq('user_id', userId);
+      if (contentType) query = query.eq('content_type', contentType);
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) { console.error(error); return []; }
+      return data || [];
+  },
+
+  async toggleFavorite(contentId, contentType, metadata = {}) {
+      const supa = getSupa();
+      const userId = await getRequiredUserId();
+      
+      // Busca específica com ID e CATEGORIA para evitar ambiguidades
+      const { data: existing } = await supa.from('user_favorites')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('content_id', contentId)
+          .eq('content_type', contentType)
+          .maybeSingle();
+
+      if (existing) {
+          const { error } = await supa.from('user_favorites').delete().eq('id', existing.id);
+          if (error) {
+              console.error("Erro ao remover favorito:", error);
+              throw new Error(error.message || 'Falha ao remover favorito.');
+          }
+          try {
+            window.dispatchEvent(new CustomEvent('favoritesChanged', {
+              detail: { contentId, contentType, action: 'removed' }
+            }));
+          } catch (_) { /* ignore */ }
+          return { action: 'removed' };
+      } else {
+          const { error } = await supa.from('user_favorites').insert([{ 
+              user_id: userId, 
+              content_id: contentId, 
+              content_type: contentType, 
+              title: metadata.title || '',
+              cover_url: metadata.cover || '',
+              metadata: metadata, 
+              created_at: new Date().toISOString() 
+          }]);
+          
+          if (error) {
+              console.error("Erro ao adicionar favorito:", error);
+              throw new Error(error.message || 'Falha ao adicionar favorito.');
+          }
+          try {
+            window.dispatchEvent(new CustomEvent('favoritesChanged', {
+              detail: { contentId, contentType, action: 'added' }
+            }));
+          } catch (_) { /* ignore */ }
+          return { action: 'added' };
+      }
+  },
+
+  /** Atualiza o botão de favorito num .card sem re-render da lista */
+  applyFavoriteCardChrome(card, isFav) {
+      if (!card) return;
+      const star = card.querySelector('.fav-star');
+      if (star) {
+        const label = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
+        star.classList.toggle('active', isFav);
+        star.innerHTML = isFav ? '★' : '☆';
+        star.title = label;
+        star.setAttribute('aria-label', label);
+        star.setAttribute('aria-pressed', String(isFav));
+      }
+
+      const area = card.querySelector('.card-click-area');
+      const ribbon = area?.querySelector('.fav-ribbon');
+      if (ribbon) ribbon.remove();
+  },
+
+  /** Reordena filhos `.card` do grid: favoritos no topo, ordem original preservada */
+  reorderFavoriteCards(grid) {
+      if (!grid) return;
+      const cards = [...grid.querySelectorAll(':scope > .card')];
+      if (cards.length <= 1) return;
+      cards.sort((a, b) => {
+        const aFav = a.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        const bFav = b.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        const ai = parseInt(a.dataset.originIndex, 10);
+        const bi = parseInt(b.dataset.originIndex, 10);
+        return (Number.isFinite(ai) ? ai : 0) - (Number.isFinite(bi) ? bi : 0);
+      });
+      cards.forEach((c) => grid.appendChild(c));
+  },
+
+  findFavoriteCardByContentId(grid, contentId) {
+      if (!grid || contentId == null || contentId === '') return null;
+      const id = String(contentId);
+      const esc = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      const star = grid.querySelector(`.fav-star[data-id="${esc}"]`);
+      return star ? star.closest('.card') : null;
+  },
+
+  /** Wrappers de pílula (desenhos): filhos diretos com .fav-star interno */
+  reorderFavoritePillWrappers(container) {
+      if (!container) return;
+      const items = [...container.children];
+      if (items.length <= 1) return;
+      items.sort((a, b) => {
+        const aFav = a.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        const bFav = b.querySelector('.fav-star')?.classList.contains('active') ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+        const ai = parseInt(a.dataset.originIndex, 10);
+        const bi = parseInt(b.dataset.originIndex, 10);
+        return (Number.isFinite(ai) ? ai : 0) - (Number.isFinite(bi) ? bi : 0);
+      });
+      items.forEach((el) => container.appendChild(el));
+  },
+
+  async isFavorite(contentId, contentType = null) {
+      const supa = getSupa();
+      const userId = await getCurrentUserId();
+      if (!userId) return false;
+      
+      let query = supa.from('user_favorites').select('id').eq('user_id', userId).eq('content_id', contentId);
+      if (contentType) query = query.eq('content_type', contentType);
+      
+      const { data, error } = await query.maybeSingle();
+      if (error) {
+        console.warn("📌 [isFavorite Check] Erro ou não encontrado:", error.message);
+        return false;
+      }
+      return !!data;
+  },
+
+  async removeFavorite(id) {
+      const supa = getSupa();
+      const { error } = await supa.from('user_favorites').delete().eq('id', id);
+      if (error) { console.error(error); return false; }
+      return true;
+  },
+
+  /* PERKS (Database Driven) */
+  isPerkEquipped(perkId) {
+    let store = null;
+
+    // 1) Prioridade para memória sincronizada (estado atual da sessão)
+    if (_store.profile && _store.profile.store_data) {
+      store = _store.profile.store_data;
+    }
+
+    // 2) Fallback por usuário isolado, quando disponível
+    if (!store || !Array.isArray(store.purchased)) {
+      try {
+        const currentUserId = _store.profile?.id || store?._userId || null;
+        if (currentUserId) {
+          const isolatedStore = JSON.parse(localStorage.getItem(`animehouse_store_${currentUserId}`) || 'null');
+          if (isolatedStore && Array.isArray(isolatedStore.purchased)) {
+            store = isolatedStore;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 3) Chave genérica só se for explicitamente deste usuário
+    if (!store || !Array.isArray(store.purchased)) {
+      try {
+        const uid = _store.profile?.id;
+        const localStore = JSON.parse(localStorage.getItem('animehouse_store') || 'null');
+        if (localStore && Array.isArray(localStore.purchased) && uid && localStore._userId === uid) {
+          store = localStore;
+        }
+      } catch (e) {}
+    }
+
+    if (!store) return false;
+
+    const purchased = Array.isArray(store.purchased) ? store.purchased : [];
+    const equipped = store.equipped || {};
+    const hasPurchased = purchased.includes(perkId);
+    const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
+    const isStampedEquipped = localStorage.getItem(`equipped_${perkId}`) === 'true';
+
+    // Se o usuário não está logado, nenhum perk deve estar ativo (itens desequipam)
+    const uid = _store.profile?.id;
+    if (!uid) return false;
+
+    // Regra rígida: só pode estar equipado se foi comprado
+    const result = hasPurchased && (isStrictlyEquipped || isStampedEquipped);
+
+    if (perkId === 'lista_destaque') {
+      window.perkFavoritos = result; // Atalho para debug no console
+      console.log(`⭐ [Perk System] lista_destaque ativo: ${result}`);
+      if (!result) {
+        console.warn(`📌 [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
+      }
+    }
+
+    return result;
+  },
+
+  async saveStoreData(newStoreData) {
+    if (!_store.profile) _store.profile = {};
+    _store.profile.store_data = newStoreData;
+
+    let userId = null;
+    try {
+      userId = await resolveAuthUserId();
+    } catch (e) {
+      console.warn('[DB] resolveAuthUserId falhou:', e?.message);
+    }
+    if (!userId) {
+      try {
+        userId = await getCurrentUserId();
+      } catch (e) {}
+    }
+
+    const storeForDb = sanitizeStoreDataForDb(newStoreData);
+
+    const storeWithUserId = { ...storeForDb, _userId: userId };
+    try {
+      if (userId) {
+        localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
+        localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
+        console.log('💾 [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
+      } else {
+        console.warn('[DB] Sem userId — não gravando animehouse_store (evita vazamento entre contas).');
+      }
+    } catch (err) {
+      console.error('❌ [DB] Falha ao salvar no localStorage:', err);
+    }
+
+    if (!userId) {
+      console.warn('[DB] Sem userId, pulando sincronização com Supabase.');
+      return;
+    }
+
+    let supa;
+    try {
+      supa = getSupa();
+    } catch (e) {
+      console.warn('[DB] Cliente Supabase ausente — só cache local.');
+      return;
+    }
+
+    const ts = new Date().toISOString();
+
+    const { error: rpcErr } = await supa.rpc('animehouse_save_store_data', {
+      p_store: storeForDb
+    });
+
+    if (!rpcErr) {
+      console.log('✅ [DB] Store persistido via RPC animehouse_save_store_data.');
+      return;
+    }
+
+    const msg = String(rpcErr.message || rpcErr.details || '');
+    const rpcMissing =
+      /does not exist|could not find|schema cache/i.test(msg) ||
+      rpcErr.code === '42883' ||
+      rpcErr.code === 'PGRST202';
+
+    if (rpcMissing) {
+      console.warn('[DB] RPC animehouse_save_store_data indisponível — usando REST. Rode database/fixes/14_animehouse_save_store_data_rpc.sql no Supabase.');
+    } else {
+      console.warn('[DB] RPC animehouse_save_store_data:', rpcErr.message || rpcErr);
+    }
+
+    try {
+      const { data: updatedRows, error: updateError } = await supa
+        .from('profiles')
+        .update({ store_data: storeForDb, updated_at: ts })
+        .eq('id', userId)
+        .select('id');
+
+      const updateOk = !updateError && updatedRows && updatedRows.length > 0;
+
+      if (updateOk) {
+        console.log('✅ [DB] Store sincronizado com Supabase (update).');
+        return;
+      }
+
+      if (updateError) {
+        console.warn('[DB] Update falhou:', updateError.message);
+      }
+
+      const { error: upsertError } = await supa
+        .from('profiles')
+        .upsert(
+          {
+            id: userId,
+            store_data: storeForDb,
+            updated_at: ts
+          },
+          { onConflict: 'id' }
+        );
+
+      if (upsertError) {
+        console.error('[DB] Upsert store_data falhou:', upsertError.message);
+        throw upsertError;
+      }
+      console.log('✅ [DB] Store salvo via upsert (fallback REST).');
+    } catch (err) {
+      console.error('[DB] Falha ao persistir store_data no Supabase:', err?.message || err);
+      throw err;
+    }
+  },
 };
+
+if (typeof window !== 'undefined') {
+  window.DB = DB;
+}
+
 
 /* Globals */
 function fileToBase64(file) {

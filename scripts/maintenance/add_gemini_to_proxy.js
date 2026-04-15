@@ -8,7 +8,7 @@
 
 console.log('1) Configure as variaveis no .env:');
 console.log('   GEMINI_API_KEY=AIza...');
-console.log('   GEMINI_MODEL=gemini-2.5-flash');
+console.log('   GEMINI_MODEL=gemini-1.5-flash');
 console.log('');
 
 console.log('2) O proxy deve usar esta ordem para a chave:');
@@ -26,7 +26,7 @@ console.log(`fetch('/api/ai/proxy', {
   body: JSON.stringify({
     target: 'gemini',
     body: {
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       messages: [{ role: 'user', content: 'Me recomende um anime curto.' }],
       stream: false
     }

@@ -9,10 +9,10 @@ CREATE TABLE public.profiles (
 -- 2. Habilita a Segurança de Nível de Linha (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 3. Define quem pode ver os perfis (Público: Sim / Apenas Dono: Mude para auth.uid() = id)
-CREATE POLICY "Qualquer um pode ver perfis" 
+-- 3. Cada usuário só lê a própria linha (store_data / loja não vazam entre contas)
+CREATE POLICY "profiles_select_own" 
 ON public.profiles FOR SELECT 
-USING (true);
+USING (auth.uid() = id);
 
 -- 4. Permite que o usuário crie seu próprio perfil
 CREATE POLICY "Usuários podem criar seu próprio perfil" 

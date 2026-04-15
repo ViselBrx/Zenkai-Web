@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Assistir</title>
+  <title>Anime House — Episódios de Desenhos</title>
   <meta name="description" content="Assista aos episódios dos seus desenhos favoritos por temporada." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
@@ -29,25 +29,23 @@
       color: var(--text-muted);
       transition: background var(--transition), border-color var(--transition), color var(--transition);
     }
-    .cartoon-pill img {
-      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
-    }
+    .cartoon-pill img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
     .cartoon-pill:hover, .cartoon-pill.active {
-      background: rgba(233,69,96,0.12);
-      border-color: var(--primary);
-      color: var(--primary);
+      background: rgba(124,58,237,0.12);
+      border-color: var(--accent2);
+      color: #a78bfa;
     }
-
-    .season-ep-tools {
-      display: flex; gap: .7rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center;
+    
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    .ep-form-row {
-      display: flex; gap: .7rem; flex-wrap: wrap; align-items: flex-end;
+    .content-animate {
+      animation: fadeInSlide 0.5s ease-out forwards;
     }
-    .ep-form-row .form-group { margin-bottom: 0; flex: 1; min-width: 120px; }
   </style>
 </head>
-<body>
+<body class="anime-context">
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -64,30 +62,34 @@
 
 <main class="container">
   <div class="page-header">
-    <h1>▶️ Assistir Episódios</h1>
-    <p>Selecione um desenho e adicione/assista aos episódios por temporada</p>
+    <div class="header-main">
+      <h1>🎬 Episódios de Desenhos</h1>
+      <p>Selecione um desenho e adicione/assista aos episódios por temporada</p>
+    </div>
+    <div id="statsWidget" class="stats-widget"></div>
   </div>
 
-  <!-- SELETOR DE DESENHO -->
+  <!-- SELETOR -->
   <div id="cartoonPills" class="cartoon-selector"></div>
 
-  <!-- ÁREA PRINCIPAL -->
   <div id="noCartoonMsg" class="select-cartoon-prompt" style="display:none;">
     🎬 Selecione um desenho acima para gerenciar e assistir episódios.
   </div>
   <div id="noCartoonRegistered" class="select-cartoon-prompt" style="display:none;">
-    📭 Nenhum desenho cadastrado. <a href="cadastro.html" style="color:var(--primary)">Cadastre um agora.</a>
+    📭 Nenhum desenho cadastrado. <a href="cadastro.html" style="color:var(--accent2)">Cadastre um agora.</a>
   </div>
 
   <div id="episodePanel" style="display:none;">
     <!-- ADICIONAR EPISÓDIO -->
     <form id="epForm" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 id="formActionTitle" style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--accent);letter-spacing:1px;margin:0;">➕ Adicionar Episódio</h3>
-        <select id="entryType" class="form-control" style="width:auto;min-width:140px;height:35px;padding:2px 10px;">
-          <option value="episode">Episódio</option>
-          <option value="movie">Filme</option>
-        </select>
+        <h3 id="formActionTitle" style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--primary);letter-spacing:1px;margin:0;">➕ Adicionar Episódio</h3>
+        <div style="display:flex;gap:10px;">
+          <select id="entryType" class="form-control" style="width:auto;min-width:140px;height:35px;padding:2px 10px;border-color:var(--accent2);">
+            <option value="episode">Episódio</option>
+            <option value="movie">Filme</option>
+          </select>
+        </div>
       </div>
       <div class="ep-form-row">
         <div class="form-group" id="groupSeason">
@@ -116,7 +118,7 @@
     <!-- FILMES -->
     <div id="moviesContainer" style="margin-bottom:2rem;"></div>
 
-    <!-- TEMPORADAS E EPISÓDIOS -->
+    <!-- TEMPORADAS -->
     <div id="seasonsContainer"></div>
   </div>
 </main>
@@ -141,6 +143,7 @@
 <script src="js/watched.js"></script>
 <script src="js/history.js"></script>
 <script src="js/desenhos.js"></script>
+<script src="js/utils-stats.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>

@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
+  if (typeof StatsManager !== 'undefined') StatsManager.render('filmes');
   const grid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let filmes = DB.getFilmes();
   let pendingHistoryResume = null;
+  let openFilmDetailId = null;
 
   function loadPendingHistoryResume() {
     if (typeof HistoryTracker === 'undefined') {
@@ -70,12 +72,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function render() {
+  async function render() {
     const term = searchInput.value.toLowerCase();
     const gen = filterGenero.value;
     const ano = filterAno.value;
 
-    const filtered = filmes.filter(f => {
+    const filtered = filmes.map((f, index) => ({ ...f, _originIndex: index })).filter(f => {
       const matchName = f.nome.toLowerCase().includes(term);
       const matchGenero = gen === '' || f.genero === gen;
       const matchAno = ano === '' || String(f.ano) === ano;
@@ -89,18 +91,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
+    // Buscar favoritos
+    let userFavs = new Set();
+    try {
+      const favs = await DB.getFavorites('filme');
+      userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+      console.warn("Erro ao carregar favoritos de filmes.");
+    }
+
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
+
     filtered.forEach(f => {
+      const isFav = userFavs.has(f.id);
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.originIndex = String(f._originIndex);
+      card.dataset.contentId = f.id;
       const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(f.id);
+
       let imgHtml = f.capa ? `<img src="${f.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${f.capa ? 'display:none;' : ''}">🎬</div>`;
-      const watchedBadge = isWatched 
-        ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);">✓ Assistido</span>`
+      const watchedBadge = isWatched
+        ? `<span style="position:absolute;top:8px;right:8px;background:var(--success);color:#fff;border-radius:50px;padding:3px 10px;font-size:0.72rem;font-weight:700;box-shadow:0 4px 8px rgba(16,185,129,0.3);z-index:4;">✓ Assistido</span>`
         : '';
+
+      const starClass = '';
+      const favBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${f.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
       card.innerHTML = `
-        <div style="position:relative;">${imgHtml}${placeholder}${watchedBadge}</div>
-        <div class="card-body">
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
+          ${imgHtml}${placeholder}${watchedBadge}
+          ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
+        </div>
+        ${favBtnHtml}
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${f.nome}</div>
           <div class="card-meta">
             <span>${f.diretor || ''}</span>
@@ -108,9 +143,48 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="card-badge" style="background:rgba(239,68,68,0.15);color:#f87171;">${f.ano ? f.ano : ''}${f.genero ? (f.ano ? ' · ' : '') + f.genero : ''}</span>
         </div>
       `;
-      card.addEventListener('click', () => openDetailModal(f));
+
+      // Clique no card (abre detalhes)
+      card.onclick = () => openDetailModal(f);
+
+      // Clique na estrela (Favoritar)
+      const favBtn = card.querySelector('.fav-star');
+      if (favBtn) {
+        favBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+             await toggleFavorite(f, favBtn);
+          } catch(err) {
+             console.error(err);
+          }
+        };
+      }
+
       grid.appendChild(card);
     });
+  }
+
+  async function toggleFavorite(item, btn) {
+    try {
+      const res = await DB.toggleFavorite(item.id, 'filme', { title: item.nome, cover: item.capa });
+      const isAdded = res.action === 'added';
+
+      const card = btn.closest('.card') || DB.findFavoriteCardByContentId(grid, item.id);
+      if (card) DB.applyFavoriteCardChrome(card, isAdded);
+      else {
+        btn.classList.toggle('active', isAdded);
+        btn.innerHTML = isAdded ? '★' : '☆';
+        btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      }
+
+      DB.reorderFavoriteCards(grid);
+
+      showToast(isAdded
+        ? `"${item.nome}" adicionado aos favoritos!`
+        : `"${item.nome}" removido dos favoritos.`);
+    } catch (err) {
+      showToast(err.message || 'Erro ao atualizar favoritos.', 'error');
+    }
   }
 
   /* MODAL DETALHES */
@@ -122,8 +196,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailAno = document.getElementById('detailAno');
   const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
-
-  function openDetailModal(f) {
+  async function openDetailModal(f) {
+    openFilmDetailId = f.id;
     detailTitle.textContent = f.nome;
     detailDiretor.textContent = f.diretor || 'N/A';
     detailAno.textContent = f.ano || 'N/A';
@@ -145,9 +219,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const w = Watched.isWatched(f.id);
       watchedDetailBtn.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
       watchedDetailBtn.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
-      watchedDetailBtn.onclick = (e) => {
+      watchedDetailBtn.onclick = async (e) => {
         e.stopPropagation();
-        const nowWatched = Watched.toggle(f.id);
+        let nowWatched;
+        try {
+          nowWatched = await Watched.toggle(f.id, 'filme');
+        } catch (err) {
+          showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+          return;
+        }
         watchedDetailBtn.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
         watchedDetailBtn.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
         render(); // Atualiza badge no card do catálogo
@@ -155,6 +235,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     detailWatchBtn.onclick = () => {
+      openFilmDetailId = null;
       detailModal.classList.remove('open');
       openWatchModal(f);
     };
@@ -163,6 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('detailClose').addEventListener('click', () => {
+    openFilmDetailId = null;
     detailModal.classList.remove('open');
     detailCover.src = '';
   });
@@ -183,8 +265,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const w = Watched.isWatched(f.id);
       wBadge.className = 'watched-modal-badge ' + (w ? 'is-watched' : 'not-watched');
       wBadge.innerHTML = w ? '✓ Assistido' : '○ Marcar como Assistido';
-      wBadge.onclick = () => {
-        const nowWatched = Watched.toggle(f.id);
+      wBadge.onclick = async () => {
+        let nowWatched;
+        try {
+          nowWatched = await Watched.toggle(f.id, 'filme');
+        } catch (err) {
+          showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+          return;
+        }
         wBadge.className = 'watched-modal-badge ' + (nowWatched ? 'is-watched' : 'not-watched');
         wBadge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
         render();
@@ -209,4 +297,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initFilters();
   render();
   tryResumeFilmPlayback();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });

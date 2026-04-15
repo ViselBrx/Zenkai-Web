@@ -99,6 +99,105 @@ function dataUrlToByteArray(dataUrl) {
   return Array.from(Buffer.from(matches[1], 'base64'));
 }
 
+function buildCredentialCandidates(entries) {
+  const seen = new Set();
+  return (entries || [])
+    .map((entry) => ({
+      source: entry?.source || 'desconhecida',
+      value: String(entry?.value || '').trim()
+    }))
+    .filter((entry) => entry.value)
+    .filter((entry) => {
+      if (seen.has(entry.value)) return false;
+      seen.add(entry.value);
+      return true;
+    });
+}
+
+function tryParseJSON(value) {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function shouldRetryWithNextCredential(statusCode, responseBody) {
+  if (![401, 403].includes(Number(statusCode || 0))) return false;
+
+  const parsed = tryParseJSON(responseBody);
+  const rawText = typeof responseBody === 'string'
+    ? responseBody
+    : JSON.stringify(parsed || responseBody || {});
+  const text = rawText.toLowerCase();
+
+  return (
+    text.includes('api key')
+    || text.includes('permission_denied')
+    || text.includes('unauthorized')
+    || text.includes('authentication')
+    || text.includes('invalid')
+    || text.includes('leaked')
+    || text.includes('expired')
+  );
+}
+
+function buildProxyErrorBody(target, statusCode, responseBody) {
+  const parsed = tryParseJSON(responseBody);
+  const providerMessage = parsed?.error?.message || parsed?.message || String(responseBody || '').trim();
+
+  if (target === 'gemini' && /reported as leaked/i.test(providerMessage)) {
+    return JSON.stringify({
+      error: {
+        code: Number(statusCode || 403),
+        status: 'PERMISSION_DENIED',
+        message: 'A chave da Gemini configurada foi marcada como vazada pelo Google. Gere uma nova chave no Google AI Studio e atualize o .env, o data.json ou a chave enviada pelo frontend.',
+        providerMessage
+      }
+    });
+  }
+
+  if (parsed) {
+    return JSON.stringify(parsed);
+  }
+
+  return JSON.stringify({
+    error: {
+      code: Number(statusCode || 500),
+      message: providerMessage || `Erro HTTP ${statusCode || 500}`
+    }
+  });
+}
+
+function makeExternalRequest(apiUrl, options, requestBody) {
+  return new Promise((resolve, reject) => {
+    const proxyReq = https.request(apiUrl, options, (proxyRes) => {
+      let resBody = '';
+
+      proxyRes.on('data', (chunk) => {
+        resBody += chunk;
+      });
+
+      proxyRes.on('end', () => {
+        resolve({
+          statusCode: proxyRes.statusCode || 500,
+          headers: proxyRes.headers || {},
+          body: resBody
+        });
+      });
+    });
+
+    proxyReq.on('error', reject);
+
+    if (requestBody) {
+      proxyReq.write(requestBody);
+    }
+
+    proxyReq.end();
+  });
+}
+
 function safeResolve(baseDir, requestPath) {
   const resolved = path.normalize(path.join(baseDir, requestPath));
   if (resolved !== baseDir && !resolved.startsWith(baseDir + path.sep)) return null;
@@ -108,6 +207,19 @@ function safeResolve(baseDir, requestPath) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname  = decodeURIComponent(parsedUrl.pathname);
+  let normalizedPathname = pathname;
+
+  if (normalizedPathname === '/pages' || normalizedPathname === '/pages/') {
+    normalizedPathname = '/';
+  } else if (normalizedPathname.startsWith('/pages/')) {
+    normalizedPathname = normalizedPathname.slice('/pages'.length);
+  }
+
+  if (normalizedPathname === '/public' || normalizedPathname === '/public/') {
+    normalizedPathname = '/';
+  } else if (normalizedPathname.startsWith('/public/')) {
+    normalizedPathname = normalizedPathname.slice('/public'.length);
+  }
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204, { 
@@ -160,25 +272,30 @@ const server = http.createServer(async (req, res) => {
       console.log(`[AI Proxy] Alvo: ${target} | Método: ${method || 'POST'}`);
       
       let apiUrl = '';
-      let apiKey = '';
       let requestPayload = body || null;
+      let credentialCandidates = [];
 
       if (target === 'groq') {
-        const GROQ_API_KEY = process.env.GROQ_API_KEY;
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-        apiKey = GROQ_API_KEY || frontendApiKey || config.groqKey || '';
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'process.env.GROQ_API_KEY', value: process.env.GROQ_API_KEY },
+          { source: 'data.json -> aiConfig.groqKey', value: config.groqKey }
+        ]);
       } else if (target === 'gemini') {
         const geminiModel = String(
           body?.model
           || process.env.GEMINI_MODEL
           || config.geminiModel
-          || 'gemini-2.5-flash'
+          || 'gemini-2.0-flash'
         ).replace(/^models\//i, '').trim();
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY || frontendApiKey || config.geminiKey || '';
-        apiUrl = GEMINI_API_KEY
-          ? `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${GEMINI_API_KEY}`
-          : '';
-        apiKey = GEMINI_API_KEY;
+        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'process.env.GEMINI_API_KEY', value: process.env.GEMINI_API_KEY },
+          { source: 'process.env.GOOGLE_API_KEY', value: process.env.GOOGLE_API_KEY },
+          { source: 'data.json -> aiConfig.geminiKey', value: config.geminiKey }
+        ]);
         console.log(`[AI Proxy] Gemini model: ${geminiModel}`);
         
         const contents = (body?.messages || []).filter(m => m.role !== 'system').map(m => ({
@@ -218,9 +335,13 @@ const server = http.createServer(async (req, res) => {
       } else if (target === 'cloudflare-vision') {
         const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || config.cloudflareAccountId || '';
         apiUrl = cloudflareAccountId
-          ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/llava-hf/llava-1.5-7b-hf`
+          ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`
           : '';
-        apiKey = process.env.CLOUDFLARE_API_TOKEN || frontendApiKey || config.cloudflareApiToken || '';
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'process.env.CLOUDFLARE_API_TOKEN', value: process.env.CLOUDFLARE_API_TOKEN },
+          { source: 'data.json -> aiConfig.cloudflareApiToken', value: config.cloudflareApiToken }
+        ]);
 
         if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
           const imageBytes = dataUrlToByteArray(body.image);
@@ -235,10 +356,16 @@ const server = http.createServer(async (req, res) => {
         }
       } else if (target === 'zimage') {
         apiUrl = 'https://api.z-image.com/v1/generate';
-        apiKey = config.zimageKey || frontendApiKey;
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'data.json -> aiConfig.zimageKey', value: config.zimageKey }
+        ]);
       } else if (target === 'magichour') {
         apiUrl = 'https://api.magichour.ai/v1/video';
-        apiKey = config.magichourKey || frontendApiKey;
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'data.json -> aiConfig.magichourKey', value: config.magichourKey }
+        ]);
       }
       console.log(`[AI Proxy] URL: ${apiUrl}`);
       console.log(`[AI Proxy] Chave do Frontend chegou? ${!!frontendApiKey} (Valor: ${frontendApiKey ? frontendApiKey.substring(0,6) + '...' : 'Vazio'})`);
@@ -250,52 +377,79 @@ const server = http.createServer(async (req, res) => {
             ? config.cloudflareApiToken
             : '';
       console.log(`[AI Proxy] Chave em data.json para ${target}: ${configKeyPreview ? configKeyPreview.substring(0,6) + '...' : 'Vazio'}`);
-      if (!apiUrl || !apiKey) {
+      if (!apiUrl || credentialCandidates.length === 0) {
         console.error(`[AI Proxy] Erro Crítico: Alvo '${target}' não configurado corretamente.`);
         return sendJSON(res, 400, { error: `Configuração da IA '${target}' ausente. Defina no .env, envie pelo frontend ou salve no data.json.` });
       }
 
-      console.log(`[AI Proxy] Chamando API externa: ${apiUrl}`);
-
-      const options = {
-        method: method || 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          ...(headers || {})
-        }
-      };
-
-      if (target === 'gemini') {
-        delete options.headers['Authorization']; // Gemini usa key na URL
-      }
-
       const requestBody = requestPayload ? JSON.stringify(requestPayload) : null;
-      if (requestBody) {
-        options.headers['Content-Length'] = Buffer.byteLength(requestBody);
+      let lastAttempt = null;
+
+      for (let index = 0; index < credentialCandidates.length; index += 1) {
+        const credential = credentialCandidates[index];
+        const attemptUrl = target === 'gemini'
+          ? `${apiUrl}?key=${encodeURIComponent(credential.value)}`
+          : apiUrl;
+        const options = {
+          method: method || 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(headers || {})
+          }
+        };
+
+        if (target !== 'gemini') {
+          options.headers['Authorization'] = `Bearer ${credential.value}`;
+        }
+
+        if (requestBody) {
+          options.headers['Content-Length'] = Buffer.byteLength(requestBody);
+        }
+
+        console.log(`[AI Proxy] Chamando API externa: ${attemptUrl}`);
+        console.log(`[AI Proxy] Tentativa ${index + 1}/${credentialCandidates.length} com chave de ${credential.source}`);
+
+        try {
+          const attempt = await makeExternalRequest(attemptUrl, options, requestBody);
+          lastAttempt = attempt;
+
+          console.log(`[AI Proxy] Resposta recebida: ${attempt.statusCode}`);
+          console.log(`[AI Proxy] Resposta Final (Primeiros 100 caracteres): ${attempt.body.substring(0, 100)}...`);
+
+          if (
+            attempt.statusCode >= 400
+            && shouldRetryWithNextCredential(attempt.statusCode, attempt.body)
+            && index < (credentialCandidates.length - 1)
+          ) {
+            console.warn(`[AI Proxy] Falha de autenticacao/permissao com ${credential.source}. Tentando proxima chave.`);
+            continue;
+          }
+
+          if (attempt.statusCode >= 400) {
+            console.error(`[AI Proxy] Erro da API Externa (${attempt.statusCode}):`, attempt.body);
+            res.writeHead(attempt.statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(buildProxyErrorBody(target, attempt.statusCode, attempt.body));
+            return;
+          }
+
+          res.writeHead(attempt.statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+          res.end(attempt.body);
+          return;
+        } catch (proxyError) {
+          console.error(`[AI Proxy] Erro de rede com ${credential.source}: ${proxyError.message}`);
+          if (index === (credentialCandidates.length - 1)) {
+            return sendJSON(res, 500, { error: 'Falha no Proxy da IA: ' + proxyError.message });
+          }
+        }
       }
 
-      const proxyReq = https.request(apiUrl, options, (proxyRes) => {
-        let resBody = '';
-        console.log(`[AI Proxy] Resposta recebida: ${proxyRes.statusCode}`);
-        proxyRes.on('data', (d) => { resBody += d; });
-        proxyRes.on('end', () => {
-          console.log(`[AI Proxy] Resposta Final (Primeiros 100 caracteres): ${resBody.substring(0, 100)}...`);
-          if (proxyRes.statusCode >= 400) {
-            console.error(`[AI Proxy] Erro da API Externa (${proxyRes.statusCode}):`, resBody);
-          }
-          res.writeHead(proxyRes.statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
-          res.end(resBody);
-        });
-      });
+      if (lastAttempt && lastAttempt.statusCode >= 400) {
+        res.writeHead(lastAttempt.statusCode, { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+        res.end(buildProxyErrorBody(target, lastAttempt.statusCode, lastAttempt.body));
+        return;
+      }
 
-      proxyReq.on('error', (e) => {
-        sendJSON(res, 500, { error: 'Falha no Proxy da IA: ' + e.message });
-      });
-
-      if (requestBody) proxyReq.write(requestBody);
-      proxyReq.end();
-      return;
+      return sendJSON(res, 500, { error: 'Falha no Proxy da IA: nenhuma credencial conseguiu concluir a requisicao.' });
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
@@ -305,8 +459,8 @@ const server = http.createServer(async (req, res) => {
   }
 
   // ── ARQUIVOS ESTÁTICOS ──
-  const requestPath = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
-  const isHtmlRequest = pathname === '/' || path.extname(requestPath).toLowerCase() === '.html';
+  const requestPath = normalizedPathname === '/' ? 'index.html' : normalizedPathname.replace(/^\/+/, '');
+  const isHtmlRequest = normalizedPathname === '/' || path.extname(requestPath).toLowerCase() === '.html';
   const baseDir = isHtmlRequest ? PAGES_DIR : PUBLIC_DIR;
   const filePath = safeResolve(baseDir, requestPath);
   if (!filePath) { res.writeHead(403); return res.end('Proibido'); }

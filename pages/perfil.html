@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .profile-shell {
       max-width: 1320px;
@@ -367,7 +368,697 @@
         justify-content: center;
       }
     }
-  </style>
+    .avatar-view-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .avatar-view-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .avatar-view-container {
+      position: relative;
+      transform: scale(0.85);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .avatar-view-overlay.active .avatar-view-container {
+      transform: scale(1);
+    }
+    .avatar-view-img {
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      object-fit: cover;
+      box-shadow: 0 0 60px rgba(var(--primary-rgb), 0.45);
+      background: var(--bg-card);
+    }
+    .avatar-view-close {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 1;
+    }
+    @media (max-width: 480px) {
+      .avatar-view-img {
+        width: 85vw;
+        height: 85vw;
+      }
+    }
+    .profile-bubble {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .profile-bubble:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.6);
+    }
+
+    /* Dashboard & Stats Styles */
+    .profile-dashboard {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid rgba(var(--primary-rgb), 0.2);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: rgba(var(--bg-card), 0.5);
+      border: 1px solid rgba(var(--primary-rgb), 0.15);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(var(--primary-rgb), 0.4);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Bangers', cursive;
+      font-size: 1.2rem;
+      color: var(--primary);
+      letter-spacing: 1px;
+    }
+
+    /* Level Bar */
+    .level-container {
+      position: relative;
+    }
+
+    .level-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .level-badge {
+      background: var(--primary);
+      color: #000;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+
+    .progress-bar-bg {
+      height: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      width: 0%;
+      transition: width 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+      box-shadow: 0 0 15px var(--primary);
+    }
+
+    /* Patents / Badges */
+    .patents-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .patent-badge {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(var(--primary-rgb), 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      position: relative;
+      filter: grayscale(1);
+      opacity: 0.3;
+      transition: all 0.4s ease;
+    }
+
+    .patent-badge.unlocked {
+      filter: grayscale(0);
+      opacity: 1;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
+      cursor: help;
+    }
+
+    .patent-badge.unlocked:hover {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .patent-badge::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: -15px;
+      font-size: 0.6rem;
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    /* Donut Chart Custom */
+    .chart-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .donut-chart {
+      width: 150px;
+      height: 150px;
+      transform: rotate(-90deg);
+    }
+
+    .donut-ring {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.05);
+      stroke-width: 15;
+    }
+
+    .donut-segment {
+      fill: none;
+      stroke-width: 15;
+      stroke-linecap: round;
+      transition: stroke-dasharray 1.5s ease;
+    }
+
+    .chart-label {
+      position: absolute;
+      font-family: 'Bangers';
+      font-size: 1.5rem;
+      color: var(--primary);
+      text-align: center;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* Animated Avatar Auras */
+
+    /* ===== CHROMATIC EMERALD THEME - RAINBOW MIX ===== */
+    @keyframes chromatic-rainbow {
+      0% { filter: hue-rotate(0deg) brightness(1.3) saturate(1.2); }
+      16% { filter: hue-rotate(60deg) brightness(1.4) saturate(1.3); }
+      33% { filter: hue-rotate(120deg) brightness(1.3) saturate(1.2); }
+      50% { filter: hue-rotate(180deg) brightness(1.5) saturate(1.4); }
+      66% { filter: hue-rotate(240deg) brightness(1.3) saturate(1.2); }
+      83% { filter: hue-rotate(300deg) brightness(1.4) saturate(1.3); }
+      100% { filter: hue-rotate(360deg) brightness(1.3) saturate(1.2); }
+    }
+    @keyframes chromatic-shine {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes border-glow-chromatic {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(255, 0, 128, 0.4), 0 0 40px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(255, 215, 0, 0.1);
+        border-color: rgba(255, 0, 128, 0.6);
+      }
+      25% {
+        box-shadow: 0 0 25px rgba(255, 128, 0, 0.5), 0 0 50px rgba(128, 0, 255, 0.35), inset 0 0 25px rgba(255, 128, 0, 0.15);
+        border-color: rgba(255, 128, 0, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(0, 255, 128, 0.6), 0 0 60px rgba(255, 0, 255, 0.4), inset 0 0 30px rgba(0, 255, 128, 0.2);
+        border-color: rgba(0, 255, 128, 0.8);
+      }
+      75% {
+        box-shadow: 0 0 25px rgba(0, 128, 255, 0.5), 0 0 50px rgba(255, 255, 0, 0.35), inset 0 0 25px rgba(0, 128, 255, 0.15);
+        border-color: rgba(0, 128, 255, 0.7);
+      }
+    }
+    @keyframes gradient-shift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .item-card-emerald {
+      background: linear-gradient(145deg, rgba(30, 20, 40, 0.95), rgba(20, 15, 30, 0.98)) !important;
+      border: 2px solid transparent !important;
+      background-clip: padding-box, border-box !important;
+      background-origin: padding-box, border-box !important;
+      background-image: linear-gradient(145deg, rgba(30, 20, 40, 0.95), rgba(20, 15, 30, 0.98)),
+                        linear-gradient(45deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff, #ff0080) !important;
+      background-size: 100% 100%, 400% 400% !important;
+      animation: border-glow-chromatic 8s ease-in-out infinite, gradient-shift 10s ease-in-out infinite !important;
+      position: relative;
+      overflow: hidden;
+      will-change: box-shadow;
+      /* Containment: o browser pinta este card de forma isolada, sem afetar o layout externo */
+      contain: layout style paint;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+    .item-card-emerald::before {
+      content: '';
+      position: absolute;
+      top: -25%;
+      left: -25%;
+      width: 150%;
+      height: 150%;
+      background: conic-gradient(from 0deg, transparent, rgba(255, 0, 128, 0.06), transparent, rgba(0, 255, 255, 0.06), transparent, rgba(255, 215, 0, 0.06), transparent);
+      animation: rotate 25s linear infinite;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .item-card-emerald::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+      animation: chromatic-shine 7s ease-in-out infinite;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .item-card-emerald .item-icon {
+      animation: chromatic-rainbow 9s ease-in-out infinite;
+      text-shadow: 0 0 20px rgba(255, 0, 128, 0.6), 0 0 40px rgba(0, 255, 255, 0.4);
+      z-index: 1;
+      position: relative;
+      will-change: filter;
+    }
+    .item-card-emerald .item-rarity {
+      background: linear-gradient(90deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff, #ff0080);
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: chromatic-shine 12s ease-in-out infinite, chromatic-rainbow 14s ease-in-out infinite;
+      font-weight: 800;
+      position: relative;
+      z-index: 1;
+      will-change: filter;
+    }
+    .btn-equip-chromatic {
+      background: linear-gradient(135deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff) !important;
+      background-size: 300% auto !important;
+      color: #fff !important;
+      border: none !important;
+      animation: chromatic-shine-btn 10s ease-in-out infinite, gradient-shift 10s ease-in-out infinite !important;
+      font-weight: 800 !important;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
+      position: relative;
+      z-index: 1;
+      will-change: background-position;
+    }
+    @keyframes chromatic-shine-btn {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .btn-equip-chromatic:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 0, 128, 0.6), 0 0 50px rgba(0, 255, 255, 0.4);
+    }
+    .btn-equipped-chromatic {
+      background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+      color: #fff !important;
+    }
+    .equipped-badge-chromatic {
+      background: linear-gradient(135deg, #ff0080, #00ffff, #ff0080) !important;
+      background-size: 200% auto !important;
+      color: #fff !important;
+      animation: chromatic-shine 8s ease-in-out infinite !important;
+      text-shadow: 0 0 5px rgba(0,0,0,0.5) !important;
+      will-change: background-position;
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== INVENTORY CARD STYLES ===== */
+    .inventory-item-card {
+      background: linear-gradient(145deg, rgba(30,30,50,0.6), rgba(10,10,25,0.8));
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: card-fade-in 0.3s ease;
+    }
+    @keyframes card-fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .inventory-item-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .inventory-item-card.ouro { border: 2px solid rgba(212, 175, 55, 0.5); }
+    .inventory-item-card.diamante { border: 2px solid rgba(100, 200, 255, 0.5); }
+    .inventory-item-card.esmeralda { border: 2px solid rgba(255, 215, 0, 0.6); }
+    .inventory-item-card.equipped {
+      box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.4);
+    }
+    .inventory-item-card .item-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+    .inventory-item-card .btn-equip {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transform: scale(1);
+    }
+    .inventory-item-card .btn-equip:active {
+      transform: scale(0.95);
+    }
+    .inventory-item-card .btn-equip.ouro {
+      background: linear-gradient(135deg, #d4af37, #b8960c);
+      color: #1a1200;
+    }
+    .inventory-item-card .btn-equip.diamante {
+      background: linear-gradient(135deg, #64c8ff, #3aa8e0);
+      color: #001a2e;
+    }
+    .inventory-item-card .btn-equip.esmeralda:not(.equipped) {
+      background: linear-gradient(135deg, #ff0080, #ff8000, #80ff00, #00ff80, #0080ff, #8000ff) !important;
+      background-size: 300% auto !important;
+      animation: gradient-shift 4s ease infinite, chromatic-shine-btn 3s linear infinite !important;
+      color: #fff !important;
+      text-shadow: 0 0 8px rgba(0,0,0,0.6) !important;
+      font-weight: 800 !important;
+    }
+    .inventory-item-card .btn-equip.equipped {
+      background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+      color: #fff !important;
+    }
+    .equipped-indicator {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+      z-index: 2;
+    }
+    .inventory-item-card.esmeralda .equipped-indicator {
+      background: linear-gradient(135deg, #ff0080, #00ffff, #ff0080) !important;
+      background-size: 200% auto !important;
+      animation: chromatic-shine 2s linear infinite !important;
+      box-shadow: 0 0 15px rgba(255, 0, 128, 0.7), 0 0 25px rgba(0, 255, 255, 0.5) !important;
+    }
+
+    /* ===== FLUID EQUIP ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-equip {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.4); }
+      50% { transform: scale(1.02); box-shadow: 0 0 35px rgba(var(--primary-rgb), 0.6); }
+    }
+
+    .inventory-item-card.equipped {
+      animation: pulse-equip 2s ease-in-out infinite;
+      border-color: rgba(var(--primary-rgb), 0.8) !important;
+    }
+
+    .inventory-item-card .btn-equip {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .inventory-item-card .btn-equip::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s;
+    }
+
+    .inventory-item-card .btn-equip:active::after {
+      width: 200%;
+      height: 200%;
+    }
+
+    .equipped-indicator {
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* ===== LEVEL UP TOAST ===== */
+    #levelUpToast {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #levelUpToast.hidden { display: none; }
+    #levelUpCard {
+      background: linear-gradient(135deg, rgba(10,15,40,0.97) 0%, rgba(20,10,40,0.97) 100%);
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      padding: 36px 48px;
+      text-align: center;
+      box-shadow: 0 0 60px rgba(var(--primary-rgb),0.5), 0 0 120px rgba(var(--primary-rgb),0.2);
+      position: relative;
+      overflow: hidden;
+      max-width: 420px;
+      width: 90vw;
+      pointer-events: all;
+      animation: lvlup-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes lvlup-enter {
+      from { transform: scale(0.5) translateY(60px); opacity: 0; }
+      to   { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    @keyframes lvlup-exit {
+      from { transform: scale(1) translateY(0); opacity: 1; }
+      to   { transform: scale(0.7) translateY(-40px); opacity: 0; }
+    }
+    .lvlup-exit { animation: lvlup-exit 0.5s ease-in both !important; }
+    #levelUpCard::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(var(--primary-rgb),0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #levelUpToast .lvl-badge {
+      font-family: 'Bangers', cursive;
+      font-size: 4.5rem;
+      color: var(--primary);
+      text-shadow: 0 0 30px rgba(var(--primary-rgb),0.9), 0 0 60px rgba(var(--primary-rgb),0.4);
+      line-height: 1;
+      animation: lvlbadge-pulse 1s infinite alternate;
+    }
+    @keyframes lvlbadge-pulse {
+      from { text-shadow: 0 0 20px rgba(var(--primary-rgb),0.7); }
+      to   { text-shadow: 0 0 50px rgba(var(--primary-rgb),1), 0 0 80px rgba(var(--primary-rgb),0.5); }
+    }
+    #levelUpToast .lvl-label {
+      font-family: 'Bangers', cursive;
+      font-size: 1.1rem;
+      letter-spacing: 4px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    #levelUpToast .rank-badge {
+      margin-top: 18px;
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 50px;
+      background: linear-gradient(90deg, rgba(var(--primary-rgb),0.2), rgba(var(--primary-rgb),0.1));
+      border: 1px solid rgba(var(--primary-rgb),0.5);
+      font-family: 'Bangers', cursive;
+      font-size: 1.3rem;
+      letter-spacing: 2px;
+      color: gold;
+      text-shadow: 0 0 10px gold;
+    }
+    #levelUpToast .particles span {
+      position: absolute;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: particle-fly 1.2s ease-out forwards;
+    }
+    @keyframes particle-fly {
+      from { transform: translate(0,0) scale(1); opacity: 1; }
+      to   { transform: var(--tx, translate(80px,-120px)) scale(0); opacity: 0; }
+    }
+
+    /* ===== VIP LOCKED PREVIEW ===== */
+    .vip-locked-section {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px dashed rgba(var(--primary-rgb),0.3);
+      position: relative;
+    }
+    .vip-locked-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(5,15,31,0.7);
+      backdrop-filter: blur(3px);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      z-index: 10;
+    }
+    .vip-locked-overlay .lock-icon { font-size: 2rem; }
+    .vip-locked-overlay .lock-msg {
+      font-family: 'Bangers', cursive;
+      font-size: 1rem;
+      color: var(--primary);
+      letter-spacing: 1px;
+    }
+    .vip-locked-overlay .lock-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-top: 20px;
+      }
+      .stat-card.full-width {
+        grid-column: span 2;
+      }
+      .analysis-section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .analysis-item {
+        background: rgba(0,0,0,0.2);
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(var(--primary-rgb), 0.1);
+      }
+      .analysis-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .analysis-label span:last-child {
+        color: var(--primary);
+      }
+      .analysis-bar-bg {
+        height: 8px;
+        background: rgba(var(--primary-rgb), 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .analysis-bar-fill {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 1s ease;
+        box-shadow: 0 0 10px var(--primary);
+      }
+
+      .chart-box {
+        position: relative;
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 768px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .stat-card.full-width { grid-column: span 1; }
+      }
+    </style>
 </head>
 <body>
 
@@ -401,10 +1092,16 @@
         <p>Nenhum item no seu histórico ainda.</p>
       </div>
 
-      <div class="sidebar-footer">
-        <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" class="profile-bubble" alt="Avatar" />
-        <div class="profile-identity">
-          <strong id="displayUsername">Carregando...</strong>
+      <div class="sidebar-footer" style="padding-top: 25px; margin-top: auto; display: flex; align-items: center; gap: 15px;">
+        <div id="displayAvatarBox" class="avatar-aura-wrap" style="position: relative; display: flex; align-items: center; justify-content: center; width: 75px; height: 75px;">
+           <div id="sidebarCrown" style="position: absolute; top: -25px; left: 50%; transform: translateX(-50%) rotate(15deg); font-size: 2rem; z-index: 10; text-shadow: 0 0 12px gold; pointer-events: none; display: none;">👑</div>
+           <img id="displayAvatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; transition: transform 0.3s;" alt="Avatar" />
+        </div>
+        <div class="profile-identity" style="flex: 1; padding-top: 10px;">
+          <strong id="displayUsername" style="display:flex; flex-direction:column;">
+             <span style="font-size:1.15rem;">Carregando...</span>
+             <span id="displayCustomTitle" style="font-size:0.95rem; background: linear-gradient(90deg, #ff8a00, #e52e71, #ffac00); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine-text 3s linear infinite; font-family:'Bangers'; letter-spacing:1px; margin-top:2px;"></span>
+          </strong>
           <span id="displayEmail">---</span>
         </div>
       </div>
@@ -440,9 +1137,276 @@
       </form>
 
       <a class="back-link" href="index.html">&larr; Voltar ao Início</a>
+
+      <!-- MEUS ESPECIAIS / ITENS EQUIPADOS -->
+      <section class="profile-dashboard" id="meusEspeciaisSection" style="margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(var(--primary-rgb), 0.2);">
+        <div class="main-head">
+          <h2 style="font-family: 'Bangers'; color: var(--primary); font-size: 1.8rem;">✨ Meus Especiais</h2>
+          <p>Seus itens comprados e equipados da loja.</p>
+        </div>
+
+        <div class="stat-card full-width">
+          <div class="stat-header">
+            <span>🎒</span> Inventário de Itens
+          </div>
+          <div id="inventoryDisplay" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+            <!-- Itens serão renderizados aqui via JS -->
+          </div>
+          <div id="emptyInventoryMsg" style="text-align: center; padding: 30px; color: var(--text-muted); display: none;">
+            <p style="font-size: 1.2rem; margin-bottom: 10px;">📦</p>
+            <p>Seu inventário está vazio...</p>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Visite a <a href="loja.html" style="color: var(--primary);">loja</a> para comprar itens épicos!</p>
+          </div>
+        </div>
+
+        <!-- Itens Equipados -->
+        <div class="stat-card full-width" style="margin-top: 20px;">
+          <div class="stat-header">
+            <span>⚡</span> Itens Atualmente Equipados
+          </div>
+          <div id="equippedItemsDisplay" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+            <!-- Itens equipados serão mostrados aqui -->
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD DE ESTATÍSTICAS -->
+      <section class="profile-dashboard">
+        <div class="main-head">
+          <h2 style="font-family: 'Bangers'; color: var(--primary); font-size: 1.8rem;">📊 Patamar do Usuário</h2>
+          <p>Seu progresso, conquistas e atividades no site.</p>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-header">
+            <span>🔥</span> Nível do Usuário
+          </div>
+          <div class="level-container">
+            <div class="level-info">
+              <span id="rankTitle">Novato</span>
+              <span class="level-badge" id="levelNumber">LVL 1</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="levelProgress"></div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 8px;">
+              Progresso: <span id="xpCurrent" style="color:var(--primary); font-weight:bold;">0</span> / <span id="xpTarget">100</span> XP (<span id="totalXpCount">0</span> XP Total)
+            </p>
+
+            <details style="margin-top: 15px; font-family: 'Inter', sans-serif;">
+               <summary style="font-size: 0.7rem; font-weight: 500; color: var(--text-muted); cursor: pointer; user-select: none; transition: 0.3s; padding: 4px;">ℹ️ Entenda como pontuar XP</summary>
+               <table style="width: 100%; font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; text-align: left; border-collapse: collapse; background: rgba(var(--bg-rgb), 0.3); border-radius: 6px; padding: 5px;">
+                  <tr style="border-bottom: 1px solid rgba(var(--primary-rgb),0.2);">
+                     <th style="padding: 4px;">Atividade</th>
+                     <th style="padding: 4px; text-align: right;">Ganhos (XP)</th>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(var(--primary-rgb),0.1);">
+                     <td style="padding: 4px;">📺 Ep. Anime / 🎨 Desenho</td>
+                     <td style="padding: 4px; text-align: right; color: var(--primary);">+10 XP</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid rgba(var(--primary-rgb),0.1);">
+                     <td style="padding: 4px;">📚 Vol. Mangá</td>
+                     <td style="padding: 4px; text-align: right; color: var(--primary);">+15 XP</td>
+                  </tr>
+                  <tr>
+                     <td style="padding: 4px;">🎬 Filme completo</td>
+                     <td style="padding: 4px; text-align: right; color: var(--primary);">+50 XP</td>
+                  </tr>
+               </table>
+            </details>
+
+            <!-- VIP - Benefícios Hon. (visivel bloqueado até LVL 50) -->
+            <div class="vip-locked-section">
+               <!-- Overlay de bloqueio, removido por JS quando o level >= 50 -->
+               <div class="vip-locked-overlay" id="vipLockedOverlay">
+                  <span class="lock-icon">🔒</span>
+                  <span class="lock-msg">BENEFÍCIOS HONÓRIOS</span>
+                  <span class="lock-sub">Desbloqueado no LVL 50 • Hokage</span>
+               </div>
+
+               <!-- Conteúdo sempre renderizado mas bloqueado pelo overlay -->
+               <h4 style="color:var(--primary); font-family: 'Bangers'; font-size: 1.2rem; margin-bottom: 10px;">👑 Benefícios Honórios</h4>
+
+               <div style="margin-bottom: 10px; opacity: 0.5; pointer-events: none;" id="vipPerksContent">
+                  <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Meu Título de Sensei:</label>
+                  <div style="display: flex; gap: 8px;">
+                     <input type="text" id="customTitleInput" placeholder="Ex: Mestre Jedi" style="flex:1; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 0.8rem;">
+                     <button type="button" id="saveCustomTitleBtn" class="btn btn-primary" style="padding: 6px 12px; border-radius: 6px; font-size: 0.8rem;">Salvar</button>
+                  </div>
+
+                  <div style="margin-top: 10px;">
+                     <label style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 5px;">Aura Mística (Borda):</label>
+                     <select id="auraSelector" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-size: 0.8rem;">
+                        <option value="none">Nenhuma</option>
+                        <optgroup label="🎨 Auras da Loja">
+                          <option value="aura_chama">🔥 Aura Chama Simples (Ouro)</option>
+                          <option value="aura_chama_naruto">🔥 Aura Modo Sábio (Ouro)</option>
+                          <option value="aura_ceifador">📓 Aura Olhar do Ceifador (Ouro)</option>
+                          <option value="aura_thunder">⚡ Aura Relâmpago (Diamante)</option>
+                          <option value="aura_sakura">🌸 Aura Pétala de Sakura (Diamante)</option>
+                          <option value="aura_gelo">❄️ Aura Cristal de Gelo (Diamante)</option>
+                          <option value="aura_susanoo">⚡ Aura Susanoo Perfeito (Diamante)</option>
+                          <option value="aura_stands">🟣 Aura Stand Star Platinum (Diamante)</option>
+                          <option value="aura_dragon">🐉 Aura Dragão Arcano (Esmeralda)</option>
+                          <option value="aura_void_saitama">👊 Aura ONE PUNCH (Esmeralda)</option>
+                        </optgroup>
+                        <optgroup label="⭐ Auras de Nível">
+                          <option value="avatar-aura-fire">🔥 Chamas do Hokage (LVL 50)</option>
+                          <option value="avatar-aura-guardian">🛡️ Escudo de Guardião (LVL 75)</option>
+                          <option value="avatar-aura-immortal">⚡ Poder Imortal (LVL 100)</option>
+                        </optgroup>
+                     </select>
+                  </div>
+
+                  <label style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-top: 15px; cursor: pointer;">
+                     <input type="checkbox" id="crownToggle" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                     <span style="font-family:'Bangers'; color: gold; letter-spacing:1px;">EQUIPAR COROA SUPREMA 👑</span>
+                     <span id="crownLockText" style="font-size: 0.65rem; color: var(--danger); display:none;">(Desbloqueia no LVL 50)</span>
+                  </label>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Patentes -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <span>🏅</span> Patentes de Uso
+            </div>
+            <div class="patents-list" id="patentsList">
+              <div class="patent-badge" data-label="Bronze" data-desc="Alcançou o Nível 1.">🥉</div>
+              <div class="patent-badge" data-label="Prata" data-desc="Alcançou o Nível 5.">🥈</div>
+              <div class="patent-badge" data-label="Ouro" data-desc="Alcançou o Nível 10.">🥇</div>
+              <div class="patent-badge" data-label="Mestre" data-desc="Alcançou o Nível 20.">🥋</div>
+              <div class="patent-badge" data-label="Lenda" data-desc="Alcançou o Nível 30.">💎</div>
+              <div class="patent-badge" data-label="Hokage" data-desc="Alcançou o Nível 50. Um verdadeiro líder.">🔥</div>
+              <div class="patent-badge" data-label="Guardião" data-desc="Alcançou o Nível 75. O protetor do portal.">🛡️</div>
+              <div class="patent-badge" data-label="Imortal" data-desc="Alcançou o Nível 100. Sua lenda nunca morrerá.">⚡</div>
+            </div>
+          </div>
+
+          <!-- Gráfico de Pizza Circular -->
+          <div class="stat-card">
+            <div class="stat-header">
+              <span>📈</span> Balanço de Assistidos
+            </div>
+            <div class="chart-box">
+              <canvas id="balanceChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Análise Detalhada -->
+          <div class="stat-card full-width">
+            <div class="stat-header">
+               <span>📊</span> Análise Detalhada de Progresso
+            </div>
+            <div class="analysis-section">
+               <div class="analysis-item">
+                  <div class="analysis-label">
+                     <span style="color:var(--primary);">⛩️ Animes</span>
+                     <span id="animeLabel">0/0</span>
+                  </div>
+                  <div class="analysis-bar-bg" style="background: rgba(var(--primary-rgb), 0.1);">
+                     <div class="analysis-bar-fill" id="animeBar" style="background:var(--primary); box-shadow: 0 0 10px var(--primary);"></div>
+                  </div>
+               </div>
+               <!-- Desenhos -->
+               <div class="analysis-item">
+                  <div class="analysis-label">
+                     <span style="color:var(--accent2);">🎨 Desenhos</span>
+                     <span id="cartoonLabel">0/0</span>
+                  </div>
+                  <div class="analysis-bar-bg" style="background: rgba(var(--accent2-rgb, var(--primary-rgb)), 0.1);">
+                     <div class="analysis-bar-fill" id="cartoonBar" style="background:var(--accent2); box-shadow: 0 0 10px var(--accent2);"></div>
+                  </div>
+               </div>
+               <!-- Mangás -->
+               <div class="analysis-item">
+                  <div class="analysis-label">
+                     <span style="color:var(--accent);">📚 Mangás</span>
+                     <span id="mangaLabel">0/0</span>
+                  </div>
+                  <div class="analysis-bar-bg" style="background: rgba(var(--accent-rgb, var(--primary-rgb)), 0.1);">
+                     <div class="analysis-bar-fill" id="mangaBar" style="background:var(--accent); box-shadow: 0 0 10px var(--accent);"></div>
+                  </div>
+               </div>
+               <!-- Filmes -->
+               <div class="analysis-item">
+                  <div class="analysis-label" title="Política de 50% conforme solicitado">
+                     <span style="color:var(--primary);">🎬 Filmes (Política 50%)</span>
+                     <span id="movieLabel">0/0</span>
+                  </div>
+                  <div class="analysis-bar-bg" style="background: rgba(var(--primary-rgb), 0.1);">
+                     <div class="analysis-bar-fill" id="movieBar" style="background:var(--primary); filter: brightness(1.2); box-shadow: 0 0 10px var(--primary);"></div>
+                  </div>
+               </div>
+            </div>
+            <p id="globalStatsText" style="margin-top:15px; text-align:center; font-size:0.8rem; color:var(--text-muted);"></p>
+          </div>
+
+          <!-- Categoria Favorita -->
+          <div class="stat-card full-width" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(var(--primary-rgb), 0.1) 100%);">
+            <div class="stat-header">
+              <span>🌟</span> Top Categoria
+            </div>
+            <div style="text-align: center; padding: 10px 0;">
+              <h3 id="favCategory" style="font-size: 1.5rem; color: var(--primary); font-family: 'Bangers';">Nenhuma</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">A que você mais consome</p>
+            </div>
+          </div>
+
+          <!-- Tempo Estimado -->
+          <div class="stat-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(var(--primary-rgb), 0.1) 100%);">
+            <div class="stat-header">
+              <span>⏱️</span> Tempo de Tela (Est.)
+            </div>
+            <div style="text-align: center; padding: 10px 0;">
+              <h3 id="estimatedTime" style="font-size: 1.8rem; color: var(--primary); font-family: 'Bangers';">0h 0m</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Baseado em 24min por item</p>
+            </div>
+          </div>
+
+          <!-- IA Chat Stats -->
+          <div class="stat-card" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(var(--primary-rgb), 0.1) 100%);">
+            <div class="stat-header">
+              <span>🤖</span> Consultas I.A.
+            </div>
+            <div style="text-align: center; padding: 10px 0;">
+              <h3 id="iaCount" style="font-size: 1.8rem; color: var(--primary); font-family: 'Bangers';">0</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Análises solicitadas</p>
+            </div>
+          </div>
+
+          <!-- Última Atividade -->
+          <div class="stat-card full-width" style="background: linear-gradient(135deg, var(--bg-card) 0%, rgba(var(--primary-rgb), 0.1) 100%);">
+            <div class="stat-header">
+              <span>🕒</span> Última Atividade
+            </div>
+            <div style="padding: 5px 10px;">
+              <p id="lastActivityTitle" style="font-size: 0.9rem; font-weight: bold; color: var(--primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Nenhuma</p>
+              <p id="lastActivityDate" style="font-size: 0.7rem; color: var(--text-muted);">---</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
   </div>
-</main>
+</div>
+
+<div class="modal-overlay" id="patentModal">
+  <div class="modal" style="max-width:380px; text-align: center;">
+    <div class="modal-header">
+      <h2 id="patentTitle">Patente</h2>
+      <button class="modal-close" id="patentModalClose">✕</button>
+    </div>
+    <div style="padding: 20px;">
+      <div id="patentIcon" style="font-size: 5rem; margin-bottom: 20px;">🥉</div>
+      <p id="patentDesc" style="color: var(--text-muted); line-height: 1.5;"></p>
+      <div id="patentStatus" style="margin-top: 20px; font-weight: bold;"></div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="renameModal">
   <div class="modal" style="max-width:430px">
@@ -462,11 +1426,60 @@
   </div>
 </div>
 
+<div class="avatar-view-overlay" id="avatarViewOverlay">
+  <div class="avatar-view-container">
+    <button class="avatar-view-close" id="avatarViewClose">
+      <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <img src="" class="avatar-view-img" id="avatarViewImg" alt="Avatar Aumentado" />
+  </div>
+</div>
+
 <div id="toast"></div>
 
-<script src="js/history.js"></script>
-<script src="js/auth.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/watched.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/auth.js"></script>
 <script>
+  const STORE_KEY = 'animehouse_store';
+  const ALL_ITEMS = [
+    { id: 'banner_claro', name: 'Banner Aurora Simples', icon: '🌅', category: 'banner', currency: 'ouro', price: 3 },
+    { id: 'titulo_explorador', name: 'Título: Explorador', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5 },
+    { id: 'aura_chama', name: 'Aura Chama Simples', icon: '🔥', category: 'aura', currency: 'ouro', price: 8 },
+    { id: 'banner_cosmica', name: 'Banner Noite Cósmica', icon: '🌌', category: 'banner', currency: 'ouro', price: 10 },
+    { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6 },
+    { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4 },
+    { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5 },
+    { id: 'aura_chama_naruto', name: 'Aura Modo Sábio', icon: '🔥', category: 'aura', currency: 'ouro', price: 7 },
+    { id: 'aura_ceifador', name: 'Aura: Olhar do Ceifador', icon: '📓', category: 'aura', currency: 'ouro', price: 15 },
+    { id: 'banner_oni', name: 'Banner Oni Samurai', icon: '🎭', category: 'banner', currency: 'diamante', price: 5 },
+    { id: 'aura_thunder', name: 'Aura Relâmpago Elétrico', icon: '⚡', category: 'aura', currency: 'diamante', price: 8 },
+    { id: 'banner_shinobi', name: 'Banner Shinobi Dark', icon: '🥷', category: 'banner', currency: 'diamante', price: 7 },
+    { id: 'titulo_mestre_das_listas', name: 'Título: Mestre das Listas', icon: '📋', category: 'titulo', currency: 'diamante', price: 10 },
+    { id: 'aura_sakura', name: 'Aura Pétala de Sakura', icon: '🌸', category: 'aura', currency: 'diamante', price: 9 },
+    { id: 'modo_cinema', name: 'Modo Cinema Aprimorado', icon: '🎬', category: 'experiencia', currency: 'diamante', price: 12 },
+    { id: 'aura_gelo', name: 'Aura Cristal de Gelo', icon: '❄️', category: 'aura', currency: 'diamante', price: 11 },
+    { id: 'frame_dourado', name: 'Frame Dourado Elite', icon: '🪙', category: 'experiencia', currency: 'diamante', price: 15 },
+    { id: 'banner_aot', name: 'Banner: Attack on Titan', icon: '🧱', category: 'banner', currency: 'diamante', price: 6 },
+    { id: 'aura_susanoo', name: 'Aura Susanoo Perfeito', icon: '⚡', category: 'aura', currency: 'diamante', price: 9 },
+    { id: 'banner_ragnarok', name: 'Banner: Arena Ragnarok', icon: '🏛️', category: 'banner', currency: 'diamante', price: 10 },
+    { id: 'aura_stands', name: 'Aura Stand: Star Platinum', icon: '🟣', category: 'aura', currency: 'diamante', price: 12 },
+    { id: 'coroa_lendaria', name: 'Coroa Rei dos Animes', icon: '👑', category: 'exclusivo', currency: 'esmeralda', price: 3 },
+    { id: 'aura_dragon', name: 'Aura Dragão Arcano', icon: '🐉', category: 'aura', currency: 'esmeralda', price: 5 },
+    { id: 'banner_cosmos', name: 'Banner Cosmos', icon: '🌀', category: 'banner', currency: 'esmeralda', price: 4 },
+    { id: 'titulo_guardiao', name: 'Título: Guardião Lenda', icon: '🛡️', category: 'titulo', currency: 'esmeralda', price: 2 },
+    { id: 'dashboard_premium', name: 'Dashboard Premium Full', icon: '📊', category: 'experiencia', currency: 'esmeralda', price: 6 },
+    { id: 'coroa_tryhard', name: 'Caveira do Carrasco', icon: '💀', category: 'exclusivo', currency: 'esmeralda', price: 3 },
+    { id: 'titulo_sensei_mod', name: 'Título: SenseiMod', icon: '🎓', category: 'titulo', currency: 'esmeralda', price: 5 },
+    { id: 'banner_vinland', name: 'Banner: Vinland Saga', icon: '🛡️', category: 'banner', currency: 'esmeralda', price: 6 },
+    { id: 'aura_void_saitama', name: 'Aura ONE PUNCH', icon: '👊', category: 'aura', currency: 'esmeralda', price: 4 },
+    { id: 'tema_cromatico', name: 'Tema Cromático', icon: '🌈', category: 'tema', currency: 'esmeralda', price: 8 }
+  ];
+
   function showToast(msg, type = 'success', ms = 7000) {
     const container = document.getElementById('toast');
     if (!container) return;
@@ -854,9 +1867,83 @@
       }
     }
 
+    // ===== MEUS ESPECIAIS - FLAGGING PARA EVITAR MÚLTIPLAS CHAMADAS =====
+    let meusEspeciaisInitialized = false;
+
+    async function renderMeusEspeciaisStandalone() {
+      // Evitar múltiplas chamadas simultâneas
+      if (meusEspeciaisInitialized) {
+        console.log("⏳ Meus Especiais já está sendo renderizado, pulando...");
+        return;
+      }
+
+      console.log("🎒 Renderizando Meus Especiais...");
+
+      const inventoryDisplay = document.getElementById('inventoryDisplay');
+      const emptyInventoryMsg = document.getElementById('emptyInventoryMsg');
+      const equippedItemsDisplay = document.getElementById('equippedItemsDisplay');
+
+      if (!inventoryDisplay || !equippedItemsDisplay) {
+        console.log("❌ Elementos de inventário não encontrados");
+        return;
+      }
+
+      // Aguardar DB.init() terminar se estiver rodando
+      if (typeof DB !== 'undefined' && typeof DB._store !== 'undefined') {
+        // Verificar se o store_data já está carregado no DB
+        const waitForDB = async () => {
+          let attempts = 0;
+          while (!DB._store.profile?.store_data && attempts < 50) {
+            await new Promise(r => setTimeout(r, 100));
+            attempts++;
+          }
+        };
+        await waitForDB();
+      }
+
+      // Chamar a função principal se existir
+      if (typeof renderMeusEspeciais === 'function') {
+        meusEspeciaisInitialized = true;
+        renderMeusEspeciais();
+      } else {
+        console.log("⚠️ renderMeusEspeciais não disponível ainda");
+        // Fallback: carregar do localStorage diretamente
+        const STORE_KEY = 'animehouse_store';
+        let store;
+        try {
+          if (window.supabaseClient) {
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
+            const userId = user?.id;
+            const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
+            if (userRaw) {
+              store = JSON.parse(userRaw);
+            } else {
+              store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+            }
+          } else {
+            store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+          }
+        } catch (e) {
+          store = { purchased: [], equipped: {} };
+        }
+
+        if (store.purchased && store.purchased.length > 0) {
+          emptyInventoryMsg.style.display = 'none';
+          inventoryDisplay.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted);">
+            📦 ${store.purchased.length} item(s) no inventário<br>
+            <small>Carregando detalhes...</small>
+          </div>`;
+        }
+      }
+    }
+
+    // Usar uma flag para garantir que initProfile só roda uma vez
+    let profileInitialized = false;
+
     const checkClient = setInterval(async () => {
-      if (window.supabaseClient) {
+      if (window.supabaseClient && !profileInitialized) {
         clearInterval(checkClient);
+        profileInitialized = true;
         await initProfile();
       }
     }, 100);
@@ -943,6 +2030,1021 @@
         await supabase.auth.signOut();
         window.location.href = 'index.html';
       };
+
+      // Avatar View Logic
+      const avatarViewOverlay = document.getElementById('avatarViewOverlay');
+      const avatarViewImg = document.getElementById('avatarViewImg');
+      const avatarViewClose = document.getElementById('avatarViewClose');
+
+      if (displayAvatar && avatarViewOverlay && avatarViewImg) {
+        displayAvatar.addEventListener('click', () => {
+          avatarViewImg.src = displayAvatar.src;
+          avatarViewOverlay.classList.add('active');
+        });
+
+        const closeAvatarView = () => {
+          avatarViewOverlay.classList.remove('active');
+        };
+
+        avatarViewClose?.addEventListener('click', closeAvatarView);
+        avatarViewOverlay.addEventListener('click', (e) => {
+          if (e.target === avatarViewOverlay) closeAvatarView();
+        });
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAvatarView();
+        });
+      }
+
+      // --- CHART JS SETUP ---
+      let balanceChartInstance = null;
+      function updateBalanceChart(dataValues) {
+         const ctx = document.getElementById('balanceChart');
+         if (!ctx) return;
+
+         const rootStyles = getComputedStyle(document.body);
+         const colorPrimary = rootStyles.getPropertyValue('--primary').trim() || '#72FFFF';
+         const colorAccent = rootStyles.getPropertyValue('--accent').trim() || '#7fffd4';
+         const colorAccent2 = rootStyles.getPropertyValue('--accent2').trim() || '#00ced1';
+         const colorDanger = rootStyles.getPropertyValue('--danger').trim() || '#ef4444';
+
+         const bgColors = [colorPrimary, colorAccent2, colorAccent, colorDanger];
+
+         const chartData = {
+            labels: ['Animes', 'Desenhos', 'Mangás', 'Filmes'],
+            datasets: [{
+               data: dataValues,
+               backgroundColor: bgColors,
+               borderWidth: 0,
+               hoverOffset: 15
+            }]
+         };
+
+         if (balanceChartInstance) {
+            balanceChartInstance.data.datasets[0].data = dataValues;
+            balanceChartInstance.data.datasets[0].backgroundColor = bgColors;
+            balanceChartInstance.update();
+         } else {
+            balanceChartInstance = new Chart(ctx, {
+               type: 'doughnut',
+               data: chartData,
+               options: {
+                  cutout: '70%',
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                     legend: {
+                        position: 'right',
+                        labels: {
+                           family: 'Righteous',
+                           color: '#e2e8f0',
+                           usePointStyle: true,
+                           padding: 15
+                        }
+                     }
+                  },
+                  animation: {
+                     animateRotate: true,
+                     animateScale: true
+                  }
+               }
+            });
+         }
+      }
+
+      // Escutar mudança de tema para atualizar as cores do gráfico renderizado sem precisar de f5
+      window.addEventListener('themeChanged', () => {
+         if (balanceChartInstance) {
+             // O setTimeout garante que o navegador aplicou as novas variáveis do body do CSS antes de recalcularmos
+             setTimeout(() => {
+                 updateBalanceChart(balanceChartInstance.data.datasets[0].data);
+             }, 50);
+         }
+      });
+
+      // --- LOGICA DO DASHBOARD ---
+      async function updateDashboard() {
+        if (typeof DB === 'undefined' || typeof Watched === 'undefined') return;
+
+        await DB.init();
+        const countHist = historyItems.length; // Mantido apenas caso precise para outra coisa, mas o XP agora usa totalWatched embaixo.
+
+        // --- CÁLCULO DE PORCENTAGEM POR CHECKMARK ---
+        let animeTotal = 0, animeWatched = 0;
+        let movieTotal = 0, movieWatched = 0;
+        let cartoonTotal = 0, cartoonWatched = 0;
+        let mangaTotal = 0, mangaWatched = 0;
+
+        // A. ANIMES
+        const allAnimes = DB.getAnimes();
+        const allAnimeEps = DB.getAnimeEpisodes ? DB.getAnimeEpisodes() : {};
+
+        allAnimes.forEach(a => {
+           // Episódios
+           const audios = allAnimeEps[a.id] || {};
+           ['dublado', 'legendado'].forEach(lang => {
+              const seasons = audios[lang] || {};
+              Object.values(seasons).forEach(eps => {
+                 eps.forEach(ep => {
+                    animeTotal++;
+                    if (Watched.isWatched(ep.id)) animeWatched++;
+                 });
+              });
+           });
+           // Filmes
+           const movies = DB.getAnimeMoviesFor(a.id);
+           movies.forEach(m => {
+              animeTotal++;
+              if (Watched.isWatched(m.id)) animeWatched++;
+           });
+        });
+
+        // B. FILMES
+        const siteFilmes = (typeof DB.getFilmes === 'function') ? DB.getFilmes() : [];
+        siteFilmes.forEach(f => {
+           movieTotal++;
+           if (Watched.isWatched(f.id)) movieWatched++;
+        });
+
+        // C. DESENHOS
+        const siteCartoons = DB.getCartoons();
+        siteCartoons.forEach(c => {
+           const seasons = DB.getEpisodesFor(c.id);
+           Object.values(seasons).forEach(eps => {
+              eps.forEach(ep => {
+                 cartoonTotal++;
+                 if (Watched.isWatched(ep.id)) cartoonWatched++;
+              });
+           });
+           const movies = DB.getMoviesFor(c.id);
+           movies.forEach(m => {
+              cartoonTotal++;
+              if (Watched.isWatched(m.id)) cartoonWatched++;
+           });
+        });
+
+        // D. MANGÁS
+        const siteMangas = DB.getMangas();
+        siteMangas.forEach(m => {
+           const volumes = DB.getMangaVolumesFor(m.id);
+           if (volumes.length > 0) {
+              volumes.forEach(v => {
+                 mangaTotal++;
+                 if (Watched.isWatched(v.id)) mangaWatched++;
+              });
+           } else {
+              mangaTotal++;
+              if (Watched.isWatched(m.id)) mangaWatched++;
+           }
+        });
+
+        // 4. Update Charts & Bars
+        const animePercent = animeTotal > 0 ? (animeWatched / animeTotal) * 100 : 0;
+        const cartoonPercent = cartoonTotal > 0 ? (cartoonWatched / cartoonTotal) * 100 : 0;
+        const mangaPercent = mangaTotal > 0 ? (mangaWatched / mangaTotal) * 100 : 0;
+
+        // Regra especial para Filmes: metade cadastrada conta como visto para a análise
+        const moviePolicyWatched = movieTotal * 0.5;
+        const moviePolicyPercent = movieTotal > 0 ? 50 : 0;
+
+        // Atualizar Barras de Análise
+        const updateAnalysisBar = (id, labelId, watched, total, percent) => {
+           const bar = document.getElementById(id);
+           const lbl = document.getElementById(labelId);
+           if (bar) bar.style.width = `${percent}%`;
+           // Se for filme, podemos mostrar o valor da política para bater com os 50%
+           if (id === 'movieBar') {
+              if (lbl) lbl.textContent = `${moviePolicyWatched} / ${total} (Política 50%)`;
+           } else {
+              if (lbl) lbl.textContent = `${watched} / ${total} (${Math.round(percent)}%)`;
+           }
+        };
+
+        updateAnalysisBar('animeBar', 'animeLabel', animeWatched, animeTotal, animePercent);
+        updateAnalysisBar('cartoonBar', 'cartoonLabel', cartoonWatched, cartoonTotal, cartoonPercent);
+        updateAnalysisBar('mangaBar', 'mangaLabel', mangaWatched, mangaTotal, mangaPercent);
+        // Política 50% nos filmes para a barra visual
+        updateAnalysisBar('movieBar', 'movieLabel', movieWatched, movieTotal, moviePolicyPercent);
+
+        // Atualizar Gráfico Chart.js
+        if (typeof Chart !== 'undefined') {
+            updateBalanceChart([animeWatched, cartoonWatched, mangaWatched, moviePolicyWatched]);
+        }
+
+        const totalRegistered = animeTotal + movieTotal + cartoonTotal + mangaTotal;
+        const totalWatched = animeWatched + movieWatched + cartoonWatched + mangaWatched;
+        const globalText = document.getElementById('globalStatsText');
+        if (globalText) {
+           globalText.textContent = `${totalWatched} de ${totalRegistered} itens totais assistidos/lidos no projeto.`;
+        }
+
+        // --- 1. Level & XP (Lógica Melhorada / Gamificada) ---
+        const count = totalWatched; // Mantido para o loop de patentes
+
+        // Pesos de XP: Anime/Desenho = 10xp, Mangá = 15xp, Filme = 50xp
+        const totalXP = (animeWatched * 10) + (cartoonWatched * 10) + (mangaWatched * 15) + (movieWatched * 50);
+
+        let level = 1;
+        let xpRequiredForNext = 100;
+        let currentLevelXP = totalXP;
+
+        // Progressão não confusa: O valor de XP escalar
+        while (currentLevelXP >= xpRequiredForNext) {
+          currentLevelXP -= xpRequiredForNext;
+          level++;
+          xpRequiredForNext = level * 100;
+        }
+
+        const xpProgress = (currentLevelXP / xpRequiredForNext) * 100;
+
+        // Ranks escalam com Level alcançado
+        let rank = "Bronze";
+        if (level >= 100) rank = "Imortal";
+        else if (level >= 75) rank = "Guardião";
+        else if (level >= 50) rank = "Hokage";
+        else if (level >= 30) rank = "Lenda";
+        else if (level >= 20) rank = "Mestre";
+        else if (level >= 10) rank = "Ouro";
+        else if (level >= 5) rank = "Prata";
+
+        document.getElementById('levelNumber').textContent = `LVL ${level}`;
+        document.getElementById('rankTitle').textContent = rank;
+        document.getElementById('levelProgress').style.width = `${xpProgress}%`;
+
+        // Cache for auth.js and global UI
+        localStorage.setItem('animehouse_userLevel', level);
+        localStorage.setItem('animehouse_userRank', rank);
+
+        const xpCurrEl = document.getElementById('xpCurrent');
+        const xpTargetEl = document.getElementById('xpTarget');
+        const xpTotalEl = document.getElementById('totalXpCount');
+        if (xpCurrEl) xpCurrEl.textContent = currentLevelXP;
+        if (xpTargetEl) xpTargetEl.textContent = xpRequiredForNext;
+        if (xpTotalEl) xpTotalEl.textContent = totalXP;
+
+        // 1.5 Liberação da Coroa e VIP
+        const vipLockOverlay = document.getElementById('vipLockedOverlay');
+        const vipContent = document.getElementById('vipPerksContent');
+        if (level >= 50) {
+            if (vipLockOverlay) vipLockOverlay.style.display = 'none';
+            if (vipContent) { vipContent.style.opacity = '1'; vipContent.style.pointerEvents = 'auto'; }
+        } else {
+            if (vipLockOverlay) vipLockOverlay.style.display = 'flex';
+            if (vipContent) { vipContent.style.opacity = '0.5'; vipContent.style.pointerEvents = 'none'; }
+        }
+
+        const optFire = document.querySelector('option[value="avatar-aura-fire"]');
+        const optGuardian = document.querySelector('option[value="avatar-aura-guardian"]');
+        const optImmortal = document.querySelector('option[value="avatar-aura-immortal"]');
+
+        if (optFire) {
+            optFire.disabled = level < 50;
+            optFire.textContent = level < 50 ? "🔥 Chamas do Hokage (Exige LVL 50)" : "🔥 Chamas do Hokage";
+        }
+        if (optGuardian) {
+            optGuardian.disabled = level < 75;
+            optGuardian.textContent = level < 75 ? "🛡️ Escudo de Guardião (Exige LVL 75)" : "🛡️ Escudo de Guardião (Azul)";
+        }
+        if (optImmortal) {
+            optImmortal.disabled = level < 100;
+            optImmortal.textContent = level < 100 ? "⚡ Poder Imortal (Exige LVL 100)" : "⚡ Poder Imortal (Roxo)";
+        }
+
+        const toggleCrown = document.getElementById('crownToggle');
+        const lockText = document.getElementById('crownLockText');
+        const isCrownUnlocked = level >= 50;
+
+        if (toggleCrown && lockText) {
+            if (!isCrownUnlocked) {
+                toggleCrown.disabled = true;
+                toggleCrown.checked = false;
+                toggleCrown.style.opacity = '0.5';
+                localStorage.setItem('animehouse_showCrown', 'false');
+                lockText.style.display = 'none'; // overlay já cobre
+            } else {
+                toggleCrown.disabled = false;
+                toggleCrown.style.opacity = '1';
+                lockText.style.display = 'none';
+            }
+        }
+
+        // Limpar aura se não tem o level para usá-la
+        const savedAuraCheck = localStorage.getItem('animehouse_customAura') || 'none';
+        if ((savedAuraCheck === 'avatar-aura-fire' && level < 50) ||
+            (savedAuraCheck === 'avatar-aura-guardian' && level < 75) ||
+            (savedAuraCheck === 'avatar-aura-immortal' && level < 100)) {
+            localStorage.setItem('animehouse_customAura', 'none');
+            const auraTargetEl = document.getElementById('displayAvatarBox') || displayAvatar;
+            auraTargetEl?.classList.remove('avatar-aura-fire','avatar-aura-guardian','avatar-aura-immortal');
+            const auraSel2 = document.getElementById('auraSelector');
+            if (auraSel2) auraSel2.value = 'none';
+        }
+
+        // === LEVEL-UP DETECTION ===
+        const prevLevel = parseInt(localStorage.getItem('animehouse_prevLevel') || '0');
+        const prevRank  = localStorage.getItem('animehouse_prevRank')  || '';
+        if (prevLevel > 0 && level > prevLevel) {
+            const rankChanged = rank !== prevRank;
+            showLevelUpToast(level, rankChanged ? rank : null);
+        }
+        localStorage.setItem('animehouse_prevLevel', level);
+        localStorage.setItem('animehouse_prevRank',  rank);
+
+        // 2. Patentes
+        // Verificar se o usuário é o dono com todas as patentes desbloqueadas
+        const userEmail = user?.email || '';
+        const profileStore = window.DB?._store?.profile?.store_data || {};
+        const allRanksUnlocked = profileStore.all_ranks_unlocked === true || userEmail === 'davizeravisel@gmail.com';
+
+        const patents = document.querySelectorAll('.patent-badge');
+        patents.forEach(badge => {
+          const label = badge.getAttribute('data-label');
+          let unlocked = false;
+
+          // Dono tem todas as patentes desbloqueadas
+          if (allRanksUnlocked) {
+            unlocked = true;
+          } else {
+            // Lógica normal baseada no nível
+            if (label === "Bronze" && level >= 1) unlocked = true;
+            else if (label === "Prata" && level >= 5) unlocked = true;
+            else if (label === "Ouro" && level >= 10) unlocked = true;
+            else if (label === "Mestre" && level >= 20) unlocked = true;
+            else if (label === "Lenda" && level >= 30) unlocked = true;
+            else if (label === "Hokage" && level >= 50) unlocked = true;
+            else if (label === "Guardião" && level >= 75) unlocked = true;
+            else if (label === "Imortal" && level >= 100) unlocked = true;
+          }
+
+          if (unlocked) badge.classList.add('unlocked');
+          else badge.classList.remove('unlocked');
+
+          // Adicionar indicador especial para dono
+          if (allRanksUnlocked && !badge.querySelector('.owner-badge')) {
+            const ownerBadge = document.createElement('span');
+            ownerBadge.className = 'owner-badge';
+            ownerBadge.textContent = '👑';
+            ownerBadge.style.cssText = 'position: absolute; top: -5px; right: -5px; font-size: 0.8rem; filter: drop-shadow(0 0 3px gold);';
+            badge.style.position = 'relative';
+            badge.appendChild(ownerBadge);
+          }
+
+          if (!badge.dataset.listener) {
+            badge.addEventListener('click', () => {
+              const modal = document.getElementById('patentModal');
+              document.getElementById('patentTitle').textContent = `Patente: ${label}`;
+              document.getElementById('patentIcon').textContent = badge.textContent;
+              document.getElementById('patentDesc').textContent = badge.getAttribute('data-desc');
+              const status = document.getElementById('patentStatus');
+              status.textContent = unlocked ? "✅ CONQUISTADO" : "🔒 BLOQUEADO";
+              status.style.color = unlocked ? "var(--success)" : "var(--danger)";
+              modal.classList.add('open');
+            });
+            badge.dataset.listener = "true";
+          }
+        });
+
+        // Modal Close logic
+        document.getElementById('patentModalClose')?.addEventListener('click', () => document.getElementById('patentModal').classList.remove('open'));
+        document.getElementById('patentModal')?.addEventListener('click', (e) => { if(e.target.id === 'patentModal') e.target.classList.remove('open'); });
+
+        if (historyItems.length > 0) {
+          // Última atividade
+          const last = historyItems[0];
+          document.getElementById('lastActivityTitle').textContent = last.title || 'Conteúdo';
+          const date = new Date(last.last_watched_at);
+          document.getElementById('lastActivityDate').textContent = date.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+
+          // Consultas IA
+          const iaHistCount = historyItems.filter(item => item.content_type && item.content_type.startsWith('ai_')).length;
+          const iaCountEl = document.getElementById('iaCount');
+          if (iaCountEl) iaCountEl.textContent = iaHistCount.toString();
+        }
+
+        // Top Categoria
+        const categories = [
+          { name: 'Animes', count: animeWatched },
+          { name: 'Desenhos', count: cartoonWatched },
+          { name: 'Mangás', count: mangaWatched },
+          { name: 'Filmes', count: movieWatched }
+        ];
+        categories.sort((a,b) => b.count - a.count);
+        const topCat = categories[0].count > 0 ? categories[0].name : "Nenhuma";
+        const favCatEl = document.getElementById('favCategory');
+        if(favCatEl) favCatEl.textContent = topCat;
+
+        // Tempo Estimado de Tela (base 24m)
+        const totalMinutes = totalWatched * 24;
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        const estimatedTimeEl = document.getElementById('estimatedTime');
+        if(estimatedTimeEl) estimatedTimeEl.textContent = `${hours}h ${mins}m`;
+      }
+
+      // Hook dashboard update into history refresh
+      const originalRefresh = refreshHistory;
+      refreshHistory = async () => {
+        await originalRefresh();
+        updateDashboard();
+      };
+
+      updateDashboard();
+
+      // ====== LEVEL-UP TOAST LOGIC ======
+      function showLevelUpToast(newLevel, newRank) {
+        let toast = document.getElementById('levelUpToast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'levelUpToast';
+          toast.innerHTML = `
+            <div id="levelUpCard">
+              <div class="particles" id="toastParticles"></div>
+              <div class="lvl-label">⚡ LEVEL UP ⚡</div>
+              <div class="lvl-badge" id="toastLevelNum">LVL ${newLevel}</div>
+              <div style="font-size:0.9rem; color: var(--text-muted); margin-top:10px;">Você subiu de nível!</div>
+              ${newRank ? `<div class="rank-badge">🏅 Nova Patente: ${newRank}</div>` : ''}
+              <button onclick="closeLevelUpToast()" style="margin-top:24px; padding:8px 28px; border-radius:50px; border:1px solid rgba(var(--primary-rgb),0.5); background: rgba(var(--primary-rgb),0.15); color:var(--primary); font-family:'Bangers'; font-size:1rem; letter-spacing:1px; cursor:pointer;">CONTINUAR</button>
+            </div>
+          `;
+          document.body.appendChild(toast);
+        } else {
+          const card = document.getElementById('levelUpCard');
+          if (card) card.classList.remove('lvlup-exit');
+          document.getElementById('toastLevelNum').textContent = `LVL ${newLevel}`;
+          const rankBadge = card?.querySelector('.rank-badge');
+          if (newRank) {
+            if (rankBadge) { rankBadge.textContent = `🏅 Nova Patente: ${newRank}`; rankBadge.style.display = 'inline-block'; }
+            else {
+              const rb = document.createElement('div');
+              rb.className = 'rank-badge';
+              rb.textContent = `🏅 Nova Patente: ${newRank}`;
+              card.querySelector('button').before(rb);
+            }
+          } else if (rankBadge) {
+            rankBadge.style.display = 'none';
+          }
+          toast.classList.remove('hidden');
+        }
+        // Partículas
+        const container = document.getElementById('toastParticles');
+        if (container) {
+          container.innerHTML = '';
+          const dirs = ['translate(-80px,-120px)','translate(80px,-120px)','translate(-120px,0px)','translate(120px,0px)','translate(-60px,120px)','translate(60px,120px)','translate(0px,-140px)','translate(0px,140px)'];
+          dirs.forEach((tx) => {
+            const s = document.createElement('span');
+            s.style.cssText = `left:50%;top:50%;--tx:${tx};`;
+            container.appendChild(s);
+          });
+        }
+        toast.style.display = 'flex';
+      }
+
+      window.closeLevelUpToast = () => {
+        const card = document.getElementById('levelUpCard');
+        if (card) card.classList.add('lvlup-exit');
+        setTimeout(() => {
+          const toast = document.getElementById('levelUpToast');
+          if (toast) toast.classList.add('hidden');
+        }, 500);
+      };
+
+      // Setup VIP Perks logic
+      // Restaurar tema cromático se estava ativo
+      if (localStorage.getItem('animehouse_tema_cromatico') === 'true' && window.setTheme) {
+        window.setTheme('theme-cromatico');
+      }
+
+      const savedTitle = localStorage.getItem('animehouse_customTitle') || '';
+      const savedAura = localStorage.getItem('animehouse_customAura') || 'none';
+
+      const customTitleInp = document.getElementById('customTitleInput');
+      const customTitleDisplay = document.getElementById('displayCustomTitle');
+      const auraSel = document.getElementById('auraSelector');
+      const sbCrown = document.getElementById('sidebarCrown');
+      const crwnToggle = document.getElementById('crownToggle');
+      const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+      const auraTarget = document.getElementById('displayAvatarBox') || displayAvatar;
+
+      if (customTitleInp) customTitleInp.value = savedTitle;
+      if (customTitleDisplay) customTitleDisplay.textContent = savedTitle;
+      if (auraSel) auraSel.value = savedAura;
+      if (crwnToggle) crwnToggle.checked = savedCrown;
+
+      if (auraTarget && savedAura !== 'none') {
+         auraTarget.classList.add(savedAura);
+      }
+
+      if (savedCrown && sbCrown) {
+         sbCrown.style.display = 'block';
+      }
+
+      document.getElementById('saveCustomTitleBtn')?.addEventListener('click', () => {
+         const val = customTitleInp.value.trim();
+         localStorage.setItem('animehouse_customTitle', val);
+         if (customTitleDisplay) customTitleDisplay.textContent = val;
+         if (typeof showToast === 'function') showToast('Título atualizado com sucesso!', 'success', 3000);
+      });
+
+      auraSel?.addEventListener('change', (e) => {
+         const val = e.target.value;
+         localStorage.setItem('animehouse_customAura', val);
+         // Sincronizar navbar quando aura mudar
+         if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+         if (!auraTarget) return;
+         // Remover TODAS as auras (sistema level + loja)
+         auraTarget.classList.remove(
+            'avatar-aura-fire', 'avatar-aura-guardian', 'avatar-aura-immortal',
+            'aura_chama', 'aura_chama_naruto', 'aura_ceifador', 'aura_thunder',
+            'aura_susanoo', 'aura_sakura', 'aura_gelo', 'aura_stands',
+            'aura_dragon', 'aura_void_saitama'
+         );
+         if (val !== 'none') {
+            auraTarget.classList.add(val);
+         }
+      });
+
+      crwnToggle?.addEventListener('change', (e) => {
+         const isChecked = e.target.checked;
+         localStorage.setItem('animehouse_showCrown', isChecked ? 'true' : 'false');
+         if (sbCrown) {
+             sbCrown.style.display = isChecked ? 'block' : 'none';
+         }
+      });
+
+      // ===== MEUS ESPECIAIS - RENDERIZAR INVENTÁRIO =====
+      async function renderMeusEspeciais() {
+        console.log("🎯 renderMeusEspeciais() chamada");
+
+        let store;
+        try {
+          if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+            store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
+            console.log("✅ Store carregado do DB");
+          } else {
+            // Load user-specific store like loja.html does
+            let userId = null;
+            try {
+              if (window.supabaseClient) {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                userId = user?.id;
+              }
+            } catch(e) {}
+
+            if (userId) {
+              const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
+              if (userRaw) {
+                const parsed = JSON.parse(userRaw);
+                if (parsed && (!parsed._userId || parsed._userId === userId)) {
+                  store = parsed;
+                  console.log("📦 Store carregado do localStorage (user-specific)");
+                } else {
+                  store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+                  console.log("📦 Store carregado do localStorage (fallback)");
+                }
+              } else {
+                store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+                console.log("📦 Store carregado do localStorage (fallback)");
+              }
+            } else {
+              store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+              console.log("📦 Store carregado do localStorage (no user)");
+            }
+          }
+        } catch (e) {
+          store = { purchased: [], equipped: {} };
+          console.log("❌ Erro ao carregar store:", e);
+        }
+
+        console.log("📊 Store:", store);
+        console.log("🛒 Itens comprados:", store.purchased);
+
+        const inventoryDisplay = document.getElementById('inventoryDisplay');
+        const emptyInventoryMsg = document.getElementById('emptyInventoryMsg');
+        const equippedItemsDisplay = document.getElementById('equippedItemsDisplay');
+
+        if (!inventoryDisplay || !equippedItemsDisplay) {
+          console.log("❌ Elementos DOM não encontrados");
+          return;
+        }
+
+        // Limpar displays
+        inventoryDisplay.innerHTML = '';
+        equippedItemsDisplay.innerHTML = '';
+
+        const purchased = store.purchased || [];
+        console.log(`🎯 ${purchased.length} itens para renderizar`);
+
+        if (purchased.length === 0) {
+          console.log("ℹ️ Nenhum item comprado - mostrando mensagem vazia");
+          emptyInventoryMsg.style.display = 'block';
+          equippedItemsDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado</span>';
+          return;
+        }
+
+        emptyInventoryMsg.style.display = 'none';
+
+        // Verificar se item está equipado
+        function checkEquipped(item) {
+          if (item.category === 'aura') return localStorage.getItem('animehouse_customAura') === item.id;
+          if (item.category === 'titulo') return localStorage.getItem('animehouse_customTitle') === item.name.replace('Título: ', '');
+          if (item.category === 'banner') return localStorage.getItem('animehouse_customBanner') === item.id;
+          if (item.category === 'exclusivo' && item.id.includes('coroa')) {
+            return localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === item.id;
+          }
+          if (item.category === 'tema') return (
+            sessionStorage.getItem('theme') === 'theme-cromatico' ||
+            localStorage.getItem('animehouse_tema_cromatico') === 'true' ||
+            localStorage.getItem('equipped_tema_cromatico') === 'true'
+          );
+          return false;
+        }
+
+        // Renderizar itens comprados
+        let renderedCount = 0;
+        purchased.forEach(itemId => {
+          console.log(`🔍 Buscando item: ${itemId}`);
+          const item = ALL_ITEMS.find(i => i.id === itemId);
+          if (!item) {
+            console.log(`❌ Item não encontrado na lista: ${itemId}`);
+            return;
+          }
+          console.log(`✅ Renderizando: ${item.name}`);
+          renderedCount++;
+
+          const isEquipped = checkEquipped(item);
+          const isEmerald = item.currency === 'esmeralda';
+          const currencyIcon = item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '👑';
+
+          const itemCard = document.createElement('div');
+          itemCard.className = `inventory-item-card ${item.currency} ${isEquipped ? 'equipped' : ''} ${isEmerald ? 'item-card-emerald' : ''}`;
+
+          const btnClass = isEquipped ? 'equipped' : item.currency;
+          const btnText = isEquipped ? '✓ Equipado' : '⚡ Equipar';
+          const btnStyle = isEmerald && !isEquipped ? 'btn-equip-chromatic' : '';
+
+          itemCard.innerHTML = `
+            ${isEquipped ? '<div class="equipped-indicator">✓</div>' : ''}
+            <div style="font-size: 2.5rem; margin-bottom: 8px;" class="item-icon">${item.icon}</div>
+            <div style="font-family: 'Bangers'; font-size: 1rem; color: var(--text-main); margin-bottom: 5px;">${item.name}</div>
+            <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;" class="${isEmerald ? 'item-rarity' : ''}" style="color: ${isEmerald ? '' : (item.currency === 'ouro' ? '#d4af37' : item.currency === 'diamante' ? '#64c8ff' : '#10b981')}">
+              ${item.category} • ${item.price} ${currencyIcon}
+            </div>
+            <div class="item-actions">
+              <button class="btn-equip ${btnClass} ${btnStyle}" onclick="toggleEquipItem('${item.id}', '${item.category}', '${item.name.replace('Título: ', '')}')">
+                ${btnText}
+              </button>
+            </div>
+          `;
+
+          inventoryDisplay.appendChild(itemCard);
+        });
+
+        console.log(`✨ Total de itens renderizados: ${renderedCount}`);
+
+        // Renderizar itens equipados
+        const equippedItems = [];
+        const equippedAura = localStorage.getItem('animehouse_customAura');
+        const equippedTitle = localStorage.getItem('animehouse_customTitle');
+        const equippedBanner = localStorage.getItem('animehouse_customBanner');
+        const equippedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+        const equippedCrownId = localStorage.getItem('animehouse_equippedCrownId');
+
+        if (equippedAura && equippedAura !== 'none') {
+          const aura = ALL_ITEMS.find(i => i.id === equippedAura);
+          if (aura) equippedItems.push({ ...aura, type: 'Aura' });
+        }
+        if (equippedTitle) {
+          const titulo = ALL_ITEMS.find(i => i.name.replace('Título: ', '') === equippedTitle);
+          if (titulo) equippedItems.push({ ...titulo, type: 'Título' });
+        }
+        if (equippedBanner && equippedBanner !== 'none') {
+          const banner = ALL_ITEMS.find(i => i.id === equippedBanner);
+          if (banner) equippedItems.push({ ...banner, type: 'Banner' });
+        }
+        if (equippedCrown && equippedCrownId) {
+          const coroa = ALL_ITEMS.find(i => i.id === equippedCrownId);
+          if (coroa) equippedItems.push({ ...coroa, type: 'Coroa' });
+        }
+
+        if (equippedItems.length === 0) {
+          equippedItemsDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado no momento</span>';
+        } else {
+          equippedItems.forEach(item => {
+            const isEmerald = item.currency === 'esmeralda';
+            const currencyIcon = item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '👑';
+            const badge = document.createElement('div');
+            badge.className = isEmerald ? 'item-card-emerald' : '';
+            badge.style.cssText = `
+              background: ${isEmerald ? 'transparent' : 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--primary-rgb), 0.05))'};
+              border: 2px solid ${isEmerald ? 'rgba(255, 215, 0, 0.5)' : 'rgba(var(--primary-rgb), 0.4)'};
+              border-radius: 12px;
+              padding: 10px 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 0.85rem;
+            `;
+            badge.innerHTML = `
+              <span style="font-size: 1.5rem; ${isEmerald ? 'animation: chromatic-gold 4s ease-in-out infinite; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);' : ''}">${item.icon}</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <span style="font-weight: bold; color: var(--text-main);">${item.name}</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">${item.type} • ${item.price} ${currencyIcon}</span>
+              </div>
+            `;
+            equippedItemsDisplay.appendChild(badge);
+          });
+        }
+      }
+
+      // Função para equipar/desequipar itens - FLUID EDITION
+      window.toggleEquipItem = async function(id, type, rawName) {
+        const STORE_KEY = 'animehouse_store';
+
+        // 🎬 Feedback visual IMEDIATO (antes de qualquer processamento)
+        const clickedBtn = document.activeElement;
+        if (clickedBtn && clickedBtn.classList.contains('btn-equip')) {
+          clickedBtn.style.transform = 'scale(0.95)';
+          setTimeout(() => clickedBtn.style.transform = '', 150);
+        }
+
+        let store;
+        try {
+          if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+            store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
+          } else {
+            // Load user-specific store like loja.html does
+            let userId = null;
+            try {
+              if (window.supabaseClient) {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                userId = user?.id;
+              }
+            } catch(e) {}
+
+            if (userId) {
+              const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
+              if (userRaw) {
+                const parsed = JSON.parse(userRaw);
+                if (parsed && (!parsed._userId || parsed._userId === userId)) {
+                  store = parsed;
+                } else {
+                  store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+                }
+              } else {
+                store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+              }
+            } else {
+              store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+            }
+          }
+        } catch (e) {
+          store = { purchased: [], equipped: {} };
+        }
+
+        if (!store.equipped) store.equipped = {};
+
+        // Verificar se está equipado
+        let isEquipped = false;
+        if (type === 'aura') isEquipped = localStorage.getItem('animehouse_customAura') === id;
+        else if (type === 'titulo') isEquipped = localStorage.getItem('animehouse_customTitle') === rawName;
+        else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
+        else if (type === 'exclusivo' && id.includes('coroa')) {
+          isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
+        }
+
+        const newEquippedState = !isEquipped;
+
+        if (isEquipped) {
+          // Desequipar
+          if (type === 'aura') {
+            localStorage.setItem('animehouse_customAura', 'none');
+            store.equipped.aura = 'none';
+            // Sincronizar navbar quando aura mudar
+            if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+          } else if (type === 'titulo') {
+            localStorage.setItem('animehouse_customTitle', '');
+            store.equipped.titulo = '';
+          } else if (type === 'banner') {
+            localStorage.setItem('animehouse_customBanner', 'none');
+            store.equipped.banner = 'none';
+          } else if (type === 'exclusivo' && id.includes('coroa')) {
+            localStorage.setItem('animehouse_showCrown', 'false');
+            localStorage.removeItem('animehouse_equippedCrownId');
+            localStorage.removeItem('animehouse_equippedCrownIcon');
+            store.equipped.crown = false;
+            store.equipped.crownId = '';
+            store.equipped.crownIcon = '';
+          } else if (type === 'tema') {
+            // Desequipar tema cromático — volta ao tema padrão
+            if (window.setTheme) window.setTheme('theme-ciano');
+            store.equipped.tema_cromatico = false;
+            localStorage.removeItem('animehouse_tema_cromatico');
+            localStorage.removeItem('equipped_tema_cromatico');
+            sessionStorage.setItem('theme', 'theme-ciano');
+          }
+        } else {
+          // Equipar
+          if (type === 'aura') {
+            localStorage.setItem('animehouse_customAura', id);
+            store.equipped.aura = id;
+          } else if (type === 'titulo') {
+            localStorage.setItem('animehouse_customTitle', rawName);
+            store.equipped.titulo = rawName;
+          } else if (type === 'banner') {
+            localStorage.setItem('animehouse_customBanner', id);
+            store.equipped.banner = id;
+          } else if (type === 'exclusivo' && id.includes('coroa')) {
+            localStorage.setItem('animehouse_showCrown', 'true');
+            localStorage.setItem('animehouse_equippedCrownId', id);
+            const item = ALL_ITEMS.find(i => i.id === id);
+            const icon = item?.icon || '👑';
+            localStorage.setItem('animehouse_equippedCrownIcon', icon);
+            
+            store.equipped.crown = true;
+            store.equipped.crownId = id;
+            store.equipped.crownIcon = icon;
+          } else if (type === 'tema') {
+            // Equipar tema cromático
+            if (window.setTheme) window.setTheme('theme-cromatico');
+            store.equipped.tema_cromatico = true;
+            localStorage.setItem('animehouse_tema_cromatico', 'true');
+          }
+        }
+
+        // 💾 Salvar em background (não bloqueia UI)
+        localStorage.setItem(STORE_KEY, JSON.stringify(store));
+
+        // Atualizar DB em background sem await
+        if (window.DB && window.DB.saveStoreData) {
+          window.DB.saveStoreData(store).catch(() => {});
+        }
+
+        // 🎨 Atualização VISUAL IMEDIATA do card (sem re-renderizar tudo)
+        updateItemCardVisual(id, newEquippedState, type);
+
+        // Atualizar painel de "Itens Equipados" imediatamente
+        updateEquippedPanel();
+
+        // Atualizar sidebar crown
+        const sbCrown = document.getElementById('sidebarCrown');
+        if (sbCrown) {
+          sbCrown.style.display = localStorage.getItem('animehouse_showCrown') === 'true' ? 'block' : 'none';
+        }
+
+        // Atualizar aura no avatar com transição suave
+        const auraTarget = document.getElementById('displayAvatarBox');
+        if (auraTarget && type === 'aura') {
+          auraTarget.style.transition = 'all 0.3s ease';
+          const allAuras = ['avatar-aura-fire', 'avatar-aura-guardian', 'avatar-aura-immortal', 'aura_stands', 'avatar-aura-stands',
+            'aura_chama', 'aura_chama_naruto', 'aura_ceifador', 'aura_thunder', 'aura_susanoo', 'aura_sakura',
+            'aura_gelo', 'aura_dragon', 'aura_void_saitama'];
+          auraTarget.classList.remove(...allAuras);
+          void auraTarget.offsetWidth;
+          const savedAura = localStorage.getItem('animehouse_customAura');
+          if (savedAura && savedAura !== 'none') {
+            auraTarget.classList.add(savedAura);
+            if (savedAura === 'aura_stands') auraTarget.classList.add('avatar-aura-stands');
+          }
+        }
+
+        // Atualizar título
+        const customTitleDisplay = document.getElementById('displayCustomTitle');
+        if (customTitleDisplay && type === 'titulo') {
+          customTitleDisplay.textContent = localStorage.getItem('animehouse_customTitle') || '';
+        }
+
+        // Atualizar navbar sem refresh
+        if (window.updateNavbarCosmetics) {
+          window.updateNavbarCosmetics();
+        }
+      };
+
+      // Função helper para atualizar visual do card específico
+      function updateItemCardVisual(itemId, isEquipped, type) {
+        const cards = document.querySelectorAll('.inventory-item-card');
+        cards.forEach(card => {
+          const btn = card.querySelector('.btn-equip');
+          if (!btn) return;
+
+          // Verificar se este card é o item clicado (pelo onclick attribute)
+          const onclickAttr = btn.getAttribute('onclick') || '';
+          if (onclickAttr.includes(`'${itemId}'`)) {
+            // Atualizar este card
+            if (isEquipped) {
+              card.classList.add('equipped');
+              btn.classList.add('equipped');
+              btn.classList.remove('ouro', 'diamante', 'esmeralda');
+              btn.textContent = '✓ Equipado';
+
+              // Adicionar indicador visual se não existir
+              if (!card.querySelector('.equipped-indicator')) {
+                const indicator = document.createElement('div');
+                indicator.className = 'equipped-indicator';
+                indicator.textContent = '✓';
+                indicator.style.animation = 'none';
+                indicator.offsetHeight; // trigger reflow
+                indicator.style.animation = '';
+                card.insertBefore(indicator, card.firstChild);
+              }
+            } else {
+              card.classList.remove('equipped');
+              btn.classList.remove('equipped');
+
+              // Restaurar classe de cor
+              const currencyClass = card.classList.contains('esmeralda') ? 'esmeralda' :
+                                   card.classList.contains('diamante') ? 'diamante' : 'ouro';
+              btn.classList.add(currencyClass);
+              btn.textContent = '⚡ Equipar';
+
+              // Remover indicador
+              const indicator = card.querySelector('.equipped-indicator');
+              if (indicator) indicator.remove();
+            }
+          } else if (type === 'aura' || type === 'titulo' || type === 'banner' || type === 'exclusivo' || type === 'tema') {
+            // Desequipar outros itens do mesmo tipo (só pode ter 1 equipado por tipo)
+            const otherOnclick = btn.getAttribute('onclick') || '';
+            if (otherOnclick.includes(`'${type}'`) && isEquipped && !otherOnclick.includes(`'${itemId}'`)) {
+              // Desequipar visualmente o outro item do mesmo tipo
+              card.classList.remove('equipped');
+              btn.classList.remove('equipped');
+              const currencyClass = card.classList.contains('esmeralda') ? 'esmeralda' :
+                                   card.classList.contains('diamante') ? 'diamante' : 'ouro';
+              btn.classList.add(currencyClass);
+              btn.textContent = '⚡ Equipar';
+              const indicator = card.querySelector('.equipped-indicator');
+              if (indicator) indicator.remove();
+            }
+          }
+        });
+      }
+
+      // Função para atualizar painel de itens equipados
+      function updateEquippedPanel() {
+        const equippedItemsDisplay = document.getElementById('equippedItemsDisplay');
+        if (!equippedItemsDisplay) return;
+
+        const equippedItems = [];
+        const equippedAura = localStorage.getItem('animehouse_customAura');
+        const equippedTitle = localStorage.getItem('animehouse_customTitle');
+        const equippedBanner = localStorage.getItem('animehouse_customBanner');
+        const equippedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+        const equippedCrownId = localStorage.getItem('animehouse_equippedCrownId');
+        const equippedTema = sessionStorage.getItem('theme') === 'theme-cromatico';
+
+        if (equippedAura && equippedAura !== 'none') {
+          const aura = ALL_ITEMS.find(i => i.id === equippedAura);
+          if (aura) equippedItems.push({ ...aura, type: 'Aura' });
+        }
+        if (equippedTitle) {
+          const titulo = ALL_ITEMS.find(i => i.name.replace('Título: ', '') === equippedTitle);
+          if (titulo) equippedItems.push({ ...titulo, type: 'Título' });
+        }
+        if (equippedBanner && equippedBanner !== 'none') {
+          const banner = ALL_ITEMS.find(i => i.id === equippedBanner);
+          if (banner) equippedItems.push({ ...banner, type: 'Banner' });
+        }
+        if (equippedCrown && equippedCrownId) {
+          const coroa = ALL_ITEMS.find(i => i.id === equippedCrownId);
+          if (coroa) equippedItems.push({ ...coroa, type: 'Decoração' });
+        }
+        if (equippedTema) {
+          const tema = ALL_ITEMS.find(i => i.id === 'tema_cromatico');
+          if (tema) equippedItems.push({ ...tema, type: 'Tema' });
+        }
+
+        equippedItemsDisplay.innerHTML = '';
+        if (equippedItems.length === 0) {
+          equippedItemsDisplay.innerHTML = '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado no momento</span>';
+        } else {
+          equippedItems.forEach(item => {
+            const isEmerald = item.currency === 'esmeralda';
+            const currencyIcon = item.currency === 'ouro' ? '🥇' : item.currency === 'diamante' ? '💎' : '👑';
+            const badge = document.createElement('div');
+            badge.className = isEmerald ? 'item-card-emerald' : '';
+            badge.style.cssText = `
+              background: ${isEmerald ? 'transparent' : 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--primary-rgb), 0.05))'};
+              border: 2px solid ${isEmerald ? 'rgba(255, 215, 0, 0.5)' : 'rgba(var(--primary-rgb), 0.4)'};
+              border-radius: 12px;
+              padding: 10px 15px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              font-size: 0.85rem;
+              animation: fadeIn 0.3s ease;
+            `;
+            badge.innerHTML = `
+              <span style="font-size: 1.5rem; ${isEmerald ? 'animation: chromatic-gold 4s ease-in-out infinite; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);' : ''}">${item.icon}</span>
+              <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                <span style="font-weight: bold; color: var(--text-main);">${item.name}</span>
+                <span style="font-size: 0.7rem; color: var(--text-muted);">${item.type} • ${item.price} ${currencyIcon}</span>
+              </div>
+            `;
+            equippedItemsDisplay.appendChild(badge);
+          });
+        }
+      }
+
+      // Renderizar inventário ao carregar
+      renderMeusEspeciais();
     }
   });
 </script>

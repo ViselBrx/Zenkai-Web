@@ -1,141 +1,114 @@
 /**
- * watched.js — Módulo de Marcação de Episódios Assistidos
- * =========================================================
- * Salva no localStorage o estado "assistido" por usuário.
- * Chave: watched_<userId>  → Array JSON de IDs de episódios/filmes assistidos.
+ * watched.js - Checklist permanente de episodios, filmes e mangas.
  */
 
 const Watched = (() => {
-  // Cache do userId para não chamar async toda vez
-  let _cachedUserId = null;
-
-  // Tenta obter o userId sincronamente do supabaseClient (que já foi inicializado)
-  function _getUserId() {
-    if (_cachedUserId) return _cachedUserId;
-    try {
-      // Tenta pegar da sessão em memória do supabase (síncrono via __session no storage)
-      const keys = Object.keys(localStorage).filter(k => k.includes('auth-token') || k.includes('supabase.auth'));
-      for (const k of keys) {
-        try {
-          const val = JSON.parse(localStorage.getItem(k));
-          const userId = val?.user?.id || val?.currentSession?.user?.id;
-          if (userId) { _cachedUserId = userId; return userId; }
-        } catch {}
-      }
-    } catch {}
-    return 'guest';
-  }
-
-  function _key() {
-    return `watched_${_getUserId()}`;
-  }
-
-  function _load() {
-    try {
-      const raw = localStorage.getItem(_key());
-      return new Set(raw ? JSON.parse(raw) : []);
-    } catch {
-      return new Set();
-    }
-  }
-
-  function _save(set) {
-    try {
-      localStorage.setItem(_key(), JSON.stringify([...set]));
-      _dispatchChange();
-    } catch {}
-  }
-
-  function _dispatchChange() {
+  function dispatchChange() {
     document.dispatchEvent(new CustomEvent('watched:change'));
   }
 
-  // Chamado pelo auth.js/db.js após login para atualizar o cache
-  function refreshUserId() {
-    _cachedUserId = null;
-    _getUserId();
+  function getDb() {
+    if (typeof DB === 'undefined') {
+      throw new Error('Checklist permanente indisponivel.');
+    }
+    return DB;
   }
 
   return {
-    refreshUserId,
+    refreshUserId() {
+      return null;
+    },
 
     isWatched(id) {
-      return _load().has(id);
+      return typeof DB !== 'undefined' && typeof DB.isWatched === 'function'
+        ? DB.isWatched(id)
+        : false;
     },
 
-    toggle(id) {
-      const set = _load();
-      if (set.has(id)) {
-        set.delete(id);
-      } else {
-        set.add(id);
-      }
-      _save(set);
-      return set.has(id);
+    async toggle(id, contentType = 'generic') {
+      const nextState = !this.isWatched(id);
+      return this.setWatched(id, nextState, contentType);
     },
 
-    markWatched(id) {
-      const set = _load();
-      set.add(id);
-      _save(set);
+    async markWatched(id, contentType = 'generic') {
+      return this.setWatched(id, true, contentType);
     },
 
-    unmarkWatched(id) {
-      const set = _load();
-      set.delete(id);
-      _save(set);
+    async unmarkWatched(id, contentType = 'generic') {
+      return this.setWatched(id, false, contentType);
+    },
+
+    async setWatched(id, watched, contentType = 'generic') {
+      const result = await getDb().setWatched(id, watched, contentType);
+      dispatchChange();
+      return result;
     },
 
     countWatched(ids) {
-      const set = _load();
-      return ids.filter(id => set.has(id)).length;
+      return typeof DB !== 'undefined' && typeof DB.countWatched === 'function'
+        ? DB.countWatched(ids)
+        : 0;
     },
 
     getAll() {
-      return _load();
+      return typeof DB !== 'undefined' && typeof DB.getAllWatched === 'function'
+        ? DB.getAllWatched()
+        : new Set();
     }
   };
 })();
 
+function updateWatchedButtonState(btn, isWatched) {
+  btn.classList.toggle('watched', isWatched);
+  btn.title = isWatched ? 'Marcar como nao assistido' : 'Marcar como assistido';
+  btn.setAttribute('aria-label', btn.title);
+  btn.innerHTML = isWatched
+    ? '<span class="watched-icon">&#10003;</span>'
+    : '<span class="watched-icon">&#9675;</span>';
+}
 
 /**
- * Cria o botão de "marcar como assistido" para um episode-card.
- * @param {string} id - ID do episódio ou filme
- * @param {function} onToggle - callback(id, isNowWatched) chamado após toggle
+ * Cria o botao de marcar como assistido para um card.
+ * @param {string} id
+ * @param {function} onToggle
+ * @param {string} contentType
+ * @returns {HTMLButtonElement}
  */
-function createWatchedBtn(id, onToggle) {
+function createWatchedBtn(id, onToggle, contentType = 'generic') {
   const btn = document.createElement('button');
-  btn.className = 'watched-btn' + (Watched.isWatched(id) ? ' watched' : '');
+  btn.type = 'button';
+  btn.className = 'watched-btn';
   btn.dataset.id = id;
-  btn.title = Watched.isWatched(id) ? 'Marcar como não assistido' : 'Marcar como assistido';
-  btn.setAttribute('aria-label', btn.title);
-  btn.innerHTML = Watched.isWatched(id)
-    ? '<span class="watched-icon">✓</span>'
-    : '<span class="watched-icon">○</span>';
+  updateWatchedButtonState(btn, Watched.isWatched(id));
 
-  btn.addEventListener('click', (e) => {
+  btn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    const nowWatched = Watched.toggle(id);
-    if (nowWatched) {
-      btn.classList.add('watched');
-      btn.innerHTML = '<span class="watched-icon">✓</span>';
-    } else {
-      btn.classList.remove('watched');
-      btn.innerHTML = '<span class="watched-icon">○</span>';
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    try {
+      const nowWatched = await Watched.toggle(id, contentType);
+      updateWatchedButtonState(btn, nowWatched);
+      btn.classList.add('pop');
+      setTimeout(() => btn.classList.remove('pop'), 400);
+      if (onToggle) onToggle(id, nowWatched);
+    } catch (err) {
+      if (typeof showToast === 'function') {
+        showToast(err.message || 'Nao foi possivel atualizar o checklist.', 'error');
+      } else {
+        console.error(err);
+      }
+    } finally {
+      btn.disabled = false;
     }
-    btn.title = nowWatched ? 'Marcar como não assistido' : 'Marcar como assistido';
-    btn.setAttribute('aria-label', btn.title);
-    btn.classList.add('pop');
-    setTimeout(() => btn.classList.remove('pop'), 400);
-    if (onToggle) onToggle(id, nowWatched);
   });
 
   return btn;
 }
 
 /**
- * Cria barra de progresso de uma temporada
- * @param {string[]} epIds - IDs dos episódios da temporada
+ * Cria barra de progresso de uma temporada.
+ * @param {string[]} epIds
  * @returns {HTMLElement}
  */
 function createSeasonProgress(epIds) {

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterTemp = document.getElementById('filterTemporadas');
 
   let cartoons = DB.getCartoons();
+  let openCartoonDetailId = null;
 
   function initFilters() {
     const produtoras = [...new Set(cartoons.map(c => c.produtora).filter(Boolean))].sort();
@@ -17,12 +18,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function render() {
+  async function render() {
     const term = searchInput.value.toLowerCase();
     const prod = filterProd.value;
     const temp = filterTemp.value;
 
-    const filtered = cartoons.filter(c => {
+    const filtered = cartoons.map((c, index) => ({ ...c, _originIndex: index })).filter(c => {
       const matchName = c.nome.toLowerCase().includes(term);
       const matchProd = prod === '' || c.produtora === prod;
       let matchTemp = true;
@@ -33,6 +34,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       return matchName && matchProd && matchTemp;
     });
 
+    // Buscar favoritos do usuário
+    let userFavs = new Set();
+    try {
+        const favData = await DB.getFavorites('desenho');
+        userFavs = new Set(favData.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Usuário deslogado ou sem favoritos.");
+    }
+
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
+
     grid.innerHTML = '';
     if (filtered.length === 0) {
       emptyState.style.display = 'block';
@@ -41,13 +59,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     emptyState.style.display = 'none';
 
     filtered.forEach(c => {
+      const isFav = userFavs.has(c.id);
       const card = document.createElement('div');
       card.className = 'card';
-      let imgHtml = c.capa ? `<img src="${c.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
+      card.dataset.originIndex = String(c._originIndex);
+      card.dataset.contentId = c.id;
+      let imgHtml = c.capa ? `<img src="${c.capa}" class="card-cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${c.capa ? 'display:none;' : ''}">🎬</div>`;
+      
+      const starClass = '';
+      const favStarHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${c.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
       card.innerHTML = `
-        ${imgHtml}${placeholder}
-        <div class="card-body">
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
+           ${imgHtml}${placeholder}
+           ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
+        </div>
+        ${favStarHtml}
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${c.nome}</div>
           <div class="card-meta">
             <span>${c.produtora || ''}</span>
@@ -55,7 +88,29 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="card-badge">${c.temporadas} Temporada(s)</span>
         </div>
       `;
-      card.addEventListener('click', () => openDetailModal(c));
+
+      card.onclick = () => openDetailModal(c);
+      
+      const star = card.querySelector('.fav-star');
+      if (star) {
+        star.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+            const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
+            const isAdded = res.action === 'added';
+            DB.applyFavoriteCardChrome(card, isAdded);
+            DB.reorderFavoriteCards(grid);
+            if (window.showToast) showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
+            if (openCartoonDetailId === c.id && detailFavBtn) {
+              detailFavBtn.classList.toggle('active', isAdded);
+              detailFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+            }
+          } catch (err) {
+            if (window.showToast) showToast(err.message || 'Erro ao favoritar.', 'error');
+          }
+        };
+      }
+
       grid.appendChild(card);
     });
   }
@@ -68,8 +123,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailProdutora = document.getElementById('detailProdutora');
   const detailTemporadas = document.getElementById('detailTemporadas');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
+  const detailFavBtn = document.getElementById('detailFavBtn');
 
-  function openDetailModal(c) {
+  async function openDetailModal(c) {
+    openCartoonDetailId = c.id;
     detailTitle.textContent = c.nome;
     detailProdutora.textContent = c.produtora || 'N/A';
     detailTemporadas.textContent = c.temporadas || 1;
@@ -84,6 +141,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
+    // Favoritos no Modal
+    const isFav = await DB.isFavorite(c.id, 'desenho');
+
+    if (detailFavBtn) {
+      detailFavBtn.style.display = 'flex';
+      detailFavBtn.classList.toggle('active', isFav);
+      detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+      detailFavBtn.onclick = async (e) => {
+        e.stopPropagation();
+        try {
+          const res = await DB.toggleFavorite(c.id, 'desenho', { title: c.nome, cover: c.capa });
+          const isAdded = res.action === 'added';
+          detailFavBtn.classList.toggle('active', isAdded);
+          detailFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+          if (window.showToast) showToast(isAdded ? `"${c.nome}" adicionado aos favoritos!` : `"${c.nome}" removido dos favoritos.`);
+          const gridCard = DB.findFavoriteCardByContentId(grid, c.id);
+          if (gridCard) DB.applyFavoriteCardChrome(gridCard, isAdded);
+          DB.reorderFavoriteCards(grid);
+        } catch (err) {
+          if (window.showToast) showToast(err.message || 'Erro ao favoritar.', 'error');
+        }
+      };
+    }
+
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedCartoon', c.id);
     };
@@ -92,11 +173,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   document.getElementById('detailClose').addEventListener('click', () => {
+    openCartoonDetailId = null;
     detailModal.classList.remove('open');
     detailCover.src = '';
   });
 
-  searchInput.addEventListener('input', render);
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 300);
+  });
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -108,4 +194,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initFilters();
   render();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });

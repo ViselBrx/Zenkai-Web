@@ -1,89 +1,169 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Bem-vindo(a) Portal Ninja</title>
+  <title>Anime House — Bem-vindo(a) ao Portal</title>
   <meta name="description" content="Seu portal nipônico e mundo de animações!" />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
 </head>
+
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <div class="navbar-brand">
-    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
-    <span>Anime</span>House
-  </div>
-  <ul class="navbar-links" id="navLinks">
-  </ul>
-  <button class="navbar-burger" id="navBurger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </div>
+    <ul class="navbar-links" id="navLinks">
+    </ul>
+    <button class="navbar-burger" id="navBurger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
 
-<main class="container">
-  
-  <div class="home-banner">
-    <h2 style="color:var(--primary)">Bem-vindo à Anime House</h2>
-    <p style="color:var(--text-muted)">Selecione um dos nossos catálogos para começar a explorar sua coleção nipônica e pop.</p>
-    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
-      <a href="login.html" class="btn btn-primary" style="font-size: 0.9rem;">Fazer Login</a>
-      <a href="registro.html" class="btn btn-secondary" style="font-size: 0.9rem;">Criar Conta</a>
+  <main class="container">
+
+    <div class="home-banner">
+      <h2 style="color:var(--primary)">Bem-vindo à Anime House</h2>
+      <p style="color:var(--text-muted)">Selecione um dos nossos catálogos para começar a explorar sua coleção nipônica
+        e pop.</p>
+
+      <!-- Status do Usuário (Preenchido via auth.js) -->
+      <div id="homeUserStatus"
+        style="margin: 15px auto; display: none; background: rgba(var(--primary-rgb), 0.1); border: 1px solid var(--primary); padding: 10px 20px; border-radius: 12px; max-width: 300px; box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.2);">
+        <div style="font-weight: bold; color: var(--primary); font-size: 0.8rem; margin-bottom: 5px;">PATAMAR DO USUÁRIO
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="homeUserRank" style="font-size: 0.9rem;">Novato</span>
+          <span id="homeUserLevel"
+            style="background: var(--primary); color: #000; padding: 2px 8px; border-radius: 10px; font-weight: 900; font-size: 0.75rem;">LVL
+            1</span>
+        </div>
+      </div>
+
+      <div id="homeBannerActions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+        <a href="login.html" class="btn btn-primary" style="font-size: 0.9rem;">Fazer Login</a>
+        <a href="registro.html" class="btn btn-secondary" style="font-size: 0.9rem;">Criar Conta</a>
+      </div>
+    </div>
+
+    <div class="home-grid">
+      <a href="catalogo-desenhos.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📺</div>
+        <h3 style="color:var(--primary)">Desenhos Clássicos</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis
+          ocidentais.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
+      </a>
+
+      <a href="animes.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⛩️</div>
+        <h3 style="color:var(--primary)">Universo Animes</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.
+        </p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
+      </a>
+
+      <a href="mangas.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📚</div>
+        <h3 style="color:var(--primary)">Leitura de Mangás</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">PDFs, links de Drive e capítulos salvos para ler depois.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Links</span>
+      </a>
+
+      <a href="cadastro.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⚙️</div>
+        <h3 style="color:var(--primary)">Administração (CRUD)</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Área restrita de controle para inserir, editar e excluir
+          títulos e episódios.</p>
+        <span class="btn btn-danger" style="margin-top:auto">Entrar no Painel</span>
+      </a>
+
+      <a href="https://github.com/ViselBrx/Como_Cadastrar.git" target="_blank" rel="noopener noreferrer"
+        class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📖</div>
+        <h3 style="color:var(--primary)">Como Cadastrar</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Acesse o repositório explicando o passo a passo de como
+          cadastrar cada coisa no site.</p>
+        <span class="btn btn-secondary" style="margin-top:auto">Ver Repositório</span>
+      </a>
+
+      <a href="loja.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">🎌</div>
+        <h3 style="color:var(--primary)">SenseiMod Store</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Troque seu XP por fichas de ouro, diamante e esmeralda — e
+          resgate banners, auras e itens exclusivos.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Loja</span>
+      </a>
+
+      <a href="#" class="home-card" id="openMobileModal">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📱</div>
+        <h3 style="color:var(--primary)">App Mobile Android</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Baixe o aplicativo oficial e tenha o Anime House sempre com
+          você no celular.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Ver QR Code</span>
+      </a>
+    </div>
+
+  </main>
+
+  <!-- MODAL QR CODE MOBILE -->
+  <div class="modal-overlay" id="mobileModal">
+    <div class="modal" style="max-width: 400px; text-align: center;">
+      <div class="modal-header">
+        <h2 style="font-family: 'Bangers'; color: var(--primary);">📲 App Mobile</h2>
+        <button class="modal-close" id="closeMobileModal">✕</button>
+      </div>
+      <div style="padding: 20px;">
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Aponte a câmera do seu celular para o QR Code abaixo
+          para baixar o App.</p>
+        <div
+          style="background: #fff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);">
+          <img src="assets/qr_code_mobile.png" alt="QR Code Android"
+            style="width: 100%; max-width: 250px; display: block;" />
+        </div>
+        <p style="margin-top: 20px; font-weight: bold; color: var(--primary);">Versão 1.0.0 — Android</p>
+      </div>
     </div>
   </div>
-
-  <div class="home-grid">
-    <a href="catalogo-desenhos.html" class="home-card">
-      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📺</div>
-      <h3 style="color:var(--primary)">Desenhos Clássicos</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis ocidentais.</p>
-      <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
-    </a>
-    
-    <a href="animes.html" class="home-card">
-      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⛩️</div>
-      <h3 style="color:var(--primary)">Universo Animes</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.</p>
-      <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
-    </a>
-
-    <a href="mangas.html" class="home-card">
-      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📚</div>
-      <h3 style="color:var(--primary)">Leitura de Mangás</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">PDFs, links de Drive e capítulos salvos para ler depois.</p>
-      <span class="btn btn-primary" style="margin-top:auto">Acessar Links</span>
-    </a>
-    
-    <a href="cadastro.html" class="home-card">
-      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⚙️</div>
-      <h3 style="color:var(--primary)">Administração (CRUD)</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">Área restrita de controle para inserir, editar e excluir títulos e episódios.</p>
-      <span class="btn btn-danger" style="margin-top:auto">Entrar no Painel</span>
-    </a>
-
-    <a href="https://github.com/ViselBrx/Como_Cadastrar.git" target="_blank" rel="noopener noreferrer" class="home-card">
-      <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📖</div>
-      <h3 style="color:var(--primary)">Como Cadastrar</h3>
-      <p style="color:var(--text-muted);font-size:0.9rem">Acesse o repositório explicando o passo a passo de como cadastrar cada coisa no site.</p>
-      <span class="btn btn-secondary" style="margin-top:auto">Ver Repositório</span>
-    </a>
-  </div>
-
-</main>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const burger = document.getElementById('navBurger');
-      const menu   = document.getElementById('navLinks');
+      const menu = document.getElementById('navLinks');
       if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
+
+      // Modal QR Code
+      const openModal = document.getElementById('openMobileModal');
+      const closeModal = document.getElementById('closeMobileModal');
+      const modal = document.getElementById('mobileModal');
+
+      if (openModal && modal) {
+        openModal.addEventListener('click', (e) => {
+          e.preventDefault();
+          modal.classList.add('open');
+        });
+      }
+      if (closeModal && modal) {
+        closeModal.addEventListener('click', () => {
+          modal.classList.remove('open');
+        });
+      }
+      // Close on backdrop click
+      modal?.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('open');
+      });
     });
   </script>
-  
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/history.js"></script>
   <script src="js/auth.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+  <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>
+
 </html>

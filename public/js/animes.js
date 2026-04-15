@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const filterTemp = document.getElementById('filterTemporadas');
 
   let animes = DB.getAnimes();
+  let activeAnimeId = null;
 
   function initFilters() {
     const estudios = [...new Set(animes.map(a => a.estudio).filter(Boolean))].sort();
@@ -18,12 +19,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function render() {
+  async function render() {
     const term = searchInput.value.toLowerCase();
     const est = filterEstudio.value;
     const temp = filterTemp.value;
 
-    const filtered = animes.filter(a => {
+    const filtered = animes.map((a, index) => ({ ...a, _originIndex: index })).filter(a => {
       const matchName = a.nome.toLowerCase().includes(term);
       const matchEst = est === '' || a.estudio === est;
       let matchTemp = true;
@@ -41,14 +42,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
+    // Buscar favoritos
+    let userFavs = new Set();
+    try {
+        const favs = await DB.getFavorites('anime');
+        userFavs = new Set(favs.map(f => f.content_id));
+    } catch (e) {
+        console.warn("Usuário deslogado ou erro ao carregar favoritos.");
+    }
+
+    // Favoritos no topo, demais itens na ordem original
+    filtered.sort((a, b) => {
+      const aFav = userFavs.has(a.id) ? 1 : 0;
+      const bFav = userFavs.has(b.id) ? 1 : 0;
+      if (aFav !== bFav) return bFav - aFav;
+      return a._originIndex - b._originIndex;
+    });
+
     filtered.forEach(a => {
+      const isFav = userFavs.has(a.id);
       const card = document.createElement('div');
       card.className = 'card';
-      let imgHtml = a.capa ? `<img src="${a.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
-      let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">🌸</div>`;
+      card.dataset.originIndex = String(a._originIndex);
+      card.dataset.contentId = a.id;
+      
+      let imgHtml = a.capa ? `<img src="${a.capa}" class="card-cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
+      let placeholder = `<div class="card-cover-placeholder" style="${a.capa ? 'display:none;' : ''}">⛩️</div>`;
+      
+      const starClass = '';
+      const favBtnHtml = `
+        <button class="fav-star ${isFav ? 'active' : ''} ${starClass}" data-id="${a.id}" title="${isFav ? 'Desmarcar' : 'Marcar'}">
+          ${isFav ? '★' : '☆'}
+        </button>
+      `;
+
       card.innerHTML = `
-        ${imgHtml}${placeholder}
-        <div class="card-body">
+        <div style="position:relative; cursor:pointer;" class="card-click-area">
+          ${imgHtml}${placeholder}
+          ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
+        </div>
+        ${favBtnHtml}
+        <div class="card-body card-click-area" style="cursor:pointer;">
           <div class="card-title">${a.nome}</div>
           <div class="card-meta">
             <span>${a.estudio || ''}</span>
@@ -56,9 +90,60 @@ document.addEventListener('DOMContentLoaded', async () => {
           <span class="card-badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;">${a.temporadas} Temporada(s)</span>
         </div>
       `;
-      card.addEventListener('click', () => openDetailModal(a));
+      
+      // Clique no card (abre detalhes)
+      card.onclick = (e) => {
+        // Se clicar em qualquer área que não seja o botão de favoritar
+        if (!e.target.closest('.fav-star')) {
+          activeAnimeId = a.id;
+          openDetailModal(a);
+        }
+      };
+
+      // Clique na estrela (Favoritar)
+      const favBtn = card.querySelector('.fav-star');
+      if (favBtn) {
+        favBtn.onclick = async (e) => {
+          e.stopPropagation();
+          try {
+             await toggleFavorite(a, favBtn);
+          } catch(err) {
+             console.error(err);
+          }
+        };
+      }
+      
       grid.appendChild(card);
     });
+  }
+
+  async function toggleFavorite(item, btn) {
+    try {
+      const res = await DB.toggleFavorite(item.id, 'anime', { title: item.nome, cover: item.capa });
+      const isAdded = res.action === 'added';
+
+      const card = btn.closest('.card') || DB.findFavoriteCardByContentId(grid, item.id);
+      if (card) DB.applyFavoriteCardChrome(card, isAdded);
+      else {
+        btn.classList.toggle('active', isAdded);
+        btn.innerHTML = isAdded ? '★' : '☆';
+        btn.title = isAdded ? 'Desmarcar' : 'Marcar';
+      }
+
+      DB.reorderFavoriteCards(grid);
+
+      showToast(isAdded
+        ? `"${item.nome}" adicionado aos favoritos!`
+        : `"${item.nome}" removido dos favoritos.`);
+
+      const modalFavBtn = document.getElementById('detailFavBtn');
+      if (modalFavBtn && activeAnimeId === item.id) {
+        modalFavBtn.classList.toggle('active', isAdded);
+        modalFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+      }
+    } catch (err) {
+      showToast(err.message || 'Erro ao atualizar favoritos.', 'error');
+    }
   }
 
   /* MODAL */
@@ -70,8 +155,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailTemporadas = document.getElementById('detailTemporadas');
   const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
+  const detailFavBtn = document.getElementById('detailFavBtn');
 
-  function openDetailModal(a) {
+  async function openDetailModal(a) {
     detailTitle.textContent = a.nome;
     detailEstudio.textContent = a.estudio || 'N/A';
     detailTemporadas.textContent = a.temporadas || 1;
@@ -87,6 +173,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
+    // Check favorite status for modal button
+    const isFav = await DB.isFavorite(a.id, 'anime');
+    detailFavBtn.style.display = 'flex';
+    detailFavBtn.classList.toggle('active', isFav);
+    detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
+    detailFavBtn.onclick = (e) => {
+      e.stopPropagation();
+      toggleFavorite(a, detailFavBtn);
+    };
+
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
     };
@@ -99,7 +195,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     detailCover.src = '';
   });
 
-  searchInput.addEventListener('input', render);
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 300);
+  });
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -111,4 +211,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   initFilters();
   render();
+
+  window.addEventListener('profileUpdated', () => { render(); });
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) render();
+  });
 });
