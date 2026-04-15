@@ -23,20 +23,6 @@
       margin-top: 20px;
     }
 
-    /* Sidebar / Config */
-    .ai-sidebar {
-      background: transparent;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(var(--primary-rgb), 0.2);
-      border-radius: var(--radius);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-      box-shadow: var(--shadow-neon);
-    }
-
     .ai-card {
       background: transparent;
       border: 1px solid rgba(var(--primary-rgb), 0.1);
@@ -52,14 +38,6 @@
       display: flex;
       align-items: center;
       gap: 8px;
-    }
-
-    /* Main Area / Chat */
-    .ai-main {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      height: 100%;
     }
 
     .ai-chat-window {
@@ -368,7 +346,7 @@
 
   /* Painel Esquerdo */
   .ai-panel-tools {
-    width: 300px;
+    width: var(--sidebar-width, 300px);
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -825,7 +803,7 @@
   }
   .vs-text { font-family: 'Bangers'; font-size: 1.8rem; color: var(--primary); }
   .ai-page-fix {
-    padding: 20px !important;
+    padding: 40px 20px;
     height: calc(100vh - 100px);
     overflow: hidden;
     display: flex;
@@ -877,46 +855,6 @@
     color: var(--text-muted);
     font-size: 0.82rem;
     text-align: center;
-  }
-
-  .ai-content-area,
-  .ai-chat-window,
-  .ai-input-wrapper,
-  .ai-card,
-  .ai-tab-v,
-  .ai-tab-v.active,
-  .ai-panel-tools {
-    border-color: rgba(var(--primary-rgb), 0.35) !important;
-  }
-
-  .ai-content-area {
-    box-shadow: 0 0 26px rgba(var(--primary-rgb), 0.25), inset 0 0 22px rgba(var(--primary-rgb), 0.06);
-    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(0, 0, 0, 0.25));
-  }
-
-  .ai-card,
-  .ai-chat-window,
-  .ai-input-wrapper {
-    background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(var(--bg-card), 0.55));
-    box-shadow: 0 0 22px rgba(var(--primary-rgb), 0.22);
-  }
-
-  .ai-tab-v.active {
-    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.35);
-    color: var(--text-main);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.24), rgba(var(--primary-rgb), 0.08));
-  }
-
-  .msg.bot {
-    border-color: rgba(var(--primary-rgb), 0.4);
-    box-shadow: 0 0 14px rgba(var(--primary-rgb), 0.2);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.13), rgba(0, 0, 0, 0.25));
-  }
-
-  .msg.user {
-    border-color: rgba(var(--primary-rgb), 0.45);
-    box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.25);
-    background: linear-gradient(160deg, rgba(var(--primary-rgb), 0.18), rgba(0, 0, 0, 0.2));
   }
 </style>
 

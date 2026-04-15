@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.className = 'card';
       card.dataset.originIndex = String(c._originIndex);
       card.dataset.contentId = c.id;
-      let imgHtml = c.capa ? `<img src="${c.capa}" class="card-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
+      let imgHtml = c.capa ? `<img src="${c.capa}" class="card-cover" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />` : '';
       let placeholder = `<div class="card-cover-placeholder" style="${c.capa ? 'display:none;' : ''}">🎬</div>`;
       
       const starClass = '';
@@ -178,7 +178,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     detailCover.src = '';
   });
 
-  searchInput.addEventListener('input', render);
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 300);
+  });
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();

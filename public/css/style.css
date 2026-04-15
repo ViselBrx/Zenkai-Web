@@ -2,6 +2,53 @@
 @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&family=Audiowide&display=swap");
 
 /* ===== VARIÁVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
+:root {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduzir saltos de layout e suavizar carregamento */
+* {
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease, box-shadow 0.2s ease;
+}
+
+/* GPU Acceleration para elementos com animações frequentes */
+.cartoon-pill, 
+.episode-card, 
+.manga-item, 
+.catalog-item, 
+.purchased-card,
+.avatar-aura-wrap,
+.user-nav-avatar-box {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
+}
+
+/* Suavizar entrada de conteúdo */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.main-content, 
+.items-grid > *, 
+.catalog-grid > *, 
+.anime-list-grid > *, 
+.cartoon-list-grid > *,
+.section-title,
+.loja-hero {
+    animation: fadeInSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 /* Auras da Loja SenseiMod */
 /* ===== MYSTICAL AURAS (CLASSIFIED BY RARITY/PRICE) ===== */
 
@@ -131,12 +178,13 @@
     pointer-events: none;
     z-index: 0;
     opacity: 0;
-    transform: scale(0.98);
+    transform: translateZ(0) scale(0.98);
     filter: blur(10px);
     transition:
-        opacity 220ms ease,
-        transform 220ms ease;
+        opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+        transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
     will-change: transform, opacity;
+    backface-visibility: hidden;
 }
 
 .avatar-aura-wrap > img,
@@ -1263,44 +1311,317 @@
 /* ===================================================== */
 
 @property --chromatic-hue {
-    syntax: "<angle>";
-    inherits: true;
+    syntax: '<angle>';
     initial-value: 0deg;
+    inherits: true;
 }
 
-@keyframes chromatic-shift {
-    0% {
-        --chromatic-hue: 0deg;
-    }
-    100% {
-        --chromatic-hue: 360deg;
-    }
+@keyframes chromatic-hue-cycle {
+    from { --chromatic-hue: 0deg; }
+    to { --chromatic-hue: 360deg; }
 }
 
 .theme-cromatico {
-    animation: chromatic-shift 10s linear infinite;
+    animation: chromatic-hue-cycle 12s linear infinite;
+    --primary: hsl(var(--chromatic-hue), 100%, 50%);
+    --primary-rgb: 255, 255, 255; /* Changed from 255, 0, 0 to white to remove forced red neon */
+    --primary-hover: hsl(var(--chromatic-hue), 100%, 60%); /* Claro 1 */
+    --accent: hsl(calc(var(--chromatic-hue) + 120deg), 100%, 50%);
+    --accent2: hsl(calc(var(--chromatic-hue) + 240deg), 100%, 50%);
+    --text-main: #ffffff;
+    --text-muted: hsl(var(--chromatic-hue), 100%, 80%); /* Claro 3 */
+    --border: hsl(var(--chromatic-hue), 100%, 50%);
+    
+    /* Background override for maximum neon pop (🌌 Fundo recomendado) */
+    --bg-dark: #000000;
+    --bg-surface: #0a0a0a;
+    --bg-card: #111111;
 
-    /* Cor primária anima pelo espectro completo */
-    --primary: hsl(var(--chromatic-hue), 100%, 74%);
-    --primary-rgb:
-        220, 80, 255; /* fallback estático p/ rgba() — roxo-magenta */
-    --primary-hover: hsl(calc(var(--chromatic-hue) + 20deg), 100%, 82%);
-    --accent: hsl(calc(var(--chromatic-hue) + 120deg), 100%, 78%);
-    --accent2: hsl(calc(var(--chromatic-hue) + 240deg), 100%, 70%);
-    --text-main: #fff8ff;
-    --text-muted: hsl(var(--chromatic-hue), 75%, 80%);
-    --border: hsl(var(--chromatic-hue), 100%, 72%);
-    --shadow-neon:
-        0 0 44px hsl(var(--chromatic-hue), 100%, 65%),
-        0 0 22px hsl(calc(var(--chromatic-hue) + 120deg), 100%, 60%);
-    --shadow-neon-h:
-        0 0 75px hsl(var(--chromatic-hue), 100%, 75%),
-        0 0 44px hsl(calc(var(--chromatic-hue) + 120deg), 100%, 68%),
-        0 0 22px hsl(calc(var(--chromatic-hue) + 240deg), 100%, 62%);
+    /* Simplified Chromatic Neon Glow (Subtle & Elegant) */
+    --shadow-neon: 
+        0 0 12px hsla(var(--chromatic-hue), 100%, 50%, 0.4);
+
+    --shadow-neon-h: 
+        0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.6), 
+        0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.2);
+
+    --scrollbar: hsl(var(--chromatic-hue), 100%, 50%);
+}
+
+/* Specific overrides to kill any residual red or white neon */
+.theme-cromatico .navbar-brand img,
+.theme-cromatico .home-icon,
+.theme-cromatico .stats-card,
+.theme-cromatico .manga-pill.active {
+    filter: drop-shadow(0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.5)) !important;
+}
+
+/* Títulos e banners com gradiente cromático (Substituindo o branco) */
+.theme-cromatico .page-header h1,
+.theme-cromatico .home-banner h2,
+.theme-cromatico .loja-hero-title,
+.theme-cromatico .loja-hero-title span,
+.theme-cromatico .section-title,
+.theme-cromatico .home-card h3,
+.theme-cromatico #mangaPanelTitle,
+.theme-cromatico #readerTitle,
+.theme-cromatico .modal-header h2,
+.theme-cromatico #formTitle,
+.theme-cromatico .tool-header h2,
+.theme-cromatico .xp-value,
+.theme-cromatico #homeUserStatus span:last-child,
+.theme-cromatico .user-nav-title,
+.theme-cromatico .navbar-brand {
+    background: linear-gradient(90deg, 
+        hsl(var(--chromatic-hue), 100%, 65%), 
+        hsl(calc(var(--chromatic-hue) + 60deg), 100%, 65%),
+        hsl(calc(var(--chromatic-hue) + 120deg), 100%, 65%));
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    text-shadow: none !important;
+    filter: drop-shadow(0 0 12px hsla(var(--chromatic-hue), 100%, 50%, 0.4)) !important;
+}
+
+.theme-cromatico .user-nav-container {
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.2) !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Navbar links should also be chromatic when active or hovered */
+.theme-cromatico .navbar-links a:hover,
+.theme-cromatico .navbar-links a.active {
+    background: linear-gradient(90deg, 
+        hsl(var(--chromatic-hue), 100%, 65%), 
+        hsl(calc(var(--chromatic-hue) + 40deg), 100%, 65%));
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+}
+
+/* Overrides para remover o branco de elementos específicos */
+.theme-cromatico .home-banner p,
+.theme-cromatico .loja-hero-desc,
+.theme-cromatico .page-header p,
+.theme-cromatico .tool-header p,
+.theme-cromatico .stats-info .label,
+.theme-cromatico .ai-config-label,
+.theme-cromatico .ai-side-note,
+.theme-cromatico #homeUserRank,
+.theme-cromatico .search-bar input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Overrides para badges e cards que usavam primary-rgb como branco */
+.theme-cromatico .hero-xp-card,
+.theme-cromatico #homeUserStatus > div,
+.theme-cromatico .search-bar input,
+.theme-cromatico .history-search input {
+    background: hsla(var(--chromatic-hue), 100%, 50%, 0.07) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 30px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+.theme-cromatico .xp-orb {
+    background: radial-gradient(
+        circle,
+        var(--primary) 0%,
+        hsla(var(--chromatic-hue), 100%, 50%, 0.3) 60%,
+        transparent 100%
+    ) !important;
+    box-shadow: 0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.6) !important;
+}
+
+/* Ajuste para banners que têm fundos que podem conflitar */
+.theme-cromatico .loja-hero,
+.theme-cromatico .home-banner {
+    background: linear-gradient(135deg, 
+        rgba(0,0,0,0.95) 0%, 
+        hsla(var(--chromatic-hue), 100%, 50%, 0.05) 50%, 
+        rgba(0,0,0,0.95) 100%) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.1) !important;
+}
+
+.theme-cromatico .loja-hero-eyebrow::before,
+.theme-cromatico .loja-hero-eyebrow::after,
+.theme-cromatico .section-title::after {
+    background: linear-gradient(90deg, var(--primary), transparent) !important;
+}
+
+.theme-cromatico .loja-hero-eyebrow {
+    color: var(--primary) !important;
+}
+
+.theme-cromatico .stats-widget,
+.theme-cromatico .volume-card:hover {
+    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+}
+
+/* No layout overrides for history items in chromatic theme */
+.theme-cromatico .history-item {
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+}
+
+/* Specific UI elements chromatization for dashboards */
+.theme-cromatico .stats-progress-fill,
+.theme-cromatico .season-progress-fill {
+    background: linear-gradient(90deg, var(--primary), var(--accent)) !important;
+    box-shadow: 0 0 15px var(--primary) !important;
+}
+
+.theme-cromatico .stats-widget::before {
+    background: var(--primary) !important;
+    box-shadow: 0 0 10px var(--primary) !important;
+}
+
+.theme-cromatico .stats-info .count {
+    color: var(--primary) !important;
+    text-shadow: 0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+}
+
+.theme-cromatico .card-badge,
+.theme-cromatico .badge-accent,
+.theme-cromatico .badge-pill,
+.theme-cromatico .premium-dashboard-badge,
+.theme-cromatico .season-complete-badge,
+.theme-cromatico .watched-modal-badge,
+.theme-cromatico .btn {
+    background: hsla(var(--chromatic-hue), 100%, 50%, 0.1) !important;
+    color: var(--primary) !important;
+    border: 1px solid hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+}
+
+.theme-cromatico .btn-primary,
+.theme-cromatico .btn-danger,
+.theme-cromatico .btn-outline-primary,
+.theme-cromatico .btn-outline-danger {
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+}
+
+.theme-cromatico .btn:hover {
+    background: hsla(var(--chromatic-hue), 100%, 50%, 0.25) !important;
+    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+}
+
+.theme-cromatico .msg.bot {
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.08), rgba(0, 0, 0, 0.3)) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 15px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+}
+
+.theme-cromatico .msg.user {
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.15), rgba(0, 0, 0, 0.2)) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.2) !important;
+}
+
+/* AI Page Overrides for Chromatic Theme */
+.theme-cromatico .ai-card,
+.theme-cromatico .ai-tab-v,
+.theme-cromatico .ai-tab,
+.theme-cromatico .ai-content-area,
+.theme-cromatico .ai-chat-window,
+.theme-cromatico .ai-input-wrapper,
+.theme-cromatico .upload-zone,
+.theme-cromatico .ocr-result,
+.theme-cromatico .full-card,
+.theme-cromatico .ai-config-item,
+.theme-cromatico .ai-theme-panel,
+.theme-cromatico .ai-scroll-panel,
+.theme-cromatico .vision-preview,
+.theme-cromatico .compare-history-item {
+    background: linear-gradient(180deg, hsla(var(--chromatic-hue), 100%, 50%, 0.1), rgba(0, 0, 0, 0.4)) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+}
+
+.theme-cromatico .ai-tab-v.active,
+.theme-cromatico .ai-tab.active {
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.25), hsla(var(--chromatic-hue), 100%, 50%, 0.1)) !important;
+    border-color: var(--primary) !important;
+    color: var(--text-main) !important;
+}
+
+.theme-cromatico .ai-input-wrapper input {
+    color: var(--text-main) !important;
+}
+
+.theme-cromatico .ai-input-wrapper input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+.theme-cromatico .ai-btn-send {
+    background: var(--primary) !important;
+    color: var(--bg-dark) !important;
+    box-shadow: 0 0 15px var(--primary) !important;
+}
+
+.theme-cromatico .ai-card h3 {
+    color: var(--primary) !important;
+    text-shadow: 0 0 8px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+}
+
+.theme-cromatico .upload-zone__content {
+    color: var(--text-main) !important;
+}
+
+.theme-cromatico .upload-zone__content span {
+    color: var(--text-muted) !important;
+}
+
+.theme-cromatico .card-badge:hover,
+.theme-cromatico .badge-accent:hover {
+    background: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+}
+
+.theme-cromatico .catalog-item:hover,
+.theme-cromatico .card:hover,
+.theme-cromatico .volume-card:hover,
+.theme-cromatico .inventory-item-card:hover,
+.theme-cromatico .purchased-card:hover,
+.theme-cromatico .history-item:hover,
+.theme-cromatico .episode-card:hover {
+    box-shadow: var(--shadow-neon-h) !important;
+    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+    background-color: #0c0c12 !important;
 }
 
 .theme-cromatico {
-    scrollbar-color: hsl(var(--chromatic-hue), 100%, 72%) #050f1f;
+    scrollbar-color: hsl(var(--chromatic-hue), 100%, 50%) #000000;
+}
+
+/* Extra fluorescent flair (Subtle Chromatic Text Glow) */
+.theme-cromatico .btn,
+.theme-cromatico .page-header h1,
+.theme-cromatico .navbar-brand,
+.theme-cromatico .catalog-item .item-title {
+    text-shadow: 
+        0 0 8px hsla(var(--chromatic-hue), 100%, 50%, 0.6);
+}
+
+.theme-cromatico .navbar {
+    background: rgba(0, 0, 0, 0.85) !important;
+    border-bottom: 2px solid hsla(var(--chromatic-hue), 100%, 60%, 0.4);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8), 0 0 30px hsla(var(--chromatic-hue), 100%, 50%, 0.3);
+}
+
+/* Palette options inside the switcher should be more visible against pure black */
+.theme-cromatico .theme-options {
+    background: #0a0a0a !important;
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 35px hsla(var(--chromatic-hue), 100%, 50%, 0.5);
+}
+
+/* Fixed positioning for palette switcher remains intact */
+.theme-cromatico .theme-switcher-wrapper {
+    position: fixed !important;
 }
 
 /* Título da página — fonte dinâmica para o tema cromático */
@@ -1337,21 +1658,17 @@
 
 html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable; /* Previne pulos de layout ao abrir modais/editores */
 }
 
 html,
-body {
-    scrollbar-gutter: stable;
-}
-
 body {
     font-family: "Poppins", "Nunito", sans-serif;
     background: var(--bg-dark);
     color: var(--text-main);
     min-height: 100vh;
     overflow-x: hidden;
-    overflow-y: auto !important;
-    /* Garantir que o scroll vertical exista sempre */
+    /* Removido o overflow-y: auto !important para evitar scrollbars duplas ou desnecessárias */
 }
 
 a {
@@ -1382,8 +1699,8 @@ button {
 
 /* ===== SCROLLBARS GLOBAIS VIBRANTES (UNIFICADAS POR TEMA) ===== */
 ::-webkit-scrollbar {
-    width: 14px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
 }
 
 .profile-bubble {
@@ -1391,17 +1708,27 @@ button {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3) !important;
+    background: rgba(0, 0, 0, 0.2) !important;
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
     background: var(--primary) !important;
     border-radius: 50px;
-    border: 3px solid var(--bg-dark) !important;
-    box-shadow:
-        0 0 18px var(--primary),
-        inset 0 0 8px rgba(var(--primary-rgb), 0.2) !important;
+    border: 2px solid var(--bg-dark) !important;
+    box-shadow: 0 0 10px var(--primary) !important;
+}
+
+/* Garante que o body não tenha scroll horizontal e respeite o layout */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Previne scroll do body quando modal está aberto */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 10px; /* Compensa a largura da scrollbar */
 }
 
 /* Scrollbar da Navbar - VISÍVEL E TEMATIZADA */
@@ -1548,7 +1875,6 @@ body {
         inset 0 0 10px rgba(var(--primary-rgb), 0.2);
     text-shadow: 0 0 12px rgba(var(--primary-rgb), 0.7);
     animation: neonFlicker 0.6s ease-in-out;
-    transform: scale(1.05);
 }
 
 .navbar-links a.active {
@@ -1914,7 +2240,6 @@ body {
     box-shadow:
         0 0 18px rgba(var(--primary-rgb), 0.5),
         0 0 10px rgba(var(--primary-rgb), 0.3);
-    transform: scale(1.02);
 }
 
 /* ===== BOTÕES ===== */
@@ -1951,7 +2276,7 @@ body {
 
 .btn-primary:hover {
     background: var(--primary-hover);
-    transform: translateY(-3px) scale(1.05);
+    transform: translateY(-3px);
     box-shadow:
         0 8px 35px rgba(var(--primary-rgb), 0.7),
         0 0 35px rgba(var(--primary-rgb), 0.5);
@@ -2114,6 +2439,12 @@ body {
     flex-direction: column;
 }
 
+@media (max-width: 480px) {
+    .card-body {
+        padding: 0.8rem;
+    }
+}
+
 .card-title {
     font-weight: 700;
     font-size: 1.05rem;
@@ -2150,7 +2481,7 @@ body {
     box-shadow:
         0 0 18px rgba(var(--primary-rgb), 0.4),
         inset 0 0 8px rgba(var(--primary-rgb), 0.15);
-    transform: scale(1.1) translateX(2px);
+    transform: translateX(2px);
 }
 
 .badge-pill {
@@ -2297,42 +2628,61 @@ tr:hover td {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.82);
-    z-index: 2000;
+    z-index: 9999; /* Garantir que fique acima de tudo */
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    /* Sem backdrop-filter — evita desfoque no conteúdo interno (iframe/player) */
+    padding: 2rem;
+    overflow: hidden; /* Trava o scroll no overlay */
 }
 
 .modal-overlay.open {
-    display: flex;
+    display: flex !important;
 }
 
-.modal {
+.modal, .patent-info-modal {
     background: var(--bg-card);
-    border: 1px solid rgba(var(--primary-rgb), 0.2);
+    border: 1px solid rgba(var(--primary-rgb), 0.3);
     border-radius: 16px;
-    padding: 2.5rem;
+    padding: 2rem;
     width: 100%;
-    max-width: 550px;
-    max-height: 90vh;
-    overflow-y: auto;
+    max-width: 600px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
     box-shadow:
-        0 0 40px rgba(0, 0, 0, 0.6),
-        0 0 38px rgba(var(--primary-rgb), 0.4);
-    animation: slideUp 0.3s ease;
+        0 0 50px rgba(0, 0, 0, 0.8),
+        0 0 40px rgba(var(--primary-rgb), 0.4);
+    animation: slideUpCenter 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 10000;
 }
 
-@keyframes slideUp {
+@media (max-width: 600px) {
+    .modal-overlay {
+        padding: 1rem;
+    }
+    .modal, .patent-info-modal {
+        padding: 1.2rem;
+        max-height: 90vh;
+    }
+}
+
+@keyframes slideUpCenter {
     from {
-        transform: translateY(40px);
+        transform: translateY(100px) scale(0.9);
         opacity: 0;
     }
-
     to {
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
         opacity: 1;
     }
+}
+
+/* Bloqueio de scroll do body quando qualquer modal estiver aberto */
+body:has(.modal-overlay.open) {
+    overflow: hidden !important;
+    /* Removido height: 100vh para evitar pulo ao topo */
+    touch-action: none;
 }
 
 .modal-header {
@@ -2340,6 +2690,39 @@ tr:hover td {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1.5rem;
+    flex-shrink: 0; /* Header não encolhe */
+}
+
+/* Força display block no conteúdo interno de qualquer modal/card aberto */
+.modal form, 
+.modal .modal-body,
+.modal > p,
+.modal .modal-content,
+.patent-info-modal .patent-details {
+    overflow-y: auto !important;
+    padding-right: 8px;
+    flex: 1;
+    display: block !important;
+}
+
+/* Scrollbar fixa e temática para o interior do card */
+.modal form::-webkit-scrollbar,
+.modal .modal-body::-webkit-scrollbar,
+.modal .modal-content::-webkit-scrollbar,
+.modal > p::-webkit-scrollbar {
+    width: 6px;
+    display: block !important;
+}
+
+.modal form::-webkit-scrollbar-thumb,
+.modal .modal-body::-webkit-scrollbar-thumb,
+.modal > p::-webkit-scrollbar-thumb {
+    background: rgba(var(--primary-rgb), 0.3);
+    border-radius: 10px;
+}
+
+.modal-overlay.open ~ body {
+    overflow: hidden !important;
 }
 
 .modal-header h2 {
@@ -2377,6 +2760,38 @@ tr:hover td {
     margin-bottom: 1.2rem;
 }
 
+/* Linha de formulário flexível que embrulha em telas pequenas */
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.form-row > * {
+    flex: 1;
+    min-width: 150px;
+}
+
+.form-row span {
+    flex: 0 0 auto;
+    min-width: auto;
+}
+
+/* Estilo para linhas de episódios/campos múltiplos */
+.ep-form-row {
+    display: flex;
+    gap: 0.7rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.ep-form-row .form-group {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 120px;
+}
+
 .form-group label {
     display: block;
     font-size: 0.9rem;
@@ -2402,7 +2817,6 @@ tr:hover td {
     box-shadow:
         0 0 25px rgba(var(--primary-rgb), 0.6),
         0 0 15px rgba(var(--primary-rgb), 0.4);
-    transform: scale(1.02);
 }
 
 .form-actions {
@@ -2940,6 +3354,13 @@ tr:hover td {
 .theme-opt-btn[data-theme="theme-aqua-verde"] {
     background: var(--aqua-verde-primary);
     color: #042f24;
+}
+
+.theme-opt-btn[data-theme="theme-cromatico"] {
+    background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+    border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .theme-opt-btn::after {

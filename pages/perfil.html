@@ -1434,6 +1434,41 @@
   <script src="js/history.js"></script>
   <script src="js/auth.js"></script>
 <script>
+  const STORE_KEY = 'animehouse_store';
+  const ALL_ITEMS = [
+    { id: 'banner_claro', name: 'Banner Aurora Simples', icon: '🌅', category: 'banner', currency: 'ouro', price: 3 },
+    { id: 'titulo_explorador', name: 'Título: Explorador', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5 },
+    { id: 'aura_chama', name: 'Aura Chama Simples', icon: '🔥', category: 'aura', currency: 'ouro', price: 8 },
+    { id: 'banner_cosmica', name: 'Banner Noite Cósmica', icon: '🌌', category: 'banner', currency: 'ouro', price: 10 },
+    { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6 },
+    { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4 },
+    { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5 },
+    { id: 'aura_chama_naruto', name: 'Aura Modo Sábio', icon: '🔥', category: 'aura', currency: 'ouro', price: 7 },
+    { id: 'aura_ceifador', name: 'Aura: Olhar do Ceifador', icon: '📓', category: 'aura', currency: 'ouro', price: 15 },
+    { id: 'banner_oni', name: 'Banner Oni Samurai', icon: '🎭', category: 'banner', currency: 'diamante', price: 5 },
+    { id: 'aura_thunder', name: 'Aura Relâmpago Elétrico', icon: '⚡', category: 'aura', currency: 'diamante', price: 8 },
+    { id: 'banner_shinobi', name: 'Banner Shinobi Dark', icon: '🥷', category: 'banner', currency: 'diamante', price: 7 },
+    { id: 'titulo_mestre_das_listas', name: 'Título: Mestre das Listas', icon: '📋', category: 'titulo', currency: 'diamante', price: 10 },
+    { id: 'aura_sakura', name: 'Aura Pétala de Sakura', icon: '🌸', category: 'aura', currency: 'diamante', price: 9 },
+    { id: 'modo_cinema', name: 'Modo Cinema Aprimorado', icon: '🎬', category: 'experiencia', currency: 'diamante', price: 12 },
+    { id: 'aura_gelo', name: 'Aura Cristal de Gelo', icon: '❄️', category: 'aura', currency: 'diamante', price: 11 },
+    { id: 'frame_dourado', name: 'Frame Dourado Elite', icon: '🪙', category: 'experiencia', currency: 'diamante', price: 15 },
+    { id: 'banner_aot', name: 'Banner: Attack on Titan', icon: '🧱', category: 'banner', currency: 'diamante', price: 6 },
+    { id: 'aura_susanoo', name: 'Aura Susanoo Perfeito', icon: '⚡', category: 'aura', currency: 'diamante', price: 9 },
+    { id: 'banner_ragnarok', name: 'Banner: Arena Ragnarok', icon: '🏛️', category: 'banner', currency: 'diamante', price: 10 },
+    { id: 'aura_stands', name: 'Aura Stand: Star Platinum', icon: '🟣', category: 'aura', currency: 'diamante', price: 12 },
+    { id: 'coroa_lendaria', name: 'Coroa Rei dos Animes', icon: '👑', category: 'exclusivo', currency: 'esmeralda', price: 3 },
+    { id: 'aura_dragon', name: 'Aura Dragão Arcano', icon: '🐉', category: 'aura', currency: 'esmeralda', price: 5 },
+    { id: 'banner_cosmos', name: 'Banner Cosmos', icon: '🌀', category: 'banner', currency: 'esmeralda', price: 4 },
+    { id: 'titulo_guardiao', name: 'Título: Guardião Lenda', icon: '🛡️', category: 'titulo', currency: 'esmeralda', price: 2 },
+    { id: 'dashboard_premium', name: 'Dashboard Premium Full', icon: '📊', category: 'experiencia', currency: 'esmeralda', price: 6 },
+    { id: 'coroa_tryhard', name: 'Caveira do Carrasco', icon: '💀', category: 'exclusivo', currency: 'esmeralda', price: 3 },
+    { id: 'titulo_sensei_mod', name: 'Título: SenseiMod', icon: '🎓', category: 'titulo', currency: 'esmeralda', price: 5 },
+    { id: 'banner_vinland', name: 'Banner: Vinland Saga', icon: '🛡️', category: 'banner', currency: 'esmeralda', price: 6 },
+    { id: 'aura_void_saitama', name: 'Aura ONE PUNCH', icon: '👊', category: 'aura', currency: 'esmeralda', price: 4 },
+    { id: 'tema_cromatico', name: 'Tema Cromático', icon: '🌈', category: 'tema', currency: 'esmeralda', price: 8 }
+  ];
+
   function showToast(msg, type = 'success', ms = 7000) {
     const container = document.getElementById('toast');
     if (!container) return;
@@ -2528,41 +2563,6 @@
       async function renderMeusEspeciais() {
         console.log("🎯 renderMeusEspeciais() chamada");
 
-        const STORE_KEY = 'animehouse_store';
-        const ALL_ITEMS = [
-          { id: 'banner_claro', name: 'Banner Aurora Simples', icon: '🌅', category: 'banner', currency: 'ouro', price: 3 },
-          { id: 'titulo_explorador', name: 'Título: Explorador', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5 },
-          { id: 'aura_chama', name: 'Aura Chama Simples', icon: '🔥', category: 'aura', currency: 'ouro', price: 8 },
-          { id: 'banner_cosmica', name: 'Banner Noite Cósmica', icon: '🌌', category: 'banner', currency: 'ouro', price: 10 },
-          { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6 },
-          { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4 },
-          { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5 },
-          { id: 'aura_chama_naruto', name: 'Aura Modo Sábio', icon: '🔥', category: 'aura', currency: 'ouro', price: 7 },
-          { id: 'aura_ceifador', name: 'Aura: Olhar do Ceifador', icon: '📓', category: 'aura', currency: 'ouro', price: 15 },
-          { id: 'banner_oni', name: 'Banner Oni Samurai', icon: '🎭', category: 'banner', currency: 'diamante', price: 5 },
-          { id: 'aura_thunder', name: 'Aura Relâmpago Elétrico', icon: '⚡', category: 'aura', currency: 'diamante', price: 8 },
-          { id: 'banner_shinobi', name: 'Banner Shinobi Dark', icon: '🥷', category: 'banner', currency: 'diamante', price: 7 },
-          { id: 'titulo_mestre_das_listas', name: 'Título: Mestre das Listas', icon: '📋', category: 'titulo', currency: 'diamante', price: 10 },
-          { id: 'aura_sakura', name: 'Aura Pétala de Sakura', icon: '🌸', category: 'aura', currency: 'diamante', price: 9 },
-          { id: 'modo_cinema', name: 'Modo Cinema Aprimorado', icon: '🎬', category: 'experiencia', currency: 'diamante', price: 12 },
-          { id: 'aura_gelo', name: 'Aura Cristal de Gelo', icon: '❄️', category: 'aura', currency: 'diamante', price: 11 },
-          { id: 'frame_dourado', name: 'Frame Dourado Elite', icon: '🪙', category: 'experiencia', currency: 'diamante', price: 15 },
-          { id: 'banner_aot', name: 'Banner: Attack on Titan', icon: '🧱', category: 'banner', currency: 'diamante', price: 6 },
-          { id: 'aura_susanoo', name: 'Aura Susanoo Perfeito', icon: '⚡', category: 'aura', currency: 'diamante', price: 9 },
-          { id: 'banner_ragnarok', name: 'Banner: Arena Ragnarok', icon: '🏛️', category: 'banner', currency: 'diamante', price: 10 },
-          { id: 'aura_stands', name: 'Aura Stand: Star Platinum', icon: '🟣', category: 'aura', currency: 'diamante', price: 12 },
-          { id: 'coroa_lendaria', name: 'Coroa Rei dos Animes', icon: '👑', category: 'exclusivo', currency: 'esmeralda', price: 3 },
-          { id: 'aura_dragon', name: 'Aura Dragão Arcano', icon: '🐉', category: 'aura', currency: 'esmeralda', price: 5 },
-          { id: 'banner_cosmos', name: 'Banner Cosmos', icon: '🌀', category: 'banner', currency: 'esmeralda', price: 4 },
-          { id: 'titulo_guardiao', name: 'Título: Guardião Lenda', icon: '🛡️', category: 'titulo', currency: 'esmeralda', price: 2 },
-          { id: 'dashboard_premium', name: 'Dashboard Premium Full', icon: '📊', category: 'experiencia', currency: 'esmeralda', price: 6 },
-          { id: 'coroa_tryhard', name: '💀 Coroa Tryhard', icon: '💀', category: 'exclusivo', currency: 'esmeralda', price: 3 },
-          { id: 'titulo_sensei_mod', name: 'Título: SenseiMod', icon: '🎓', category: 'titulo', currency: 'esmeralda', price: 5 },
-          { id: 'banner_vinland', name: 'Banner: Vinland Saga', icon: '🛡️', category: 'banner', currency: 'esmeralda', price: 6 },
-          { id: 'aura_void_saitama', name: 'Aura ONE PUNCH', icon: '👊', category: 'aura', currency: 'esmeralda', price: 4 },
-          { id: 'tema_cromatico', name: 'Tema Cromático', icon: '🌈', category: 'tema', currency: 'esmeralda', price: 8 }
-        ];
-
         let store;
         try {
           if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
@@ -2636,7 +2636,9 @@
           if (item.category === 'aura') return localStorage.getItem('animehouse_customAura') === item.id;
           if (item.category === 'titulo') return localStorage.getItem('animehouse_customTitle') === item.name.replace('Título: ', '');
           if (item.category === 'banner') return localStorage.getItem('animehouse_customBanner') === item.id;
-          if (item.category === 'exclusivo' && item.id.includes('coroa')) return localStorage.getItem('animehouse_showCrown') === 'true';
+          if (item.category === 'exclusivo' && item.id.includes('coroa')) {
+            return localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === item.id;
+          }
           if (item.category === 'tema') return sessionStorage.getItem('theme') === 'theme-cromatico';
           return false;
         }
@@ -2689,6 +2691,7 @@
         const equippedTitle = localStorage.getItem('animehouse_customTitle');
         const equippedBanner = localStorage.getItem('animehouse_customBanner');
         const equippedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+        const equippedCrownId = localStorage.getItem('animehouse_equippedCrownId');
 
         if (equippedAura && equippedAura !== 'none') {
           const aura = ALL_ITEMS.find(i => i.id === equippedAura);
@@ -2702,8 +2705,8 @@
           const banner = ALL_ITEMS.find(i => i.id === equippedBanner);
           if (banner) equippedItems.push({ ...banner, type: 'Banner' });
         }
-        if (equippedCrown) {
-          const coroa = ALL_ITEMS.find(i => i.category === 'exclusivo' && i.id.includes('coroa'));
+        if (equippedCrown && equippedCrownId) {
+          const coroa = ALL_ITEMS.find(i => i.id === equippedCrownId);
           if (coroa) equippedItems.push({ ...coroa, type: 'Coroa' });
         }
 
@@ -2789,7 +2792,9 @@
         if (type === 'aura') isEquipped = localStorage.getItem('animehouse_customAura') === id;
         else if (type === 'titulo') isEquipped = localStorage.getItem('animehouse_customTitle') === rawName;
         else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
-        else if (type === 'exclusivo' && id.includes('coroa')) isEquipped = localStorage.getItem('animehouse_showCrown') === 'true';
+        else if (type === 'exclusivo' && id.includes('coroa')) {
+          isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
+        }
 
         const newEquippedState = !isEquipped;
 
@@ -2808,7 +2813,11 @@
             store.equipped.banner = 'none';
           } else if (type === 'exclusivo' && id.includes('coroa')) {
             localStorage.setItem('animehouse_showCrown', 'false');
+            localStorage.removeItem('animehouse_equippedCrownId');
+            localStorage.removeItem('animehouse_equippedCrownIcon');
             store.equipped.crown = false;
+            store.equipped.crownId = '';
+            store.equipped.crownIcon = '';
           } else if (type === 'tema') {
             // Desequipar tema cromático — volta ao tema padrão
             if (window.setTheme) window.setTheme('theme-ciano');
@@ -2828,8 +2837,14 @@
             store.equipped.banner = id;
           } else if (type === 'exclusivo' && id.includes('coroa')) {
             localStorage.setItem('animehouse_showCrown', 'true');
+            localStorage.setItem('animehouse_equippedCrownId', id);
+            const item = ALL_ITEMS.find(i => i.id === id);
+            const icon = item?.icon || '👑';
+            localStorage.setItem('animehouse_equippedCrownIcon', icon);
+            
             store.equipped.crown = true;
-            store.equipped.crownId = id.replace('coroa_', '');
+            store.equipped.crownId = id;
+            store.equipped.crownIcon = icon;
           } else if (type === 'tema') {
             // Equipar tema cromático
             if (window.setTheme) window.setTheme('theme-cromatico');
@@ -2950,46 +2965,12 @@
         const equippedItemsDisplay = document.getElementById('equippedItemsDisplay');
         if (!equippedItemsDisplay) return;
 
-        // Re-renderizar apenas o painel de equipados
-        const ALL_ITEMS = [
-          { id: 'banner_claro', name: 'Banner Aurora Simples', icon: '🌅', category: 'banner', currency: 'ouro', price: 3 },
-          { id: 'titulo_explorador', name: 'Título: Explorador', icon: '🗺️', category: 'titulo', currency: 'ouro', price: 5 },
-          { id: 'aura_chama', name: 'Aura Chama Simples', icon: '🔥', category: 'aura', currency: 'ouro', price: 8 },
-          { id: 'banner_cosmica', name: 'Banner Noite Cósmica', icon: '🌌', category: 'banner', currency: 'ouro', price: 10 },
-          { id: 'titulo_caçador', name: 'Título: Caçador de Episódios', icon: '🎯', category: 'titulo', currency: 'ouro', price: 6 },
-          { id: 'banner_berserk', name: 'Banner: Eclipse de Guts', icon: '⚔️', category: 'banner', currency: 'ouro', price: 4 },
-          { id: 'titulo_espadachim', name: 'Título: Espadachim Solitário', icon: '🗡️', category: 'titulo', currency: 'ouro', price: 5 },
-          { id: 'aura_chama_naruto', name: 'Aura Modo Sábio', icon: '🔥', category: 'aura', currency: 'ouro', price: 7 },
-          { id: 'aura_ceifador', name: 'Aura: Olhar do Ceifador', icon: '📓', category: 'aura', currency: 'ouro', price: 15 },
-          { id: 'banner_oni', name: 'Banner Oni Samurai', icon: '🎭', category: 'banner', currency: 'diamante', price: 5 },
-          { id: 'aura_thunder', name: 'Aura Relâmpago Elétrico', icon: '⚡', category: 'aura', currency: 'diamante', price: 8 },
-          { id: 'banner_shinobi', name: 'Banner Shinobi Dark', icon: '🥷', category: 'banner', currency: 'diamante', price: 7 },
-          { id: 'titulo_mestre_das_listas', name: 'Título: Mestre das Listas', icon: '📋', category: 'titulo', currency: 'diamante', price: 10 },
-          { id: 'aura_sakura', name: 'Aura Pétala de Sakura', icon: '🌸', category: 'aura', currency: 'diamante', price: 9 },
-          { id: 'modo_cinema', name: 'Modo Cinema Aprimorado', icon: '🎬', category: 'experiencia', currency: 'diamante', price: 12 },
-          { id: 'aura_gelo', name: 'Aura Cristal de Gelo', icon: '❄️', category: 'aura', currency: 'diamante', price: 11 },
-          { id: 'frame_dourado', name: 'Frame Dourado Elite', icon: '🪙', category: 'experiencia', currency: 'diamante', price: 15 },
-          { id: 'banner_aot', name: 'Banner: Attack on Titan', icon: '🧱', category: 'banner', currency: 'diamante', price: 6 },
-          { id: 'aura_susanoo', name: 'Aura Susanoo Perfeito', icon: '⚡', category: 'aura', currency: 'diamante', price: 9 },
-          { id: 'banner_ragnarok', name: 'Banner: Arena Ragnarok', icon: '🏛️', category: 'banner', currency: 'diamante', price: 10 },
-          { id: 'aura_stands', name: 'Aura Stand: Star Platinum', icon: '🟣', category: 'aura', currency: 'diamante', price: 12 },
-          { id: 'coroa_lendaria', name: 'Coroa Rei dos Animes', icon: '👑', category: 'exclusivo', currency: 'esmeralda', price: 3 },
-          { id: 'aura_dragon', name: 'Aura Dragão Arcano', icon: '🐉', category: 'aura', currency: 'esmeralda', price: 5 },
-          { id: 'banner_cosmos', name: 'Banner Cosmos', icon: '🌀', category: 'banner', currency: 'esmeralda', price: 4 },
-          { id: 'titulo_guardiao', name: 'Título: Guardião Lenda', icon: '🛡️', category: 'titulo', currency: 'esmeralda', price: 2 },
-          { id: 'dashboard_premium', name: 'Dashboard Premium Full', icon: '📊', category: 'experiencia', currency: 'esmeralda', price: 6 },
-          { id: 'coroa_tryhard', name: '💀 Coroa Tryhard', icon: '💀', category: 'exclusivo', currency: 'esmeralda', price: 3 },
-          { id: 'titulo_sensei_mod', name: 'Título: SenseiMod', icon: '🎓', category: 'titulo', currency: 'esmeralda', price: 5 },
-          { id: 'banner_vinland', name: 'Banner: Vinland Saga', icon: '🛡️', category: 'banner', currency: 'esmeralda', price: 6 },
-          { id: 'aura_void_saitama', name: 'Aura ONE PUNCH', icon: '👊', category: 'aura', currency: 'esmeralda', price: 4 },
-          { id: 'tema_cromatico', name: 'Tema Cromático', icon: '🌈', category: 'tema', currency: 'esmeralda', price: 8 }
-        ];
-
         const equippedItems = [];
         const equippedAura = localStorage.getItem('animehouse_customAura');
         const equippedTitle = localStorage.getItem('animehouse_customTitle');
         const equippedBanner = localStorage.getItem('animehouse_customBanner');
         const equippedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
+        const equippedCrownId = localStorage.getItem('animehouse_equippedCrownId');
         const equippedTema = sessionStorage.getItem('theme') === 'theme-cromatico';
 
         if (equippedAura && equippedAura !== 'none') {
@@ -3004,9 +2985,9 @@
           const banner = ALL_ITEMS.find(i => i.id === equippedBanner);
           if (banner) equippedItems.push({ ...banner, type: 'Banner' });
         }
-        if (equippedCrown) {
-          const coroa = ALL_ITEMS.find(i => i.category === 'exclusivo' && i.id.includes('coroa'));
-          if (coroa) equippedItems.push({ ...coroa, type: 'Coroa' });
+        if (equippedCrown && equippedCrownId) {
+          const coroa = ALL_ITEMS.find(i => i.id === equippedCrownId);
+          if (coroa) equippedItems.push({ ...coroa, type: 'Decoração' });
         }
         if (equippedTema) {
           const tema = ALL_ITEMS.find(i => i.id === 'tema_cromatico');
