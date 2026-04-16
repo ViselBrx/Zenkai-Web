@@ -66,6 +66,15 @@
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
+  // Restaurar tema cromático de volta à sessionStorage se estava equipado no localStorage
+  // (necessário quando o usuário abre nova sessão/aba sem um tema salvo na sessão)
+  if (
+    localStorage.getItem("animehouse_tema_cromatico") === "true" &&
+    (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
+  ) {
+    sessionStorage.setItem("theme", "theme-cromatico");
+  }
+
   // Apply the saved theme early to avoid a flash on load.
   const savedTheme = normalizeTheme(sessionStorage.getItem("theme"));
   document.documentElement.className = savedTheme;

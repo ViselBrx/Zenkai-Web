@@ -830,8 +830,6 @@
                                 store.equipped[itemId] === "true");
                     } else if (item.category === "tema") {
                         isEquipped =
-                            sessionStorage.getItem("theme") ===
-                                "theme-cromatico" ||
                             localStorage.getItem(
                                 "animehouse_tema_cromatico",
                             ) === "true";
@@ -1054,7 +1052,6 @@
                     }
                 } else if (type === "tema") {
                     const isActive =
-                        sessionStorage.getItem("theme") === "theme-cromatico" ||
                         localStorage.getItem("animehouse_tema_cromatico") ===
                             "true";
                     if (isActive) {
