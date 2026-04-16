@@ -45,10 +45,10 @@ try { require('dotenv').config(); } catch (e) { loadEnvFallback(path.join(__dirn
 
 const PORT       = process.env.PORT || 3000;
 const ROOT       = __dirname;
-const PUBLIC_DIR = path.join(ROOT, 'public');
-const PAGES_DIR  = path.join(ROOT, 'pages');
+const PUBLIC_DIR = ROOT; // Os arquivos agora estão no root
+const PAGES_DIR  = ROOT; // Os arquivos agora estão no root
 const DATA_FILE  = path.join(ROOT, 'data', 'data.json');
-const UPLOADS_DIR = path.join(PUBLIC_DIR, 'uploads');
+const UPLOADS_DIR = path.join(ROOT, 'uploads');
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 

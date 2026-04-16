@@ -31,9 +31,9 @@
     }
     .cartoon-pill img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
     .cartoon-pill:hover, .cartoon-pill.active {
-      background: rgba(124,58,237,0.12);
-      border-color: var(--accent2);
-      color: #a78bfa;
+      background: rgba(var(--primary-rgb), 0.12);
+      border-color: var(--primary);
+      color: var(--primary);
     }
     
     .audio-selector-tabs {
@@ -55,7 +55,7 @@
       transition: all 0.3s;
     }
     .audio-tab.active {
-      color: #a78bfa;
+      color: var(--primary);
     }
     .audio-tab.active::after {
       content: '';
@@ -64,7 +64,7 @@
       left: 0;
       width: 100%;
       height: 3px;
-      background: #a78bfa;
+      background: var(--primary);
       border-radius: 3px 3px 0 0;
     }
 

@@ -153,15 +153,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailPlaceholder = document.getElementById('detailCoverPlaceholder');
   const detailEstudio = document.getElementById('detailEstudio');
   const detailTemporadas = document.getElementById('detailTemporadas');
-  const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
-  const detailFavBtn = document.getElementById('detailFavBtn');
-
   async function openDetailModal(a) {
     detailTitle.textContent = a.nome;
     detailEstudio.textContent = a.estudio || 'N/A';
     detailTemporadas.textContent = a.temporadas || 1;
-    detailGenero.textContent = a.genero || 'Não especificado';
     
     if (a.capa) {
       detailCover.src = a.capa;
@@ -172,16 +168,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailCover.style.display = 'none';
       detailPlaceholder.style.display = 'flex';
     }
-
-    // Check favorite status for modal button
-    const isFav = await DB.isFavorite(a.id, 'anime');
-    detailFavBtn.style.display = 'flex';
-    detailFavBtn.classList.toggle('active', isFav);
-    detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
-    detailFavBtn.onclick = (e) => {
-      e.stopPropagation();
-      toggleFavorite(a, detailFavBtn);
-    };
 
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
