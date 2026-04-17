@@ -168,7 +168,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
+<<<<<<< HEAD:public/js/animes.js
     // Favoritos no Modal removido conforme solicitado
+<<<<<<< HEAD
+=======
+
+=======
+>>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:js/animes.js
+>>>>>>> ae8d644 (Implementação auras)
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
     };
