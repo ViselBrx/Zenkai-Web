@@ -2667,9 +2667,7 @@
             return localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === item.id;
           }
           if (item.category === 'tema') return (
-            sessionStorage.getItem('theme') === 'theme-cromatico' ||
-            localStorage.getItem('animehouse_tema_cromatico') === 'true' ||
-            localStorage.getItem('equipped_tema_cromatico') === 'true'
+            localStorage.getItem('animehouse_tema_cromatico') === 'true'
           );
           return false;
         }
@@ -2825,8 +2823,13 @@
         else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
         else if (type === 'exclusivo' && id.includes('coroa')) {
           isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
+<<<<<<< HEAD:pages/perfil.html
         } else if (type === 'tema' || id === 'tema_cromatico') {
           isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true' || sessionStorage.getItem('theme') === 'theme-cromatico';
+=======
+        } else if (type === 'tema') {
+          isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true';
+>>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:perfil.html
         }
 
         const newEquippedState = !isEquipped;
@@ -2857,7 +2860,6 @@
             store.equipped.tema_cromatico = false;
             localStorage.removeItem('animehouse_tema_cromatico');
             localStorage.removeItem('equipped_tema_cromatico');
-            sessionStorage.setItem('theme', 'theme-ciano');
           }
         } else {
           // Equipar
@@ -2885,6 +2887,7 @@
             if (window.setTheme) window.setTheme('theme-cromatico');
             store.equipped.tema_cromatico = true;
             localStorage.setItem('animehouse_tema_cromatico', 'true');
+            localStorage.removeItem('equipped_tema_cromatico'); // limpar chave legada
           }
         }
 
@@ -3006,7 +3009,7 @@
         const equippedBanner = localStorage.getItem('animehouse_customBanner');
         const equippedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
         const equippedCrownId = localStorage.getItem('animehouse_equippedCrownId');
-        const equippedTema = sessionStorage.getItem('theme') === 'theme-cromatico';
+        const equippedTema = localStorage.getItem('animehouse_tema_cromatico') === 'true';
 
         if (equippedAura && equippedAura !== 'none') {
           const aura = ALL_ITEMS.find(i => i.id === equippedAura);

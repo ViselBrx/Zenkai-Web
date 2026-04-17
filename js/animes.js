@@ -152,15 +152,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailPlaceholder = document.getElementById('detailCoverPlaceholder');
   const detailEstudio = document.getElementById('detailEstudio');
   const detailTemporadas = document.getElementById('detailTemporadas');
-  const detailGenero = document.getElementById('detailGenero');
   const detailWatchBtn = document.getElementById('detailWatchBtn');
-  const detailFavBtn = document.getElementById('detailFavBtn');
-
   async function openDetailModal(a) {
     detailTitle.textContent = a.nome;
     detailEstudio.textContent = a.estudio || 'N/A';
     detailTemporadas.textContent = a.temporadas || 1;
-    detailGenero.textContent = a.genero || 'Não especificado';
     
     if (a.capa) {
       detailCover.src = a.capa;
@@ -172,8 +168,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
+<<<<<<< HEAD:public/js/animes.js
     // Favoritos no Modal removido conforme solicitado
 
+=======
+>>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:js/animes.js
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
     };

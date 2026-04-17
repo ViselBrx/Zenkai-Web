@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/api/ai/proxy", "destination": "/api/ai/proxy.js" }
+  ]
+}
