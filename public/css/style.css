@@ -266,16 +266,16 @@
 .avatar-aura-wrap.avatar-aura-fire::after,
 .user-nav-avatar-box.avatar-aura-fire::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 210deg,
-        rgba(255, 200, 0, 0.62),
-        rgba(255, 100, 0, 0.52),
-        rgba(255, 60, 0, 0.46),
-        rgba(255, 200, 0, 0.62)
+        rgba(255, 200, 0, 0.75),
+        rgba(255, 100, 0, 0.65),
+        rgba(255, 60, 0, 0.55),
+        rgba(255, 200, 0, 0.75)
     );
     animation: aura-fx-rotate 3.6s linear infinite;
-    opacity: 0.9;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.avatar-aura-guardian::before,
@@ -299,16 +299,16 @@
 .avatar-aura-wrap.avatar-aura-guardian::after,
 .user-nav-avatar-box.avatar-aura-guardian::after {
     inset: -8px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 180deg,
-        rgba(0, 255, 255, 0.56),
-        rgba(0, 200, 255, 0.46),
-        rgba(0, 150, 255, 0.4),
-        rgba(0, 255, 255, 0.56)
+        rgba(0, 255, 255, 0.7),
+        rgba(0, 200, 255, 0.6),
+        rgba(0, 150, 255, 0.5),
+        rgba(0, 255, 255, 0.7)
     );
     animation: aura-fx-rotate 4.4s linear infinite;
-    opacity: 0.9;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.avatar-aura-immortal::before,
@@ -332,16 +332,16 @@
 .avatar-aura-wrap.avatar-aura-immortal::after,
 .user-nav-avatar-box.avatar-aura-immortal::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 200deg,
-        rgba(255, 0, 255, 0.62),
-        rgba(180, 0, 255, 0.52),
-        rgba(138, 43, 226, 0.46),
-        rgba(255, 0, 255, 0.62)
+        rgba(255, 0, 255, 0.75),
+        rgba(180, 0, 255, 0.65),
+        rgba(138, 43, 226, 0.55),
+        rgba(255, 0, 255, 0.75)
     );
     animation: aura-fx-rotate 4s linear infinite;
-    opacity: 0.9;
+    opacity: 1;
 }
 
 /* Loja / cosméticos (compatível com classes atuais) */
@@ -363,16 +363,16 @@
 .user-nav-avatar-box.aura-common-chama::after,
 .user-nav-avatar-box.aura_chama::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 0deg,
-        rgba(255, 160, 0, 0.62),
-        rgba(255, 80, 0, 0.52),
-        rgba(255, 210, 0, 0.56),
-        rgba(255, 160, 0, 0.62)
+        rgba(255, 160, 0, 0.75),
+        rgba(255, 80, 0, 0.65),
+        rgba(255, 210, 0, 0.7),
+        rgba(255, 160, 0, 0.75)
     );
     animation: aura-fx-rotate 4s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-common-naruto::before,
@@ -393,16 +393,16 @@
 .user-nav-avatar-box.aura-common-naruto::after,
 .user-nav-avatar-box.aura_chama_naruto::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 90deg,
-        rgba(255, 235, 0, 0.65),
-        rgba(255, 200, 0, 0.55),
-        rgba(255, 170, 0, 0.5),
-        rgba(255, 235, 0, 0.65)
+        rgba(255, 235, 0, 0.8),
+        rgba(255, 200, 0, 0.7),
+        rgba(255, 170, 0, 0.65),
+        rgba(255, 235, 0, 0.8)
     );
     animation: aura-fx-rotate 4.2s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-rare-ceifador::before,
@@ -423,16 +423,16 @@
 .user-nav-avatar-box.aura-rare-ceifador::after,
 .user-nav-avatar-box.aura_ceifador::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 60deg,
-        rgba(160, 0, 255, 0.65),
-        rgba(100, 0, 200, 0.55),
-        rgba(185, 0, 255, 0.6),
-        rgba(160, 0, 255, 0.65)
+        rgba(160, 0, 255, 0.8),
+        rgba(100, 0, 200, 0.7),
+        rgba(185, 0, 255, 0.75),
+        rgba(160, 0, 255, 0.8)
     );
     animation: aura-fx-rotate 4.8s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-rare-thunder::before,
@@ -453,16 +453,16 @@
 .user-nav-avatar-box.aura-rare-thunder::after,
 .user-nav-avatar-box.aura_thunder::after {
     inset: -12px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 30deg,
-        rgba(255, 255, 255, 0.62),
-        rgba(150, 220, 255, 0.56),
-        rgba(102, 204, 255, 0.5),
-        rgba(255, 255, 255, 0.62)
+        rgba(255, 255, 255, 0.75),
+        rgba(150, 220, 255, 0.7),
+        rgba(102, 204, 255, 0.65),
+        rgba(255, 255, 255, 0.75)
     );
     animation: aura-fx-rotate 5.2s linear infinite;
-    opacity: 0.9;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-rare-susanoo::before,
@@ -487,16 +487,16 @@
 .user-nav-avatar-box.aura_susanoo::after,
 .user-nav-avatar-box.avatar-aura-susanoo::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 30deg,
-        rgba(148, 0, 211, 0.65),
-        rgba(100, 0, 180, 0.55),
-        rgba(165, 20, 225, 0.6),
-        rgba(148, 0, 211, 0.65)
+        rgba(148, 0, 211, 0.8),
+        rgba(100, 0, 180, 0.7),
+        rgba(165, 20, 225, 0.75),
+        rgba(148, 0, 211, 0.8)
     );
     animation: aura-fx-rotate 5s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-rare-sakura::before,
@@ -517,16 +517,16 @@
 .user-nav-avatar-box.aura-rare-sakura::after,
 .user-nav-avatar-box.aura_sakura::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 45deg,
-        rgba(255, 160, 175, 0.65),
-        rgba(255, 110, 155, 0.55),
-        rgba(255, 205, 215, 0.6),
-        rgba(255, 160, 175, 0.65)
+        rgba(255, 160, 175, 0.8),
+        rgba(255, 110, 155, 0.7),
+        rgba(255, 205, 215, 0.75),
+        rgba(255, 160, 175, 0.8)
     );
     animation: aura-fx-rotate 5.5s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-epic-gelo::before,
@@ -547,16 +547,16 @@
 .user-nav-avatar-box.aura-epic-gelo::after,
 .user-nav-avatar-box.aura_gelo::after {
     inset: -14px;
-    filter: blur(14px);
+    filter: blur(12px);
     background: conic-gradient(
         from 30deg,
-        rgba(255, 255, 255, 0.65),
-        rgba(150, 220, 255, 0.58),
-        rgba(102, 204, 255, 0.52),
-        rgba(255, 255, 255, 0.65)
+        rgba(255, 255, 255, 0.8),
+        rgba(150, 220, 255, 0.7),
+        rgba(102, 204, 255, 0.65),
+        rgba(255, 255, 255, 0.8)
     );
     animation: aura-fx-rotate 5.2s linear infinite;
-    opacity: 0.92;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-epic-stands::before,
@@ -588,16 +588,16 @@
 .user-nav-avatar-box.aura_stands::after,
 .user-nav-avatar-box.avatar-aura-stands::after {
     inset: -10px;
-    filter: blur(13px);
+    filter: blur(11px);
     background: conic-gradient(
         from 90deg,
-        rgba(255, 255, 255, 0.65),
-        rgba(155, 89, 182, 0.58),
-        rgba(142, 68, 173, 0.52),
-        rgba(255, 255, 255, 0.65)
+        rgba(255, 255, 255, 0.8),
+        rgba(155, 89, 182, 0.7),
+        rgba(142, 68, 173, 0.65),
+        rgba(255, 255, 255, 0.8)
     );
     animation: aura-fx-rotate 4.5s linear infinite;
-    opacity: 0.88;
+    opacity: 1;
 }
 
 .avatar-aura-wrap.aura-epic-void::before,
@@ -1808,6 +1808,24 @@ body {
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
     overflow: visible;
     gap: 20px;
+}
+
+/* Crown styles - Preservado do fix de estabilidade */
+.crown-nav {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%) rotate(10deg);
+  font-size: 1.4rem;
+  z-index: 10;
+  text-shadow: 0 0 10px gold, 0 0 20px rgba(255, 215, 0, 0.5);
+  pointer-events: none;
+  animation: crown-float 3s ease-in-out infinite;
+}
+
+@keyframes crown-float {
+  0%, 100% { transform: translateX(-50%) rotate(10deg) translateY(0); }
+  50% { transform: translateX(-50%) rotate(12deg) translateY(-3px); }
 }
 
 /* Indicador discreto de rolagem horizontal na navbar (sempre visível quando há overflow) */

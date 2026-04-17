@@ -271,7 +271,6 @@
                 transition:
                     transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
                     box-shadow 0.35s ease;
-                cursor: pointer;
             }
             .ficha-card:hover {
                 transform: translateY(-8px) scale(1.02);
@@ -649,9 +648,15 @@
             .catalog-filters {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
-                margin-bottom: 24px;
+                gap: 12px;
+                margin-bottom: 30px;
                 align-items: center;
+                justify-content: center; /* Centralizar conteúdo */
+                background: rgba(255, 255, 255, 0.03);
+                padding: 15px;
+                border-radius: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                text-align: center;
             }
             .filter-tab {
                 padding: 8px 20px;
@@ -675,7 +680,19 @@
             .filter-currency {
                 display: flex;
                 gap: 8px;
-                margin-left: auto;
+                justify-content: center;
+            }
+            @media (min-width: 1050px) {
+                .filter-currency {
+                   padding-left: 12px;
+                   border-left: 1px solid rgba(255, 255, 255, 0.1);
+                }
+            }
+            @media (max-width: 1049px) {
+                .filter-currency {
+                    width: 100%;
+                    margin-top: 5px;
+                }
             }
             .currency-tab {
                 padding: 8px 16px;
@@ -709,11 +726,7 @@
                 color: #64c8ff;
             }
             .currency-tab[data-currency="esmeralda"] {
-                background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
-                background-size: 200% auto;
-                -webkit-background-clip: text;
-                background-clip: text;
-                -webkit-text-fill-color: transparent;
+                color: #10b981;
             }
 
             .currency-tab.active[data-currency="ouro"] {
@@ -729,15 +742,11 @@
                 box-shadow: 0 0 15px rgba(100, 200, 255, 0.4);
             }
             .currency-tab.active[data-currency="esmeralda"] {
-                background: linear-gradient(
-                    135deg,
-                    rgba(255, 215, 0, 0.3),
-                    rgba(255, 215, 0, 0.1)
-                );
-                border-color: #ffd700;
-                color: #ffd700;
-                box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                background: rgba(16, 185, 129, 0.15);
+                border-color: #10b981;
+                color: #fff;
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+                text-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
             }
 
             /* ===== GRID DO CATÁLOGO ===== */
@@ -763,6 +772,7 @@
                     border-color 0.3s ease;
                 display: flex;
                 flex-direction: column;
+                cursor: pointer;
             }
             .catalog-item:hover {
                 transform: translateY(-6px);
@@ -2295,12 +2305,14 @@
                             }
                         }
                     }
-                    // 2. NÃO usar chave genérica se temos um userId (para evitar vazamento)
-                    if (currentUserId) {
-                        console.log(
-                            "[Loja] Nenhum store isolado encontrado, retornando vazio para novo usuário.",
-                        );
-                        return _STORE_EMPTY();
+                    // 3. Fallback: usar chave genérica se as outras falharem (evita reset visual)
+                    const genericRaw = localStorage.getItem(STORE_KEY);
+                    if (genericRaw) {
+                        const parsed = JSON.parse(genericRaw);
+                        if (parsed && (!currentUserId || !parsed._userId || parsed._userId === currentUserId)) {
+                             console.log("[Loja] Fallback: Carregado da chave genérica.");
+                             return normalizeStoreData(parsed);
+                        }
                     }
                 } catch (e) {
                     console.error("[Loja] Erro ao carregar store:", e);
@@ -2852,10 +2864,19 @@
                         ? [...normalizedDbStore.purchased]
                         : [];
                     store.purchased = [...new Set([...dbP, ...localPurchased])];
+                    
+                    // 🛡️ MERGE INTELIGENTE DE EQUIPAMENTOS
+                    // Preserva o que já está no localStorage (fallback local) se o banco vier vazio
+                    const dbEquipped = normalizedDbStore.equipped || {};
                     store.equipped = {
                         ...localEquipped,
-                        ...normalizedDbStore.equipped,
+                        ...dbEquipped
                     };
+                    
+                    // Garante que flags específicas de coroa sejam preservadas se existirem no localEquipped
+                    if (localEquipped.crown && !dbEquipped.crown) store.equipped.crown = localEquipped.crown;
+                    if (localEquipped.crownId && !dbEquipped.crownId) store.equipped.crownId = localEquipped.crownId;
+                    if (localEquipped.crownIcon && !dbEquipped.crownIcon) store.equipped.crownIcon = localEquipped.crownIcon;
                     if (normalizedDbStore.unlocked_ranks)
                         store.unlocked_ranks = normalizedDbStore.unlocked_ranks;
                     if (normalizedDbStore.all_ranks_unlocked !== undefined)

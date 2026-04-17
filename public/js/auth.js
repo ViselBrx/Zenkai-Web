@@ -300,6 +300,14 @@ window.updateNavbarCosmetics = function () {
   let sData = null;
   if (window.DB && window.DB._store && window.DB._store.profile) {
     sData = window.DB._store.profile.store_data || {};
+  } else {
+    // 💡 Tenta carregar do localStorage genérico (usado em index.html etc.)
+    try {
+      const localStr = localStorage.getItem("animehouse_store");
+      if (localStr) sData = JSON.parse(localStr);
+    } catch (e) {
+      console.warn("Erro ao ler animehouse_store local", e);
+    }
   }
 
   const dbBanner = sData?.equipped?.banner;
@@ -315,13 +323,14 @@ window.updateNavbarCosmetics = function () {
     localStorage.getItem("animehouse_customTitle") ||
     "";
   const savedCrown =
-    (sData && sData.equipped && sData.equipped.crown) ||
+    (sData && sData.equipped && sData.equipped.crown === true) ||
+    (sData && sData.equipped && sData.equipped.crown === "true") ||
     localStorage.getItem("animehouse_showCrown") === "true";
   const hasFrame =
-    (sData && sData.equipped && sData.equipped.frame_dourado) ||
+    (sData && sData.equipped && (sData.equipped.frame_dourado === true || sData.equipped.frame_dourado === "true")) ||
     localStorage.getItem("equipped_frame_dourado") === "true";
   const hasTemaCromatico =
-    (sData && sData.equipped && sData.equipped.tema_cromatico === true) ||
+    (sData && sData.equipped && (sData.equipped.tema_cromatico === true || sData.equipped.tema_cromatico === "true")) ||
     localStorage.getItem("animehouse_tema_cromatico") === "true";
 
   // 🌈 TEMA CROMÁTICO — restaurar se estava equipado
@@ -409,7 +418,8 @@ window.updateNavbarCosmetics = function () {
     if (sbCrown) {
       sbCrown.style.display = savedCrown ? "block" : "none";
       if (savedCrown) {
-        sbCrown.textContent = localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+        const crownIcon = (sData && sData.equipped && sData.equipped.crownIcon) || localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+        sbCrown.textContent = crownIcon;
       }
     }
   }
@@ -426,10 +436,10 @@ window.updateNavbarCosmetics = function () {
   if (existingCrown) existingCrown.remove();
   if (savedCrown) {
     const crown = document.createElement("div");
-    crown.className = "crown-nav";
-    crown.innerHTML = localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
-    crown.style.cssText =
-      "position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(10deg); font-size: 1.3rem; z-index: 10; text-shadow: 0 0 8px gold;";
+    crown.className = "crown-nav"; // Usar classe do style.css
+    const crownIcon = (sData && sData.equipped && (sData.equipped.crownIcon || sData.equipped.crown_icon)) || 
+                     localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+    crown.innerHTML = crownIcon;
     avatarBox.appendChild(crown);
   }
 

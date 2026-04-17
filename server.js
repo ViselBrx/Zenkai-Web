@@ -324,9 +324,11 @@ const server = http.createServer(async (req, res) => {
         if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
           const lastTurn = contents[contents.length - 1];
           if (lastTurn && lastTurn.role === 'user') {
+            const mimeTypeMatch = body.image.match(/^data:(image\/[a-zA-Z0-9.+]+);base64,/);
+            const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : 'image/jpeg';
             lastTurn.parts.push({
               inlineData: {
-                mimeType: 'image/jpeg',
+                mimeType,
                 data: body.image.split(',')[1]
               }
             });

@@ -2524,6 +2524,12 @@
       const savedCrown = localStorage.getItem('animehouse_showCrown') === 'true';
       const auraTarget = document.getElementById('displayAvatarBox') || displayAvatar;
 
+      // Compatibilidade retroativa: se showCrown=true mas equippedCrownId está vazio, define coroa_lendaria como padrão
+      if (savedCrown && !localStorage.getItem('animehouse_equippedCrownId')) {
+        localStorage.setItem('animehouse_equippedCrownId', 'coroa_lendaria');
+        localStorage.setItem('animehouse_equippedCrownIcon', '👑');
+      }
+
       if (customTitleInp) customTitleInp.value = savedTitle;
       if (customTitleDisplay) customTitleDisplay.textContent = savedTitle;
       if (auraSel) auraSel.value = savedAura;
@@ -2565,9 +2571,19 @@
       crwnToggle?.addEventListener('change', (e) => {
          const isChecked = e.target.checked;
          localStorage.setItem('animehouse_showCrown', isChecked ? 'true' : 'false');
+         // Garantir que equippedCrownId esteja definido ao ativar pelo toggle
+         if (isChecked && !localStorage.getItem('animehouse_equippedCrownId')) {
+           localStorage.setItem('animehouse_equippedCrownId', 'coroa_lendaria');
+           localStorage.setItem('animehouse_equippedCrownIcon', '👑');
+         } else if (!isChecked) {
+           localStorage.removeItem('animehouse_equippedCrownId');
+           localStorage.removeItem('animehouse_equippedCrownIcon');
+         }
          if (sbCrown) {
              sbCrown.style.display = isChecked ? 'block' : 'none';
          }
+         // Re-renderizar Meus Especiais para refletir novo estado
+         if (typeof renderMeusEspeciais === 'function') renderMeusEspeciais();
       });
 
       // ===== MEUS ESPECIAIS - RENDERIZAR INVENTÁRIO =====
@@ -2809,6 +2825,8 @@
         else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
         else if (type === 'exclusivo' && id.includes('coroa')) {
           isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
+        } else if (type === 'tema' || id === 'tema_cromatico') {
+          isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true' || sessionStorage.getItem('theme') === 'theme-cromatico';
         }
 
         const newEquippedState = !isEquipped;

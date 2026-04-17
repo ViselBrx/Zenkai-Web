@@ -1004,96 +1004,140 @@
             };
 
             window.toggleEquip = async function (id, type, rawName) {
+                // 🎬 Feedback tátil imediato
+                const clickedBtn = document.activeElement;
+                if (clickedBtn && clickedBtn.classList.contains('btn-equip')) {
+                    clickedBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => clickedBtn.style.transform = '', 150);
+                }
+
                 let store = getComprasStore();
                 if (!store.equipped) store.equipped = {};
 
-                if (type === "aura") {
-                    const current = localStorage.getItem(
-                        "animehouse_customAura",
-                    );
-                    const next = current === id ? "none" : id;
-                    localStorage.setItem("animehouse_customAura", next);
-                    store.equipped.aura = next === "none" ? "none" : next;
-                } else if (type === "titulo") {
-                    const current = localStorage.getItem(
-                        "animehouse_customTitle",
-                    );
-                    const next = current === rawName ? "" : rawName;
-                    localStorage.setItem("animehouse_customTitle", next);
-                    store.equipped.titulo = next;
-                } else if (type === "banner") {
-                    const current = localStorage.getItem(
-                        "animehouse_customBanner",
-                    );
-                    const next = current === id ? "none" : id;
-                    localStorage.setItem("animehouse_customBanner", next);
-                    store.equipped.banner = next;
-                } else if (type === "exclusivo" && id.includes("coroa")) {
-                    const currentId = localStorage.getItem("animehouse_equippedCrownId");
-                    const isAlreadyEquipped = (localStorage.getItem("animehouse_showCrown") === "true" && currentId === id);
+                // Verificar estado atual para saber se vamos equipar ou desequipar
+                let isEquipped = false;
+                if (type === "aura") isEquipped = localStorage.getItem("animehouse_customAura") === id;
+                else if (type === "titulo") isEquipped = localStorage.getItem("animehouse_customTitle") === rawName;
+                else if (type === "banner") isEquipped = localStorage.getItem("animehouse_customBanner") === id;
+                else if (type === "exclusivo" && id.includes("coroa")) {
+                    isEquipped = (localStorage.getItem("animehouse_showCrown") === "true" && localStorage.getItem("animehouse_equippedCrownId") === id);
+                } else if (type === "tema" || id === "tema_cromatico") {
+                    isEquipped = localStorage.getItem("animehouse_tema_cromatico") === "true" || sessionStorage.getItem("theme") === "theme-cromatico";
+                }
 
-                    if (isAlreadyEquipped) {
-                        // Desequipar
+                const newState = !isEquipped;
+
+                if (isEquipped) {
+                    // Desequipar
+                    if (type === "aura") {
+                        localStorage.setItem("animehouse_customAura", "none");
+                        store.equipped.aura = "none";
+                    } else if (type === "titulo") {
+                        localStorage.setItem("animehouse_customTitle", "");
+                        store.equipped.titulo = "";
+                    } else if (type === "banner") {
+                        localStorage.setItem("animehouse_customBanner", "none");
+                        store.equipped.banner = "none";
+                    } else if (type === "exclusivo" && id.includes("coroa")) {
                         localStorage.setItem("animehouse_showCrown", "false");
                         localStorage.removeItem("animehouse_equippedCrownId");
                         localStorage.removeItem("animehouse_equippedCrownIcon");
                         store.equipped.crown = false;
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
-                    } else {
-                        // Equipar (e automaticamente desequipar a anterior se houver)
-                        localStorage.setItem("animehouse_showCrown", "true");
-                        localStorage.setItem("animehouse_equippedCrownId", id);
-                        const item = ALL_ITEMS.find((i) => i.id === id);
-                        const icon = item?.icon || "👑";
-                        localStorage.setItem("animehouse_equippedCrownIcon", icon);
-                        
-                        store.equipped.crown = true;
-                        store.equipped.crownId = id;
-                        store.equipped.crownIcon = icon;
-                    }
-                } else if (type === "tema") {
-                    const isActive =
-                        sessionStorage.getItem("theme") === "theme-cromatico" ||
-                        localStorage.getItem("animehouse_tema_cromatico") ===
-                            "true";
-                    if (isActive) {
-                        // Desativar tema cromático
+                    } else if (type === "tema") {
                         if (window.setTheme) window.setTheme("theme-ciano");
                         store.equipped.tema_cromatico = false;
                         localStorage.removeItem("animehouse_tema_cromatico");
-                    } else {
-                        // Ativar tema cromático
-                        if (window.setTheme) window.setTheme("theme-cromatico");
-                        store.equipped.tema_cromatico = true;
-                        localStorage.setItem(
-                            "animehouse_tema_cromatico",
-                            "true",
-                        );
                     }
                 } else {
-                    // Toggle generico para perks (como lista_destaque)
-                    const current =
-                        store.equipped[id] === true ||
-                        store.equipped[id] === "true";
-                    store.equipped[id] = !current;
+                    // Equipar
+                    if (type === "aura") {
+                        localStorage.setItem("animehouse_customAura", id);
+                        store.equipped.aura = id;
+                    } else if (type === "titulo") {
+                        localStorage.setItem("animehouse_customTitle", rawName);
+                        store.equipped.titulo = rawName;
+                    } else if (type === "banner") {
+                        localStorage.setItem("animehouse_customBanner", id);
+                        store.equipped.banner = id;
+                    } else if (type === "exclusivo" && id.includes("coroa")) {
+                        localStorage.setItem("animehouse_showCrown", "true");
+                        localStorage.setItem("animehouse_equippedCrownId", id);
+                        const item = ALL_ITEMS.find((i) => i.id === id);
+                        localStorage.setItem("animehouse_equippedCrownIcon", item?.icon || "👑");
+                        store.equipped.crown = true;
+                        store.equipped.crownId = id;
+                        store.equipped.crownIcon = item?.icon || "👑";
+                    } else if (type === "tema") {
+                        if (window.setTheme) window.setTheme("theme-cromatico");
+                        store.equipped.tema_cromatico = true;
+                        localStorage.setItem("animehouse_tema_cromatico", "true");
+                    }
                 }
 
-                // Salva no Supabase via DB.js
+                // Salva no background para não travar a UI
                 if (window.DB && window.DB.saveStoreData) {
-                    await window.DB.saveStoreData(store);
+                    window.DB.saveStoreData(store).catch(console.error);
                 } else {
                     localStorage.setItem(STORE_KEY, JSON.stringify(store));
                 }
 
-                renderInventory();
-                if (window.checkAuthStatus) window.checkAuthStatus();
+                // 🎨 Atualização VISUAL EM TEMPO REAL (sem renderInventory completo)
+                updateItemUI(id, newState, type);
+
+                // Sincroniza Navbar
+                if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+                
                 if (typeof showToast === "function")
-                    showToast("Estado de customização atualizado!", "success");
+                    showToast(newState ? "Item equipado com sucesso!" : "Item desmarcado!", "success");
             };
 
+            function updateItemUI(itemId, isEquipped, type) {
+                const cards = document.querySelectorAll('.purchased-card');
+                cards.forEach(card => {
+                    const btn = card.querySelector('.btn-equip');
+                    if (!btn) return;
+
+                    const onclick = btn.getAttribute('onclick') || '';
+                    const isTarget = onclick.includes(`'${itemId}'`);
+
+                    if (isTarget) {
+                        // Atualiza o card clicado
+                        card.classList.toggle('is-equipped', isEquipped);
+                        btn.classList.toggle('equipped', isEquipped);
+                        
+                        // Atualiza ícone e texto do botão
+                        if (isEquipped) {
+                            btn.innerHTML = '<span>✓</span> Desmarcar';
+                            if (!card.querySelector('.equipped-ribbon')) {
+                                const ribbon = document.createElement('div');
+                                ribbon.className = 'equipped-ribbon';
+                                ribbon.textContent = 'EQUIPADO';
+                                card.appendChild(ribbon);
+                            }
+                        } else {
+                            btn.innerHTML = '<span>⚡</span> Marcar';
+                            const ribbon = card.querySelector('.equipped-ribbon');
+                            if (ribbon) ribbon.remove();
+                        }
+                    } else {
+                        // Desmarca outros itens da mesma CATEGORIA se acabamos de equipar um novo
+                        if (isEquipped) {
+                            const otherTypeMatch = onclick.includes(`'${type}'`);
+                            if (otherTypeMatch) {
+                                card.classList.remove('is-equipped');
+                                btn.classList.remove('equipped');
+                                btn.innerHTML = '<span>⚡</span> Marcar';
+                                const ribbon = card.querySelector('.equipped-ribbon');
+                                if (ribbon) ribbon.remove();
+                            }
+                        }
+                    }
+                });
+            }
+
             document.addEventListener("DOMContentLoaded", async () => {
-                // Sincroniza com o banco ao carregar
                 if (window.DB && window.DB.init) {
                     await window.DB.init();
                     if (window.DB._store.profile?.store_data) {

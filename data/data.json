@@ -1048,12 +1048,5 @@
       "url": "https://mega.nz/folder/hGAjxLDL#QTEuNjtFQw_A6VMgNSEfpg",
       "volume": "42, 200"
     }
-  ],
-  "aiConfig": {
-    "geminiKey": "AIzaSyARpueH2oQddQ5vWS-4vY03SeNHPcpO470",
-    "provider": "gemini"
-  },
-  "siteConfig": {
-    "theme": "theme-laranja"
-  }
+  ]
 }

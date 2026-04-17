@@ -59,12 +59,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House. REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS. Nunca alucine ou invente cânones. Raciocine passo-a-passo antes de escrever. Ao responder, não dê apenas o básico: traga informações extras genuínas, curiosidades fantásticas e aprofundamento real. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler.';
-  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎌 — seu assistente de animes e desenhos no Anime House! Posso recomendar títulos com explicações detalhadas, discutir personagens, analisar arcos de história, comparar poderes ou ajudar a desenvolver ideias para o site. O que você quer explorar hoje?';
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações mundiais. Nunca alucine ou invente cânones. Raciocine passo-a-passo antes de escrever. Ao responder, não dê apenas o básico: traga informações extras genuínas, curiosidades fantásticas e aprofundamento real. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre animações globais: de animes japoneses a cartoons americanos, passando por filmes 3D e clássicos adorados. Posso recomendar títulos com explicações detalhadas, discutir personagens famosos de qualquer estúdio, comparar poderes incríveis ou analisar cenas. Qual universo animado vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
   const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
-  const DEFAULT_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+  const DEFAULT_VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
   const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
   const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
   const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -74,24 +74,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um analista visual de elite e enciclopédia geek global. Sua missão é realizar uma perícia técnica na imagem.',
-    'Se você NÃO conseguir identificar a origem exata (anime/estúdio/obra), NÃO invente. Em vez disso, forneça uma análise visual e temática PROFUNDA como resposta alternativa.',
+    'Atue como um analista visual de elite e enciclopédia geek de animes, cartoons e animações. Sua missão é realizar uma perícia técnica profunda na imagem.',
+    'Sinta-se livre para analisar e descobrir qual personagem e obra estão na tela. Confie nos seus instintos visuais!',
     '',
     '### 🆔 Identificação e Origem Real',
-    '- **Veredito de Origem:** Identifique a obra se tiver certeza absoluta. Caso contrário, declare como "Origem Indeterminada" e descreva qual o arquétipo ou estilo que a imagem evoca (ex: "Estilo Shonen Moderno", "Cyberpunk", "Vibe Retrô anos 90").',
-    '- **Personagens/Foco:** Nomeie se souber, ou descreva as características marcantes do sujeito (ex: "Um jovem espadachim com olhos carmesim e vestes de samurai futurista").',
+    '- **Veredito de Origem:** Revele qual é o provável show, anime ou desenho.',
+    '- **Personagens/Foco:** Nomeie o personagem ou descreva suas características marcantes.',
     '',
     '### 🔎 Perícia Técnica e Estilo',
-    '- **DNA Visual:** Analise o traço. É detalhado? Minimalista? Quais técnicas de pintura ou animação você percebe? (ex: "Uso intenso de luz volumétrica e partículas que lembram o estilo do Makoto Shinkai").',
-    '- **Análise de Cores e Luz:** Como a paleta de cores influencia a emoção da cena.',
+    '- **DNA Visual:** O traço é cartoon americano (linhas fortes, super-heróis) ou Anime?',
+    '- **Cores:** Avalie o fogo, a aura e a paleta de cores predominante na cena.',
     '',
-    '### 📝 Pistas, Textos e Marcas',
-    '- **Rastros:** Transcreva qualquer texto visível. Identifique logos ou assinaturas que possam dar pistas sobre o artista ou estúdio.',
-    '- **Vibe e Contexto:** O que a imagem transmite? É uma cena de ação? Um momento de paz? Uma arte promocional?',
+    '### 📝 Pistas e Contexto',
+    '- Se o personagem tem símbolos (ex: símbolo verde do Omnitrix), destaque para confirmar sua identidade.',
     '',
-    '### 🎯 Veredito e Curiosidade',
-    '- Resumo final: "Mesmo sem a origem exata, esta imagem destaca-se por..." e entregue uma curiosidade sobre o estilo artístico ou o gênero identificado.',
-    'IMPORTANTE: Responda obrigatoriamente em português, mantendo um tom profissional, investigativo e empolgado. ✨'
+    '### 🎯 Veredito',
+    '- Resumo final da arte focando em quem é de fato. IMPORTANTE: Não force curiosidades da internet que não tem certeza, seja pragmático. Responda em português e mantenha o formato Markdown.'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
@@ -1107,21 +1105,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              target: 'groq',
+              target: 'cloudflare-vision',
               body: {
                 model: selectedModel,
-                messages: [
-                  {
-                    role: 'user',
-                    content: [
-                      { type: 'text', text: promptText },
-                      { type: 'image_url', image_url: { url: base64Image } }
-                    ]
-                  }
-                ],
-                
-                
-                
+                prompt: promptText,
+                image: base64Image,
                 max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
               }
             })
@@ -1382,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       visionAnalyzeBtn.disabled = true;
-      renderVisionResult('Analisando imagem com Groq Vision (Llama 4 Scout)...');
+      renderVisionResult('Analisando imagem com Cloudflare AI (Llama 3.2 11B Vision)...');
 
       try {
         const { aiResponse } = await callVisionAI(selectedVisionFile, {
@@ -1415,7 +1403,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre personagens de anime e desenho animado. Sua missão é fazer análises profundas, detalhadas e bem argumentadas, sempre em português. Nunca encurte a análise — explore cada atributo com exemplos reais do universo do personagem, cite poderes específicos e momentos canônicos que justifiquem as notas. Seja apaixonado e técnico ao mesmo tempo.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo das animações (Cartoons, Animes, 3D e Filmes Animados). Sua missão é fazer análises profundas, detalhadas e justas, respeitando as lógicas e poderes dos universos ocidentais e orientais. Nunca encurte a análise. Seja vibrante e técnico.';
     const prompt = [
       `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
       'Formato obrigatório da resposta (Markdown):',

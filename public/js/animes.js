@@ -138,8 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const modalFavBtn = document.getElementById('detailFavBtn');
       if (modalFavBtn && activeAnimeId === item.id) {
-        modalFavBtn.classList.toggle('active', isAdded);
-        modalFavBtn.innerHTML = isAdded ? '★ Desmarcar' : '☆ Marcar';
+        // detailFavBtn removido do HTML, esta parte pode ser limpa ou mantida como safe-check
       }
     } catch (err) {
       showToast(err.message || 'Erro ao atualizar favoritos.', 'error');
@@ -173,15 +172,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       detailPlaceholder.style.display = 'flex';
     }
 
-    // Check favorite status for modal button
-    const isFav = await DB.isFavorite(a.id, 'anime');
-    detailFavBtn.style.display = 'flex';
-    detailFavBtn.classList.toggle('active', isFav);
-    detailFavBtn.innerHTML = isFav ? '★ Desmarcar' : '☆ Marcar';
-    detailFavBtn.onclick = (e) => {
-      e.stopPropagation();
-      toggleFavorite(a, detailFavBtn);
-    };
+    // Favoritos no Modal removido conforme solicitado
 
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
