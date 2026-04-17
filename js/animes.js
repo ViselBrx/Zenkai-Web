@@ -175,6 +175,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 =======
 >>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:js/animes.js
+<<<<<<< HEAD
+>>>>>>> ae8d644 (Implementação auras)
+=======
 >>>>>>> ae8d644 (Implementação auras)
     detailWatchBtn.onclick = () => {
       localStorage.setItem('selectedAnime', a.id);
