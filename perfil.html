@@ -2824,18 +2824,8 @@
         else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
         else if (type === 'exclusivo' && id.includes('coroa')) {
           isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
-<<<<<<< HEAD
-<<<<<<< HEAD:pages/perfil.html
         } else if (type === 'tema' || id === 'tema_cromatico') {
           isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true' || sessionStorage.getItem('theme') === 'theme-cromatico';
-=======
-        } else if (type === 'tema') {
-          isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true';
->>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:perfil.html
-=======
-        } else if (type === 'tema') {
-          isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true';
->>>>>>> 860ffb0 (Tema cromatico alterado)
         }
 
         const newEquippedState = !isEquipped;
