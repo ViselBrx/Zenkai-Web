@@ -180,6 +180,7 @@
       color: var(--text-muted);
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
       max-height: 2.7em;
@@ -1100,7 +1101,7 @@
         <div class="profile-identity" style="flex: 1; padding-top: 10px;">
           <strong id="displayUsername" style="display:flex; flex-direction:column;">
              <span style="font-size:1.15rem;">Carregando...</span>
-             <span id="displayCustomTitle" style="font-size:0.95rem; background: linear-gradient(90deg, #ff8a00, #e52e71, #ffac00); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine-text 3s linear infinite; font-family:'Bangers'; letter-spacing:1px; margin-top:2px;"></span>
+             <span id="displayCustomTitle" style="font-size:0.95rem; background: linear-gradient(90deg, #ff8a00, #e52e71, #ffac00); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shine-text 3s linear infinite; font-family:'Bangers'; letter-spacing:1px; margin-top:2px;"></span>
           </strong>
           <span id="displayEmail">---</span>
         </div>
@@ -2823,13 +2824,8 @@
         else if (type === 'banner') isEquipped = localStorage.getItem('animehouse_customBanner') === id;
         else if (type === 'exclusivo' && id.includes('coroa')) {
           isEquipped = localStorage.getItem('animehouse_showCrown') === 'true' && localStorage.getItem('animehouse_equippedCrownId') === id;
-<<<<<<< HEAD:pages/perfil.html
         } else if (type === 'tema' || id === 'tema_cromatico') {
           isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true' || sessionStorage.getItem('theme') === 'theme-cromatico';
-=======
-        } else if (type === 'tema') {
-          isEquipped = localStorage.getItem('animehouse_tema_cromatico') === 'true';
->>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:perfil.html
         }
 
         const newEquippedState = !isEquipped;

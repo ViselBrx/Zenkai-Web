@@ -1043,28 +1043,7 @@
                         store.equipped.crown = false;
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
-<<<<<<< HEAD:pages/compras.html
                     } else if (type === "tema") {
-=======
-                    } else {
-                        // Equipar (e automaticamente desequipar a anterior se houver)
-                        localStorage.setItem("animehouse_showCrown", "true");
-                        localStorage.setItem("animehouse_equippedCrownId", id);
-                        const item = ALL_ITEMS.find((i) => i.id === id);
-                        const icon = item?.icon || "👑";
-                        localStorage.setItem("animehouse_equippedCrownIcon", icon);
-                        
-                        store.equipped.crown = true;
-                        store.equipped.crownId = id;
-                        store.equipped.crownIcon = icon;
-                    }
-                } else if (type === "tema") {
-                    const isActive =
-                        localStorage.getItem("animehouse_tema_cromatico") ===
-                            "true";
-                    if (isActive) {
-                        // Desativar tema cromático
->>>>>>> 860ffb0778f2aa16dce83349cf780ec736fecdd1:compras.html
                         if (window.setTheme) window.setTheme("theme-ciano");
                         store.equipped.tema_cromatico = false;
                         localStorage.removeItem("animehouse_tema_cromatico");
