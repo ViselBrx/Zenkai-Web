@@ -135,7 +135,11 @@
     <p class="auth-subtitle">Crie sua conta para administrar os conteúdos</p>
     
     <div id="registerError" class="auth-error">Erro ao registrar. Verifique os dados.</div>
-    <div id="registerSuccess" class="auth-success">Conta criada! Redirecionando...</div>
+    <div id="registerSuccess" class="auth-success" style="display:none; line-height:1.6;">
+      ✅ <strong>Conta criada com sucesso!</strong><br/>
+      📧 Um e-mail de verificação foi enviado para o seu endereço.<br/>
+      <small style="color:var(--text-muted);">Verifique sua caixa de entrada (e a pasta de SPAM) antes de entrar.</small>
+    </div>
     
     <!-- Seção de Reenviar Email (oculta por padrão) -->
     <div id="resendEmailSection" style="display: none; margin-bottom: 1.5rem; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); text-align: center;">

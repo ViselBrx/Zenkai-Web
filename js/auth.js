@@ -140,14 +140,54 @@ if (registerForm) {
       errorDiv.textContent = error.message;
       errorDiv.style.display = "block";
       submitBtn.disabled = false;
+      submitBtn.textContent = "Criar Conta";
     } else {
+      // Mostrar mensagem de e-mail de verificação enviado
       successDiv.style.display = "block";
+      registerForm.style.display = "none";
+
+      // Mostrar seção de reenvio de e-mail após 3s
+      const resendSection = document.getElementById("resendEmailSection");
+      if (resendSection) {
+        setTimeout(() => {
+          resendSection.style.display = "block";
+          const resendEmailInput = document.getElementById("resendEmail");
+          if (resendEmailInput) resendEmailInput.value = email;
+        }, 3000);
+      }
+
       submitBtn.disabled = false;
+      submitBtn.textContent = "Criar Conta";
     }
   });
 }
 
-// 5. Banners e Cosméticos
+// 5. Excluir Conta
+window.deleteUserAccount = async function () {
+  if (!supaClient) return { error: { message: 'Supabase não inicializado.' } };
+
+  try {
+    const { data: { user } } = await supaClient.auth.getUser();
+    if (!user) return { error: { message: 'Usuário não autenticado.' } };
+
+    // Chama a função de segurança (Postgres RPC) no Supabase
+    const { error } = await supaClient.rpc('delete_user');
+
+    if (error) {
+      return { error: { message: error.message || 'Falha ao excluir conta nativamente.' } };
+    }
+
+    // Limpar dados locais
+    try { localStorage.clear(); } catch (_) {}
+    try { sessionStorage.clear(); } catch (_) {}
+
+    await supaClient.auth.signOut();
+    return { success: true };
+  } catch (e) {
+    return { error: { message: e.message || 'Erro inesperado.' } };
+  }
+};
+
 window.loadBanners = async function () {
   window.BANNER_MAP = {};
 

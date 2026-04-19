@@ -2131,16 +2131,14 @@
 
             // ── HIERARQUIA DE PATAMARES ───────────────────────────
             const RANK_HIERARCHY = [
-                "Novato",
-                "Aprendiz",
-                "Intermediário",
-                "Avançado",
+                "Bronze",
                 "Prata",
                 "Ouro",
-                "Platina",
                 "Mestre",
-                "GrandMestre",
+                "Lenda",
+                "Hokage",
                 "Guardião",
+                "Imortal",
             ];
 
             // Rank mínimo para cada ficha
@@ -2157,7 +2155,7 @@
             const STORE_KEY = "animehouse_store";
             const _STORE_EMPTY = () => ({
                 xp: 0,
-                rank: "Novato",
+                rank: "Bronze",
                 ouro: 0,
                 diamante: 0,
                 esmeralda: 0,
@@ -2898,14 +2896,28 @@
                     localStorage.getItem("animehouse_userLevel") || "0",
                 );
                 const cachedRank =
-                    localStorage.getItem("animehouse_userRank") || "Novato";
+                    localStorage.getItem("animehouse_userRank") || "Bronze";
 
-                // XP = nível * 100 (estimativa compatível com o sistema do perfil)
-                const estimatedXP = cachedLevel * 100;
-
-                // Manter fichas já adquiridas, mas atualizar XP e rank
-                if (store.xp === 0 && estimatedXP > 0) {
-                    store.xp = estimatedXP;
+                const realTotalXP = parseInt(localStorage.getItem("animehouse_totalXP") || "0", 10);
+                
+                // MIGRATION: Se lifetime_xp não existe, é o primeiro acesso pós-update.
+                if (typeof store.lifetime_xp === "undefined") {
+                    store.lifetime_xp = realTotalXP;
+                    
+                    // Contas zeradas no perfil não podem ter XP na loja
+                    if (realTotalXP === 0) {
+                        store.xp = 0;
+                    } 
+                    // Se o XP da loja (que antes era nivel * 100) é maior do que o XP real gerado,
+                    // trazemos pro teto correto.
+                    else if (store.xp > realTotalXP) {
+                        // Opcionalmente podemos diminuir o gasto em fichas, mas assumir o realTotalXP é seguro.
+                        store.xp = realTotalXP;
+                    }
+                } else if (realTotalXP > store.lifetime_xp) {
+                    // Novo ganho de XP do perfil pós-migração
+                    store.xp += (realTotalXP - store.lifetime_xp);
+                    store.lifetime_xp = realTotalXP;
                 }
                 store.rank = cachedRank;
                 // Se o usuário tem patentes desbloqueadas manualmente, promover o rank para o mais alto desbloqueado
@@ -2914,16 +2926,14 @@
                     store.unlocked_ranks.length > 0
                 ) {
                     const rankOrder = [
-                        "Novato",
-                        "Aprendiz",
-                        "Intermediário",
-                        "Avançado",
+                        "Bronze",
                         "Prata",
                         "Ouro",
-                        "Platina",
                         "Mestre",
-                        "GrandMestre",
+                        "Lenda",
+                        "Hokage",
                         "Guardião",
+                        "Imortal",
                     ];
                     const highestUnlocked = store.unlocked_ranks.reduce(
                         (best, rank) => {
@@ -2931,7 +2941,7 @@
                             const bestIdx = rankOrder.indexOf(best);
                             return idx > bestIdx ? rank : best;
                         },
-                        store.rank || "Novato",
+                        store.rank || "Bronze",
                     );
                     // Promover o rank do store para o mais alto desbloqueado manualmente
                     if (

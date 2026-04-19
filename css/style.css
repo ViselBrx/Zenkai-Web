@@ -2504,9 +2504,9 @@ body {
 
 .card-cover {
     width: 100%;
-    aspect-ratio: 3/4;
+    aspect-ratio: 2/3;
     object-fit: cover;
-    object-position: top center;
+    object-position: center;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     transform-origin: center center;
@@ -2514,7 +2514,7 @@ body {
 
 .card-cover-placeholder {
     width: 100%;
-    aspect-ratio: 3/4;
+    aspect-ratio: 2/3;
     background: linear-gradient(
         135deg,
         var(--bg-surface) 0%,

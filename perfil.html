@@ -1137,7 +1137,10 @@
         </div>
       </form>
 
-      <a class="back-link" href="index.html">&larr; Voltar ao Início</a>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <a class="back-link" href="index.html" style="margin-top: 0;">&larr; Voltar ao Início</a>
+        <button type="button" id="openDeleteAccountBtn" style="background: none; border: none; color: var(--text-muted); font-size: 0.75rem; cursor: pointer; text-decoration: underline; opacity: 0.6; transition: opacity 0.2s; padding: 0;">Excluir minha conta</button>
+      </div>
 
       <!-- MEUS ESPECIAIS / ITENS EQUIPADOS -->
       <section class="profile-dashboard" id="meusEspeciaisSection" style="margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(var(--primary-rgb), 0.2);">
@@ -1440,6 +1443,31 @@
 </div>
 
 <div id="toast"></div>
+
+<!-- MODAL: CONFIRMAR EXCLUSÃO DE CONTA -->
+<div class="modal-overlay" id="deleteAccountModal" style="z-index:20000;">
+  <div class="modal" style="max-width:460px; border:1px solid rgba(239,68,68,0.5); box-shadow:0 0 60px rgba(239,68,68,0.3);">
+    <div class="modal-header" style="border-bottom-color:rgba(239,68,68,0.3);">
+      <h2 style="color:#ef4444;">&#x26A0;&#xFE0F; Excluir Conta</h2>
+      <button class="modal-close" id="deleteAccountModalClose">✕</button>
+    </div>
+    <div style="padding: 24px;">
+      <p style="margin:0 0 10px; color:var(--text-main); line-height:1.6;">
+        Isso apagará <strong style="color:#ef4444;">permanentemente</strong> sua conta, histórico, perfil e todos os itens comprados.
+        <br/><strong>Esta ação não pode ser desfeita.</strong>
+      </p>
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:18px;">Para confirmar, digite <strong style="color:#ef4444;">EXCLUIR</strong> no campo abaixo:</p>
+      <input type="text" id="deleteConfirmInput" placeholder="Digite EXCLUIR para confirmar"
+        style="width:100%; padding:12px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.4); border-radius:8px; color:var(--text-main); font-size:1rem; outline:none; margin-bottom:18px;"
+      />
+      <div style="display:flex; gap:10px;">
+        <button type="button" id="cancelDeleteAccountBtn" class="btn btn-ghost" style="flex:1;">Cancelar</button>
+        <button type="button" id="confirmDeleteAccountBtn" class="btn btn-danger" style="flex:1;" disabled>Excluir minha conta</button>
+      </div>
+      <div id="deleteAccountError" style="display:none; margin-top:14px; padding:10px; background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:8px; color:var(--danger); font-size:0.85rem; text-align:center;"></div>
+    </div>
+  </div>
+</div>
 
   <script src="js/db.js"></script>
   <script src="js/watched.js"></script>
@@ -2032,6 +2060,67 @@
         window.location.href = 'index.html';
       };
 
+      // --- LÓGICA EXCLUIR CONTA ---
+      const openDeleteAccountBtn = document.getElementById('openDeleteAccountBtn');
+      const deleteAccountModal = document.getElementById('deleteAccountModal');
+      const deleteAccountModalClose = document.getElementById('deleteAccountModalClose');
+      const cancelDeleteAccountBtn = document.getElementById('cancelDeleteAccountBtn');
+      const confirmDeleteAccountBtn = document.getElementById('confirmDeleteAccountBtn');
+      const deleteConfirmInput = document.getElementById('deleteConfirmInput');
+      const deleteAccountError = document.getElementById('deleteAccountError');
+
+      function openDeleteModal() {
+        if (deleteConfirmInput) deleteConfirmInput.value = '';
+        if (confirmDeleteAccountBtn) confirmDeleteAccountBtn.disabled = true;
+        if (deleteAccountError) deleteAccountError.style.display = 'none';
+        if (deleteAccountModal) deleteAccountModal.classList.add('open');
+      }
+      function closeDeleteModal() {
+        if (deleteAccountModal) deleteAccountModal.classList.remove('open');
+      }
+
+      if (openDeleteAccountBtn) openDeleteAccountBtn.onclick = openDeleteModal;
+      if (deleteAccountModalClose) deleteAccountModalClose.onclick = closeDeleteModal;
+      if (cancelDeleteAccountBtn) cancelDeleteAccountBtn.onclick = closeDeleteModal;
+      if (deleteAccountModal) {
+        deleteAccountModal.addEventListener('click', (e) => {
+          if (e.target === deleteAccountModal) closeDeleteModal();
+        });
+      }
+
+      if (deleteConfirmInput) {
+        deleteConfirmInput.addEventListener('input', () => {
+          if (confirmDeleteAccountBtn) {
+            confirmDeleteAccountBtn.disabled = deleteConfirmInput.value.trim().toUpperCase() !== 'EXCLUIR';
+          }
+        });
+      }
+
+      if (confirmDeleteAccountBtn) {
+        confirmDeleteAccountBtn.onclick = async () => {
+          if (deleteConfirmInput?.value.trim().toUpperCase() !== 'EXCLUIR') return;
+          confirmDeleteAccountBtn.disabled = true;
+          confirmDeleteAccountBtn.textContent = 'Excluindo...';
+          if (deleteAccountError) deleteAccountError.style.display = 'none';
+
+          const result = await window.deleteUserAccount();
+
+          if (result?.success) {
+            closeDeleteModal();
+            showToast('✅ Conta excluída com sucesso. Até mais!', 'success', 4000);
+            setTimeout(() => { window.location.href = 'index.html'; }, 2500);
+          } else {
+            const msg = result?.error?.message || 'Erro ao excluir conta.';
+            if (deleteAccountError) {
+              deleteAccountError.textContent = '❌ ' + msg;
+              deleteAccountError.style.display = 'block';
+            }
+            confirmDeleteAccountBtn.disabled = false;
+            confirmDeleteAccountBtn.textContent = 'Excluir minha conta';
+          }
+        };
+      }
+
       // Avatar View Logic
       const avatarViewOverlay = document.getElementById('avatarViewOverlay');
       const avatarViewImg = document.getElementById('avatarViewImg');
@@ -2274,6 +2363,7 @@
         // Cache for auth.js and global UI
         localStorage.setItem('animehouse_userLevel', level);
         localStorage.setItem('animehouse_userRank', rank);
+        localStorage.setItem('animehouse_totalXP', totalXP);
 
         const xpCurrEl = document.getElementById('xpCurrent');
         const xpTargetEl = document.getElementById('xpTarget');
