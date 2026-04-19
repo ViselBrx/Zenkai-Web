@@ -1338,47 +1338,54 @@
 
 @keyframes chromatic-hue-cycle {
     from { --chromatic-hue: 0deg; }
-    to { --chromatic-hue: 360deg; }
+    to   { --chromatic-hue: 360deg; }
 }
 
+/*
+ * PERFORMANCE: A animação fica no próprio .theme-cromatico (html/body).
+ * `contain: style` isola a propagação da CSS custom property --chromatic-hue
+ * ao subtree, evitando recalcs em todo o documento a cada frame.
+ * Saturação 88% e luminosidade 58% → paleta mais suave e menos custosa no GPU.
+ */
 .theme-cromatico {
-    animation: chromatic-hue-cycle 20s linear infinite;
-    will-change: background-color; /* hint de GPU: essa propriedade muda continuamente */
-    isolation: isolate;            /* cria stacking context próprio, evitando vazamento de compositing */
-    --primary: hsl(var(--chromatic-hue), 100%, 50%);
-    --primary-rgb: 255, 255, 255; /* Changed from 255, 0, 0 to white to remove forced red neon */
-    --primary-hover: hsl(var(--chromatic-hue), 100%, 60%); /* Claro 1 */
-    --accent: hsl(calc(var(--chromatic-hue) + 120deg), 100%, 50%);
-    --accent2: hsl(calc(var(--chromatic-hue) + 240deg), 100%, 50%);
-    --text-main: #ffffff;
-    --text-muted: hsl(var(--chromatic-hue), 100%, 80%); /* Claro 3 */
-    --border: hsl(var(--chromatic-hue), 100%, 50%);
-    
-    /* Background override for maximum neon pop (🌌 Fundo recomendado) */
-    --bg-dark: #000000;
-    --bg-surface: #0a0a0a;
-    --bg-card: #111111;
+    animation: chromatic-hue-cycle 30s linear infinite; /* 30 s → menos recalcs/s */
+    isolation: isolate;
+    contain: style;   /* impede que --chromatic-hue force recalc fora do subtree */
 
-    /* Simplified Chromatic Neon Glow (Subtle & Elegant) */
-    --shadow-neon: 
-        0 0 12px hsla(var(--chromatic-hue), 100%, 50%, 0.4);
+    /* ── Paleta cromática elegante (sat 88 %, lum 58 %) ── */
+    --primary:       hsl(var(--chromatic-hue), 88%, 58%);
+    --primary-rgb:   180, 180, 255;   /* valor neutro; evita neon vermelho forçado */
+    --primary-hover: hsl(var(--chromatic-hue), 88%, 68%);
+    --accent:        hsl(calc(var(--chromatic-hue) + 120deg), 88%, 58%);
+    --accent2:       hsl(calc(var(--chromatic-hue) + 240deg), 88%, 58%);
+    --text-main:  #f0f0ff;
+    --text-muted: hsl(var(--chromatic-hue), 60%, 78%);
+    --border:     hsl(var(--chromatic-hue), 88%, 58%);
 
-    --shadow-neon-h: 
-        0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.6), 
-        0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.2);
+    /* Fundos ultra-escuros para maximizar contraste com as cores vivas */
+    --bg-dark:    #030308;
+    --bg-surface: #08080f;
+    --bg-card:    #0e0e18;
 
-    --scrollbar: hsl(var(--chromatic-hue), 100%, 50%);
+    /* Neon Glow — raios menores = repaint mais barato */
+    --shadow-neon:
+        0 0 8px  hsla(var(--chromatic-hue), 88%, 58%, 0.35);
+    --shadow-neon-h:
+        0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.55),
+        0 0 32px hsla(var(--chromatic-hue), 88%, 58%, 0.18);
+
+    --scrollbar: hsl(var(--chromatic-hue), 88%, 58%);
 }
 
-/* Specific overrides to kill any residual red or white neon */
+/* Residual neon fix — raios menores para reduzir custo de repaint */
 .theme-cromatico .navbar-brand img,
 .theme-cromatico .home-icon,
 .theme-cromatico .stats-card,
 .theme-cromatico .manga-pill.active {
-    filter: drop-shadow(0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.5)) !important;
+    filter: drop-shadow(0 0 7px hsla(var(--chromatic-hue), 88%, 58%, 0.45)) !important;
 }
 
-/* Títulos e banners com gradiente cromático (Substituindo o branco) */
+/* Títulos com gradiente cromático — paleta elegante (lum 68 %) */
 .theme-cromatico .page-header h1,
 .theme-cromatico .home-banner h2,
 .theme-cromatico .loja-hero-title,
@@ -1394,34 +1401,34 @@
 .theme-cromatico #homeUserStatus span:last-child,
 .theme-cromatico .user-nav-title,
 .theme-cromatico .navbar-brand {
-    background: linear-gradient(90deg, 
-        hsl(var(--chromatic-hue), 100%, 65%), 
-        hsl(calc(var(--chromatic-hue) + 60deg), 100%, 65%),
-        hsl(calc(var(--chromatic-hue) + 120deg), 100%, 65%));
+    background: linear-gradient(90deg,
+        hsl(var(--chromatic-hue), 90%, 70%),
+        hsl(calc(var(--chromatic-hue) + 55deg), 90%, 70%),
+        hsl(calc(var(--chromatic-hue) + 115deg), 90%, 70%));
     -webkit-background-clip: text !important;
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     text-shadow: none !important;
-    filter: drop-shadow(0 0 12px hsla(var(--chromatic-hue), 100%, 50%, 0.4)) !important;
+    filter: drop-shadow(0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.35)) !important;
 }
 
 .theme-cromatico .user-nav-container {
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.2) !important;
-    background: rgba(0, 0, 0, 0.4) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
+    box-shadow: 0 0 18px hsla(var(--chromatic-hue), 88%, 58%, 0.16) !important;
+    background: rgba(3, 3, 12, 0.5) !important;
 }
 
 /* Navbar links should also be chromatic when active or hovered */
 .theme-cromatico .navbar-links a:hover,
 .theme-cromatico .navbar-links a.active {
-    background: linear-gradient(90deg, 
-        hsl(var(--chromatic-hue), 100%, 65%), 
-        hsl(calc(var(--chromatic-hue) + 40deg), 100%, 65%));
+    background: linear-gradient(90deg,
+        hsl(var(--chromatic-hue), 90%, 70%),
+        hsl(calc(var(--chromatic-hue) + 40deg), 90%, 70%));
     -webkit-background-clip: text !important;
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.62) !important;
+    box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.25) !important;
 }
 
 /* Overrides para remover o branco de elementos específicos */
@@ -1442,31 +1449,31 @@
 .theme-cromatico #homeUserStatus > div,
 .theme-cromatico .search-bar input,
 .theme-cromatico .history-search input {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.07) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 30px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
-    backdrop-filter: blur(8px) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.06) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.52) !important;
+    box-shadow: 0 0 18px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+    backdrop-filter: blur(6px) !important;
 }
 
 .theme-cromatico .xp-orb {
     background: radial-gradient(
         circle,
         var(--primary) 0%,
-        hsla(var(--chromatic-hue), 100%, 50%, 0.3) 60%,
+        hsla(var(--chromatic-hue), 88%, 58%, 0.25) 60%,
         transparent 100%
     ) !important;
-    box-shadow: 0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.6) !important;
+    box-shadow: 0 0 26px hsla(var(--chromatic-hue), 88%, 58%, 0.5) !important;
 }
 
 /* Ajuste para banners que têm fundos que podem conflitar */
 .theme-cromatico .loja-hero,
 .theme-cromatico .home-banner {
-    background: linear-gradient(135deg, 
-        rgba(0,0,0,0.95) 0%, 
-        hsla(var(--chromatic-hue), 100%, 50%, 0.05) 50%, 
-        rgba(0,0,0,0.95) 100%) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 40px hsla(var(--chromatic-hue), 100%, 50%, 0.1) !important;
+    background: linear-gradient(135deg,
+        rgba(3, 3, 12, 0.97) 0%,
+        hsla(var(--chromatic-hue), 88%, 58%, 0.04) 50%,
+        rgba(3, 3, 12, 0.97) 100%) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.50) !important;
+    box-shadow: 0 0 28px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
 }
 
 .theme-cromatico .loja-hero-eyebrow::before,
@@ -1481,19 +1488,19 @@
 
 .theme-cromatico .stats-widget,
 .theme-cromatico .volume-card:hover {
-    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+    box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.3) !important;
 }
 
 /* No layout overrides for history items in chromatic theme */
 .theme-cromatico .history-item {
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.54) !important;
 }
 
 /* Specific UI elements chromatization for dashboards */
 .theme-cromatico .stats-progress-fill,
 .theme-cromatico .season-progress-fill {
     background: linear-gradient(90deg, var(--primary), var(--accent)) !important;
-    box-shadow: 0 0 15px var(--primary) !important;
+    box-shadow: 0 0 10px var(--primary) !important;
 }
 
 .theme-cromatico .stats-widget::before {
@@ -1513,34 +1520,34 @@
 .theme-cromatico .season-complete-badge,
 .theme-cromatico .watched-modal-badge,
 .theme-cromatico .btn {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.1) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
     color: var(--primary) !important;
-    border: 1px solid hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
+    box-shadow: 0 0 7px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
 }
 
 .theme-cromatico .btn-primary,
 .theme-cromatico .btn-danger,
 .theme-cromatico .btn-outline-primary,
 .theme-cromatico .btn-outline-danger {
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.60) !important;
 }
 
 .theme-cromatico .btn:hover {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.25) !important;
-    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.2) !important;
+    box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.32) !important;
 }
 
 .theme-cromatico .msg.bot {
-    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.08), rgba(0, 0, 0, 0.3)) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 15px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 88%, 58%, 0.07), rgba(3, 3, 12, 0.35)) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.50) !important;
+    box-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
 }
 
 .theme-cromatico .msg.user {
-    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.15), rgba(0, 0, 0, 0.2)) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
-    box-shadow: 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.2) !important;
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 88%, 58%, 0.12), rgba(3, 3, 12, 0.25)) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
+    box-shadow: 0 0 12px hsla(var(--chromatic-hue), 88%, 58%, 0.16) !important;
 }
 
 /* AI Page Overrides for Chromatic Theme */
@@ -1558,14 +1565,14 @@
 .theme-cromatico .ai-scroll-panel,
 .theme-cromatico .vision-preview,
 .theme-cromatico .compare-history-item {
-    background: linear-gradient(180deg, hsla(var(--chromatic-hue), 100%, 50%, 0.1), rgba(0, 0, 0, 0.4)) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+    background: linear-gradient(180deg, hsla(var(--chromatic-hue), 88%, 58%, 0.08), rgba(3, 3, 12, 0.45)) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.50) !important;
+    box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
 }
 
 .theme-cromatico .ai-tab-v.active,
 .theme-cromatico .ai-tab.active {
-    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 100%, 50%, 0.25), hsla(var(--chromatic-hue), 100%, 50%, 0.1)) !important;
+    background: linear-gradient(160deg, hsla(var(--chromatic-hue), 88%, 58%, 0.2), hsla(var(--chromatic-hue), 88%, 58%, 0.08)) !important;
     border-color: var(--primary) !important;
     color: var(--text-main) !important;
 }
@@ -1599,8 +1606,8 @@
 
 .theme-cromatico .card-badge:hover,
 .theme-cromatico .badge-accent:hover {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
-    box-shadow: 0 0 25px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
+    box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.38) !important;
 }
 
 /* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessões */
@@ -1608,43 +1615,43 @@
 .theme-cromatico .episode-card,
 .theme-cromatico .manga-item,
 .theme-cromatico .season-section {
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.2) !important;
-    box-shadow: 
-        0 4px 20px rgba(0, 0, 0, 0.3),
-        0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.52) !important;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.35),
+        0 0 12px hsla(var(--chromatic-hue), 88%, 58%, 0.2) !important;
 }
 
 .theme-cromatico .card-cover-placeholder {
     background: linear-gradient(
         135deg,
         var(--bg-card) 0%,
-        hsla(var(--chromatic-hue), 100%, 50%, 0.4) 100%
+        hsla(var(--chromatic-hue), 88%, 58%, 0.32) 100%
     ) !important;
     color: var(--primary) !important;
-    text-shadow: 0 0 15px hsla(var(--chromatic-hue), 100%, 50%, 0.6) !important;
+    text-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.5) !important;
 }
 
 .theme-cromatico .episodes-grid {
     background: linear-gradient(
         135deg,
-        hsla(var(--chromatic-hue), 100%, 50%, 0.03) 0%,
-        hsla(var(--chromatic-hue), 100%, 50%, 0.01) 100%
+        hsla(var(--chromatic-hue), 88%, 58%, 0.025) 0%,
+        hsla(var(--chromatic-hue), 88%, 58%, 0.008) 100%
     ) !important;
 }
 
 .theme-cromatico .season-header {
-    border-bottom-color: hsla(var(--chromatic-hue), 100%, 50%, 0.1) !important;
+    border-bottom: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.48) !important;
 }
 
 .theme-cromatico .season-header:hover {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
-    border-bottom-color: var(--primary) !important;
-    box-shadow: inset 0 0 20px hsla(var(--chromatic-hue), 100%, 50%, 0.3) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+    border-bottom: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.72) !important;
+    box-shadow: inset 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
 }
 
 .theme-cromatico .cartoon-pill:hover,
 .theme-cromatico .cartoon-pill.active {
-    background: hsla(var(--chromatic-hue), 100%, 50%, 0.15) !important;
+    background: hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
     border-color: var(--primary) !important;
     color: var(--primary) !important;
 }
@@ -1657,34 +1664,34 @@
 .theme-cromatico .history-item:hover,
 .theme-cromatico .episode-card:hover {
     box-shadow: var(--shadow-neon-h) !important;
-    border-color: hsla(var(--chromatic-hue), 100%, 50%, 0.4) !important;
-    background-color: #0c0c12 !important;
+    border: 2px solid hsla(var(--chromatic-hue), 88%, 65%, 0.75) !important;
+    background-color: #0c0c18 !important;
 }
 
 .theme-cromatico {
-    scrollbar-color: hsl(var(--chromatic-hue), 100%, 50%) #000000;
+    scrollbar-color: hsl(var(--chromatic-hue), 88%, 58%) #030308;
 }
 
-/* Extra fluorescent flair (Subtle Chromatic Text Glow) */
+/* Chromatic Text Glow — reduzido para diminuir repaint */
 .theme-cromatico .btn,
 .theme-cromatico .page-header h1,
 .theme-cromatico .navbar-brand,
 .theme-cromatico .catalog-item .item-title {
-    text-shadow: 
-        0 0 8px hsla(var(--chromatic-hue), 100%, 50%, 0.6);
+    text-shadow:
+        0 0 6px hsla(var(--chromatic-hue), 88%, 58%, 0.45);
 }
 
 .theme-cromatico .navbar {
-    background: rgba(0, 0, 0, 0.85) !important;
-    border-bottom: 2px solid hsla(var(--chromatic-hue), 100%, 60%, 0.4);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8), 0 0 30px hsla(var(--chromatic-hue), 100%, 50%, 0.3);
+    background: rgba(3, 3, 12, 0.88) !important;
+    border-bottom: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.58);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.85), 0 0 20px hsla(var(--chromatic-hue), 88%, 58%, 0.2);
 }
 
 /* Palette options inside the switcher should be more visible against pure black */
 .theme-cromatico .theme-options {
-    background: #0a0a0a !important;
+    background: #08080f !important;
     border: 2px solid var(--primary);
-    box-shadow: 0 0 35px hsla(var(--chromatic-hue), 100%, 50%, 0.5);
+    box-shadow: 0 0 22px hsla(var(--chromatic-hue), 88%, 58%, 0.38);
 }
 
 /* Fixed positioning for palette switcher remains intact */
