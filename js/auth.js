@@ -427,6 +427,11 @@ window.updateNavbarCosmetics = function () {
     "avatar-aura-fire",
     "avatar-aura-guardian",
     "avatar-aura-immortal",
+    "avatar-aura-bronze",
+    "avatar-aura-prata",
+    "avatar-aura-ouro",
+    "avatar-aura-mestre",
+    "avatar-aura-lenda",
     "frame-dourado",
   ];
 
