@@ -18,6 +18,8 @@ const _DEFAULT = {
     mangaVolumes: {},
     mangaNotes: {},
     filmes: [],
+    youtube_playlists: [],
+    youtube_videos: {},
     watched: {},
     profile: null, // Perfil completo do usuário (incluindo store_data)
     aiConfig: {},
@@ -196,7 +198,9 @@ const USER_CATALOG_TABLES = [
     'mangas',
     'manga_volumes',
     'manga_notes',
-    'filmes'
+    'filmes',
+    'youtube_playlists',
+    'youtube_videos'
 ];
 
 // Resgata itens legados sem user_id para o dono principal.
@@ -289,10 +293,18 @@ const DB = {
           ? supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true })
           : supa.from('filmes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
 
+        const youtubePlaylistsQuery = isMainAccount
+          ? supa.from('youtube_playlists').select('*').or(ownerFilter).order('created_at', { ascending: true })
+          : supa.from('youtube_playlists').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+
+        const youtubeVideosQuery = isMainAccount
+          ? supa.from('youtube_videos').select('*').or(ownerFilter)
+          : supa.from('youtube_videos').select('*').eq('user_id', userId);
+
         const [
             cartoons, episodes, movies,
             animes, animeEps, mangas, mangaVols,
-            mangaNotes, filmesData, settings
+            mangaNotes, filmesData, ytPlaylists, ytVideos, settings
         ] = await Promise.all([
             safeFetch(cartoonQuery, 'Cartoons'),
             safeFetch(episodesQuery, 'Episodes'),
@@ -303,6 +315,8 @@ const DB = {
             safeFetch(mangaVolsQuery, 'MangaVolumes'),
             safeFetch(mangaNotesQuery, 'MangaNotes'),
             safeFetch(filmesQuery, 'Filmes'),
+            safeFetch(youtubePlaylistsQuery, 'YoutubePlaylists'),
+            safeFetch(youtubeVideosQuery, 'YoutubeVideos'),
             safeFetch(supa.from('settings').select('*'), 'Settings')
         ]);
 
@@ -391,6 +405,7 @@ const DB = {
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
         _store.filmes = (filmesData || []).map(f => ({...f, createdAt: f.created_at}));
+        _store.youtube_playlists = (ytPlaylists || []).map(p => ({...p, createdAt: p.created_at}));
         // Settings
         if (settings) {
             settings.forEach(s => {
@@ -470,6 +485,19 @@ const DB = {
                          _store.animeEpisodes[aid][lang][sid].sort((a,b) => a.epNumber - b.epNumber);
                      }
                 }
+            }
+        }
+
+        // Agrupar youtube videos
+        if (ytVideos) {
+            ytVideos.forEach(v => {
+                if (!_store.youtube_videos[v.playlist_id]) _store.youtube_videos[v.playlist_id] = [];
+                _store.youtube_videos[v.playlist_id].push({
+                    id: v.id, title: v.title, iframe: cleanIframe(v.iframe), created_at: v.created_at
+                });
+            });
+            for(let pid in _store.youtube_videos) {
+                _store.youtube_videos[pid].sort((a,b) => a.created_at - b.created_at);
             }
         }
 
@@ -1365,10 +1393,77 @@ const DB = {
       }
       console.log('✅ [DB] Store salvo via upsert (fallback REST).');
     } catch (err) {
-      console.error('[DB] Falha ao persistir store_data no Supabase:', err?.message || err);
-      throw err;
     }
   },
+
+  /* YouTube Playlists */
+  getYoutubePlaylists() { return [..._store.youtube_playlists]; },
+  getYoutubePlaylistById(id) { return _store.youtube_playlists.find(p => p.id === id) || null; },
+  async addYoutubePlaylist(data) {
+    const userId = await getRequiredUserId();
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    const item = { id: 'ytp_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const { error } = await getSupa().from('youtube_playlists').insert([item]);
+    if (error) throw new Error(error.message);
+    _store.youtube_playlists.push({...item, createdAt: item.created_at});
+    return item;
+  },
+  async updateYoutubePlaylist(id, data) {
+    await checkItemOwnership(id, 'youtube_playlists');
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    const { error } = await getSupa().from('youtube_playlists').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+    _store.youtube_playlists = _store.youtube_playlists.map(p => p.id === id ? { ...p, ...data } : p);
+  },
+  async deleteYoutubePlaylist(id) {
+    await checkItemOwnership(id, 'youtube_playlists');
+    const { error } = await getSupa().from('youtube_playlists').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    const videoIds = (_store.youtube_videos[id] || []).map(v => v.id);
+    clearWatchedItems([...videoIds]);
+    _store.youtube_playlists = _store.youtube_playlists.filter(p => p.id !== id);
+    delete _store.youtube_videos[id];
+  },
+
+  /* YouTube Videos */
+  getYoutubeVideosFor(plId) { return _store.youtube_videos[plId] || []; },
+  async addYoutubeVideo(plId, data) {
+    const userId = await getRequiredUserId();
+    const item = {
+      id: 'ytv_' + Date.now(),
+      playlist_id: plId,
+      title: data.title,
+      iframe: cleanIframe(data.iframe),
+      created_at: Date.now(),
+      user_id: userId
+    };
+    const { error } = await getSupa().from('youtube_videos').insert([item]);
+    if (error) throw new Error(error.message);
+    if (!_store.youtube_videos[plId]) _store.youtube_videos[plId] = [];
+    _store.youtube_videos[plId].push({ id: item.id, title: item.title, iframe: item.iframe, created_at: item.created_at });
+    return item;
+  },
+  async updateYoutubeVideo(plId, vId, data) {
+    await checkItemOwnership(vId, 'youtube_videos');
+    const updatePayload = { ...data };
+    if (updatePayload.iframe) updatePayload.iframe = cleanIframe(updatePayload.iframe);
+    const { error } = await getSupa().from('youtube_videos').update(updatePayload).eq('id', vId);
+    if (error) throw new Error(error.message);
+    if (_store.youtube_videos[plId]) {
+      _store.youtube_videos[plId] = _store.youtube_videos[plId].map(v => v.id === vId ? { ...v, ...updatePayload } : v);
+    }
+  },
+  async deleteYoutubeVideo(plId, vId) {
+    await checkItemOwnership(vId, 'youtube_videos');
+    const { error } = await getSupa().from('youtube_videos').delete().eq('id', vId);
+    if (error) throw new Error(error.message);
+    clearWatchedItems([vId]);
+    if (_store.youtube_videos[plId]) {
+      _store.youtube_videos[plId] = _store.youtube_videos[plId].filter(v => v.id !== vId);
+    }
+  }
 };
 
 if (typeof window !== 'undefined') {

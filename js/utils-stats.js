@@ -65,6 +65,15 @@ const StatsManager = (() => {
       allFilmes.forEach(f => {
         if (allWatched.has(f.id)) watchedCount++;
       });
+    } else if (category === 'youtube') {
+      const allPlaylists = DB.getYoutubePlaylists();
+      allPlaylists.forEach(p => {
+        const videos = DB.getYoutubeVideosFor(p.id);
+        videos.forEach(v => {
+          total++;
+          if (allWatched.has(v.id)) watchedCount++;
+        });
+      });
     }
 
     return { total, watched: watchedCount };
@@ -79,16 +88,20 @@ const StatsManager = (() => {
       'desenhos': 'Episódios',
       'animes': 'Episódios',
       'mangas': 'Volumes',
-      'filmes': 'Filmes'
+      'filmes': 'Filmes',
+      'youtube': 'Vídeos'
     };
 
     const label = labelMap[category] || 'Itens';
     
     // Regra especial para Filmes: metade cadastrada conta como visto para o gráfico
     let barPct = stats.total === 0 ? 0 : (stats.watched / stats.total) * 100;
-    if (category === 'filmes') {
-      barPct = stats.total === 0 ? 0 : 50; 
-    }
+
+    const userRank = localStorage.getItem('animehouse_userRank') || 'Novato';
+    const totalXP = localStorage.getItem('animehouse_totalXP') || '0';
+
+    const colorMap = { 'filmes': '#ffd700', 'youtube': '#ff0000' };
+    const barColor = colorMap[category] || 'var(--primary)';
 
     container.innerHTML = `
       <div class="stats-info">
@@ -97,10 +110,14 @@ const StatsManager = (() => {
       </div>
       <div class="stats-info" style="margin-top: -6px;">
         <span class="label">Vistos / Assistidos</span>
-        <span class="count" style="color: var(--accent);">${stats.watched}</span>
+        <span class="count" style="color: ${category === 'filmes' ? '#ffd700' : 'var(--accent)'};">${stats.watched}</span>
       </div>
       <div class="stats-progress-container">
-        <div class="stats-progress-fill" style="width: ${barPct}%"></div>
+        <div class="stats-progress-fill" style="width: ${barPct}%; background: ${barColor}; box-shadow: 0 0 10px ${barColor};"></div>
+      </div>
+      <div class="stats-info" style="margin-top: 8px; border-top: 1px solid rgba(var(--primary-rgb), 0.1); padding-top: 8px;">
+        <span class="label" style="color: var(--primary); font-weight: bold;">${userRank}</span>
+        <span class="count" style="font-size: 0.8rem; opacity: 0.8;">XP total: ${totalXP}</span>
       </div>
     `;
   }
@@ -115,4 +132,5 @@ document.addEventListener('watched:change', () => {
     else if (path.includes('anime-episodios')) StatsManager.render('animes');
     else if (path.includes('mangas')) StatsManager.render('mangas');
     else if (path.includes('filmes')) StatsManager.render('filmes');
+    else if (path.includes('youtube-videos')) StatsManager.render('youtube');
 });
