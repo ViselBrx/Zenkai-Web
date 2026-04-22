@@ -1,5 +1,5 @@
 /**
- * ..
+ * 
  * server.js — Servidor local AnimeHouse
  * =======================================
  * Suporta upload real de arquivos de capa (salvos em /uploads) e JSON brutos.
