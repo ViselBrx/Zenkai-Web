@@ -9,7 +9,7 @@ Username: Visel e Davizera (conta principal com XP 8500)
 """
 
 import json
-import requests #ooo# 
+import requests 
 
 SUPABASE_URL = "https://bxifddhrbxbmimjkgwzr.supabase.co"
 SUPABASE_SERVICE_KEY = "sb_secret_Cr0BzLecxWabufFasf0kQg_xJtI5VsM"
