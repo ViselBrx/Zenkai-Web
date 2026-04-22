@@ -1198,39 +1198,6 @@
         }
       }
 
-      /* ===== VIP LOCKED PREVIEW ===== */
-      .vip-locked-section {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px dashed rgba(var(--primary-rgb), 0.3);
-        position: relative;
-      }
-      .vip-locked-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(5, 15, 31, 0.7);
-        backdrop-filter: blur(3px);
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        z-index: 10;
-      }
-      .vip-locked-overlay .lock-icon {
-        font-size: 2rem;
-      }
-      .vip-locked-overlay .lock-msg {
-        font-family: "Bangers", cursive;
-        font-size: 1rem;
-        color: var(--primary);
-        letter-spacing: 1px;
-      }
-      .vip-locked-overlay .lock-sub {
-        font-size: 0.7rem;
-        color: var(--text-muted);
-      }
       .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -1296,6 +1263,7 @@
     </style>
   </head>
   <body>
+    <!-- NAVBAR -->
     <nav class="navbar">
       <div class="navbar-brand">
         <a
@@ -1685,6 +1653,22 @@
                         border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
                       "
                     >
+                      <td style="padding: 4px">📺 Vídeo YouTube</td>
+                      <td
+                        style="
+                          padding: 4px;
+                          text-align: right;
+                          color: var(--primary);
+                        "
+                      >
+                        +5 XP
+                      </td>
+                    </tr>
+                    <tr
+                      style="
+                        border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
+                      "
+                    >
                       <td style="padding: 4px">📚 Vol. Mangá</td>
                       <td
                         style="
@@ -1711,184 +1695,7 @@
                   </table>
                 </details>
 
-                <!-- VIP - Benefícios Hon. (visivel bloqueado até LVL 50) -->
-                <div class="vip-locked-section">
-                  <!-- Overlay de bloqueio, removido por JS quando o level >= 50 -->
-                  <div class="vip-locked-overlay" id="vipLockedOverlay">
-                    <span class="lock-icon">🔒</span>
-                    <span class="lock-msg">BENEFÍCIOS HONÓRIOS</span>
-                    <span class="lock-sub"
-                      >Desbloqueado no LVL 50 • Hokage</span
-                    >
-                  </div>
 
-                  <!-- Conteúdo sempre renderizado mas bloqueado pelo overlay -->
-                  <h4
-                    style="
-                      color: var(--primary);
-                      font-family: &quot;Bangers&quot;;
-                      font-size: 1.2rem;
-                      margin-bottom: 10px;
-                    "
-                  >
-                    👑 Benefícios Honórios
-                  </h4>
-
-                  <div
-                    style="
-                      margin-bottom: 10px;
-                      opacity: 0.5;
-                      pointer-events: none;
-                    "
-                    id="vipPerksContent"
-                  >
-                    <label
-                      style="
-                        font-size: 0.75rem;
-                        color: var(--text-muted);
-                        display: block;
-                        margin-bottom: 5px;
-                      "
-                      >Meu Título de Sensei:</label
-                    >
-                    <div style="display: flex; gap: 8px">
-                      <input
-                        type="text"
-                        id="customTitleInput"
-                        placeholder="Ex: Mestre Jedi"
-                        style="
-                          flex: 1;
-                          padding: 6px;
-                          border-radius: 6px;
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          background: rgba(0, 0, 0, 0.2);
-                          color: #fff;
-                          font-size: 0.8rem;
-                        "
-                      />
-                      <button
-                        type="button"
-                        id="saveCustomTitleBtn"
-                        class="btn btn-primary"
-                        style="
-                          padding: 6px 12px;
-                          border-radius: 6px;
-                          font-size: 0.8rem;
-                        "
-                      >
-                        Salvar
-                      </button>
-                    </div>
-
-                    <div style="margin-top: 10px">
-                      <label
-                        style="
-                          font-size: 0.75rem;
-                          color: var(--text-muted);
-                          display: block;
-                          margin-bottom: 5px;
-                        "
-                        >Aura Mística (Borda):</label
-                      >
-                      <select
-                        id="auraSelector"
-                        style="
-                          width: 100%;
-                          padding: 6px;
-                          border-radius: 6px;
-                          border: 1px solid rgba(255, 255, 255, 0.1);
-                          background: rgba(0, 0, 0, 0.2);
-                          color: #fff;
-                          font-size: 0.8rem;
-                        "
-                      >
-                        <option value="none">Nenhuma</option>
-                        <optgroup label="🎨 Auras da Loja">
-                          <option value="aura_chama">
-                            🔥 Aura Chama Simples (Ouro)
-                          </option>
-                          <option value="aura_chama_naruto">
-                            🔥 Aura Modo Sábio (Ouro)
-                          </option>
-                          <option value="aura_ceifador">
-                            📓 Aura Olhar do Ceifador (Ouro)
-                          </option>
-                          <option value="aura_thunder">
-                            ⚡ Aura Relâmpago (Diamante)
-                          </option>
-                          <option value="aura_sakura">
-                            🌸 Aura Pétala de Sakura (Diamante)
-                          </option>
-                          <option value="aura_gelo">
-                            ❄️ Aura Cristal de Gelo (Diamante)
-                          </option>
-                          <option value="aura_susanoo">
-                            ⚡ Aura Susanoo Perfeito (Diamante)
-                          </option>
-                          <option value="aura_stands">
-                            🟣 Aura Stand Star Platinum (Diamante)
-                          </option>
-                          <option value="aura_dragon">
-                            🐉 Aura Dragão Arcano (Esmeralda)
-                          </option>
-                          <option value="aura_void_saitama">
-                            👊 Aura ONE PUNCH (Esmeralda)
-                          </option>
-                        </optgroup>
-                        <optgroup label="⭐ Auras de Nível">
-                          <option value="avatar-aura-fire">
-                            🔥 Chamas do Hokage (LVL 50)
-                          </option>
-                          <option value="avatar-aura-guardian">
-                            🛡️ Escudo de Guardião (LVL 75)
-                          </option>
-                          <option value="avatar-aura-immortal">
-                            ⚡ Poder Imortal (LVL 100)
-                          </option>
-                        </optgroup>
-                      </select>
-                    </div>
-
-                    <label
-                      style="
-                        font-size: 0.8rem;
-                        color: var(--text-muted);
-                        display: flex;
-                        align-items: center;
-                        gap: 8px;
-                        margin-top: 15px;
-                        cursor: pointer;
-                      "
-                    >
-                      <input
-                        type="checkbox"
-                        id="crownToggle"
-                        style="
-                          width: 16px;
-                          height: 16px;
-                          accent-color: var(--primary);
-                        "
-                      />
-                      <span
-                        style="
-                          font-family: &quot;Bangers&quot;;
-                          color: gold;
-                          letter-spacing: 1px;
-                        "
-                        >EQUIPAR COROA SUPREMA 👑</span
-                      >
-                      <span
-                        id="crownLockText"
-                        style="
-                          font-size: 0.65rem;
-                          color: var(--danger);
-                          display: none;
-                        "
-                        >(Desbloqueia no LVL 50)</span
-                      >
-                    </label>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -2045,10 +1852,9 @@
                   <div class="analysis-item">
                     <div
                       class="analysis-label"
-                      title="Política de 50% conforme solicitado"
                     >
                       <span style="color: var(--primary)"
-                        >🎬 Filmes (Política 50%)</span
+                        >🎬 Filmes</span
                       >
                       <span id="movieLabel">0/0</span>
                     </div>
@@ -2060,9 +1866,28 @@
                         class="analysis-bar-fill"
                         id="movieBar"
                         style="
-                          background: var(--primary);
-                          filter: brightness(1.2);
-                          box-shadow: 0 0 10px var(--primary);
+                          background: #ffcc00;
+                          box-shadow: 0 0 10px #ffcc00;
+                        "
+                      ></div>
+                    </div>
+                  </div>
+                  <!-- YouTube -->
+                  <div class="analysis-item">
+                    <div class="analysis-label">
+                      <span style="color: #ff0000">🎥 YouTube</span>
+                      <span id="youtubeLabel">0/0</span>
+                    </div>
+                    <div
+                      class="analysis-bar-bg"
+                      style="background: rgba(255, 0, 0, 0.1)"
+                    >
+                      <div
+                        class="analysis-bar-fill"
+                        id="youtubeBar"
+                        style="
+                          background: #ff0000;
+                          box-shadow: 0 0 10px #ff0000;
                         "
                       ></div>
                     </div>
@@ -3414,11 +3239,12 @@
               colorPrimary,
               colorAccent2,
               colorAccent,
-              colorDanger,
+              "#ffcc00",
+              "#ff0000",
             ];
 
             const chartData = {
-              labels: ["Animes", "Desenhos", "Mangás", "Filmes"],
+              labels: ["Animes", "Desenhos", "Mangás", "Filmes", "YouTube"],
               datasets: [
                 {
                   data: dataValues,
@@ -3488,6 +3314,8 @@
               cartoonWatched = 0;
             let mangaTotal = 0,
               mangaWatched = 0;
+            let youtubeTotal = 0,
+              youtubeWatched = 0;
 
             // A. ANIMES
             const allAnimes = DB.getAnimes();
@@ -3555,6 +3383,16 @@
               }
             });
 
+            // E. YOUTUBE
+            const youtubePlaylists = DB.getYoutubePlaylists();
+            youtubePlaylists.forEach((p) => {
+              const videos = DB.getYoutubeVideosFor(p.id);
+              videos.forEach((v) => {
+                youtubeTotal++;
+                if (Watched.isWatched(v.id)) youtubeWatched++;
+              });
+            });
+
             // 4. Update Charts & Bars
             const animePercent =
               animeTotal > 0 ? (animeWatched / animeTotal) * 100 : 0;
@@ -3562,10 +3400,10 @@
               cartoonTotal > 0 ? (cartoonWatched / cartoonTotal) * 100 : 0;
             const mangaPercent =
               mangaTotal > 0 ? (mangaWatched / mangaTotal) * 100 : 0;
-
-            // Regra especial para Filmes: metade cadastrada conta como visto para a análise
-            const moviePolicyWatched = movieTotal * 0.5;
-            const moviePolicyPercent = movieTotal > 0 ? 50 : 0;
+            const moviePercent =
+              movieTotal > 0 ? (movieWatched / movieTotal) * 100 : 0;
+            const youtubePercent =
+              youtubeTotal > 0 ? (youtubeWatched / youtubeTotal) * 100 : 0;
 
             // Atualizar Barras de Análise
             const updateAnalysisBar = (
@@ -3578,14 +3416,8 @@
               const bar = document.getElementById(id);
               const lbl = document.getElementById(labelId);
               if (bar) bar.style.width = `${percent}%`;
-              // Se for filme, podemos mostrar o valor da política para bater com os 50%
-              if (id === "movieBar") {
-                if (lbl)
-                  lbl.textContent = `${moviePolicyWatched} / ${total} (Política 50%)`;
-              } else {
-                if (lbl)
-                  lbl.textContent = `${watched} / ${total} (${Math.round(percent)}%)`;
-              }
+              if (lbl)
+                lbl.textContent = `${watched} / ${total} (${Math.round(percent)}%)`;
             };
 
             updateAnalysisBar(
@@ -3609,13 +3441,19 @@
               mangaTotal,
               mangaPercent,
             );
-            // Política 50% nos filmes para a barra visual
             updateAnalysisBar(
               "movieBar",
               "movieLabel",
               movieWatched,
               movieTotal,
-              moviePolicyPercent,
+              moviePercent,
+            );
+            updateAnalysisBar(
+              "youtubeBar",
+              "youtubeLabel",
+              youtubeWatched,
+              youtubeTotal,
+              youtubePercent,
             );
 
             // Atualizar Gráfico Chart.js
@@ -3624,28 +3462,28 @@
                 animeWatched,
                 cartoonWatched,
                 mangaWatched,
-                moviePolicyWatched,
+                movieWatched,
+                youtubeWatched,
               ]);
             }
 
             const totalRegistered =
-              animeTotal + movieTotal + cartoonTotal + mangaTotal;
-            const totalWatched =
-              animeWatched + movieWatched + cartoonWatched + mangaWatched;
+              animeTotal + movieTotal + cartoonTotal + mangaTotal + youtubeTotal;
+            const totalWatchedCount =
+              animeWatched + movieWatched + cartoonWatched + mangaWatched + youtubeWatched;
             const globalText = document.getElementById("globalStatsText");
             if (globalText) {
-              globalText.textContent = `${totalWatched} de ${totalRegistered} itens totais assistidos/lidos no projeto.`;
+              globalText.textContent = `${totalWatchedCount} de ${totalRegistered} itens totais assistidos/lidos no projeto.`;
             }
 
-            // --- 1. Level & XP (Lógica Melhorada / Gamificada) ---
-            const count = totalWatched; // Mantido para o loop de patentes
-
-            // Pesos de XP: Anime/Desenho = 10xp, Mangá = 15xp, Filme = 50xp
+            // --- 1. Level & XP ---
+            // Pesos de XP: Anime/Desenho = 10xp, Mangá = 15xp, Filme = 50xp, YouTube = 5xp
             const totalXP =
               animeWatched * 10 +
               cartoonWatched * 10 +
               mangaWatched * 15 +
-              movieWatched * 50;
+              movieWatched * 50 +
+              youtubeWatched * 5;
 
             let level = 1;
             let xpRequiredForNext = 100;
@@ -3687,22 +3525,6 @@
             if (xpTargetEl) xpTargetEl.textContent = xpRequiredForNext;
             if (xpTotalEl) xpTotalEl.textContent = totalXP;
 
-            // 1.5 Liberação da Coroa e VIP
-            const vipLockOverlay = document.getElementById("vipLockedOverlay");
-            const vipContent = document.getElementById("vipPerksContent");
-            if (level >= 50) {
-              if (vipLockOverlay) vipLockOverlay.style.display = "none";
-              if (vipContent) {
-                vipContent.style.opacity = "1";
-                vipContent.style.pointerEvents = "auto";
-              }
-            } else {
-              if (vipLockOverlay) vipLockOverlay.style.display = "flex";
-              if (vipContent) {
-                vipContent.style.opacity = "0.5";
-                vipContent.style.pointerEvents = "none";
-              }
-            }
 
             const optFire = document.querySelector(
               'option[value="avatar-aura-fire"]',
@@ -3736,43 +3558,6 @@
                   : "⚡ Poder Imortal (Roxo)";
             }
 
-            const toggleCrown = document.getElementById("crownToggle");
-            const lockText = document.getElementById("crownLockText");
-            const isCrownUnlocked = level >= 50;
-
-            if (toggleCrown && lockText) {
-              if (!isCrownUnlocked) {
-                toggleCrown.disabled = true;
-                toggleCrown.checked = false;
-                toggleCrown.style.opacity = "0.5";
-                localStorage.setItem("animehouse_showCrown", "false");
-                lockText.style.display = "none"; // overlay já cobre
-              } else {
-                toggleCrown.disabled = false;
-                toggleCrown.style.opacity = "1";
-                lockText.style.display = "none";
-              }
-            }
-
-            // Limpar aura se não tem o level para usá-la
-            const savedAuraCheck =
-              localStorage.getItem("animehouse_customAura") || "none";
-            if (
-              (savedAuraCheck === "avatar-aura-fire" && level < 50) ||
-              (savedAuraCheck === "avatar-aura-guardian" && level < 75) ||
-              (savedAuraCheck === "avatar-aura-immortal" && level < 100)
-            ) {
-              localStorage.setItem("animehouse_customAura", "none");
-              const auraTargetEl =
-                document.getElementById("displayAvatarBox") || displayAvatar;
-              auraTargetEl?.classList.remove(
-                "avatar-aura-fire",
-                "avatar-aura-guardian",
-                "avatar-aura-immortal",
-              );
-              const auraSel2 = document.getElementById("auraSelector");
-              if (auraSel2) auraSel2.value = "none";
-            }
 
             // === LEVEL-UP DETECTION ===
             const prevLevel = parseInt(
@@ -3892,6 +3677,7 @@
               { name: "Desenhos", count: cartoonWatched },
               { name: "Mangás", count: mangaWatched },
               { name: "Filmes", count: movieWatched },
+              { name: "YouTube", count: youtubeWatched },
             ];
             categories.sort((a, b) => b.count - a.count);
             const topCat =
@@ -3900,7 +3686,7 @@
             if (favCatEl) favCatEl.textContent = topCat;
 
             // Tempo Estimado de Tela (base 24m)
-            const totalMinutes = totalWatched * 24;
+            const totalMinutes = totalWatchedCount * 24;
             const hours = Math.floor(totalMinutes / 60);
             const mins = totalMinutes % 60;
             const estimatedTimeEl = document.getElementById("estimatedTime");
@@ -3987,7 +3773,6 @@
             }, 500);
           };
 
-          // Setup VIP Perks logic
           // Restaurar tema cromático se estava ativo
           if (
             localStorage.getItem("animehouse_tema_cromatico") === "true" &&
@@ -3995,112 +3780,6 @@
           ) {
             window.setTheme("theme-cromatico");
           }
-
-          const savedTitle =
-            localStorage.getItem("animehouse_customTitle") || "";
-          const savedAura =
-            localStorage.getItem("animehouse_customAura") || "none";
-
-          const customTitleInp = document.getElementById("customTitleInput");
-          const customTitleDisplay =
-            document.getElementById("displayCustomTitle");
-          const auraSel = document.getElementById("auraSelector");
-          const sbCrown = document.getElementById("sidebarCrown");
-          const crwnToggle = document.getElementById("crownToggle");
-          const savedCrown =
-            localStorage.getItem("animehouse_showCrown") === "true";
-          const auraTarget =
-            document.getElementById("displayAvatarBox") || displayAvatar;
-
-          // Compatibilidade retroativa: se showCrown=true mas equippedCrownId está vazio, define coroa_lendaria como padrão
-          if (
-            savedCrown &&
-            !localStorage.getItem("animehouse_equippedCrownId")
-          ) {
-            localStorage.setItem(
-              "animehouse_equippedCrownId",
-              "coroa_lendaria",
-            );
-            localStorage.setItem("animehouse_equippedCrownIcon", "👑");
-          }
-
-          if (customTitleInp) customTitleInp.value = savedTitle;
-          if (customTitleDisplay) customTitleDisplay.textContent = savedTitle;
-          if (auraSel) auraSel.value = savedAura;
-          if (crwnToggle) crwnToggle.checked = savedCrown;
-
-          if (auraTarget && savedAura !== "none") {
-            auraTarget.classList.add(savedAura);
-          }
-
-          if (savedCrown && sbCrown) {
-            sbCrown.style.display = "block";
-          }
-
-          document
-            .getElementById("saveCustomTitleBtn")
-            ?.addEventListener("click", () => {
-              const val = customTitleInp.value.trim();
-              localStorage.setItem("animehouse_customTitle", val);
-              if (customTitleDisplay) customTitleDisplay.textContent = val;
-              if (typeof showToast === "function")
-                showToast("Título atualizado com sucesso!", "success", 3000);
-            });
-
-          auraSel?.addEventListener("change", (e) => {
-            const val = e.target.value;
-            localStorage.setItem("animehouse_customAura", val);
-            // Sincronizar navbar quando aura mudar
-            if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
-            if (!auraTarget) return;
-            // Remover TODAS as auras (sistema level + loja)
-            auraTarget.classList.remove(
-              "avatar-aura-fire",
-              "avatar-aura-guardian",
-              "avatar-aura-immortal",
-              "aura_chama",
-              "aura_chama_naruto",
-              "aura_ceifador",
-              "aura_thunder",
-              "aura_susanoo",
-              "aura_sakura",
-              "aura_gelo",
-              "aura_stands",
-              "aura_dragon",
-              "aura_void_saitama",
-            );
-            if (val !== "none") {
-              auraTarget.classList.add(val);
-            }
-          });
-
-          crwnToggle?.addEventListener("change", (e) => {
-            const isChecked = e.target.checked;
-            localStorage.setItem(
-              "animehouse_showCrown",
-              isChecked ? "true" : "false",
-            );
-            // Garantir que equippedCrownId esteja definido ao ativar pelo toggle
-            if (
-              isChecked &&
-              !localStorage.getItem("animehouse_equippedCrownId")
-            ) {
-              localStorage.setItem(
-                "animehouse_equippedCrownId",
-                "coroa_lendaria",
-              );
-              localStorage.setItem("animehouse_equippedCrownIcon", "👑");
-            } else if (!isChecked) {
-              localStorage.removeItem("animehouse_equippedCrownId");
-              localStorage.removeItem("animehouse_equippedCrownIcon");
-            }
-            if (sbCrown) {
-              sbCrown.style.display = isChecked ? "block" : "none";
-            }
-            // Re-renderizar Meus Especiais para refletir novo estado
-            if (typeof renderMeusEspeciais === "function")
-              renderMeusEspeciais();
-          });
 
           // ===== MEUS ESPECIAIS - RENDERIZAR INVENTÁRIO =====
           async function renderMeusEspeciais() {

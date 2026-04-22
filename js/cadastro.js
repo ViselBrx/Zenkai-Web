@@ -145,6 +145,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.pendingDeletions.delete(idToHide);
             initFilters();
             renderTable();
+            // Auto-refresh após 7 segundos
+            setTimeout(() => window.location.reload(), 7000);
           }
         },
         // onUndo: Restaurar

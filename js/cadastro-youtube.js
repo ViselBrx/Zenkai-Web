@@ -164,6 +164,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               DB.deleteYoutubePlaylist(idToHide);
               window.pendingDeletions.delete(idToHide);
               renderTable();
+              // Auto-refresh após 7 segundos
+              setTimeout(() => window.location.reload(), 7000);
             }
           },
           () => {

@@ -201,16 +201,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   function updateThemeInfo() {
+    // Atualizar nome do tema
     if (themeName) {
       const rawTheme = document.documentElement.className || sessionStorage.getItem('theme') || 'theme-ciano';
       const currentTheme = typeof window.normalizeTheme === 'function'
         ? window.normalizeTheme(rawTheme)
         : rawTheme;
-      themeName.textContent = themeLabels[currentTheme] || 'Cor personalizada';
+      const newThemeName = themeLabels[currentTheme] || 'Cor personalizada';
+      if (themeName.textContent !== newThemeName) {
+        themeName.textContent = newThemeName;
+      }
     }
+    
+    // Atualizar cor do preview
     if (themeColorPreview) {
       const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#7c3aed';
-      themeColorPreview.style.background = primary;
+      if (themeColorPreview.style.background !== primary) {
+        themeColorPreview.style.background = primary;
+      }
     }
   }
 
@@ -1249,11 +1257,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   window.addEventListener('storage', updateThemeInfo);
+  
+  // Listener direto para clique em opções de tema
   document.addEventListener('click', (event) => {
     if (event.target.closest('.theme-opt-btn')) {
-      setTimeout(updateThemeInfo, 20);
+      updateThemeInfo();
     }
   });
+
+  // Listener para mudança de tema via data attribute ou outras formas
+  document.addEventListener('change', (event) => {
+    if (event.target.closest('[data-theme]') || event.target.classList.contains('theme-opt-btn')) {
+      updateThemeInfo();
+    }
+  });
+
+  // Monitorar mudanças de classe no document para capturar mudanças de tema em tempo real
+  if (typeof MutationObserver !== 'undefined') {
+    const themeObserver = new MutationObserver(() => {
+      updateThemeInfo();
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+  }
 
   window.addEventListener('historytracker:resume', async (event) => {
     const handled = await openConversationFromHistory(event?.detail || null);
