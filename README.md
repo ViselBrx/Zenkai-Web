@@ -66,7 +66,7 @@ iniciar.bat
 
 Acesse: `http://localhost:3000`
 
-## 🌐 Páginas do site e conteúdo
+## 🌐 Páginas do site e conteúdo 
 
 - **Início**: portal principal com atalhos para catálogos, autenticação e área administrativa.
 - **Login e Registro**: fluxo seguro de acesso e criação de conta com confirmação.
