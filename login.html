@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,7 +11,7 @@
   <script src="js/themes.js"></script>
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <style>
     .auth-container {
       display: flex;
@@ -19,6 +20,7 @@
       min-height: calc(100vh - 110px);
       padding: 2rem;
     }
+
     .auth-card {
       background: var(--bg-card);
       border: 1px solid rgba(var(--primary-rgb), 0.2);
@@ -26,20 +28,24 @@
       padding: 2.5rem;
       width: 100%;
       max-width: 450px;
-      box-shadow: 0 0 40px rgba(0,0,0,0.4), 0 0 20px rgba(var(--primary-rgb), 0.2);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(var(--primary-rgb), 0.2);
       animation: fadeInUp 0.6s ease forwards;
     }
+
     @media (max-width: 480px) {
       .auth-container {
         padding: 1rem;
       }
+
       .auth-card {
         padding: 1.5rem;
       }
+
       .auth-title {
         font-size: 2rem;
       }
     }
+
     .auth-title {
       text-align: center;
       color: var(--primary);
@@ -48,15 +54,18 @@
       font-size: 2.5rem;
       letter-spacing: 2px;
     }
+
     .auth-subtitle {
       text-align: center;
       color: var(--text-muted);
       margin-bottom: 2rem;
       font-size: 0.95rem;
     }
+
     .auth-form .form-group {
       margin-bottom: 1.5rem;
     }
+
     .auth-form label {
       display: block;
       margin-bottom: 8px;
@@ -64,6 +73,7 @@
       font-weight: 600;
       font-size: 0.95rem;
     }
+
     .auth-form input {
       width: 100%;
       padding: 12px;
@@ -73,23 +83,28 @@
       color: var(--text-main);
       transition: all var(--transition);
     }
+
     .auth-form input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.3);
       outline: none;
     }
+
     .auth-links {
       text-align: center;
       margin-top: 1.5rem;
       font-size: 0.9rem;
     }
+
     .auth-links a {
       color: var(--primary);
       font-weight: 600;
     }
+
     .auth-links a:hover {
       text-decoration: underline;
     }
+
     .auth-error {
       color: var(--danger);
       background: rgba(239, 68, 68, 0.1);
@@ -101,59 +116,354 @@
       text-align: center;
       border: 1px solid var(--danger);
     }
+
+    /* ── Seletor de método de login ── */
+    .auth-method-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+
+    .auth-method-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 16px;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: inherit;
+    }
+
+    .auth-method-tab svg {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+    }
+
+    .auth-method-tab:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      color: var(--text-main);
+    }
+
+    .auth-method-tab.active {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.08);
+    }
+
+    .github-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #24292f;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+    }
+
+    .github-btn:hover {
+      background: #383f47;
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .github-btn:active {
+      transform: translateY(0);
+    }
+
+    .github-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+      .google-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 1rem;
+        font-weight: 700;
+        background: #ffffff;
+        color: #3c4043;
+        border: 1px solid #dadce0;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+        font-family: inherit;
+        margin-bottom: 0.5rem;
+      }
+
+      .google-btn:hover {
+        background: #f8f9fa;
+        border-color: #d2e3fc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      }
+
+      .google-btn:active {
+        transform: translateY(0);
+      }
+
+      .google-btn svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+    /* ── Overlay de Carregamento Social ── */
+    #socialLoadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+
+    .loader-ring {
+      width: 60px;
+      height: 60px;
+      border: 3px solid rgba(var(--primary-rgb), 0.1);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 1s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+    }
+
+    .loader-text {
+      color: var(--text-main);
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
+
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar">
-  <div class="navbar-brand">
-    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
-    <span>Anime</span>House
-  </div>
-  <ul class="navbar-links" id="navLinks">
-  </ul>
-  <button class="navbar-burger" id="navBurger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-
-<main class="auth-container">
-  <div class="auth-card">
-    <h1 class="auth-title">Entrar</h1>
-    <p class="auth-subtitle">Acesso exclusivo para administradores</p>
-    
-    <div id="loginError" class="auth-error">Email ou senha incorretos.</div>
-    <div id="loginSuccess" class="auth-success" style="display:none; line-height:1.6; color:var(--success); background:rgba(16,185,129,0.1); padding:10px; border-radius:8px; margin-bottom:1rem; font-size:0.9rem; text-align:center; border:1px solid var(--success);"></div>
-    
-    <form class="auth-form" id="loginForm">
-      <div class="form-group">
-        <label for="email">E-mail</label>
-        <input type="email" id="email" placeholder="digite seu e-mail" required />
-      </div>
-      <div class="form-group">
-        <label for="password" style="display:flex; justify-content:space-between;">
-          <span>Senha</span>
-          <a href="#" id="forgotPasswordLink" style="font-size:0.85rem; color:var(--primary); font-weight:normal; text-decoration:none;">Esqueci a senha?</a>
-        </label>
-        <div style="position:relative;">
-          <input type="password" id="password" placeholder="digite sua senha" required style="padding-right: 40px;" />
-          <button type="button" id="togglePassword" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:0; display:flex; align-items:center; justify-content:center;"></button>
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
-        Entrar no Painel
-      </button>
-    </form>
-    
-    <div class="auth-links">
-      <p style="color:var(--text-muted)">Não tem uma conta? <a href="registro.html">Cadastre-se</a></p>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
     </div>
-  </div>
-</main>
+    <ul class="navbar-links" id="navLinks">
+    </ul>
+    <button class="navbar-burger" id="navBurger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
 
-<div id="toast"></div>
-<script src="js/auth.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+  <!-- Navbar e container existentes... -->
+  <div id="socialLoadingOverlay">
+    <div class="loader-ring"></div>
+    <div class="loader-text" id="socialLoadingText">Autenticando...</div>
+  </div>
+
+  <main class="auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">Entrar</h1>
+      <p class="auth-subtitle">Acesso exclusivo para administradores</p>
+
+      <!-- Seletor de método -->
+      <div class="auth-method-tabs">
+        <button class="auth-method-tab active" id="tabEmail" onclick="switchLoginTab('email')">
+          <!-- Gmail icon -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6C2 4.9 2.9 4 4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6z"
+              stroke="currentColor" stroke-width="1.5" />
+            <path d="M2 6l10 7 10-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+          E-mail
+        </button>
+        <button class="auth-method-tab" id="tabGithub" onclick="switchLoginTab('github')">
+          <!-- GitHub icon -->
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+          </svg>
+          GitHub
+        </button>
+        <button class="auth-method-tab" id="tabGoogle" onclick="switchLoginTab('google')">
+          <!-- Google icon -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+          Google
+        </button>
+      </div>
+
+      <!-- Seção e-mail -->
+      <div id="loginEmailSection">
+        <div id="loginError" class="auth-error">Email ou senha incorretos.</div>
+        <div id="loginSuccess" class="auth-success"
+          style="display:none; line-height:1.6; color:var(--success); background:rgba(16,185,129,0.1); padding:10px; border-radius:8px; margin-bottom:1rem; font-size:0.9rem; text-align:center; border:1px solid var(--success);">
+        </div>
+
+        <form class="auth-form" id="loginForm">
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" placeholder="digite seu e-mail" required />
+          </div>
+          <div class="form-group">
+            <label for="password" style="display:flex; justify-content:space-between;">
+              <span>Senha</span>
+              <a href="#" id="forgotPasswordLink"
+                style="font-size:0.85rem; color:var(--primary); font-weight:normal; text-decoration:none;">Esqueci a
+                senha?</a>
+            </label>
+            <div style="position:relative;">
+              <input type="password" id="password" placeholder="digite sua senha" required
+                style="padding-right: 40px;" />
+              <button type="button" id="togglePassword"
+                style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:0; display:flex; align-items:center; justify-content:center;"></button>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
+            Entrar no Painel
+          </button>
+        </form>
+      </div>
+
+      <!-- Seção GitHub -->
+      <div id="loginGithubSection" style="display:none; padding: 8px 0 4px;">
+        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+          Entre instantaneamente com sua conta do GitHub.
+        </p>
+        <button class="github-btn" id="githubLoginBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+          </svg>
+          Entrar com GitHub
+        </button>
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
+          Você será redirecionado para autorizar o acesso.
+        </p>
+      </div>
+
+      <!-- Seção Google -->
+      <div id="loginGoogleSection" style="display:none; padding: 8px 0 4px;">
+        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+          Entre instantaneamente com sua conta do Google.
+        </p>
+        <button class="google-btn" id="googleLoginBtn">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+          Entrar com Google
+        </button>
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
+          Você será redirecionado para autorizar o acesso.
+        </p>
+      </div>
+
+      <div class="auth-links">
+        <p style="color:var(--text-muted)">Não tem uma conta? <a href="registro.html">Cadastre-se</a></p>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast"></div>
+  <script src="js/auth.js"></script>
+  <script>
+    function showSocialLoading(provider) {
+      const overlay = document.getElementById('socialLoadingOverlay');
+      const text = document.getElementById('socialLoadingText');
+      text.innerText = `Autenticando com ${provider}... Aguarde`;
+      overlay.style.display = 'flex';
+    }
+
+    function switchLoginTab(tab) {
+      const emailSection = document.getElementById('loginEmailSection');
+      const githubSection = document.getElementById('loginGithubSection');
+      const googleSection = document.getElementById('loginGoogleSection');
+      const tabEmail = document.getElementById('tabEmail');
+      const tabGithub = document.getElementById('tabGithub');
+      const tabGoogle = document.getElementById('tabGoogle');
+      
+      // Hide all
+      emailSection.style.display = 'none';
+      githubSection.style.display = 'none';
+      googleSection.style.display = 'none';
+      tabEmail.classList.remove('active');
+      tabGithub.classList.remove('active');
+      tabGoogle.classList.remove('active');
+
+      if (tab === 'email') {
+        emailSection.style.display = '';
+        tabEmail.classList.add('active');
+      } else if (tab === 'github') {
+        githubSection.style.display = '';
+        tabGithub.classList.add('active');
+      } else if (tab === 'google') {
+        googleSection.style.display = '';
+        tabGoogle.classList.add('active');
+      }
+    }
+
+    // Interceptar cliques nos botões sociais para mostrar o loading
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#githubLoginBtn')) showSocialLoading('GitHub');
+      if (e.target.closest('#googleLoginBtn')) showSocialLoading('Google');
+    });
+  </script>
+  <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>
+
 </html>

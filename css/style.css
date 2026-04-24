@@ -939,21 +939,19 @@
     0 0 55px rgba(0, 255, 0, 0.8), 0 0 28px rgba(0, 255, 0, 0.5);
   --ben10-scrollbar: #00ff00;
 
-  /* TEMA - GOLD (VERSAO MAIS CLARA E NEON) */
-  --vinland-primary: #ffcc00;
-  --vinland-primary-rgb: 255, 204, 0;
-  --vinland-primary-hover: #ffe266;
-  --vinland-accent: #fff8cc;
-  --vinland-accent2: #ffda66;
-  --vinland-text-main: #fffdf2;
-  --vinland-text-muted: #ffd76a;
-  --vinland-border: #ffcc00;
-  --vinland-shadow-neon:
-    0 0 34px rgba(255, 204, 0, 0.76), 0 0 16px rgba(255, 218, 102, 0.46);
+  /* TEMA - GOLD (NEON DOMINANTE) */
+  --vinland-primary: #f5e200;
+  --vinland-primary-rgb: 245, 226, 0;
+  --vinland-primary-hover: #fff066;
+  --vinland-accent: #fffbd6;
+  --vinland-accent2: #f0c800;
+  --vinland-text-main: #fffef8;
+  --vinland-text-muted: #f5e200;
+  --vinland-border: #f5e200;
+  --vinland-shadow-neon: 0 0 28px rgba(245, 226, 0, 0.6);
   --vinland-shadow-neon-h:
-    0 0 68px rgba(255, 204, 0, 0.98), 0 0 32px rgba(255, 218, 102, 0.66),
-    0 0 16px rgba(255, 248, 204, 0.52);
-  --vinland-scrollbar: #ffcc00;
+    0 0 55px rgba(245, 226, 0, 0.8), 0 0 28px rgba(245, 226, 0, 0.5);
+  --vinland-scrollbar: #f5e200;
 
   /* TEMA - VERMELHO */
   --aot-primary: #ff0000;
@@ -2474,6 +2472,11 @@ body {
   position: relative;
 }
 
+/* Apenas o primeiro .card-click-area (área da imagem) recebe borda arredondada no topo */
+.card > .card-click-area:first-child {
+  border-radius: 14px 14px 0 0;
+}
+
 .card-cover {
   width: 100%;
   aspect-ratio: 2/3;
@@ -2482,6 +2485,7 @@ body {
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border);
   transform-origin: center center;
+  display: block;
 }
 
 .card-cover-placeholder {
@@ -2494,6 +2498,7 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 4rem;
+  border-radius: 14px 14px 0 0;
 }
 
 .card-body {
@@ -3645,50 +3650,51 @@ body:hover .watermark {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(15, 23, 42, 0.75);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
   padding: 0;
 }
 
 .watched-btn:hover {
-  border-color: var(--success);
-  background: rgba(16, 185, 129, 0.15);
-  transform: scale(1.18);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.2);
+  transform: scale(1.12);
 }
 
 .watched-btn.watched {
-  border-color: var(--success);
-  background: var(--success);
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+  border-color: #10b981;
+  background: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.45);
 }
 
 .watched-btn.watched:hover {
   background: #059669;
   border-color: #059669;
-  box-shadow: 0 0 18px rgba(5, 150, 105, 0.7);
+  box-shadow: 0 2px 10px rgba(5, 150, 105, 0.5);
+  transform: scale(1.08);
 }
 
 .watched-icon {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 900;
   color: #fff;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0;
 }
 
 .watched-btn:not(.watched) .watched-icon {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
 }
+
 
 /* Overlay "assistido" sobre o thumbnail */
 .watched-overlay {
@@ -3697,8 +3703,8 @@ body:hover .watermark {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(16, 185, 129, 0.1);
-  border: 2px solid rgba(16, 185, 129, 0.4);
+  background: rgba(10, 20, 35, 0.35);
+  border: 2px solid rgba(16, 185, 129, 0.55);
   border-radius: inherit;
   display: flex;
   align-items: center;
@@ -3706,26 +3712,28 @@ body:hover .watermark {
   pointer-events: none;
   z-index: 3;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .watched-overlay .watched-badge-icon {
-  background: var(--success);
+  background: #10b981;
   color: #fff;
-  border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  border-radius: 14px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  font-weight: 700;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.35),
+    0 0 0 3px rgba(16, 185, 129, 0.25);
   transform: scale(0.6);
   opacity: 0;
   transition:
-    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.4s ease;
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.3s ease;
 }
 
 .episode-card.is-watched .watched-overlay {
@@ -3738,8 +3746,9 @@ body:hover .watermark {
 }
 
 .episode-card.is-watched .episode-thumb-inner {
-  opacity: 0.85;
+  opacity: 0.8;
 }
+
 
 /* Barra de progresso da temporada */
 .season-progress {
@@ -3800,11 +3809,11 @@ body:hover .watermark {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 6px 16px;
+  border-radius: 8px;
   font-size: 0.82rem;
   font-weight: 700;
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
   border: 2px solid transparent;
   white-space: nowrap;
@@ -3814,30 +3823,31 @@ body:hover .watermark {
 
 .watched-modal-badge.not-watched {
   background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .watched-modal-badge.not-watched:hover {
-  border-color: var(--success);
-  color: var(--success);
-  background: rgba(16, 185, 129, 0.1);
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.25);
 }
 
 .watched-modal-badge.is-watched {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: var(--success);
-  color: var(--success);
-  box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
 }
 
 .watched-modal-badge.is-watched:hover {
   background: rgba(239, 68, 68, 0.15);
-  border-color: var(--danger);
-  color: var(--danger);
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+  border-color: #ef4444;
+  color: #ef4444;
+  box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
 }
+
 
 /* Animação do check ao marcar */
 @keyframes watchedPop {

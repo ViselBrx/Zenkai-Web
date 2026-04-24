@@ -2490,6 +2490,9 @@
                             // Atualizar o ajuste de XP para o perfil
                             store.xp_offset = (parseInt(store.xp_offset) || 0) - total;
                             store[ficha] += qtd;
+                            // Sincronizar o cache do localStorage imediatamente
+                            localStorage.setItem("animehouse_xpOffset", store.xp_offset);
+                            localStorage.setItem("animehouse_totalXP", store.xp);
                             saveStore(store);
                             updateHeroUI();
                             showToast(
@@ -2524,6 +2527,9 @@
                             store.xp += total;
                             // Atualizar o ajuste de XP para o perfil
                             store.xp_offset = (parseInt(store.xp_offset) || 0) + total;
+                            // Sincronizar o cache do localStorage imediatamente
+                            localStorage.setItem("animehouse_xpOffset", store.xp_offset);
+                            localStorage.setItem("animehouse_totalXP", store.xp);
                             saveStore(store);
                             updateHeroUI();
                             showToast(
@@ -2914,15 +2920,41 @@
                 const cachedRank =
                     localStorage.getItem("animehouse_userRank") || "Bronze";
 
-                // Cálculo autônomo do XP Total: XP das atividades + Ajuste da loja
-                const baseXP = parseInt(localStorage.getItem("animehouse_calculatedXP") || "0", 10);
-                const xpOffset = parseInt(store.xp_offset || "0", 10);
+// Cálculo autônomo do XP Total: XP das atividades + Ajuste da loja
+                // 1. Pega o XP base do cache do localStorage (salvo pelo perfil.html)
+                let baseXP = parseInt(localStorage.getItem("animehouse_calculatedXP") || "0", 10);
+
+                // 2. Fallback: se não tiver cache (usuário não visitou o perfil),
+                //    calcula direto dos dados de atividade do banco de dados local (DB)
+                if (baseXP === 0 && window.DB && window.DB._store) {
+                    const s = window.DB._store;
+                    const animeEps = s.animeProgress ? Object.values(s.animeProgress).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0) : 0;
+                    const cartoonEps = s.cartoonProgress ? Object.values(s.cartoonProgress).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0) : 0;
+                    const mangaVols = s.mangaProgress ? Object.values(s.mangaProgress).reduce((acc, n) => acc + (parseInt(n) || 0), 0) : 0;
+                    const filmes = s.watched ? Object.keys(s.watched).filter(k => k.startsWith('filme_') && s.watched[k]).length : 0;
+                    const yt = s.youtubeProgress ? Object.values(s.youtubeProgress).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0) : 0;
+                    baseXP = animeEps * 10 + cartoonEps * 10 + mangaVols * 15 + filmes * 50 + yt * 5;
+                    if (baseXP > 0) {
+                        localStorage.setItem("animehouse_calculatedXP", baseXP);
+                        console.log(`[Loja] XP base calculado do DB (fallback): ${baseXP}`);
+                    }
+                }
+
+                // 3. xp_offset: prioriza o valor do banco remoto se carregado, senão o local
+                const xpOffset = remoteStoreLoaded
+                    ? parseInt(store.xp_offset || "0", 10)
+                    : parseInt(localStorage.getItem("animehouse_xpOffset") || store.xp_offset || "0", 10);
                 const realTotalXP = Math.max(0, baseXP + xpOffset);
-                
-                // O saldo da loja é o seu XP total (como solicitado: "esse saldo é meu xp")
+
+                // O saldo da loja é o XP total (base + ajuste de trocas)
                 store.xp = realTotalXP;
+                store.xp_offset = xpOffset; // garantir que o offset correto está no store
                 store.lifetime_xp = realTotalXP;
-                
+
+                // Atualizar o cache do localStorage para o perfil.html refletir as mudanças
+                localStorage.setItem("animehouse_totalXP", realTotalXP);
+                localStorage.setItem("animehouse_xpOffset", xpOffset);
+
                 console.log(`[Loja] XP Sincronizado (Base ${baseXP} + Offset ${xpOffset}): ${store.xp}`);
                 // Mantemos o Rank sincronizado com o Perfil (armazenado no localStorage)
                 store.rank = cachedRank;

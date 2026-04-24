@@ -1260,9 +1260,73 @@
           grid-column: span 1;
         }
       }
+      /* ── Overlay de Boas-vindas (Pós-Login) ── */
+      #welcomeOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #050a14;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.8s ease, visibility 0.8s;
+      }
+
+      .welcome-content {
+        text-align: center;
+        animation: fadeInScale 0.6s ease-out forwards;
+      }
+
+      .welcome-title {
+        font-family: "Bangers", cursive;
+        font-size: 3.5rem;
+        color: var(--primary);
+        text-shadow: 0 0 30px rgba(var(--primary-rgb), 0.6);
+        margin-bottom: 0.5rem;
+        letter-spacing: 2px;
+      }
+
+      .welcome-subtitle {
+        color: var(--text-main);
+        font-size: 1.2rem;
+        font-weight: 500;
+        opacity: 0.8;
+        margin-bottom: 2rem;
+      }
+
+      .welcome-spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(var(--primary-rgb), 0.1);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
+    <!-- Overlay de Boas-vindas -->
+    <div id="welcomeOverlay">
+      <div class="welcome-content">
+        <h1 class="welcome-title">BEM-VINDO!</h1>
+        <p class="welcome-subtitle">Sincronizando seus dados com o Google...</p>
+        <div class="welcome-spinner" style="margin: 0 auto;"></div>
+      </div>
+    </div>
+
     <!-- NAVBAR -->
     <nav class="navbar">
       <div class="navbar-brand">
@@ -3480,7 +3544,13 @@
 
             // --- 1. Level & XP ---
             const profileStore = window.DB?._store?.profile?.store_data || {};
-            const xpOffset = parseInt(profileStore.xp_offset || "0", 10);
+
+            // xp_offset: prioriza o do banco remoto, mas faz merge com o cache local
+            // (caso o usuário tenha feito trocas na loja sem que o banco tivesse sincronizado)
+            const dbXpOffset = parseInt(profileStore.xp_offset || "0", 10);
+            const cachedXpOffset = parseInt(localStorage.getItem("animehouse_xpOffset") || "0", 10);
+            // Usa o offset com maior valor absoluto (mais negativo = mais trocas)
+            const xpOffset = (Math.abs(dbXpOffset) >= Math.abs(cachedXpOffset)) ? dbXpOffset : cachedXpOffset;
 
             const calculatedXP =
               animeWatched * 10 +
@@ -3488,6 +3558,10 @@
               mangaWatched * 15 +
               movieWatched * 50 +
               youtubeWatched * 5;
+
+            // Salvar o XP de atividades ANTES de aplicar o offset
+            // (para que a loja possa pegar esse valor como base)
+            localStorage.setItem("animehouse_calculatedXP", calculatedXP);
 
             const totalXP = Math.max(0, calculatedXP + xpOffset);
             const xpPerLevel = 100;
@@ -4275,5 +4349,40 @@
       });
     </script>
     <div class="watermark">© ViselBrx & DaviMoraes07™</div>
+    <script>
+      // Lógica do Overlay de Boas-vindas (Apenas no Primeiro Acesso/Login)
+      window.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('welcomeOverlay');
+        const subtitle = overlay.querySelector('.welcome-subtitle');
+        
+        // Detectar se é um retorno de Login Social (Google/Github) via URL
+        const isSocialLogin = window.location.hash.includes('access_token');
+        // Detectar se é um login por E-mail (usando flag que podemos setar no login)
+        const isFreshLogin = sessionStorage.getItem('freshLogin') === 'true';
+
+        if (isSocialLogin || isFreshLogin) {
+          // Mostrar a mensagem bonita
+          if (isSocialLogin) {
+            subtitle.innerText = "Autenticação concluída! Preparando seu perfil...";
+          } else {
+            subtitle.innerText = "Login realizado! Carregando seu painel...";
+          }
+          
+          // Limpar a flag para não aparecer no F5
+          sessionStorage.removeItem('freshLogin');
+
+          // Timer para remover o overlay com animação
+          setTimeout(() => {
+            overlay.style.opacity = '0';
+            overlay.style.visibility = 'hidden';
+            setTimeout(() => overlay.remove(), 800);
+          }, 2200);
+        } else {
+          // Se for apenas um F5 ou navegação comum, removemos na hora sem frescura
+          overlay.style.display = 'none';
+          overlay.remove();
+        }
+      });
+    </script>
   </body>
 </html>
