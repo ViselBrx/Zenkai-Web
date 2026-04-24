@@ -137,18 +137,28 @@
     <div id="registerError" class="auth-error">Erro ao registrar. Verifique os dados.</div>
     <div id="registerSuccess" class="auth-success" style="display:none; line-height:1.6;">
       ✅ <strong>Conta criada com sucesso!</strong><br/>
-      📧 Um e-mail de verificação foi enviado para o seu endereço.<br/>
-      <small style="color:var(--text-muted);">Verifique sua caixa de entrada (e a pasta de SPAM) antes de entrar.</small>
+      📧 Enviamos um código numérico de 6 dígitos para o seu e-mail.<br/>
+      <small style="color:var(--text-muted);">Verifique sua caixa de entrada (e a pasta de SPAM) para confirmar.</small>
+    </div>
+    
+    <div id="otpSection" style="display:none; margin-bottom: 1.5rem; padding: 16px; background: var(--bg-surface); border-radius: 8px; border: 1px solid var(--border);">
+      <p style="margin: 0 0 10px; color: var(--text-main); font-size: 0.95rem; text-align:center;">
+        <strong>🔑 Digite o código de 6 dígitos</strong>
+      </p>
+      <input type="text" id="otpToken" placeholder="Digite o código" maxlength="12" style="width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); text-align: center; font-size: 1.3rem; letter-spacing: 2px;" />
+      <button type="button" id="verifyOtpBtn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">✅ Verificar e Entrar</button>
+      <button type="button" id="cancelOtpBtn" style="width: 100%; background: none; border: none; color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; cursor: pointer; text-decoration: underline;">Usar outro e-mail</button>
+      <div id="otpError" class="auth-error" style="margin-top: 10px; display:none;">Código inválido.</div>
     </div>
     
     <!-- Seção de Reenviar Email (oculta por padrão) -->
     <div id="resendEmailSection" style="display: none; margin-bottom: 1.5rem; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); text-align: center;">
       <p style="margin: 0 0 10px; color: var(--text-main); font-size: 0.9rem;">
-        ⏱️ <strong>Não recebeu o email de confirmação?</strong><br/>
+        ⏱️ <strong>Não recebeu o código?</strong><br/>
         <small style="color: var(--text-muted);">Verifique a pasta de SPAM ou clique abaixo para reenviar</small>
       </p>
       <input type="email" id="resendEmail" placeholder="seu-email@exemplo.com" style="width: 100%; padding: 8px; margin-bottom: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main);" />
-      <button type="button" id="resendBtn" class="btn btn-secondary" style="width: 100%; padding: 10px; font-size: 0.85rem;">📧 Reenviar Email de Confirmação</button>
+      <button type="button" id="resendBtn" class="btn btn-secondary" style="width: 100%; padding: 10px; font-size: 0.85rem;">📧 Reenviar Código</button>
     </div>
     
     <form class="auth-form" id="registerForm">
@@ -158,11 +168,17 @@
       </div>
       <div class="form-group">
         <label for="password">Senha (mínimo 6 caracteres)</label>
-        <input type="password" id="password" minlength="6" placeholder="crie uma senha" required />
+        <div style="position:relative;">
+          <input type="password" id="password" minlength="6" placeholder="crie uma senha" required style="padding-right: 40px;" />
+          <button type="button" id="togglePassword" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:0; display:flex; align-items:center; justify-content:center;"></button>
+        </div>
       </div>
       <div class="form-group">
         <label for="confirmPassword">Confirmar Senha</label>
-        <input type="password" id="confirmPassword" minlength="6" placeholder="repita a senha" required />
+        <div style="position:relative;">
+          <input type="password" id="confirmPassword" minlength="6" placeholder="repita a senha" required style="padding-right: 40px;" />
+          <button type="button" id="toggleConfirmPassword" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:0; display:flex; align-items:center; justify-content:center;"></button>
+        </div>
       </div>
       <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
         Criar Conta

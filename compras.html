@@ -610,28 +610,12 @@
                     price: 9,
                 },
                 {
-                    id: "modo_cinema",
-                    name: "Modo Cinema Aprimorado",
-                    icon: "🎬",
-                    category: "experiencia",
-                    currency: "diamante",
-                    price: 12,
-                },
-                {
                     id: "aura_gelo",
                     name: "Aura Cristal de Gelo",
                     icon: "❄️",
                     category: "aura",
                     currency: "diamante",
                     price: 11,
-                },
-                {
-                    id: "frame_dourado",
-                    name: "Frame Dourado Elite",
-                    icon: "🪙",
-                    category: "experiencia",
-                    currency: "diamante",
-                    price: 15,
                 },
                 {
                     id: "banner_aot",
@@ -698,14 +682,6 @@
                     price: 2,
                 },
                 {
-                    id: "dashboard_premium",
-                    name: "Dashboard Premium Full",
-                    icon: "📊",
-                    category: "experiencia",
-                    currency: "esmeralda",
-                    price: 6,
-                },
-                {
                     id: "coroa_tryhard",
                     name: "Caveira do Carrasco",
                     icon: "💀",
@@ -758,81 +734,83 @@
             }
 
             function getComprasStore() {
-                if (
-                    window.DB &&
-                    window.DB._store &&
-                    window.DB._store.profile &&
-                    window.DB._store.profile.store_data
-                ) {
+                // 1. Tentar pegar do banco de dados sincronizado (DB.js)
+                if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
                     try {
-                        return JSON.parse(
-                            JSON.stringify(window.DB._store.profile.store_data),
-                        );
+                        return JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
                     } catch (e) {}
                 }
+
+                // 2. Tentar pegar do localStorage (detectando usuário se possível)
+                let userId = null;
                 try {
-                    const s = JSON.parse(
-                        localStorage.getItem(STORE_KEY) || "null",
-                    );
+                   // Nota: Como getComprasStore é síncrona, tentamos pegar o usuário do localStorage do supabase se existir
+                   const supaKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+                   if (supaKey) {
+                       const session = JSON.parse(localStorage.getItem(supaKey));
+                       userId = session?.user?.id;
+                   }
+                } catch(e) {}
+
+                try {
+                    const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
+                    const s = JSON.parse(localStorage.getItem(key) || "null");
                     if (s && typeof s === "object") return s;
                 } catch (e) {}
+
                 return { purchased: [], equipped: {} };
             }
 
-            function renderInventory() {
+            async function renderInventory() {
                 const store = getComprasStore();
                 const container = document.getElementById("inventoryContainer");
+
+                let userId = null;
+                try {
+                    if (window.supabaseClient) {
+                        const { data: { user } } = await window.supabaseClient.auth.getUser();
+                        userId = user?.id;
+                    }
+                } catch (e) {}
+                const userKey = (base) => userId ? `${base}_${userId}` : base;
 
                 // Limpa sempre para evitar fantasmas de itens vendidos
                 container.innerHTML = "";
 
                 if (!store.purchased || store.purchased.length === 0) {
                     container.innerHTML = `
-          <div class="empty-state">
-            <h2>Seu inventário está vazio...</h2>
-            <p>Visite a loja e troque seus XP por itens épicos!</p>
-            <br>
-            <a href="loja.html" class="btn btn-primary">Ir para a Loja</a>
-          </div>
-        `;
+                      <div class="empty-state">
+                        <h2>Seu inventário está vazio...</h2>
+                        <p>Visite a loja e troque seus XP por itens épicos!</p>
+                        <br>
+                        <a href="loja.html" class="btn btn-primary">Ir para a Loja</a>
+                      </div>
+                    `;
                     return;
                 }
 
-                container.innerHTML = `<div class="items-grid" id="itemsGrid"></div>`;
-                const grid = document.getElementById("itemsGrid");
+                container.innerHTML = '<div class="items-grid" id="inventoryGrid"></div>';
+                const grid = document.getElementById("inventoryGrid");
 
                 store.purchased.forEach((itemId) => {
                     const item = ALL_ITEMS.find((i) => i.id === itemId);
                     if (!item) return;
 
-                    // Verificar se está equipado
+                    // Verificar se está equipado usando chaves ISOLADAS
                     let isEquipped = false;
                     if (item.category === "aura")
-                        isEquipped =
-                            localStorage.getItem("animehouse_customAura") ===
-                            itemId;
+                        isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === itemId;
                     else if (item.category === "titulo")
-                        isEquipped =
-                            localStorage.getItem("animehouse_customTitle") ===
-                            item.name.replace("Título: ", "");
+                        isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", "");
                     else if (item.category === "banner")
-                        isEquipped =
-                            localStorage.getItem("animehouse_customBanner") ===
-                            itemId;
+                        isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === itemId;
                     else if (item.category === "exclusivo")
-                        isEquipped =
-                            localStorage.getItem("animehouse_showCrown") === "true" && 
-                            localStorage.getItem("animehouse_equippedCrownId") === itemId;
-                    else if (item.category === "experiencia") {
-                        isEquipped =
-                            store.equipped &&
-                            (store.equipped[itemId] === true ||
-                                store.equipped[itemId] === "true");
-                    } else if (item.category === "tema") {
-                        isEquipped =
-                            localStorage.getItem(
-                                "animehouse_tema_cromatico",
-                            ) === "true";
+                        isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && 
+                                     localStorage.getItem(userKey("animehouse_equippedCrownId")) === itemId;
+                    else if (item.category === "tema") {
+                        isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
+                    } else if (item.category === "experiencia") {
+                        isEquipped = store.equipped && (store.equipped[itemId] === true || store.equipped[itemId] === "true");
                     }
 
                     const card = document.createElement("div");
@@ -951,36 +929,33 @@
                             );
                         }
 
-                        // Fallback desequipar individual (compatibilidadeLegado)
-                        if (
-                            localStorage.getItem("animehouse_customAura") === id
-                        )
-                            localStorage.setItem(
-                                "animehouse_customAura",
-                                "none",
-                            );
-                        if (
-                            localStorage.getItem("animehouse_customBanner") ===
-                            id
-                        )
-                            localStorage.setItem(
-                                "animehouse_customBanner",
-                                "none",
-                            );
-                        if (
-                            localStorage.getItem("animehouse_customTitle") ===
-                            item.name.replace("Título: ", "")
-                        )
-                            localStorage.setItem("animehouse_customTitle", "");
-                        if (id.includes("coroa"))
-                            localStorage.setItem(
-                                "animehouse_showCrown",
-                                "false",
-                            );
+                        // Fallback desequipar individual (compatibilidadeLegado) usando chaves isoladas
+                        let userId = null;
+                        try {
+                            if (window.supabaseClient) {
+                                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                                userId = user?.id;
+                            }
+                        } catch (e) {}
+                        const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+                        if (localStorage.getItem(userKey("animehouse_customAura")) === id)
+                            localStorage.setItem(userKey("animehouse_customAura"), "none");
+                        
+                        if (localStorage.getItem(userKey("animehouse_customBanner")) === id)
+                            localStorage.setItem(userKey("animehouse_customBanner"), "none");
+                        
+                        if (localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", ""))
+                            localStorage.setItem(userKey("animehouse_customTitle"), "");
+
+                        if (localStorage.getItem(userKey("animehouse_equippedCrownId")) === id) {
+                            localStorage.setItem(userKey("animehouse_showCrown"), "false");
+                            localStorage.removeItem(userKey("animehouse_equippedCrownId"));
+                        }
+                        
+                        if (id === "tema_cromatico")
+                            localStorage.removeItem(userKey("animehouse_tema_cromatico"));
                         if (id === "tema_cromatico") {
-                            localStorage.removeItem(
-                                "animehouse_tema_cromatico",
-                            );
                             if (window.setTheme) window.setTheme("theme-ciano");
                         }
 
@@ -1012,15 +987,25 @@
                 let store = getComprasStore();
                 if (!store.equipped) store.equipped = {};
 
+                let userId = null;
+                try {
+                    if (window.supabaseClient) {
+                        const { data: { user } } = await window.supabaseClient.auth.getUser();
+                        userId = user?.id;
+                    }
+                } catch (e) {}
+
+                const userKey = (base) => userId ? `${base}_${userId}` : base;
+
                 // Verificar estado atual para saber se vamos equipar ou desequipar
                 let isEquipped = false;
-                if (type === "aura") isEquipped = localStorage.getItem("animehouse_customAura") === id;
-                else if (type === "titulo") isEquipped = localStorage.getItem("animehouse_customTitle") === rawName;
-                else if (type === "banner") isEquipped = localStorage.getItem("animehouse_customBanner") === id;
+                if (type === "aura") isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === id;
+                else if (type === "titulo") isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === rawName;
+                else if (type === "banner") isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === id;
                 else if (type === "exclusivo" && id.includes("coroa")) {
-                    isEquipped = (localStorage.getItem("animehouse_showCrown") === "true" && localStorage.getItem("animehouse_equippedCrownId") === id);
+                    isEquipped = (localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id);
                 } else if (type === "tema" || id === "tema_cromatico") {
-                    isEquipped = localStorage.getItem("animehouse_tema_cromatico") === "true" || sessionStorage.getItem("theme") === "theme-cromatico";
+                    isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
                 }
 
                 const newState = !isEquipped;
@@ -1028,49 +1013,49 @@
                 if (isEquipped) {
                     // Desequipar
                     if (type === "aura") {
-                        localStorage.setItem("animehouse_customAura", "none");
+                        localStorage.setItem(userKey("animehouse_customAura"), "none");
                         store.equipped.aura = "none";
                     } else if (type === "titulo") {
-                        localStorage.setItem("animehouse_customTitle", "");
+                        localStorage.setItem(userKey("animehouse_customTitle"), "");
                         store.equipped.titulo = "";
                     } else if (type === "banner") {
-                        localStorage.setItem("animehouse_customBanner", "none");
+                        localStorage.setItem(userKey("animehouse_customBanner"), "none");
                         store.equipped.banner = "none";
                     } else if (type === "exclusivo" && id.includes("coroa")) {
-                        localStorage.setItem("animehouse_showCrown", "false");
-                        localStorage.removeItem("animehouse_equippedCrownId");
-                        localStorage.removeItem("animehouse_equippedCrownIcon");
+                        localStorage.setItem(userKey("animehouse_showCrown"), "false");
+                        localStorage.removeItem(userKey("animehouse_equippedCrownId"));
+                        localStorage.removeItem(userKey("animehouse_equippedCrownIcon"));
                         store.equipped.crown = false;
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
                     } else if (type === "tema") {
                         if (window.setTheme) window.setTheme("theme-ciano");
                         store.equipped.tema_cromatico = false;
-                        localStorage.removeItem("animehouse_tema_cromatico");
+                        localStorage.removeItem(userKey("animehouse_tema_cromatico"));
                     }
                 } else {
                     // Equipar
                     if (type === "aura") {
-                        localStorage.setItem("animehouse_customAura", id);
+                        localStorage.setItem(userKey("animehouse_customAura"), id);
                         store.equipped.aura = id;
                     } else if (type === "titulo") {
-                        localStorage.setItem("animehouse_customTitle", rawName);
+                        localStorage.setItem(userKey("animehouse_customTitle"), rawName);
                         store.equipped.titulo = rawName;
                     } else if (type === "banner") {
-                        localStorage.setItem("animehouse_customBanner", id);
+                        localStorage.setItem(userKey("animehouse_customBanner"), id);
                         store.equipped.banner = id;
                     } else if (type === "exclusivo" && id.includes("coroa")) {
-                        localStorage.setItem("animehouse_showCrown", "true");
-                        localStorage.setItem("animehouse_equippedCrownId", id);
+                        localStorage.setItem(userKey("animehouse_showCrown"), "true");
+                        localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
                         const item = ALL_ITEMS.find((i) => i.id === id);
-                        localStorage.setItem("animehouse_equippedCrownIcon", item?.icon || "👑");
+                        localStorage.setItem(userKey("animehouse_equippedCrownIcon"), item?.icon || "👑");
                         store.equipped.crown = true;
                         store.equipped.crownId = id;
                         store.equipped.crownIcon = item?.icon || "👑";
                     } else if (type === "tema") {
                         if (window.setTheme) window.setTheme("theme-cromatico");
                         store.equipped.tema_cromatico = true;
-                        localStorage.setItem("animehouse_tema_cromatico", "true");
+                        localStorage.setItem(userKey("animehouse_tema_cromatico"), "true");
                     }
                 }
 

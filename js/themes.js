@@ -53,27 +53,41 @@
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
     
-    // Proteção para o tema cromático: só permite se estiver marcado como equipado no localStorage
-    // Isso garante que apenas quem comprou e equipou possa usar, e evita que o tema 
-    // fique ativo para outros usuários na mesma máquina após logout (auth.js limpa essa chave).
+    // Proteção para o tema cromático: isolamento por usuário
     if (rawTheme === "theme-cromatico") {
-      const isEquipped = localStorage.getItem("equipped_tema_cromatico") === "true" || 
-                         localStorage.getItem("animehouse_tema_cromatico") === "true" ||
+      let uid = null;
+      try {
+          const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+          uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+      } catch(e) {}
+
+      const userKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
+      const isEquipped = localStorage.getItem(userKey) === "true" || 
                          (window.DB?._store?.profile?.store_data?.equipped?.tema_cromatico === true);
+      
       if (!isEquipped) return "theme-ciano";
     }
 
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
-  // Restaurar tema cromático de volta à sessionStorage se estava equipado no localStorage
-  // (necessário quando o usuário abre nova sessão/aba sem um tema salvo na sessão)
-  if (
-    localStorage.getItem("animehouse_tema_cromatico") === "true" &&
-    (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
-  ) {
-    sessionStorage.setItem("theme", "theme-cromatico");
-  }
+  // Restaurar tema cromático de volta à sessionStorage se estava equipado no localStorage (user-scoped)
+  const syncChromaticTheme = () => {
+      let uid = null;
+      try {
+          const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+          uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+      } catch(e) {}
+      
+      const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
+      if (
+        localStorage.getItem(themeKey) === "true" &&
+        (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
+      ) {
+        sessionStorage.setItem("theme", "theme-cromatico");
+      }
+  };
+  syncChromaticTheme();
 
   // Apply the saved theme early to avoid a flash on load.
   const savedTheme = normalizeTheme(sessionStorage.getItem("theme"));

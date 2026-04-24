@@ -2323,14 +2323,7 @@
           currency: "diamante",
           price: 9,
         },
-        {
-          id: "modo_cinema",
-          name: "Modo Cinema Aprimorado",
-          icon: "🎬",
-          category: "experiencia",
-          currency: "diamante",
-          price: 12,
-        },
+
         {
           id: "aura_gelo",
           name: "Aura Cristal de Gelo",
@@ -2339,14 +2332,7 @@
           currency: "diamante",
           price: 11,
         },
-        {
-          id: "frame_dourado",
-          name: "Frame Dourado Elite",
-          icon: "🪙",
-          category: "experiencia",
-          currency: "diamante",
-          price: 15,
-        },
+
         {
           id: "banner_aot",
           name: "Banner: Attack on Titan",
@@ -2411,14 +2397,7 @@
           currency: "esmeralda",
           price: 2,
         },
-        {
-          id: "dashboard_premium",
-          name: "Dashboard Premium Full",
-          icon: "📊",
-          category: "experiencia",
-          currency: "esmeralda",
-          price: 6,
-        },
+
         {
           id: "coroa_tryhard",
           name: "Caveira do Carrasco",
@@ -3072,7 +3051,15 @@
 
             document.getElementById("avatarUrl").value = publicUrl;
             document.getElementById("displayAvatar").src = publicUrl;
-            showToast("Imagem cadastrada com sucesso.", "success", 7000);
+
+            // Salvar automaticamente no perfil após o upload
+            await supabase.from("profiles").upsert({
+              id: user.id,
+              avatar_url: publicUrl,
+              updated_at: new Date()
+            });
+
+            showToast("Imagem atualizada com sucesso!", "success", 7000);
           };
 
           document.getElementById("profileForm").onsubmit = async (e) => {
@@ -3106,6 +3093,21 @@
           };
 
           document.getElementById("logoutBtn").onclick = async () => {
+            // Limpeza profunda de cosméticos para evitar vazamento entre contas
+            const keysToClear = [
+              "animehouse_customAura",
+              "animehouse_customTitle",
+              "animehouse_customBanner",
+              "animehouse_showCrown",
+              "animehouse_equippedCrownId",
+              "animehouse_equippedCrownIcon",
+              "animehouse_tema_cromatico",
+              "equipped_tema_cromatico",
+              "equipped_frame_dourado",
+              "animehouse_store"
+            ];
+            keysToClear.forEach(k => localStorage.removeItem(k));
+            
             await supabase.auth.signOut();
             window.location.href = "index.html";
           };
@@ -3477,28 +3479,22 @@
             }
 
             // --- 1. Level & XP ---
-            // Pesos de XP: Anime/Desenho = 10xp, Mangá = 15xp, Filme = 50xp, YouTube = 5xp
-            const totalXP =
+            const profileStore = window.DB?._store?.profile?.store_data || {};
+            const xpOffset = parseInt(profileStore.xp_offset || "0", 10);
+
+            const calculatedXP =
               animeWatched * 10 +
               cartoonWatched * 10 +
               mangaWatched * 15 +
               movieWatched * 50 +
               youtubeWatched * 5;
 
-            let level = 1;
-            let xpRequiredForNext = 100;
-            let currentLevelXP = totalXP;
+            const totalXP = Math.max(0, calculatedXP + xpOffset);
+            const xpPerLevel = 100;
+            const level = Math.floor(totalXP / xpPerLevel) + 1;
+            const nextLevelTotalXP = level * xpPerLevel;
 
-            // Progressão não confusa: O valor de XP escalar
-            while (currentLevelXP >= xpRequiredForNext) {
-              currentLevelXP -= xpRequiredForNext;
-              level++;
-              xpRequiredForNext = level * 100;
-            }
-
-            const xpProgress = (currentLevelXP / xpRequiredForNext) * 100;
-
-            // Ranks escalam com Level alcançado
+            // Determinar Rank
             let rank = "Bronze";
             if (level >= 100) rank = "Imortal";
             else if (level >= 75) rank = "Guardião";
@@ -3508,22 +3504,30 @@
             else if (level >= 10) rank = "Ouro";
             else if (level >= 5) rank = "Prata";
 
-            document.getElementById("levelNumber").textContent = `LVL ${level}`;
-            document.getElementById("rankTitle").textContent = rank;
-            document.getElementById("levelProgress").style.width =
-              `${xpProgress}%`;
+            // Atualizar UI
+            if (document.getElementById("rankTitle")) document.getElementById("rankTitle").textContent = rank;
+            if (document.getElementById("levelNumber")) document.getElementById("levelNumber").textContent = `LVL ${level}`;
+            
+            const xpCurrentEl = document.getElementById("xpCurrent");
+            const xpTargetEl = document.getElementById("xpTarget");
+            const totalXpCountEl = document.getElementById("totalXpCount");
+            const levelProgressEl = document.getElementById("levelProgress");
 
-            // Cache for auth.js and global UI
+            const currentLevelProgressXP = totalXP % xpPerLevel;
+            const progressPercent = (currentLevelProgressXP / xpPerLevel) * 100;
+
+            // Mostrador acumulativo: 3065 / 3100
+            if (xpCurrentEl) xpCurrentEl.textContent = totalXP;
+            if (xpTargetEl) xpTargetEl.textContent = nextLevelTotalXP;
+            if (totalXpCountEl) totalXpCountEl.textContent = totalXP;
+            if (levelProgressEl) levelProgressEl.style.width = `${progressPercent}%`;
+
+            // Salvar para uso da loja
+            localStorage.setItem("animehouse_totalXP", totalXP);
             localStorage.setItem("animehouse_userLevel", level);
             localStorage.setItem("animehouse_userRank", rank);
-            localStorage.setItem("animehouse_totalXP", totalXP);
-
-            const xpCurrEl = document.getElementById("xpCurrent");
-            const xpTargetEl = document.getElementById("xpTarget");
-            const xpTotalEl = document.getElementById("totalXpCount");
-            if (xpCurrEl) xpCurrEl.textContent = currentLevelXP;
-            if (xpTargetEl) xpTargetEl.textContent = xpRequiredForNext;
-            if (xpTotalEl) xpTotalEl.textContent = totalXP;
+            localStorage.setItem("animehouse_calculatedXP", calculatedXP);
+            localStorage.setItem("animehouse_xpOffset", xpOffset);
 
 
             const optFire = document.querySelector(
@@ -3574,7 +3578,6 @@
             // 2. Patentes
             // Verificar se o usuário é o dono com todas as patentes desbloqueadas
             const userEmail = user?.email || "";
-            const profileStore = window.DB?._store?.profile?.store_data || {};
             const allRanksUnlocked =
               profileStore.all_ranks_unlocked === true ||
               userEmail === "davizeravisel@gmail.com";
@@ -3773,85 +3776,70 @@
             }, 500);
           };
 
-          // Restaurar tema cromático se estava ativo
-          if (
-            localStorage.getItem("animehouse_tema_cromatico") === "true" &&
-            window.setTheme
-          ) {
-            window.setTheme("theme-cromatico");
-          }
+          // Restaurar tema cromático se estava ativo (respeitando userId)
+          const checkInitialTheme = async () => {
+              let uid = null;
+              try {
+                if (window.supabaseClient) {
+                  const { data: { user } } = await window.supabaseClient.auth.getUser();
+                  uid = user?.id;
+                }
+              } catch (e) {}
+              const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
+              if (localStorage.getItem(themeKey) === "true" && window.setTheme) {
+                window.setTheme("theme-cromatico");
+              }
+          };
+          checkInitialTheme();
 
-          // ===== MEUS ESPECIAIS - RENDERIZAR INVENTÁRIO =====
+          const STORE_KEY = "animehouse_store";
+
           async function renderMeusEspeciais() {
             console.log("🎯 renderMeusEspeciais() chamada");
 
-            let store;
-            try {
-              if (
-                window.DB &&
-                window.DB._store &&
-                window.DB._store.profile &&
-                window.DB._store.profile.store_data
-              ) {
-                store = JSON.parse(
-                  JSON.stringify(window.DB._store.profile.store_data),
-                );
-                console.log("✅ Store carregado do DB");
-              } else {
-                // Load user-specific store like loja.html does
-                let userId = null;
-                try {
-                  if (window.supabaseClient) {
-                    const {
-                      data: { user },
-                    } = await window.supabaseClient.auth.getUser();
-                    userId = user?.id;
-                  }
-                } catch (e) {}
+            let store = null;
+            // Tentar carregar store com retry para aguardar o Supabase
+            let attempts = 0;
+            let userId = null;
 
-                if (userId) {
-                  const userRaw = localStorage.getItem(
-                    `animehouse_store_${userId}`,
-                  );
-                  if (userRaw) {
-                    const parsed = JSON.parse(userRaw);
-                    if (
-                      parsed &&
-                      (!parsed._userId || parsed._userId === userId)
-                    ) {
-                      store = parsed;
-                      console.log(
-                        "📦 Store carregado do localStorage (user-specific)",
-                      );
-                    } else {
-                      store = JSON.parse(
-                        localStorage.getItem(STORE_KEY) ||
-                          '{"purchased":[],"equipped":{}}',
-                      );
-                      console.log(
-                        "📦 Store carregado do localStorage (fallback)",
-                      );
-                    }
-                  } else {
-                    store = JSON.parse(
-                      localStorage.getItem(STORE_KEY) ||
-                        '{"purchased":[],"equipped":{}}',
-                    );
-                    console.log(
-                      "📦 Store carregado do localStorage (fallback)",
-                    );
-                  }
-                } else {
-                  store = JSON.parse(
-                    localStorage.getItem(STORE_KEY) ||
-                      '{"purchased":[],"equipped":{}}',
-                  );
-                  console.log("📦 Store carregado do localStorage (no user)");
+            try {
+              while (attempts < 20) {
+                if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+                  store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
+                  console.log("✅ Store carregado do DB (Supabase)");
+                  break;
                 }
+                
+                // Se não tem DB, tenta o localStorage isolado
+                if (window.supabaseClient) {
+                  const { data: { user } } = await window.supabaseClient.auth.getUser();
+                  userId = user?.id;
+                }
+                
+                if (userId) {
+                  const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
+                  if (userRaw) {
+                    store = JSON.parse(userRaw);
+                    console.log("📦 Store carregado do localStorage isolado");
+                    break;
+                  }
+                }
+                
+                // Se nada funcionar, espera um pouco e tenta de novo (aguardando o DB init)
+                await new Promise(r => setTimeout(r, 200));
+                attempts++;
               }
             } catch (e) {
-              store = { purchased: [], equipped: {} };
-              console.log("❌ Erro ao carregar store:", e);
+              console.warn("Erro no loop de carregamento do store:", e);
+            }
+            
+            if (!store) {
+              try {
+                store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+                console.log("📦 Fallback: Store carregado do localStorage genérico");
+              } catch(e) {
+                store = { purchased: [], equipped: {} };
+              }
             }
 
             console.log("📊 Store:", store);
@@ -3889,29 +3877,61 @@
 
             // Verificar se item está equipado
             function checkEquipped(item) {
+              const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+              // 1️⃣ Verificar localStorage (prioridade 1)
               if (item.category === "aura")
                 return (
-                  localStorage.getItem("animehouse_customAura") === item.id
+                  localStorage.getItem(userKey("animehouse_customAura")) === item.id
                 );
               if (item.category === "titulo")
                 return (
-                  localStorage.getItem("animehouse_customTitle") ===
+                  localStorage.getItem(userKey("animehouse_customTitle")) ===
                   item.name.replace("Título: ", "")
                 );
               if (item.category === "banner")
                 return (
-                  localStorage.getItem("animehouse_customBanner") === item.id
+                  localStorage.getItem(userKey("animehouse_customBanner")) === item.id
                 );
               if (item.category === "exclusivo" && item.id.includes("coroa")) {
                 return (
-                  localStorage.getItem("animehouse_showCrown") === "true" &&
-                  localStorage.getItem("animehouse_equippedCrownId") === item.id
+                  localStorage.getItem(userKey("animehouse_showCrown")) === "true" &&
+                  localStorage.getItem(userKey("animehouse_equippedCrownId")) === item.id
                 );
               }
               if (item.category === "tema")
                 return (
-                  localStorage.getItem("animehouse_tema_cromatico") === "true"
+                  localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true"
                 );
+
+              // 2️⃣ Fallback: verificar store.equipped (se localStorage falhar)
+              if (store && store.equipped && typeof store.equipped === 'object') {
+                if (item.category === "aura" && store.equipped.aura === item.id) {
+                  console.log(`✓ Aura ${item.id} encontrada em store.equipped`);
+                  return true;
+                }
+                if (item.category === "titulo" && store.equipped.titulo === item.name.replace("Título: ", "")) {
+                  console.log(`✓ Título ${item.name} encontrado em store.equipped`);
+                  return true;
+                }
+                if (item.category === "banner" && store.equipped.banner === item.id) {
+                  console.log(`✓ Banner ${item.id} encontrado em store.equipped`);
+                  return true;
+                }
+                if (item.category === "exclusivo" && item.id.includes("coroa") && store.equipped.crownId === item.id) {
+                  console.log(`✓ Coroa ${item.id} encontrada em store.equipped`);
+                  return true;
+                }
+                if (item.category === "tema" && item.id === "tema_cromatico" && store.equipped.tema_cromatico === true) {
+                  console.log(`✓ Tema cromático encontrado em store.equipped`);
+                  return true;
+                }
+                if ((item.category === "tema" || item.id === "tema_cromatico") && store.equipped[item.id] === true) {
+                  console.log(`✓ Item ${item.id} encontrado em store.equipped`);
+                  return true;
+                }
+              }
+
               return false;
             }
 
@@ -3944,6 +3964,15 @@
               const btnStyle =
                 isEmerald && !isEquipped ? "btn-equip-chromatic" : "";
 
+              itemCard.dataset.id = item.id;
+              itemCard.dataset.type = item.category;
+              itemCard.dataset.name = item.name.replace("Título: ", "");
+              
+              itemCard.style.cursor = "pointer";
+              itemCard.addEventListener("click", () => {
+                window.toggleEquipItem(item.id, item.category, item.name.replace("Título: ", ""));
+              });
+
               itemCard.innerHTML = `
             ${isEquipped ? '<div class="equipped-indicator">✓</div>' : ""}
             <div style="font-size: 2.5rem; margin-bottom: 8px;" class="item-icon">${item.icon}</div>
@@ -3952,7 +3981,7 @@
               ${item.category} • ${item.price} ${currencyIcon}
             </div>
             <div class="item-actions">
-              <button class="btn-equip ${btnClass} ${btnStyle}" onclick="toggleEquipItem('${item.id}', '${item.category}', '${item.name.replace("Título: ", "")}')">
+              <button class="btn-equip ${btnClass} ${btnStyle}" style="pointer-events: none;">
                 ${btnText}
               </button>
             </div>
@@ -3963,73 +3992,13 @@
 
             console.log(`✨ Total de itens renderizados: ${renderedCount}`);
 
-            // Renderizar itens equipados
-            const equippedItems = [];
-            const equippedAura = localStorage.getItem("animehouse_customAura");
-            const equippedTitle = localStorage.getItem(
-              "animehouse_customTitle",
-            );
-            const equippedBanner = localStorage.getItem(
-              "animehouse_customBanner",
-            );
-            const equippedCrown =
-              localStorage.getItem("animehouse_showCrown") === "true";
-            const equippedCrownId = localStorage.getItem(
-              "animehouse_equippedCrownId",
-            );
+            // Renderizar itens equipados usando a função centralizada e isolada
+            await updateEquippedPanel();
 
-            if (equippedAura && equippedAura !== "none") {
-              const aura = ALL_ITEMS.find((i) => i.id === equippedAura);
-              if (aura) equippedItems.push({ ...aura, type: "Aura" });
-            }
-            if (equippedTitle) {
-              const titulo = ALL_ITEMS.find(
-                (i) => i.name.replace("Título: ", "") === equippedTitle,
-              );
-              if (titulo) equippedItems.push({ ...titulo, type: "Título" });
-            }
-            if (equippedBanner && equippedBanner !== "none") {
-              const banner = ALL_ITEMS.find((i) => i.id === equippedBanner);
-              if (banner) equippedItems.push({ ...banner, type: "Banner" });
-            }
-            if (equippedCrown && equippedCrownId) {
-              const coroa = ALL_ITEMS.find((i) => i.id === equippedCrownId);
-              if (coroa) equippedItems.push({ ...coroa, type: "Coroa" });
-            }
-
-            if (equippedItems.length === 0) {
-              equippedItemsDisplay.innerHTML =
-                '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado no momento</span>';
-            } else {
-              equippedItems.forEach((item) => {
-                const isEmerald = item.currency === "esmeralda";
-                const currencyIcon =
-                  item.currency === "ouro"
-                    ? "🥇"
-                    : item.currency === "diamante"
-                      ? "💎"
-                      : "👑";
-                const badge = document.createElement("div");
-                badge.className = isEmerald ? "item-card-emerald" : "";
-                badge.style.cssText = `
-              background: ${isEmerald ? "transparent" : "linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--primary-rgb), 0.05))"};
-              border: 2px solid ${isEmerald ? "rgba(255, 215, 0, 0.5)" : "rgba(var(--primary-rgb), 0.4)"};
-              border-radius: 12px;
-              padding: 10px 15px;
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              font-size: 0.85rem;
-            `;
-                badge.innerHTML = `
-              <span style="font-size: 1.5rem; ${isEmerald ? "animation: chromatic-gold 4s ease-in-out infinite; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);" : ""}">${item.icon}</span>
-              <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                <span style="font-weight: bold; color: var(--text-main);">${item.name}</span>
-                <span style="font-size: 0.7rem; color: var(--text-muted);">${item.type} • ${item.price} ${currencyIcon}</span>
-              </div>
-            `;
-                equippedItemsDisplay.appendChild(badge);
-              });
+            // 🔄 Sincronizar navbar com os itens equipados atualizados
+            if (window.updateNavbarCosmetics) {
+              console.log("🔄 Sincronizando navbar com items equipados...");
+              window.updateNavbarCosmetics();
             }
           }
 
@@ -4037,7 +4006,7 @@
           window.toggleEquipItem = async function (id, type, rawName) {
             const STORE_KEY = "animehouse_store";
 
-            // 🎬 Feedback visual IMEDIATO (antes de qualquer processamento)
+            // 🎬 Feedback visual IMEDIATO
             const clickedBtn = document.activeElement;
             if (clickedBtn && clickedBtn.classList.contains("btn-equip")) {
               clickedBtn.style.transform = "scale(0.95)";
@@ -4045,209 +4014,107 @@
             }
 
             let store;
+            let userId = null;
             try {
-              if (
-                window.DB &&
-                window.DB._store &&
-                window.DB._store.profile &&
-                window.DB._store.profile.store_data
-              ) {
-                store = JSON.parse(
-                  JSON.stringify(window.DB._store.profile.store_data),
-                );
-              } else {
-                // Load user-specific store like loja.html does
-                let userId = null;
-                try {
-                  if (window.supabaseClient) {
-                    const {
-                      data: { user },
-                    } = await window.supabaseClient.auth.getUser();
-                    userId = user?.id;
-                  }
-                } catch (e) {}
-
-                if (userId) {
-                  const userRaw = localStorage.getItem(
-                    `animehouse_store_${userId}`,
-                  );
-                  if (userRaw) {
-                    const parsed = JSON.parse(userRaw);
-                    if (
-                      parsed &&
-                      (!parsed._userId || parsed._userId === userId)
-                    ) {
-                      store = parsed;
-                    } else {
-                      store = JSON.parse(
-                        localStorage.getItem(STORE_KEY) ||
-                          '{"purchased":[],"equipped":{}}',
-                      );
-                    }
-                  } else {
-                    store = JSON.parse(
-                      localStorage.getItem(STORE_KEY) ||
-                        '{"purchased":[],"equipped":{}}',
-                    );
-                  }
-                } else {
-                  store = JSON.parse(
-                    localStorage.getItem(STORE_KEY) ||
-                      '{"purchased":[],"equipped":{}}',
-                  );
-                }
+              if (window.supabaseClient) {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                userId = user?.id;
               }
-            } catch (e) {
-              store = { purchased: [], equipped: {} };
+            } catch (e) {}
+
+            try {
+              if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+                store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
+              } else if (userId) {
+                const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
+                if (userRaw) store = JSON.parse(userRaw);
+              }
+            } catch (e) {}
+
+            if (!store) {
+              try {
+                store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
+              } catch(e) {
+                store = { purchased: [], equipped: {} };
+              }
             }
 
             if (!store.equipped) store.equipped = {};
 
-            // Verificar se está equipado
+            const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+            // Verificar se está equipado usando as chaves isoladas
             let isEquipped = false;
-            if (type === "aura")
-              isEquipped = localStorage.getItem("animehouse_customAura") === id;
-            else if (type === "titulo")
-              isEquipped =
-                localStorage.getItem("animehouse_customTitle") === rawName;
-            else if (type === "banner")
-              isEquipped =
-                localStorage.getItem("animehouse_customBanner") === id;
+            if (type === "aura") isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === id;
+            else if (type === "titulo") isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === rawName;
+            else if (type === "banner") isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === id;
             else if (type === "exclusivo" && id.includes("coroa")) {
-              isEquipped =
-                localStorage.getItem("animehouse_showCrown") === "true" &&
-                localStorage.getItem("animehouse_equippedCrownId") === id;
-            } else if (type === "tema" || id === "tema_cromatico") {
-              isEquipped =
-                localStorage.getItem("animehouse_tema_cromatico") === "true" ||
-                sessionStorage.getItem("theme") === "theme-cromatico";
+              isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id;
+            } else if (type === "tema") {
+              isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
             }
 
-            const newEquippedState = !isEquipped;
+            const newState = !isEquipped;
 
             if (isEquipped) {
               // Desequipar
               if (type === "aura") {
-                localStorage.setItem("animehouse_customAura", "none");
+                localStorage.setItem(userKey("animehouse_customAura"), "none");
                 store.equipped.aura = "none";
-                // Sincronizar navbar quando aura mudar
-                if (window.updateNavbarCosmetics)
-                  window.updateNavbarCosmetics();
               } else if (type === "titulo") {
-                localStorage.setItem("animehouse_customTitle", "");
+                localStorage.setItem(userKey("animehouse_customTitle"), "");
                 store.equipped.titulo = "";
               } else if (type === "banner") {
-                localStorage.setItem("animehouse_customBanner", "none");
+                localStorage.setItem(userKey("animehouse_customBanner"), "none");
                 store.equipped.banner = "none";
               } else if (type === "exclusivo" && id.includes("coroa")) {
-                localStorage.setItem("animehouse_showCrown", "false");
-                localStorage.removeItem("animehouse_equippedCrownId");
-                localStorage.removeItem("animehouse_equippedCrownIcon");
+                localStorage.setItem(userKey("animehouse_showCrown"), "false");
+                localStorage.removeItem(userKey("animehouse_equippedCrownId"));
                 store.equipped.crown = false;
-                store.equipped.crownId = "";
-                store.equipped.crownIcon = "";
               } else if (type === "tema") {
-                // Desequipar tema cromático — volta ao tema padrão
                 if (window.setTheme) window.setTheme("theme-ciano");
                 store.equipped.tema_cromatico = false;
-                localStorage.removeItem("animehouse_tema_cromatico");
-                localStorage.removeItem("equipped_tema_cromatico");
+                localStorage.removeItem(userKey("animehouse_tema_cromatico"));
               }
             } else {
               // Equipar
               if (type === "aura") {
-                localStorage.setItem("animehouse_customAura", id);
+                localStorage.setItem(userKey("animehouse_customAura"), id);
                 store.equipped.aura = id;
               } else if (type === "titulo") {
-                localStorage.setItem("animehouse_customTitle", rawName);
+                localStorage.setItem(userKey("animehouse_customTitle"), rawName);
                 store.equipped.titulo = rawName;
               } else if (type === "banner") {
-                localStorage.setItem("animehouse_customBanner", id);
+                localStorage.setItem(userKey("animehouse_customBanner"), id);
                 store.equipped.banner = id;
               } else if (type === "exclusivo" && id.includes("coroa")) {
-                localStorage.setItem("animehouse_showCrown", "true");
-                localStorage.setItem("animehouse_equippedCrownId", id);
-                const item = ALL_ITEMS.find((i) => i.id === id);
-                const icon = item?.icon || "👑";
-                localStorage.setItem("animehouse_equippedCrownIcon", icon);
-
+                localStorage.setItem(userKey("animehouse_showCrown"), "true");
+                localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
+                const item = ALL_ITEMS.find(i => i.id === id);
+                const icon = item ? item.icon : "👑";
+                localStorage.setItem(userKey("animehouse_equippedCrownIcon"), icon);
                 store.equipped.crown = true;
                 store.equipped.crownId = id;
                 store.equipped.crownIcon = icon;
               } else if (type === "tema") {
-                // Equipar tema cromático
                 if (window.setTheme) window.setTheme("theme-cromatico");
                 store.equipped.tema_cromatico = true;
-                localStorage.setItem("animehouse_tema_cromatico", "true");
-                localStorage.removeItem("equipped_tema_cromatico"); // limpar chave legada
+                localStorage.setItem(userKey("animehouse_tema_cromatico"), "true");
               }
             }
 
-            // 💾 Salvar em background (não bloqueia UI)
-            localStorage.setItem(STORE_KEY, JSON.stringify(store));
-
-            // Atualizar DB em background sem await
-            if (window.DB && window.DB.saveStoreData) {
-              window.DB.saveStoreData(store).catch(() => {});
+            // Salvar na chave isolada
+            if (userId) {
+              localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(store));
+            } else {
+              localStorage.setItem(STORE_KEY, JSON.stringify(store));
             }
 
-            // 🎨 Atualização VISUAL IMEDIATA do card (sem re-renderizar tudo)
-            updateItemCardVisual(id, newEquippedState, type);
+            if (window.DB && window.DB.saveStoreData) window.DB.saveStoreData(store);
 
-            // Atualizar painel de "Itens Equipados" imediatamente
+            updateItemCardVisual(id, newState, type);
             updateEquippedPanel();
-
-            // Atualizar sidebar crown
-            const sbCrown = document.getElementById("sidebarCrown");
-            if (sbCrown) {
-              sbCrown.style.display =
-                localStorage.getItem("animehouse_showCrown") === "true"
-                  ? "block"
-                  : "none";
-            }
-
-            // Atualizar aura no avatar com transição suave
-            const auraTarget = document.getElementById("displayAvatarBox");
-            if (auraTarget && type === "aura") {
-              auraTarget.style.transition = "all 0.3s ease";
-              const allAuras = [
-                "avatar-aura-fire",
-                "avatar-aura-guardian",
-                "avatar-aura-immortal",
-                "aura_stands",
-                "avatar-aura-stands",
-                "aura_chama",
-                "aura_chama_naruto",
-                "aura_ceifador",
-                "aura_thunder",
-                "aura_susanoo",
-                "aura_sakura",
-                "aura_gelo",
-                "aura_dragon",
-                "aura_void_saitama",
-              ];
-              auraTarget.classList.remove(...allAuras);
-              void auraTarget.offsetWidth;
-              const savedAura = localStorage.getItem("animehouse_customAura");
-              if (savedAura && savedAura !== "none") {
-                auraTarget.classList.add(savedAura);
-                if (savedAura === "aura_stands")
-                  auraTarget.classList.add("avatar-aura-stands");
-              }
-            }
-
-            // Atualizar título
-            const customTitleDisplay =
-              document.getElementById("displayCustomTitle");
-            if (customTitleDisplay && type === "titulo") {
-              customTitleDisplay.textContent =
-                localStorage.getItem("animehouse_customTitle") || "";
-            }
-
-            // Atualizar navbar sem refresh
-            if (window.updateNavbarCosmetics) {
-              window.updateNavbarCosmetics();
-            }
+            if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
           };
 
           // Função helper para atualizar visual do card específico
@@ -4258,8 +4125,8 @@
               if (!btn) return;
 
               // Verificar se este card é o item clicado (pelo onclick attribute)
-              const onclickAttr = btn.getAttribute("onclick") || "";
-              if (onclickAttr.includes(`'${itemId}'`)) {
+              const cardId = card.dataset.id;
+              if (cardId === itemId) {
                 // Atualizar este card
                 if (isEquipped) {
                   card.classList.add("equipped");
@@ -4302,12 +4169,8 @@
                 type === "tema"
               ) {
                 // Desequipar outros itens do mesmo tipo (só pode ter 1 equipado por tipo)
-                const otherOnclick = btn.getAttribute("onclick") || "";
-                if (
-                  otherOnclick.includes(`'${type}'`) &&
-                  isEquipped &&
-                  !otherOnclick.includes(`'${itemId}'`)
-                ) {
+                const cardType = card.dataset.type;
+                if (cardType === type && isEquipped && card.dataset.id !== itemId) {
                   // Desequipar visualmente o outro item do mesmo tipo
                   card.classList.remove("equipped");
                   btn.classList.remove("equipped");
@@ -4325,37 +4188,34 @@
             });
           }
 
-          // Função para atualizar painel de itens equipados
-          function updateEquippedPanel() {
-            const equippedItemsDisplay = document.getElementById(
-              "equippedItemsDisplay",
-            );
+          async function updateEquippedPanel() {
+            const equippedItemsDisplay = document.getElementById("equippedItemsDisplay");
             if (!equippedItemsDisplay) return;
 
+            let userId = null;
+            try {
+              if (window.supabaseClient) {
+                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                userId = user?.id;
+              }
+            } catch (e) {}
+
+            const userKey = (base) => userId ? `${base}_${userId}` : base;
+
             const equippedItems = [];
-            const equippedAura = localStorage.getItem("animehouse_customAura");
-            const equippedTitle = localStorage.getItem(
-              "animehouse_customTitle",
-            );
-            const equippedBanner = localStorage.getItem(
-              "animehouse_customBanner",
-            );
-            const equippedCrown =
-              localStorage.getItem("animehouse_showCrown") === "true";
-            const equippedCrownId = localStorage.getItem(
-              "animehouse_equippedCrownId",
-            );
-            const equippedTema =
-              localStorage.getItem("animehouse_tema_cromatico") === "true";
+            const equippedAura = localStorage.getItem(userKey("animehouse_customAura"));
+            const equippedTitle = localStorage.getItem(userKey("animehouse_customTitle"));
+            const equippedBanner = localStorage.getItem(userKey("animehouse_customBanner"));
+            const equippedCrown = localStorage.getItem(userKey("animehouse_showCrown")) === "true";
+            const equippedCrownId = localStorage.getItem(userKey("animehouse_equippedCrownId"));
+            const equippedTema = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
 
             if (equippedAura && equippedAura !== "none") {
               const aura = ALL_ITEMS.find((i) => i.id === equippedAura);
               if (aura) equippedItems.push({ ...aura, type: "Aura" });
             }
             if (equippedTitle) {
-              const titulo = ALL_ITEMS.find(
-                (i) => i.name.replace("Título: ", "") === equippedTitle,
-              );
+              const titulo = ALL_ITEMS.find((i) => i.name.replace("Título: ", "") === equippedTitle);
               if (titulo) equippedItems.push({ ...titulo, type: "Título" });
             }
             if (equippedBanner && equippedBanner !== "none") {

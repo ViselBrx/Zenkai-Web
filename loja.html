@@ -772,9 +772,12 @@
                     border-color 0.3s ease;
                 display: flex;
                 flex-direction: column;
+                cursor: default;
+            }
+            .catalog-item:not(.owned):not(.locked) {
                 cursor: pointer;
             }
-            .catalog-item:hover {
+            .catalog-item:hover:not(.owned):not(.locked) {
                 transform: translateY(-6px);
             }
             .catalog-item.ouro:hover {
@@ -1322,7 +1325,7 @@
 
                 <div class="hero-xp-card">
                     <div class="xp-orb">⚡</div>
-                    <div class="xp-label">Seus XP Totais</div>
+                    <div class="xp-label">Saldo Disponível</div>
                     <div
                         style="
                             display: flex;
@@ -1373,7 +1376,10 @@
                             —
                         </div>
                     </div>
-                    <div class="xp-rank" id="heroRankBadge">Carregando...</div>
+                    <div style="display: flex; gap: 8px; justify-content: center; margin-top: 10px;">
+                        <div class="xp-rank" id="heroLevelBadge" style="background: rgba(var(--primary-rgb), 0.3); border-color: var(--primary);">LVL --</div>
+                        <div class="xp-rank" id="heroRankBadge">Carregando...</div>
+                    </div>
                     <div style="margin-top: 15px; width: 100%">
                         <a
                             href="compras.html"
@@ -1490,7 +1496,7 @@
                         </div>
                     </div>
                     <ul class="policy-text">
-                        <li>5 XP = 1 Ficha de Ouro</li>
+                        <li>100 XP = 1 Ficha de Ouro</li>
                         <li>
                             Itens de entrada: banners básicos, ícones de título
                         </li>
@@ -1514,7 +1520,7 @@
                         </div>
                     </div>
                     <ul class="policy-text">
-                        <li>10 XP = 1 Ficha de Diamante</li>
+                        <li>250 XP = 1 Ficha de Diamante</li>
                         <li>Itens avançados: auras animadas raras</li>
                         <li>Banners temáticos de animes populares</li>
                         <li>Requer Patamar Mestre ou superior</li>
@@ -1536,7 +1542,7 @@
                         </div>
                     </div>
                     <ul class="policy-text">
-                        <li>30 XP = 1 Ficha de Esmeralda</li>
+                        <li>500 XP = 1 Ficha de Esmeralda</li>
                         <li>Para usuários com vasta coleção registrada</li>
                         <li>
                             Itens únicos: coroas exclusivas, auras lendárias
@@ -1558,10 +1564,7 @@
                 <div class="ficha-card ficha-ouro" id="fichaOuroCard">
                     <div class="ficha-icon">🥇</div>
                     <div class="ficha-name">FICHA DE OURO</div>
-                    <div class="ficha-taxa">
-                        <strong>5 XP → 1 🥇</strong>
-                        Patamar mínimo: <em>Prata</em>
-                    </div>
+                    <div class="ficha-taxa"><strong>100 XP</strong> por unidade</div>
                     <div class="ficha-req">⚔️ Patamar Prata</div>
                     <div class="ficha-status locked" id="fichaOuroStatus">
                         <div class="status-dot"></div>
@@ -1604,7 +1607,7 @@
                             </div>
                         </div>
                         <div class="exchange-result" id="ouroResult">
-                            Custo: 5 XP
+                            Custo: 100 XP
                         </div>
                     </div>
                 </div>
@@ -1614,7 +1617,7 @@
                     <div class="ficha-icon">💎</div>
                     <div class="ficha-name">FICHA DE DIAMANTE</div>
                     <div class="ficha-taxa">
-                        <strong>10 XP → 1 💎</strong>
+                        <strong>250 XP → 1 💎</strong>
                         Patamar mínimo: <em>Mestre</em>
                     </div>
                     <div class="ficha-req">🔱 Patamar Mestre</div>
@@ -1659,7 +1662,7 @@
                             </div>
                         </div>
                         <div class="exchange-result" id="diamanteResult">
-                            Custo: 10 XP
+                            Custo: 250 XP
                         </div>
                     </div>
                 </div>
@@ -1669,7 +1672,7 @@
                     <div class="ficha-icon">💚</div>
                     <div class="ficha-name">FICHA DE ESMERALDA</div>
                     <div class="ficha-taxa">
-                        <strong>30 XP → 1 💚</strong>
+                        <strong>500 XP → 1 💚</strong>
                         Patamar mínimo: <em>Guardião</em>
                     </div>
                     <div class="ficha-req">🛡️ Patamar Guardião</div>
@@ -1714,7 +1717,7 @@
                             </div>
                         </div>
                         <div class="exchange-result" id="esmeraldaResult">
-                            Custo: 30 XP
+                            Custo: 500 XP
                         </div>
                     </div>
                 </div>
@@ -1953,16 +1956,7 @@
                     price: 9,
                     req: "mestre",
                 },
-                {
-                    id: "modo_cinema",
-                    name: "Modo Cinema Aprimorado",
-                    desc: "Experiência sem distrações.",
-                    icon: "🎬",
-                    category: "experiencia",
-                    currency: "diamante",
-                    price: 12,
-                    req: "mestre",
-                },
+
                 {
                     id: "aura_gelo",
                     name: "Aura Cristal de Gelo",
@@ -1973,16 +1967,7 @@
                     price: 11,
                     req: "mestre",
                 },
-                {
-                    id: "frame_dourado",
-                    name: "Frame Dourado Elite",
-                    desc: "Moldura ornamentada para avatar.",
-                    icon: "🪙",
-                    category: "experiencia",
-                    currency: "diamante",
-                    price: 15,
-                    req: "mestre",
-                },
+
                 {
                     id: "banner_aot",
                     name: "Banner: Muralha de Shiganshina",
@@ -2066,16 +2051,7 @@
                     price: 2,
                     req: "guardiao",
                 },
-                {
-                    id: "dashboard_premium",
-                    name: "Dashboard Premium Full",
-                    desc: "Estatísticas avançadas completas.",
-                    icon: "📊",
-                    category: "experiencia",
-                    currency: "esmeralda",
-                    price: 6,
-                    req: "guardiao",
-                },
+
                 {
                     id: "coroa_tryhard",
                     name: "Caveira do Carrasco",
@@ -2148,8 +2124,8 @@
                 esmeralda: "Guardião",
             };
 
-            // Custo em XP por ficha
-            const FICHA_XP_COST = { ouro: 5, diamante: 10, esmeralda: 30 };
+            // Custo em XP por ficha (Ajustado para o novo sistema de 100 XP por nível)
+            const FICHA_XP_COST = { ouro: 100, diamante: 250, esmeralda: 500 };
 
             // ── ESTADO LOCAL ──────────────────────────────────────
             const STORE_KEY = "animehouse_store";
@@ -2303,15 +2279,8 @@
                             }
                         }
                     }
-                    // 3. Fallback: usar chave genérica se as outras falharem (evita reset visual)
-                    const genericRaw = localStorage.getItem(STORE_KEY);
-                    if (genericRaw) {
-                        const parsed = JSON.parse(genericRaw);
-                        if (parsed && (!currentUserId || !parsed._userId || parsed._userId === currentUserId)) {
-                             console.log("[Loja] Fallback: Carregado da chave genérica.");
-                             return normalizeStoreData(parsed);
-                        }
-                    }
+                    // 3. REMOVIDO Fallback genérico para evitar vazamento entre contas.
+                    // Se não tem chave isolada, o usuário começa do zero.
                 } catch (e) {
                     console.error("[Loja] Erro ao carregar store:", e);
                 }
@@ -2341,12 +2310,9 @@
                             `animehouse_store_${userId}`,
                             JSON.stringify(storeWithUser),
                         );
-                        localStorage.setItem(
-                            STORE_KEY,
-                            JSON.stringify(storeWithUser),
-                        );
+                        // NÃO salvar na chave genérica se houver userId para evitar vazamento
                         console.log(
-                            "💾 [Loja] Store salvo no localStorage (GARANTIDO)",
+                            "💾 [Loja] Store salvo na chave isolada do usuário.",
                         );
                     } else {
                         console.warn(
@@ -2372,6 +2338,13 @@
                 return RANK_HIERARCHY.indexOf(r);
             }
             function canUse(ficha) {
+                // Bypass total para o dono (verificando tanto a flag do store quanto o e-mail logado)
+                const storedToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+                const isLoggedAdmin = storedToken && storedToken.includes("davizeravisel@gmail.com");
+                
+                if (store._isOwner || isLoggedAdmin) {
+                    return true;
+                }
                 return (
                     rankIndex(store.rank) >= rankIndex(FICHA_REQ_RANK[ficha])
                 );
@@ -2407,28 +2380,40 @@
             function updateHeroUI() {
                 const xpEl = document.getElementById("heroXpValue");
                 const rankEl = document.getElementById("heroRankBadge");
+                const levelEl = document.getElementById("heroLevelBadge");
                 const ouroEl = document.getElementById("heroOuroCount");
                 const diaEl = document.getElementById("heroDiamanteCount");
                 const esEl = document.getElementById("heroEsmeraldaCount");
+
+                const cachedLevel = localStorage.getItem("animehouse_userLevel") || "1";
+                const cachedRank = localStorage.getItem("animehouse_userRank") || "Bronze";
+
+                // Mostramos o SALDO para gastar, mas o RANK real do perfil
                 if (xpEl) xpEl.textContent = store.xp.toLocaleString("pt-BR");
-                if (rankEl) rankEl.textContent = `⚔️ ${store.rank}`;
+                if (rankEl) rankEl.textContent = `⚔️ ${cachedRank}`;
+                if (levelEl) levelEl.textContent = `LVL ${cachedLevel}`;
                 if (ouroEl) ouroEl.textContent = store.ouro;
                 if (diaEl) diaEl.textContent = store.diamante;
                 if (esEl) esEl.textContent = store.esmeralda;
             }
 
             // ── ATUALIZAR STATUS DAS FICHAS ───────────────────────
-            function updateFichasStatus() {
+            async function updateFichasStatus() {
+                const currentUser = window.supabaseClient ? (await window.supabaseClient.auth.getUser())?.data?.user : null;
+                const isAdmin = (store && store._isOwner) || (currentUser?.email === "davizeravisel@gmail.com");
+
                 ["ouro", "diamante", "esmeralda"].forEach((ficha) => {
                     const statusEl = document.getElementById(
                         `ficha${ficha.charAt(0).toUpperCase() + ficha.slice(1)}Status`,
                     );
                     const btn = document.getElementById(`${ficha}ExchangeBtn`);
-                    const ok = canUse(ficha);
+                    const ok = canUse(ficha) || isAdmin;
 
                     if (statusEl) {
                         statusEl.className = `ficha-status ${ok ? "unlocked" : "locked"}`;
-                        statusEl.innerHTML = `<div class="status-dot"></div><span>${ok ? "Desbloqueado ✓" : `Requer ${FICHA_REQ_RANK[ficha]}`}</span>`;
+                        let label = ok ? "Desbloqueado ✓" : `Requer ${FICHA_REQ_RANK[ficha]}`;
+                        if (isAdmin) label = "Dono da SenseiMod ✓";
+                        statusEl.innerHTML = `<div class="status-dot"></div><span>${label}</span>`;
                     }
                     if (btn) btn.disabled = !ok;
                     const refundBtn = document.getElementById(
@@ -2502,6 +2487,8 @@
                                 return;
                             }
                             store.xp -= total;
+                            // Atualizar o ajuste de XP para o perfil
+                            store.xp_offset = (parseInt(store.xp_offset) || 0) - total;
                             store[ficha] += qtd;
                             saveStore(store);
                             updateHeroUI();
@@ -2535,6 +2522,8 @@
                             const total = qtd * cost;
                             store[ficha] -= qtd;
                             store.xp += total;
+                            // Atualizar o ajuste de XP para o perfil
+                            store.xp_offset = (parseInt(store.xp_offset) || 0) + total;
                             saveStore(store);
                             updateHeroUI();
                             showToast(
@@ -2608,8 +2597,18 @@
                         else if (!suficiente)
                             lockMsg = `❌ Requer ${item.price} ${currencyLabel[item.currency]}`;
 
+                        const isLocked = !fichaOk || !suficiente;
+                        const cardClasses = [
+                            "catalog-item",
+                            item.currency,
+                            alreadyBought ? "owned" : "",
+                            isLocked && !alreadyBought ? "locked" : ""
+                        ].filter(Boolean).join(" ");
+
+                        const cardClick = canBuy ? `onclick="openBuyModal('${item.id}')"` : "";
+
                         return `
-    <div class="catalog-item ${item.currency} ${alreadyBought ? "owned" : ""}" data-id="${item.id}">
+    <div class="${cardClasses}" data-id="${item.id}" ${cardClick}>
       <div class="item-preview" style="position:relative; overflow:hidden; background: #000; display: flex; align-items: center; justify-content: center;">
         ${
             item.category === "banner"
@@ -2627,7 +2626,7 @@
           <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "🥇" : item.currency === "diamante" ? "💎" : "💚"}</span></div>
           ${
               canBuy
-                  ? `<button class="buy-btn" onclick="openBuyModal('${item.id}')">Comprar</button>`
+                  ? `<button class="buy-btn">Comprar</button>`
                   : `<div class="item-locked">${lockMsg}</div>`
           }
         </div>
@@ -2742,7 +2741,14 @@
                 if (!store.equipped) store.equipped = {};
                 if (item.category === "experiencia") {
                     store.equipped[item.id] = true;
-                    localStorage.setItem(`equipped_${item.id}`, "true");
+                    // Salvar com prefixo de usuário para isolamento total
+                    let uid = null;
+                    if (window.supabaseClient) {
+                         const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+                         uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+                    }
+                    const userKey = uid ? `equipped_${item.id}_${uid}` : `equipped_${item.id}`;
+                    localStorage.setItem(userKey, "true");
                 }
 
                 console.log("[Loja] Salvando compra:", {
@@ -2800,6 +2806,12 @@
                             data: { user },
                         } = await window.supabaseClient.auth.getUser();
                         currentUserId = user?.id || null;
+                        // Marcar se é o ADM
+                        const isAdmin = user?.email === "davizeravisel@gmail.com";
+                        store._isOwner = isAdmin || store.all_ranks_unlocked === true;
+                        
+                        // Forçar rank máximo visualmente se for o dono e quiser
+                        // store.rank = isAdmin ? "Imortal" : cachedRank;
                     }
                 } catch (e) {
                     console.warn("[Loja] Não foi possível obter usuário:", e);
@@ -2875,6 +2887,10 @@
                     if (localEquipped.crown && !dbEquipped.crown) store.equipped.crown = localEquipped.crown;
                     if (localEquipped.crownId && !dbEquipped.crownId) store.equipped.crownId = localEquipped.crownId;
                     if (localEquipped.crownIcon && !dbEquipped.crownIcon) store.equipped.crownIcon = localEquipped.crownIcon;
+                    
+                    // Custo em XP por ficha (Ajustado para o novo sistema de 100 XP por nível)
+                    const FICHA_XP_COST = { ouro: 100, diamante: 250, esmeralda: 500 };
+                    
                     if (normalizedDbStore.unlocked_ranks)
                         store.unlocked_ranks = normalizedDbStore.unlocked_ranks;
                     if (normalizedDbStore.all_ranks_unlocked !== undefined)
@@ -2898,59 +2914,18 @@
                 const cachedRank =
                     localStorage.getItem("animehouse_userRank") || "Bronze";
 
-                const realTotalXP = parseInt(localStorage.getItem("animehouse_totalXP") || "0", 10);
+                // Cálculo autônomo do XP Total: XP das atividades + Ajuste da loja
+                const baseXP = parseInt(localStorage.getItem("animehouse_calculatedXP") || "0", 10);
+                const xpOffset = parseInt(store.xp_offset || "0", 10);
+                const realTotalXP = Math.max(0, baseXP + xpOffset);
                 
-                // MIGRATION: Se lifetime_xp não existe, é o primeiro acesso pós-update.
-                if (typeof store.lifetime_xp === "undefined") {
-                    store.lifetime_xp = realTotalXP;
-                    
-                    // Contas zeradas no perfil não podem ter XP na loja
-                    if (realTotalXP === 0) {
-                        store.xp = 0;
-                    } 
-                    // Se o XP da loja (que antes era nivel * 100) é maior do que o XP real gerado,
-                    // trazemos pro teto correto.
-                    else if (store.xp > realTotalXP) {
-                        // Opcionalmente podemos diminuir o gasto em fichas, mas assumir o realTotalXP é seguro.
-                        store.xp = realTotalXP;
-                    }
-                } else if (realTotalXP > store.lifetime_xp) {
-                    // Novo ganho de XP do perfil pós-migração
-                    store.xp += (realTotalXP - store.lifetime_xp);
-                    store.lifetime_xp = realTotalXP;
-                }
+                // O saldo da loja é o seu XP total (como solicitado: "esse saldo é meu xp")
+                store.xp = realTotalXP;
+                store.lifetime_xp = realTotalXP;
+                
+                console.log(`[Loja] XP Sincronizado (Base ${baseXP} + Offset ${xpOffset}): ${store.xp}`);
+                // Mantemos o Rank sincronizado com o Perfil (armazenado no localStorage)
                 store.rank = cachedRank;
-                // Se o usuário tem patentes desbloqueadas manualmente, promover o rank para o mais alto desbloqueado
-                if (
-                    Array.isArray(store.unlocked_ranks) &&
-                    store.unlocked_ranks.length > 0
-                ) {
-                    const rankOrder = [
-                        "Bronze",
-                        "Prata",
-                        "Ouro",
-                        "Mestre",
-                        "Lenda",
-                        "Hokage",
-                        "Guardião",
-                        "Imortal",
-                    ];
-                    const highestUnlocked = store.unlocked_ranks.reduce(
-                        (best, rank) => {
-                            const idx = rankOrder.indexOf(rank);
-                            const bestIdx = rankOrder.indexOf(best);
-                            return idx > bestIdx ? rank : best;
-                        },
-                        store.rank || "Bronze",
-                    );
-                    // Promover o rank do store para o mais alto desbloqueado manualmente
-                    if (
-                        rankOrder.indexOf(highestUnlocked) >
-                        rankOrder.indexOf(store.rank)
-                    ) {
-                        store.rank = highestUnlocked;
-                    }
-                }
 
                 if (currentUserId) store._userId = currentUserId;
                 store = normalizeStoreData(store);

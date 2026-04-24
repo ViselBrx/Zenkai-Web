@@ -356,13 +356,53 @@ const DB = {
                 localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
 
-                // Sincronizar cosméticos e tema cromático (Garante que o tema siga a conta do usuário)
-                if (mergedStore.equipped && mergedStore.equipped.tema_cromatico === true) {
-                    localStorage.setItem('equipped_tema_cromatico', 'true');
-                    localStorage.setItem('animehouse_tema_cromatico', 'true');
-                    // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
-                    if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
-                        window.setTheme('theme-cromatico');
+                // 🔄 Sincronizar TODOS os cosméticos equipados para localStorage
+                if (mergedStore.equipped && typeof mergedStore.equipped === 'object') {
+                    // Sincronizar Aura
+                    if (mergedStore.equipped.aura) {
+                        localStorage.setItem('animehouse_customAura', mergedStore.equipped.aura);
+                    } else if (mergedStore.equipped.aura === 'none') {
+                        localStorage.setItem('animehouse_customAura', 'none');
+                    }
+
+                    // Sincronizar Título
+                    if (mergedStore.equipped.titulo) {
+                        localStorage.setItem('animehouse_customTitle', mergedStore.equipped.titulo);
+                    } else if (mergedStore.equipped.titulo === '') {
+                        localStorage.setItem('animehouse_customTitle', '');
+                    }
+
+                    // Sincronizar Banner
+                    if (mergedStore.equipped.banner) {
+                        localStorage.setItem('animehouse_customBanner', mergedStore.equipped.banner);
+                    } else if (mergedStore.equipped.banner === 'none') {
+                        localStorage.setItem('animehouse_customBanner', 'none');
+                    }
+
+                    // Sincronizar Coroa/Exclusivo
+                    if (mergedStore.equipped.crown === true && mergedStore.equipped.crownId) {
+                        localStorage.setItem('animehouse_showCrown', 'true');
+                        localStorage.setItem('animehouse_equippedCrownId', mergedStore.equipped.crownId);
+                        if (mergedStore.equipped.crownIcon) {
+                            localStorage.setItem('animehouse_equippedCrownIcon', mergedStore.equipped.crownIcon);
+                        }
+                    } else if (mergedStore.equipped.crown === false) {
+                        localStorage.setItem('animehouse_showCrown', 'false');
+                        localStorage.removeItem('animehouse_equippedCrownId');
+                        localStorage.removeItem('animehouse_equippedCrownIcon');
+                    }
+
+                    // Sincronizar Tema Cromático
+                    if (mergedStore.equipped.tema_cromatico === true) {
+                        localStorage.setItem('equipped_tema_cromatico', 'true');
+                        localStorage.setItem('animehouse_tema_cromatico', 'true');
+                        // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
+                        if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
+                            window.setTheme('theme-cromatico');
+                        }
+                    } else if (mergedStore.equipped.tema_cromatico === false) {
+                        localStorage.removeItem('equipped_tema_cromatico');
+                        localStorage.removeItem('animehouse_tema_cromatico');
                     }
                 }
 

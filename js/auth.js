@@ -15,18 +15,80 @@ let previousSessionId = null;
 
 if (window.supabase) {
   try {
-    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
     window.supabaseClient = supaClient;
 
+    // 🚀 Redirecionar se já estiver logado (evitar registro/login duplicado)
+    (async () => {
+      const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
+      if (isAuthPage) {
+        const { data: { session } } = await supaClient.auth.getSession();
+        if (session) {
+          window.location.href = "perfil.html";
+        }
+      }
+    })();
+
     supaClient.auth.onAuthStateChange((event, session) => {
+      console.log("🔔 [Auth Event]:", event, session?.user?.email);
       const currentSessionId = session?.user?.id || null;
-      if (
-        previousSessionId !== null &&
-        previousSessionId !== currentSessionId
-      ) {
-        // Ao trocar de usuário, limpar TODO o localStorage para evitar vazamento de dados
+
+      if (event === 'PASSWORD_RECOVERY') {
+        // ... (código do modal de senha que já estava aqui)
+        const modalHtml = `
+          <div id="recoveryModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:9999; backdrop-filter:blur(5px);">
+            <div style="background:var(--bg-card); padding:2.5rem; border-radius:16px; border:1px solid rgba(var(--primary-rgb),0.3); width:100%; max-width:400px; text-align:center; box-shadow:0 0 40px rgba(0,0,0,0.5), 0 0 20px rgba(var(--primary-rgb),0.2); animation: fadeInUp 0.4s ease forwards;">
+              <h2 style="color:var(--primary); margin-bottom:0.5rem; font-family:'Bangers', cursive; font-size:2.5rem; letter-spacing:2px;">Nova Senha</h2>
+              <p style="color:var(--text-muted); margin-bottom:1.5rem; font-size:0.95rem;">Digite sua nova senha abaixo.</p>
+              <input type="password" id="recoveryNewPassword" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; margin-bottom:1rem; background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; color:var(--text-main); outline:none; font-size:1rem;" />
+              <div id="recoveryError" style="color:var(--danger); background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:8px; padding:10px; font-size:0.85rem; margin-bottom:1rem; display:none;"></div>
+              <button id="recoveryBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;">💾 Atualizar Senha</button>
+            </div>
+          </div>
+        `;
+        if(!document.getElementById('recoveryModal')) document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        document.getElementById('recoveryBtn').addEventListener('click', async () => {
+           const newPassword = document.getElementById('recoveryNewPassword').value;
+           const errorDiv = document.getElementById('recoveryError');
+           if (!newPassword || newPassword.length < 6) {
+             errorDiv.textContent = "A senha deve ter pelo menos 6 caracteres.";
+             errorDiv.style.display = "block";
+             return;
+           }
+           errorDiv.style.display = "none";
+           const btn = document.getElementById('recoveryBtn');
+           btn.textContent = "Atualizando...";
+           btn.disabled = true;
+
+           const { error } = await supaClient.auth.updateUser({ password: newPassword });
+           if (error) {
+             errorDiv.textContent = "Erro: " + error.message;
+             errorDiv.style.display = "block";
+             btn.textContent = "💾 Atualizar Senha";
+             btn.disabled = false;
+           } else {
+             document.getElementById('recoveryModal').innerHTML = `
+               <div style="background:var(--bg-card); padding:2.5rem; border-radius:16px; border:1px solid rgba(16,185,129,0.3); width:100%; max-width:400px; text-align:center; box-shadow:0 0 40px rgba(0,0,0,0.5);">
+                 <h2 style="color:var(--success); margin-bottom:1rem; font-family:'Bangers', cursive; font-size:2rem; letter-spacing:1px;">✅ Sucesso!</h2>
+                 <p style="color:var(--text-muted); margin-bottom:1.5rem; font-size:0.95rem;">Sua senha foi redefinida. Você já pode acessar sua conta.</p>
+                 <button onclick="window.location.href='index.html'" class="btn btn-primary" style="width:100%; padding:14px; font-size:1rem;">Ir para o Painel</button>
+               </div>
+             `;
+           }
+        });
+      }
+
+      if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
+        console.log("🔄 Usuário alterado. Atualizando dados locais...");
         try {
-          // Limpar chaves genéricas
+          // Limpar chaves genéricas para evitar vazamento
           localStorage.removeItem("animehouse_store");
           localStorage.removeItem("animehouse_customAura");
           localStorage.removeItem("animehouse_customBanner");
@@ -39,23 +101,14 @@ if (window.supabase) {
           localStorage.removeItem("animehouse_prevRank");
           localStorage.removeItem("animehouse_test_granted_v3");
 
-          // Limpar TODAS as chaves isoladas por usuário (animehouse_store_<userId>)
           const keysToRemove = [];
           for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (
-              key &&
-              (key.startsWith("equipped_") ||
-                key.startsWith("animehouse_store_"))
-            ) {
+            if (key && (key.startsWith("equipped_") || key.startsWith("animehouse_store_"))) {
               keysToRemove.push(key);
             }
           }
           keysToRemove.forEach((k) => localStorage.removeItem(k));
-          console.log(
-            "🔒 [Auth] Todos os dados locais limpos ao trocar de usuário. Chaves removidas:",
-            keysToRemove.length,
-          );
         } catch (e) {}
         window.location.reload();
       }
@@ -66,14 +119,85 @@ if (window.supabase) {
   }
 }
 
-// 3. Lógica de Login
+// 3. Lógica de Login e Toggles de Senha
+function setupPasswordToggle(inputId, toggleId) {
+  const input = document.getElementById(inputId);
+  const toggle = document.getElementById(toggleId);
+  const iconEye = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const iconEyeOff = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+
+  if (input && toggle) {
+    toggle.innerHTML = iconEye; // seta o inicial
+    toggle.addEventListener('click', () => {
+      const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+      input.setAttribute('type', type);
+      toggle.innerHTML = type === 'password' ? iconEye : iconEyeOff;
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupPasswordToggle('password', 'togglePassword');
+  setupPasswordToggle('confirmPassword', 'toggleConfirmPassword');
+});
+
+// Esqueci a senha
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+if (forgotPasswordLink) {
+  forgotPasswordLink.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const errorDiv = document.getElementById("loginError");
+    const successDiv = document.getElementById("loginSuccess");
+    
+    if (!email) {
+      errorDiv.textContent = "Por favor, digite seu e-mail antes de clicar em 'Esqueci a senha?'.";
+      errorDiv.style.display = "block";
+      if (successDiv) successDiv.style.display = "none";
+      return;
+    }
+    errorDiv.style.display = "none";
+    if (successDiv) successDiv.style.display = "none";
+    
+    try {
+      const redirectUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/login.html');
+      const { error } = await supaClient.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
+      });
+      if (error) {
+        let msg = error.message;
+        if (msg.includes("rate limit")) msg = "Limite de e-mails atingido. Por favor, aguarde alguns minutos.";
+        errorDiv.textContent = "Erro: " + msg;
+        errorDiv.style.display = "block";
+      } else {
+        if (successDiv) {
+          successDiv.innerHTML = "✅ <strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada (e spam).";
+          successDiv.style.display = "block";
+        }
+      }
+    } catch (err) {
+      errorDiv.textContent = "Erro inesperado ao tentar redefinir a senha.";
+      errorDiv.style.display = "block";
+    }
+  });
+}
+
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById("email").value;
+    const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorDiv = document.getElementById("loginError");
+
+    // Validação básica de formato de e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errorDiv.textContent = "❌ E-mail inválido ou mal formatado.";
+      errorDiv.style.display = "block";
+      return;
+    }
+
     const submitBtn = loginForm.querySelector('button[type="submit"]');
 
     submitBtn.disabled = true;
@@ -86,11 +210,12 @@ if (loginForm) {
         password,
       });
       if (error) {
-        errorDiv.textContent =
-          "Erro: " +
-          (error.message === "Invalid login credentials"
-            ? "Email ou senha incorretos."
-            : error.message);
+        let msg = error.message;
+        if (msg === "Invalid login credentials") msg = "E-mail ou senha incorretos.";
+        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingido. Aguarde um pouco e tente novamente.";
+        else if (msg.includes("Email not confirmed")) msg = "Por favor, confirme seu e-mail antes de entrar.";
+
+        errorDiv.textContent = "Erro: " + msg;
         errorDiv.style.display = "block";
         submitBtn.disabled = false;
         submitBtn.textContent = "Entrar no Painel";
@@ -115,16 +240,26 @@ if (loginForm) {
 }
 
 // 4. Lógica de Registro
+let lastEmailRegistered = sessionStorage.getItem("lastEmailRegistered") || ""; 
+
 const registerForm = document.getElementById("registerForm");
 if (registerForm) {
   registerForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = document.getElementById("email").value;
+    const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
     const errorDiv = document.getElementById("registerError");
     const successDiv = document.getElementById("registerSuccess");
     const submitBtn = registerForm.querySelector('button[type="submit"]');
+
+    // Validação básica de formato de e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errorDiv.textContent = "❌ Digite um e-mail válido (ex: seu@email.com).";
+      errorDiv.style.display = "block";
+      return;
+    }
 
     if (password !== confirmPassword) {
       errorDiv.textContent = "As senhas não coincidem.";
@@ -132,19 +267,49 @@ if (registerForm) {
       return;
     }
 
+    if (password.length < 6) {
+      errorDiv.textContent = "A senha deve ter pelo menos 6 caracteres.";
+      errorDiv.style.display = "block";
+      return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = "Registrando...";
+    lastEmailRegistered = email;
+    sessionStorage.setItem("lastEmailRegistered", email); // Persiste no navegador
 
     const { data, error } = await supaClient.auth.signUp({ email, password });
-    if (error) {
-      errorDiv.textContent = error.message;
+    
+    // 💡 TRUQUE: Se não der erro mas a lista de identidades estiver vazia, significa que o e-mail já existe
+    const alreadyExists = data?.user && data.user.identities && data.user.identities.length === 0;
+
+    if (error || alreadyExists) {
+      let msg = error ? error.message : "Este e-mail já está sendo usado por outra conta.";
+      
+      if (msg.includes("rate limit") || msg.includes("confirmation email")) {
+        msg = "⚠️ Muitas tentativas ou erro no servidor de e-mail. Por favor, aguarde alguns minutos ou verifique o SMTP no Supabase.";
+      } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || error?.status === 422 || alreadyExists) {
+        msg = "❌ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
+      }
+      
+      errorDiv.textContent = msg;
       errorDiv.style.display = "block";
       submitBtn.disabled = false;
       submitBtn.textContent = "Criar Conta";
     } else {
-      // Mostrar mensagem de e-mail de verificação enviado
+      // Registro realmente novo
       successDiv.style.display = "block";
       registerForm.style.display = "none";
+
+      const otpSection = document.getElementById("otpSection");
+      if (otpSection) {
+        otpSection.style.display = "block";
+        // Mostrar qual email está sendo verificado
+        const emailMsg = otpSection.querySelector("p");
+        if (emailMsg) {
+          emailMsg.innerHTML = `<strong>🔑 Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${email}</small>`;
+        }
+      }
 
       // Mostrar seção de reenvio de e-mail após 3s
       const resendSection = document.getElementById("resendEmailSection");
@@ -159,6 +324,138 @@ if (registerForm) {
       submitBtn.disabled = false;
       submitBtn.textContent = "Criar Conta";
     }
+  });
+}
+
+const cancelOtpBtn = document.getElementById("cancelOtpBtn");
+if (cancelOtpBtn) {
+  cancelOtpBtn.addEventListener("click", () => {
+    sessionStorage.removeItem("lastEmailRegistered");
+    lastEmailRegistered = "";
+    const otpSection = document.getElementById("otpSection");
+    const registerForm = document.getElementById("registerForm");
+    const registerSuccess = document.getElementById("registerSuccess");
+    if (otpSection) otpSection.style.display = "none";
+    if (registerSuccess) registerSuccess.style.display = "none";
+    if (registerForm) registerForm.style.display = "block";
+    window.location.reload(); // Recarregar para limpar estados internos se necessário
+  });
+}
+
+const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+if (verifyOtpBtn) {
+  // Se já temos um e-mail salvo, podemos mostrar a seção de OTP direto
+  if (lastEmailRegistered && document.getElementById("otpSection")) {
+     // document.getElementById("otpSection").style.display = "block"; 
+     // (Opcional: descomente se quiser que apareça ao atualizar a página)
+  }
+
+  verifyOtpBtn.addEventListener("click", async () => {
+    const email = (lastEmailRegistered || document.getElementById("email").value || "").trim().toLowerCase();
+    const token = document.getElementById("otpToken").value.trim();
+    const otpError = document.getElementById("otpError");
+    
+    if (!email) {
+      otpError.textContent = "Erro: E-mail não identificado.";
+      otpError.style.display = "block";
+      return;
+    }
+
+    if (!token || token.length < 6) {
+      otpError.textContent = "Digite o código completo recebido por e-mail.";
+      otpError.style.display = "block";
+      return;
+    }
+    
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = "🔌 Verificando...";
+    otpError.style.display = "none";
+    
+    console.log("🔍 [DEBUG] Iniciando Verificação OTP:");
+    console.log("   > E-mail:", email);
+    console.log("   > Token:", token);
+
+    try {
+      // 1. Tenta tipo 'signup'
+      console.log("   > Tentando tipo: 'signup'...");
+      let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
+      
+      if (res.error) {
+        console.warn("   ⚠️ Falha 'signup':", res.error.message);
+        // 2. Tenta tipo 'email'
+        console.log("   > Tentando tipo: 'email'...");
+        res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
+      }
+
+      if (res.error) {
+        console.warn("   ⚠️ Falha 'email':", res.error.message);
+        // 3. Tenta tipo 'magiclink'
+        console.log("   > Tentando tipo: 'magiclink'...");
+        res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
+      }
+
+      const { data, error } = res;
+
+      if (error) {
+        console.error("❌ ERRO FINAL:", error);
+        let userMsg = "Código inválido.";
+        if (error.message.includes("expired")) userMsg = "O código expirou ou é antigo.";
+        else if (error.message.includes("not found")) userMsg = "E-mail não encontrado.";
+        
+        otpError.textContent = `❌ ${userMsg} (${error.message})`;
+        otpError.style.display = "block";
+        verifyOtpBtn.disabled = false;
+        verifyOtpBtn.textContent = "✅ Verificar e Entrar";
+      } else {
+        sessionStorage.removeItem("lastEmailRegistered");
+        // Forçar o Supabase a atualizar a sessão internamente antes do redirect
+        supaClient.auth.getSession().then(() => {
+          setTimeout(() => {
+            window.location.href = "perfil.html";
+          }, 800);
+        });
+      }
+    } catch (err) {
+      otpError.textContent = "Erro inesperado na verificação.";
+      otpError.style.display = "block";
+      verifyOtpBtn.disabled = false;
+    }
+  });
+}
+
+const resendBtn = document.getElementById("resendBtn");
+if (resendBtn) {
+  resendBtn.addEventListener("click", async () => {
+    const email = document.getElementById("resendEmail").value || document.getElementById("email").value;
+    if (!email) return;
+    
+    resendBtn.disabled = true;
+    resendBtn.textContent = "Reenviando...";
+    
+    const { data, error } = await supaClient.auth.resend({
+      type: 'signup',
+      email: email
+    });
+    
+    let msgDiv = document.getElementById('resendMsg');
+    if (!msgDiv) {
+      msgDiv = document.createElement('div');
+      msgDiv.id = 'resendMsg';
+      msgDiv.style.marginTop = '10px';
+      msgDiv.style.fontSize = '0.85rem';
+      msgDiv.style.fontWeight = 'bold';
+      resendBtn.parentNode.appendChild(msgDiv);
+    }
+    
+    if (error) {
+      msgDiv.style.color = 'var(--danger)';
+      msgDiv.textContent = "Erro ao reenviar: " + error.message;
+    } else {
+      msgDiv.style.color = 'var(--success)';
+      msgDiv.textContent = "✅ Novo código enviado! Verifique seu e-mail.";
+    }
+    resendBtn.disabled = false;
+    resendBtn.textContent = "📧 Reenviar Código";
   });
 }
 
@@ -316,6 +613,8 @@ window.updateNavbarCosmetics = function () {
     .querySelectorAll(".navbar-links a")
     .forEach((a) => (a.style.cursor = "pointer"));
 
+
+
   // Se o elemento ainda não existe (navbar carregando), tenta novamente em 100ms
   if (!bannerBg) {
     if (!window._navbarCosmeticsRetries) window._navbarCosmeticsRetries = 0;
@@ -338,40 +637,56 @@ window.updateNavbarCosmetics = function () {
 
   // 💡 Dados do Banco (Preferencial)
   let sData = null;
-  if (window.DB && window.DB._store && window.DB._store.profile) {
-    sData = window.DB._store.profile.store_data || {};
-  } else {
-    // 💡 Tenta carregar do localStorage genérico (usado em index.html etc.)
-    try {
-      const localStr = localStorage.getItem("animehouse_store");
-      if (localStr) sData = JSON.parse(localStr);
-    } catch (e) {
-      console.warn("Erro ao ler animehouse_store local", e);
-    }
+  let userId = null;
+  if (window.supabaseClient) {
+      // Tenta pegar o user ID de forma síncrona se possível ou via cache
+      userId = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token") ? 
+               JSON.parse(localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token")).user?.id : null;
   }
 
-  const dbBanner = sData?.equipped?.banner;
-  const localBanner = localStorage.getItem("animehouse_customBanner");
-  const savedBanner = dbBanner || localBanner || "none";
+  if (window.DB && window.DB._store && window.DB._store.profile) {
+    sData = window.DB._store.profile.store_data || {};
+  } else if (userId) {
+    // 💡 Tenta carregar da chave ISOLADA do usuário
+    try {
+      const localStr = localStorage.getItem(`animehouse_store_${userId}`);
+      if (localStr) sData = JSON.parse(localStr);
+    } catch (e) {}
+  }
 
-  const savedAura =
-    (sData && sData.equipped && sData.equipped.aura) ||
-    localStorage.getItem("animehouse_customAura") ||
-    "none";
-  const savedTitle =
-    (sData && sData.equipped && sData.equipped.titulo) ||
-    localStorage.getItem("animehouse_customTitle") ||
-    "";
-  const savedCrown =
-    (sData && sData.equipped && sData.equipped.crown === true) ||
-    (sData && sData.equipped && sData.equipped.crown === "true") ||
-    localStorage.getItem("animehouse_showCrown") === "true";
-  const hasFrame =
-    (sData && sData.equipped && (sData.equipped.frame_dourado === true || sData.equipped.frame_dourado === "true")) ||
-    localStorage.getItem("equipped_frame_dourado") === "true";
-  const hasTemaCromatico =
-    (sData && sData.equipped && (sData.equipped.tema_cromatico === true || sData.equipped.tema_cromatico === "true")) ||
-    localStorage.getItem("animehouse_tema_cromatico") === "true";
+  // Chaves para cosméticos - agora SEMPRE priorizando o banco ou o userId
+  const dbEquipped = sData?.equipped || {};
+
+  const getCosmetic = (key, fallback = "none") => {
+      // 1. Prioridade: Objeto do Banco (chave curta)
+      if (dbEquipped[key] !== undefined) return dbEquipped[key];
+
+      // 2. Fallback: LocalStorage (chave longa com prefixo)
+      if (userId) {
+          const mapping = {
+              aura: "animehouse_customAura",
+              banner: "animehouse_customBanner",
+              titulo: "animehouse_customTitle",
+              crown: "animehouse_showCrown",
+              crownId: "animehouse_equippedCrownId",
+              crownIcon: "animehouse_equippedCrownIcon",
+              tema_cromatico: "animehouse_tema_cromatico",
+              frame_dourado: "animehouse_frame_dourado"
+          };
+          const storageKey = mapping[key] || key;
+          const userKey = `${storageKey}_${userId}`;
+          const val = localStorage.getItem(userKey);
+          if (val) return val;
+      }
+      return fallback;
+  };
+
+  const savedBanner = getCosmetic("banner", "none");
+  const savedAura = getCosmetic("aura", "none");
+  const savedTitle = getCosmetic("titulo", "");
+  const savedCrown = getCosmetic("crown", false) === true || getCosmetic("crown", false) === "true";
+  const hasFrame = getCosmetic("frame_dourado", false) === true || getCosmetic("frame_dourado", false) === "true";
+  const hasTemaCromatico = getCosmetic("tema_cromatico", false) === true || getCosmetic("tema_cromatico", false) === "true";
 
   // 🌈 TEMA CROMÁTICO — restaurar se estava equipado
   if (hasTemaCromatico && window.setTheme) {
@@ -463,7 +778,7 @@ window.updateNavbarCosmetics = function () {
     if (sbCrown) {
       sbCrown.style.display = savedCrown ? "block" : "none";
       if (savedCrown) {
-        const crownIcon = (sData && sData.equipped && sData.equipped.crownIcon) || localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+        const crownIcon = getCosmetic("crownIcon", "👑");
         sbCrown.textContent = crownIcon;
       }
     }
@@ -482,8 +797,7 @@ window.updateNavbarCosmetics = function () {
   if (savedCrown) {
     const crown = document.createElement("div");
     crown.className = "crown-nav"; // Usar classe do style.css
-    const crownIcon = (sData && sData.equipped && (sData.equipped.crownIcon || sData.equipped.crown_icon)) || 
-                     localStorage.getItem("animehouse_equippedCrownIcon") || "👑";
+    const crownIcon = getCosmetic("crownIcon", "👑");
     crown.innerHTML = crownIcon;
     avatarBox.appendChild(crown);
   }
@@ -553,6 +867,26 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   tryLoadBanners();
+  
+  // Mostrar email no OTP section se já estivermos no meio de um registro
+  if (lastEmailRegistered) {
+    const otpSection = document.getElementById("otpSection");
+    if (otpSection) {
+      const emailMsg = otpSection.querySelector("p");
+      if (emailMsg) {
+        emailMsg.innerHTML = `<strong>🔑 Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
+      }
+    }
+  }
+
+  // Tratar erros vindos na URL...
+  if (window.location.hash) {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    if (hashParams.get("error_code") === "otp_expired" || hashParams.get("error_description")) {
+      console.warn("Autenticação Hash:", hashParams.get("error_description"));
+      window.history.replaceState(null, null, window.location.pathname);
+    }
+  }
 });
 
 // 6. Auth Status & Navbar Injection
@@ -617,6 +951,12 @@ window.checkAuthStatus = async function () {
                 </a>
             `;
       nav.appendChild(authContainer);
+      
+      // Se estamos no perfil e não temos perfil no banco, não expulsar imediatamente
+      if (!profile && currentPage === "perfil.html") {
+         console.warn("Perfil ainda não criado no banco. Aguardando sincronização...");
+      }
+
       if (!window.BANNER_MAP) await loadBanners();
       else updateNavbarCosmetics();
     } else {
@@ -626,7 +966,13 @@ window.checkAuthStatus = async function () {
   }
 
   // Proteção de rotas
-  const protected = ["cadastro.html", "cadastro-animes.html"];
+  const protected = [
+    "cadastro.html",
+    "cadastro-animes.html",
+    "cadastro-filmes.html",
+    "cadastro-youtube.html",
+    "perfil.html"
+  ];
   if (protected.includes(currentPage) && !session)
     window.location.href = "login.html";
 };
