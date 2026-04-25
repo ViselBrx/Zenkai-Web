@@ -590,22 +590,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.deleteSeason = (e, seasonNum) => {
     e.stopPropagation();
     const seasonKey = `s_${activeAnimeId}_${seasonNum}`;
-    if (!window.pendingDeletions) window.pendingDeletions = new Set();
-    window.pendingDeletions.add(seasonKey);
-    renderContent();
-
     showUndoToast(`Excluindo Temporada ${seasonNum} e episódios...`, 
       () => {
-        if (window.pendingDeletions.has(seasonKey)) {
-          DB.deleteAnimeSeason(activeAnimeId, activeAudio, seasonNum);
-          window.pendingDeletions.delete(seasonKey);
-          if(editingSeason === seasonNum) resetEpForm();
-          renderContent();
-        }
+        DB.deleteAnimeSeason(activeAnimeId, activeAudio, seasonNum);
+        if(editingSeason === seasonNum) resetEpForm();
+        renderContent();
       },
       () => {
-        window.pendingDeletions.delete(seasonKey);
-        renderContent();
+        // Não faz nada
       }
     );
   };
@@ -719,10 +711,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const id = activeEpisodeId;
     closeWatch();
 
-    if (!window.pendingDeletions) window.pendingDeletions = new Set();
-    window.pendingDeletions.add(id);
-    renderContent();
-
     let itemName = activeTypeForWatch === 'movie' ? 'Filme' : 'Episódio';
     if (activeTypeForWatch === 'movie') {
       const m = DB.getAnimeMoviesFor(activeAnimeId).find(x => x.id === id);
@@ -735,19 +723,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     showUndoToast(`Excluindo "${itemName}"...`, 
       () => {
-        if (window.pendingDeletions.has(id)) {
-          if (activeTypeForWatch === 'movie') {
-            DB.deleteAnimeMovie(activeAnimeId, id);
-          } else {
-            DB.deleteAnimeEpisode(activeAnimeId, activeAudio, activeSeasonForWatch, id);
-          }
-          window.pendingDeletions.delete(id);
-          renderContent();
+        if (activeTypeForWatch === 'movie') {
+          DB.deleteAnimeMovie(activeAnimeId, id);
+        } else {
+          DB.deleteAnimeEpisode(activeAnimeId, activeAudio, activeSeasonForWatch, id);
         }
+        renderContent();
       },
       () => {
-        window.pendingDeletions.delete(id);
-        renderContent();
+        // Não faz nada
       }
     );
   });

@@ -128,7 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         videos.forEach((v, index) => {
-            if (window.pendingDeletions && window.pendingDeletions.has(v.id)) return;
             const isW = Watched.isWatched(v.id);
             const card = document.createElement('div');
             card.className = 'episode-card' + (isW ? ' is-watched' : '');
@@ -233,20 +232,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!id || !activePlaylistId) return;
         
         document.getElementById('watchModal').classList.remove('open');
-        if (!window.pendingDeletions) window.pendingDeletions = new Set();
-        window.pendingDeletions.add(id);
-        renderVideos();
-
         showUndoToast('Excluindo vídeo...', () => {
-            if (window.pendingDeletions.has(id)) {
-                DB.deleteYoutubeVideo(activePlaylistId, id);
-                window.pendingDeletions.delete(id);
-                renderVideos();
-                if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
-            }
-        }, () => {
-            window.pendingDeletions.delete(id);
+            DB.deleteYoutubeVideo(activePlaylistId, id);
             renderVideos();
+            if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
+        }, () => {
+            // Não faz nada
         });
     };
 

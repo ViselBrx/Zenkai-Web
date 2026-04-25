@@ -134,24 +134,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeDelete();
 
       const idToHide = deletingId;
-      if (!window.pendingDeletions) window.pendingDeletions = new Set();
-      window.pendingDeletions.add(idToHide);
-      renderTable();
-
       showUndoToast(`Excluindo "${name}"...`,
         () => {
-          if (window.pendingDeletions.has(idToHide)) {
-            DB.deleteFilme(idToHide);
-            window.pendingDeletions.delete(idToHide);
-            initFilters();
-            renderTable();
-            // Auto-refresh após 7 segundos
-            setTimeout(() => window.location.reload(), 7000);
-          }
+          DB.deleteFilme(idToHide);
+          initFilters();
+          renderTable();
         },
         () => {
-          window.pendingDeletions.delete(idToHide);
-          renderTable();
+          // Não faz nada
         }
       );
     }

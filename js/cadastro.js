@@ -130,29 +130,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cartoonName = document.getElementById('deleteCartoonName').textContent;
       closeDelete();
       
-      // Armazenar temporariamente para desfazer
       const idToHide = deletingId;
       
-      if (!window.pendingDeletions) window.pendingDeletions = new Set();
-      window.pendingDeletions.add(idToHide);
-      renderTable();
-
       showUndoToast(`Excluindo "${cartoonName}"...`, 
         // onComplete: Excluir de verdade
         () => {
-          if (window.pendingDeletions.has(idToHide)) {
-            DB.deleteCartoon(idToHide);
-            window.pendingDeletions.delete(idToHide);
-            initFilters();
-            renderTable();
-            // Auto-refresh após 7 segundos
-            setTimeout(() => window.location.reload(), 7000);
-          }
+          DB.deleteCartoon(idToHide);
+          initFilters();
+          renderTable();
         },
         // onUndo: Restaurar
         () => {
-          window.pendingDeletions.delete(idToHide);
-          renderTable();
+          // Não faz nada
         }
       );
     }

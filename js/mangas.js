@@ -39,9 +39,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function queueMangaDeletion(idToHide, mangaName) {
-    if (!window.pendingDeletions) window.pendingDeletions = new Set();
-    window.pendingDeletions.add(idToHide);
-
     if (activeMangaId === idToHide) {
       activeMangaId = null;
     }
@@ -51,17 +48,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     showUndoToast(`Excluindo coleção "${mangaName}"...`,
       () => {
-        if (window.pendingDeletions.has(idToHide)) {
-          DB.deleteManga(idToHide);
-          window.pendingDeletions.delete(idToHide);
-          renderMangaPills();
-          renderVolumes();
-        }
-      },
-      () => {
-        window.pendingDeletions.delete(idToHide);
+        DB.deleteManga(idToHide);
         renderMangaPills();
         renderVolumes();
+      },
+      () => {
+        // Não faz nada
       }
     );
   }
@@ -302,21 +294,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.stopPropagation(); 
         
         const idToHide = v.id;
-        if (!window.pendingDeletions) window.pendingDeletions = new Set();
-        window.pendingDeletions.add(idToHide);
-        renderVolumes();
         
         showUndoToast(`Excluindo Volume ${v.volume_number}...`, 
             () => {
-              if (window.pendingDeletions.has(idToHide)) {
-                DB.deleteMangaVolume(activeMangaId, idToHide);
-                window.pendingDeletions.delete(idToHide);
-                renderVolumes();
-              }
+              DB.deleteMangaVolume(activeMangaId, idToHide);
+              renderVolumes();
             },
             () => {
-              window.pendingDeletions.delete(idToHide);
-              renderVolumes();
+              // Não faz nada
             }
         );
       });
