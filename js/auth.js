@@ -1206,6 +1206,7 @@ document.addEventListener("keydown", (e) => {
   const EXCLUDED_BTN_IDS = ["deleteAccountBtn", "confirmDeleteBtn"];
 
   // Mapa de input → botão de ação
+  // op
   const inputToBtnMap = {
     "otpToken": "verifyOtpBtn",
     "recoveryNewPassword": "recoveryBtn",
