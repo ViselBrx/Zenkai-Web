@@ -94,7 +94,7 @@ if (window.supabase) {
             </div>
           </div>
         `;
-        
+
         if (!document.getElementById('recoveryModal')) {
           document.body.insertAdjacentHTML('beforeend', modalHtml);
           // Animate In
@@ -112,14 +112,14 @@ if (window.supabase) {
         const iconEye = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
         const iconEyeOff = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
 
-        document.getElementById('toggleRecPass').addEventListener('click', function() {
+        document.getElementById('toggleRecPass').addEventListener('click', function () {
           const input = document.getElementById('recoveryNewPassword');
           const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
           input.setAttribute('type', type);
           this.innerHTML = type === 'password' ? iconEye : iconEyeOff;
         });
 
-        document.getElementById('toggleRecConfPass').addEventListener('click', function() {
+        document.getElementById('toggleRecConfPass').addEventListener('click', function () {
           const input = document.getElementById('recoveryConfirmPassword');
           const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
           input.setAttribute('type', type);
@@ -137,7 +137,7 @@ if (window.supabase) {
           const newPassword = document.getElementById('recoveryNewPassword').value;
           const confirmPassword = document.getElementById('recoveryConfirmPassword').value;
           const errorDiv = document.getElementById('recoveryError');
-          
+
           if (!newPassword || newPassword.length < 6) {
             errorDiv.innerHTML = "❌ A senha deve ter pelo menos 6 caracteres.";
             errorDiv.style.display = "block";
@@ -148,14 +148,14 @@ if (window.supabase) {
             errorDiv.style.display = "block";
             return;
           }
-          
+
           errorDiv.style.display = "none";
           const btn = document.getElementById('recoveryBtn');
           btn.innerHTML = `<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Atualizando...`;
           btn.disabled = true;
 
           const { error } = await supaClient.auth.updateUser({ password: newPassword });
-          
+
           if (error) {
             let msg = error.message;
             if (msg.toLowerCase().includes("different from the old password")) {
@@ -173,7 +173,7 @@ if (window.supabase) {
             const card = document.getElementById('recoveryCard');
             card.style.opacity = '0';
             card.style.transform = 'translateY(-20px)';
-            
+
             setTimeout(() => {
               card.innerHTML = `
                  <div style="margin-bottom:1.5rem; display:flex; justify-content:center;">
@@ -187,7 +187,7 @@ if (window.supabase) {
                `;
               card.style.borderColor = 'rgba(16,185,129,0.4)';
               card.style.boxShadow = '0 0 40px rgba(0,0,0,0.6), 0 0 20px rgba(16,185,129,0.2)';
-              
+
               card.style.transform = 'translateY(0)';
               card.style.opacity = '1';
 
@@ -1207,10 +1207,10 @@ document.addEventListener("keydown", (e) => {
 
   // Mapa de input → botão de ação
   const inputToBtnMap = {
-    "otpToken":              "verifyOtpBtn",
-    "recoveryNewPassword":   "recoveryBtn",
+    "otpToken": "verifyOtpBtn",
+    "recoveryNewPassword": "recoveryBtn",
     "recoveryConfirmPassword": "recoveryBtn",
-    "resendEmail":           "resendBtn",
+    "resendEmail": "resendBtn",
   };
 
   if (inputToBtnMap[el.id]) {
