@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         videosPanel.style.display = 'block';
         resetForm();
         renderVideos();
+        updateCopyLastBtn();
     }
 
     function renderVideos() {
@@ -162,12 +163,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // ── Validação customizada ─────────────────────────────────────────────────
+    ['videoTitle', 'videoIframe'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => { el.style.borderColor = ''; });
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
     videoForm.onsubmit = async (e) => {
         e.preventDefault();
         const vTitle = document.getElementById('videoTitle');
         const vIframe = document.getElementById('videoIframe');
         const titleText = vTitle.value.trim();
         const iframeText = vIframe.value.trim();
+
+        if (!titleText || !iframeText) {
+            showToast('Preencha os campos obrigatórios (*)', 'error');
+            return;
+        }
 
         try {
             if (editingVideoId) {

@@ -3157,7 +3157,7 @@
           };
 
           document.getElementById("logoutBtn").onclick = async () => {
-            // Limpeza profunda de cosméticos para evitar vazamento entre contas
+            // Limpeza profunda de cosméticos e dados para evitar vazamento entre contas
             const keysToClear = [
               "animehouse_customAura",
               "animehouse_customTitle",
@@ -3168,9 +3168,28 @@
               "animehouse_tema_cromatico",
               "equipped_tema_cromatico",
               "equipped_frame_dourado",
-              "animehouse_store"
+              "animehouse_store",
+              "animehouse_userLevel",
+              "animehouse_userRank",
+              "animehouse_prevLevel",
+              "animehouse_prevRank",
+              "animehouse_xpOffset",
+              "animehouse_calculatedXP",
+              "xp_cache",
+              "currency_ouro",
+              "currency_diamante",
+              "currency_esmeralda"
             ];
             keysToClear.forEach(k => localStorage.removeItem(k));
+            
+            const dynamicKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith("equipped_") || key.startsWith("animehouse_store_"))) {
+                dynamicKeys.push(key);
+              }
+            }
+            dynamicKeys.forEach((k) => localStorage.removeItem(k));
             
             await supabase.auth.signOut();
             window.location.href = "index.html";
