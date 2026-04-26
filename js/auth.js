@@ -998,8 +998,39 @@ window.addEventListener("storage", (e) => {
   if (!e.key || !e.key.startsWith("animehouse_")) return;
   if (typeof window.updateNavbarCosmetics === "function") {
     window.updateNavbarCosmetics();
+    
+    // Iniciar rastreamento de status online
+    window.startPresenceHeartbeat();
   }
 });
+
+// 🚀 Rastreamento de Presença (Online Status)
+window.startPresenceHeartbeat = function() {
+  if (!supaClient || window.presenceStarted) return;
+  window.presenceStarted = true;
+  
+  const updateStatus = async () => {
+    try {
+      const { data: { session } } = await supaClient.auth.getSession();
+      if (!session) return;
+      
+      const { error } = await supaClient
+        .from('profiles')
+        .update({ last_seen: new Date().toISOString() })
+        .eq('id', session.user.id);
+        
+      if (error) {
+        console.warn("⚠️ Não foi possível atualizar status online. Verifique se a coluna 'last_seen' existe na tabela 'profiles'.", error.message);
+      }
+    } catch (e) {
+      console.error("Erro no heartbeat de presença:", e);
+    }
+  };
+
+  // Atualiza na hora e depois a cada 2 minutos
+  updateStatus();
+  setInterval(updateStatus, 120000); 
+};
 
 // 🚀 Carregar banners automaticamente quando DOM estiver pronto
 document.addEventListener("DOMContentLoaded", () => {
@@ -1108,6 +1139,11 @@ window.checkAuthStatus = async function () {
 
       if (!window.BANNER_MAP) await loadBanners();
       else updateNavbarCosmetics();
+
+      // Iniciar batimento cardíaco de presença
+      if (typeof window.startPresenceHeartbeat === "function") {
+        window.startPresenceHeartbeat();
+      }
     } else {
       authContainer.innerHTML = `<a href="login.html" class="btn btn-primary btn-sm">👤 Entrar</a>`;
       nav.appendChild(authContainer);
@@ -1126,7 +1162,41 @@ window.checkAuthStatus = async function () {
     window.location.href = "login.html";
 };
 
+// 🚀 Preencher links da Navbar automaticamente
+function populateNavbarLinks() {
+  const navLinks = document.getElementById("navLinks");
+  if (!navLinks) return;
+
+  // Define os links padrão do site
+  const links = [
+    { name: "🏠 Início", url: "index.html" },
+    { name: "⛩️ Animes", url: "animes.html" },
+    { name: "📺 Desenhos", url: "catalogo-desenhos.html" },
+    { name: "🎬 Filmes", url: "filmes.html" },
+    { name: "📝 Cad. Desenhos", url: "cadastro.html" },
+    { name: "📝 Cad. Animes", url: "cadastro-animes.html" },
+    { name: "📝 Cad. Filmes", url: "cadastro-filmes.html" },
+    { name: "📝 Cad. YouTube", url: "cadastro-youtube.html" },
+    { name: "📚 Mangás", url: "mangas.html" },
+    { name: "▶️ YouTube", url: "youtube.html" },
+    { name: "🎌 SenseiMod Store", url: "loja.html" },
+    { name: "🤖 Open AnIme", url: "open-anime.html" },
+    { name: "💖 Agradecimento", url: "agradecimento.html" }
+  ];
+
+  const currentPage = window.location.pathname.split("/").pop() || "index.html";
+
+  navLinks.innerHTML = links.map(link => `
+    <li>
+      <a href="${link.url}" class="${currentPage === link.url ? 'active' : ''}">
+        ${link.name}
+      </a>
+    </li>
+  `).join('');
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  populateNavbarLinks();
   window.checkAuthStatus();
 });
 
@@ -1212,6 +1282,8 @@ document.addEventListener("keydown", (e) => {
     "recoveryNewPassword": "recoveryBtn",
     "recoveryConfirmPassword": "recoveryBtn",
     "resendEmail": "resendBtn",
+    "phoneLoginOtpToken": "verifyPhoneLoginOtpBtn",
+    "phoneRegOtpToken": "verifyPhoneRegOtpBtn",
   };
 
   if (inputToBtnMap[el.id]) {
@@ -1231,5 +1303,34 @@ document.addEventListener("keydown", (e) => {
       e.preventDefault();
       btn.click();
     }
+  }
+});
+
+// ==========================================
+// 6. Lógica de Login e Registro por Discord
+// ==========================================
+
+async function signInWithDiscord() {
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+  if (error) {
+    console.error('Erro ao entrar com Discord:', error.message);
+    alert('Erro ao conectar com Discord: ' + error.message);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const loginDiscordBtn = document.getElementById('discordLoginBtn');
+  if (loginDiscordBtn) {
+    loginDiscordBtn.addEventListener('click', signInWithDiscord);
+  }
+
+  const regDiscordBtn = document.getElementById('discordRegBtn');
+  if (regDiscordBtn) {
+    regDiscordBtn.addEventListener('click', signInWithDiscord);
   }
 });

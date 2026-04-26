@@ -11,3 +11,5 @@ https://dash.cloudflare.com/profile/api-tokens
 https://aistudio.google.com/app/u/4/api-keys?projectFilter=gen-lang-client-0375365290
 
 https://resend.com/api-keys
+
+https://dashboard.vonage.com/test-numbers - teste numbers

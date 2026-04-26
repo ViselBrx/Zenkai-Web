@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunidade - Anime House</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="js/themes.js"></script>
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    .community-container {
+      max-width: 1200px;
+      margin: 100px auto 50px;
+      padding: 0 20px;
+    }
+
+    /* Header / Hero Section */
+    .community-hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: radial-gradient(circle at center, rgba(var(--primary-rgb), 0.15) 0%, transparent 70%);
+      margin-bottom: 30px;
+      position: relative;
+      border-radius: 30px;
+      overflow: hidden;
+    }
+
+    .community-hero h1 {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #fff, var(--primary), #fff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shineText 5s linear infinite;
+      font-family: 'Bangers', cursive;
+      letter-spacing: 3px;
+    }
+
+    @keyframes shineText {
+      to { background-position: 200% center; }
+    }
+
+    .community-hero p {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .community-stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 30px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-item .value {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .stat-item .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    /* Barra de Busca Premium */
+    .community-search-wrapper {
+      background: rgba(var(--bg-card-rgb, 20, 20, 25), 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      border-radius: 20px;
+      padding: 10px;
+      display: flex;
+      gap: 15px;
+      max-width: 800px;
+      margin: -40px auto 40px;
+      position: relative;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .community-search {
+      flex: 1;
+      position: relative;
+    }
+
+    .community-search i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--primary);
+    }
+
+    .community-search input {
+      width: 100%;
+      padding: 12px 12px 12px 45px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    /* Status Indicators */
+    .status-dot-indicator {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--bg-card);
+      z-index: 5;
+    }
+
+    .status-dot-indicator.online { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
+    .status-dot-indicator.offline { background: #95a5a6; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 10px;
+      vertical-align: middle;
+      text-transform: uppercase;
+    }
+
+    .status-badge.online { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+    .status-badge.offline { background: rgba(149, 165, 166, 0.15); color: #95a5a6; }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* Social Sidebar */
+    .social-sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 5000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .social-sidebar-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .social-sidebar {
+      position: fixed;
+      top: 0;
+      left: -350px;
+      width: 350px;
+      height: 100vh;
+      background: rgba(var(--bg-card-rgb, 15, 15, 20), 0.9);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(var(--primary-rgb), 0.2);
+      z-index: 5001;
+      transition: left 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+    }
+
+    .social-sidebar.active {
+      left: 0;
+    }
+
+    .social-header {
+      padding: 30px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .social-header h2 {
+      font-family: 'Bangers', cursive;
+      color: var(--primary);
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
+    .social-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.2s;
+    }
+
+    .social-close-btn:hover { color: var(--danger); }
+
+    .social-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .social-section {
+      margin-bottom: 30px;
+    }
+
+    .social-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .social-section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .follower-mini-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      margin-bottom: 8px;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .follower-mini-card:hover {
+      background: rgba(var(--primary-rgb), 0.1);
+    }
+
+    .follower-mini-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--primary);
+      object-fit: cover;
+    }
+
+    .follower-mini-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .follower-mini-name {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .follower-mini-status {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .social-toggle-btn {
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      color: var(--primary);
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 100;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .social-toggle-btn i {
+      font-size: 1.2rem;
+      filter: drop-shadow(0 0 5px var(--primary));
+    }
+
+    .social-toggle-btn:hover {
+      background: rgba(var(--primary-rgb), 0.25);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5), inset 0 0 10px rgba(var(--primary-rgb), 0.2);
+      transform: translateY(-3px) scale(1.1);
+    }
+
+    .social-empty {
+      text-align: center;
+      padding: 30px 10px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .user-hub-capsule {
+      position: fixed;
+      top: 85px;
+      left: 15px;
+      display: flex;
+      align-items: center;
+      background: rgba(15, 15, 20, 0.6);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 60px;
+      padding: 5px;
+      gap: 5px;
+      z-index: 5000;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(var(--primary-rgb), 0.1);
+      transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .user-hub-capsule:hover {
+      border-color: var(--primary);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(var(--primary-rgb), 0.2);
+      transform: translateY(-2px);
+    }
+
+    .user-hub-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 2px 15px 2px 2px;
+      text-decoration: none;
+      border-radius: 50px;
+      transition: background 0.3s;
+    }
+
+    .user-hub-profile:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .user-hub-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary);
+      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.4);
+    }
+
+    .user-hub-info {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .user-hub-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 800;
+      opacity: 0.7;
+    }
+
+    .user-hub-name {
+      font-size: 1.1rem;
+      color: #fff;
+      font-family: 'Bangers', cursive;
+      letter-spacing: 0.5px;
+    }
+
+    .user-hub-separator {
+      width: 1px;
+      height: 25px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 5px;
+    }
+
+    .user-hub-social-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1.1rem;
+    }
+
+    .user-hub-social-btn:hover {
+      background: rgba(var(--primary-rgb), 0.2);
+      color: var(--primary);
+      transform: rotate(15deg) scale(1.1);
+    }
+
+    .user-hub-social-btn.active {
+      color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.1);
+    }
+
+    /* Grid de Usuários */
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+      margin-top: 20px;
+    }
+
+    /* Card do Usuário (Estilo Premium) */
+    .user-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      animation: cardEntrance 0.6s cubic-bezier(0.23, 1, 0.32, 1) backwards;
+    }
+
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .user-card:hover {
+      transform: translateY(-12px);
+      border-color: var(--primary);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(var(--primary-rgb), 0.2);
+    }
+
+    /* Banner do Card */
+    .user-banner {
+      width: 100%;
+      height: 90px;
+      background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.3), rgba(var(--secondary-rgb, 100, 100, 255), 0.1));
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    /* Aura no Card */
+    .user-card.has-aura .user-banner::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--primary);
+      opacity: 0.25;
+      mix-blend-mode: screen;
+      animation: auraPulse 3s infinite ease-in-out;
+    }
+
+    @keyframes auraPulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.4; }
+    }
+
+    .user-card.has-aura {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .user-avatar-wrapper {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      margin: -45px auto 10px;
+      z-index: 2;
+    }
+
+    .user-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--bg-card);
+      background: var(--bg-card);
+      transition: border-color 0.3s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .user-card:hover .user-avatar {
+      border-color: var(--primary);
+    }
+
+    .user-info-section {
+      padding: 0 20px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 2px;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-level {
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Status Grid (Followers, XP, etc) */
+    .user-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding: 12px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: 'Bangers', cursive;
+      letter-spacing: 1px;
+    }
+
+    .stat-label {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value i {
+      font-size: 0.8rem;
+      margin-right: 3px;
+      color: var(--primary);
+    }
+
+    /* Loading State */
+    .loading-spinner {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px;
+      color: var(--primary);
+      font-size: 2rem;
+    }
+
+    /* Badge VIP */
+    .vip-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 4px 8px;
+      border-radius: 12px;
+      color: #ffd700;
+      font-size: 0.8rem;
+      font-weight: bold;
+      z-index: 3;
+      border: 1px solid #ffd700;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+      backdrop-filter: blur(4px);
+    }
+
+    .community-filter select {
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      cursor: pointer;
+      min-width: 180px;
+    }
+
+    .community-filter select:focus {
+      border-color: var(--primary);
+    }
+
+    /* Botão de Seguir */
+    .btn-follow {
+      display: inline-block;
+      width: 100%;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-follow:hover {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
+    }
+
+    .btn-follow.following {
+      background: rgba(var(--text-muted-rgb, 150, 150, 150), 0.1);
+      border-color: var(--text-muted);
+      color: var(--text-muted);
+    }
+
+    .btn-follow.following:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+      color: var(--danger);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-follow.following:hover::before {
+      content: "Deixar de Seguir";
+    }
+
+    .btn-follow.following span {
+      display: inline;
+    }
+
+    .btn-follow.following:hover span {
+      display: none;
+    }
+
+    /* Modal de Perfil Premium */
+    .profile-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+    }
+
+    .profile-modal.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .modal-content-wrapper {
+      position: relative;
+      width: 90%;
+      max-width: 450px;
+      transform: translateY(30px) scale(0.9);
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .profile-modal.active .modal-content-wrapper {
+      transform: translateY(0) scale(1);
+    }
+
+    /* O Card dentro do Modal */
+    .modal-profile-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(var(--primary-rgb), 0.2);
+      position: relative;
+    }
+
+    /* Brilho Shimmer no Modal */
+    .modal-profile-card::before {
+      content: '';
+      position: absolute;
+      top: -150%;
+      left: -150%;
+      width: 300%;
+      height: 300%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      transform: rotate(45deg);
+      animation: shimmerEffect 4s infinite linear;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    @keyframes shimmerEffect {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .modal-banner {
+      width: 100%;
+      height: 150px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+
+    .modal-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent, var(--bg-card));
+    }
+
+    .modal-avatar-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: -70px auto 15px;
+      z-index: 2;
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s;
+    }
+
+    .profile-modal.active .modal-avatar-wrapper {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .modal-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 6px solid var(--bg-card);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      background: var(--bg-card);
+    }
+
+    .modal-info {
+      padding: 0 30px 30px;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease 0.4s;
+    }
+
+    .profile-modal.active .modal-info {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .modal-name {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 5px;
+      font-family: 'Bangers', cursive;
+      letter-spacing: 1px;
+    }
+
+    .modal-level {
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      margin-bottom: 20px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 10;
+      transition: transform 0.3s;
+      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .modal-close:hover {
+      transform: rotate(90deg) scale(1.2);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </div>
+    <ul class="navbar-links" id="navLinks">
+    </ul>
+    <button class="navbar-burger" id="navBurger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <main class="community-container">
+    <!-- Hero da Comunidade -->
+    <header class="community-hero">
+      <!-- Hub do Usuário (Cápsula Unificada) -->
+      <div id="userHub" class="user-hub-capsule" style="display: none;">
+        <div id="userHubProfile" class="user-hub-profile">
+          <img id="userHubAvatar" src="assets/tryhard.png" class="user-hub-avatar" alt="Avatar">
+          <div class="user-hub-info">
+            <span class="user-hub-label">Logado como</span>
+            <span id="userHubName" class="user-hub-name">...</span>
+          </div>
+        </div>
+        <div class="user-hub-separator"></div>
+        <button id="socialToggle" class="user-hub-social-btn" title="Ver Seguidores">
+          <i class="fas fa-user-friends"></i>
+        </button>
+      </div>
+      
+      <h1>Nossa Comunidade</h1>
+      <p>Conecte-se com outros maratonistas, compartilhe sua jornada e suba no ranking da nossa tribo!</p>
+      
+      <div class="community-stats-bar">
+        <div class="stat-item">
+          <span class="value" id="totalMembers">--</span>
+          <span class="label">Membros</span>
+        </div>
+        <div class="stat-item">
+          <span class="value" id="onlineNow">--</span>
+          <span class="label">Online Agora</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="community-search-wrapper">
+      <div class="community-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="userSearch" placeholder="Pesquisar maratonistas por nome de usuário...">
+      </div>
+      
+      <div class="community-filter">
+        <select id="userSort">
+          <option value="recent">Mais Recentes</option>
+          <option value="level-desc">Maior Nível</option>
+          <option value="xp-desc">Mais XP</option>
+          <option value="nome-asc">Ordem Alfabética</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="users-grid" id="usersGrid">
+      <div class="loading-spinner">
+        <i class="fas fa-circle-notch fa-spin"></i>
+      </div>
+    </div>
+
+    <!-- Modal de Perfil Expandido -->
+    <div id="profileModal" class="profile-modal">
+      <div class="modal-content-wrapper">
+        <span class="modal-close" id="closeModal">&times;</span>
+        <div class="modal-profile-card">
+          <div id="modalBanner" class="modal-banner"></div>
+          <div class="modal-avatar-wrapper">
+            <img id="modalImg" class="modal-img" src="" alt="Foto de Perfil">
+          </div>
+          <div class="modal-info">
+            <h2 id="modalName" class="modal-name"></h2>
+            <div id="modalLevel" class="modal-level"></div>
+            <div id="modalStats" class="user-stats-grid"></div>
+            <div id="modalActions" style="margin-top: 20px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/db.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/usuarios.js"></script>
+
+  <!-- Social Sidebar UI -->
+  <div class="social-sidebar-overlay" id="socialOverlay"></div>
+  <div class="social-sidebar" id="socialSidebar">
+    <div class="social-header">
+      <h2>Conexões</h2>
+      <button class="social-close-btn" id="closeSocial">✕</button>
+    </div>
+    
+    <div class="social-content">
+      <div class="social-section">
+        <h3 class="social-section-title"><i class="fas fa-users"></i> Seguidores</h3>
+        <div id="myFollowersList">
+          <div class="social-empty">Carregando seus seguidores...</div>
+        </div>
+      </div>
+
+      <div class="social-section">
+        <h3 class="social-section-title"><i class="fas fa-comments"></i> Conversas</h3>
+        <div class="social-empty">
+          <i class="fas fa-tools" style="display:block; font-size: 1.5rem; margin-bottom: 10px; opacity: 0.5;"></i>
+          Sistema de chat em breve!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('closeSocial').onclick = () => {
+      document.getElementById('socialSidebar').classList.remove('active');
+      document.getElementById('socialOverlay').classList.remove('active');
+    };
+    document.getElementById('socialOverlay').onclick = () => {
+      document.getElementById('socialSidebar').classList.remove('active');
+      document.getElementById('socialOverlay').classList.remove('active');
+    };
+  </script>
+</body>
+</html>
