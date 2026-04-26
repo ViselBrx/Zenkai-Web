@@ -2,14 +2,94 @@ document.addEventListener('DOMContentLoaded', async () => {
   const usersGrid = document.getElementById('usersGrid');
   const searchInput = document.getElementById('userSearch');
   const sortSelect = document.getElementById('userSort');
-  const currentUserBadge = document.getElementById('currentUserBadge');
   const profileModal = document.getElementById('profileModal');
-  const modalImg = document.getElementById('modalImg');
   const closeModal = document.getElementById('closeModal');
+
+  const socialSidebar = document.getElementById('socialSidebar');
+  const socialOverlay = document.getElementById('socialOverlay');
+  const socialToggle = document.getElementById('socialToggle');
+  const closeSocialBtn = document.getElementById('closeSocial');
+  const followersTabBtn = document.getElementById('followersTabBtn');
+  const chatTabBtn = document.getElementById('chatTabBtn');
+  const followersPanel = document.getElementById('followersPanel');
+  const chatPanel = document.getElementById('chatPanel');
+  const socialUnreadBadge = document.getElementById('socialUnreadBadge');
+  const socialHeaderUnreadBadge = document.getElementById('socialHeaderUnreadBadge');
+  const socialHeaderPresence = document.getElementById('socialHeaderPresence');
+
+  const conversationSearch = document.getElementById('conversationSearch');
+  const conversationList = document.getElementById('conversationList');
+  const chatEmptyState = document.getElementById('chatEmptyState');
+  const chatThread = document.getElementById('chatThread');
+  const chatHeaderAvatar = document.getElementById('chatHeaderAvatar');
+  const chatHeaderName = document.getElementById('chatHeaderName');
+  const chatHeaderStatus = document.getElementById('chatHeaderStatus');
+  const chatOpenProfileBtn = document.getElementById('chatOpenProfileBtn');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatAttachmentBtn = document.getElementById('chatAttachmentBtn');
+  const chatAttachmentInput = document.getElementById('chatAttachmentInput');
+  const chatAttachmentPreview = document.getElementById('chatAttachmentPreview');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatSendBtnLabel = document.getElementById('chatSendBtnLabel');
+  const chatDraftLabel = document.getElementById('chatDraftLabel');
+  const chatCharCounter = document.getElementById('chatCharCounter');
+  const chatImageViewer = document.getElementById('chatImageViewer');
+  const chatImageViewerImg = document.getElementById('chatImageViewerImg');
+  const chatImageViewerTitle = document.getElementById('chatImageViewerTitle');
+  const chatImageViewerOpen = document.getElementById('chatImageViewerOpen');
+  const chatImageViewerClose = document.getElementById('chatImageViewerClose');
+  const chatDeleteConfirmModal = document.getElementById('chatDeleteConfirmModal');
+  const chatDeleteConfirmTitle = document.getElementById('chatDeleteConfirmTitle');
+  const chatDeleteConfirmText = document.getElementById('chatDeleteConfirmText');
+  const chatDeleteConfirmCancel = document.getElementById('chatDeleteConfirmCancel');
+  const chatDeleteConfirmAccept = document.getElementById('chatDeleteConfirmAccept');
+  const chatActionModal = document.getElementById('chatActionModal');
+  const chatActionTitle = document.getElementById('chatActionTitle');
+  const chatActionText = document.getElementById('chatActionText');
+  const chatActionList = document.getElementById('chatActionList');
+  const chatActionCancel = document.getElementById('chatActionCancel');
+
+  const CHAT_TABLE = 'direct_messages';
+  const CHAT_ATTACHMENT_BUCKET = 'chat-attachments';
+  const CHAT_SETUP_HINT = 'Execute database/schema/14_user_chat.sql no Supabase para ativar o chat.';
+  const CHAT_DELETE_SETUP_HINT = 'Execute database/fixes/18_direct_messages_delete_message_support.sql no Supabase para liberar a exclusao de mensagens.';
+  const CHAT_ATTACHMENT_SETUP_HINT = 'Execute database/storage/03_chat_attachments_bucket.sql no Supabase para liberar o envio de arquivos.';
+  const CHAT_ATTACHMENT_MAX_BYTES = 50 * 1024 * 1024;
+  const ONLINE_WINDOW_MS = 300000;
+  const COMMUNITY_LEVEL_XP_PER_LEVEL = 100;
+  const COMMUNITY_PRESENCE_REFRESH_MS = 30000;
+  const SESSION_KEYS = {
+    activeChat: 'animehouse_active_chat_user',
+    activeTab: 'animehouse_social_tab',
+    drafts: 'animehouse_chat_drafts'
+  };
 
   let allUsers = [];
   let allFollowersData = [];
   let currentUser = null;
+  let directMessages = [];
+  let activeChatUserId = null;
+  let activeSidebarTab = 'followers';
+  let chatTableAvailable = true;
+  let chatSending = false;
+  let conversationDrafts = {};
+  let selectedChatFile = null;
+  let selectedChatPreviewUrl = null;
+  let realtimeReady = false;
+  let chatDeleteConfirmResolver = null;
+  let activeChatActionMessageId = null;
+  let pendingChatRenderMode = 'auto';
+  let lastRenderedChatUserId = null;
+  let communityPresenceTimer = null;
+  let filterRenderTimer = null;
+  let sidebarRenderQueued = false;
+
+  document.body.classList.add('community-performance');
+  restoreSidebarState();
+  setupStaticListeners();
+  await init();
 
   async function init() {
     try {
@@ -19,231 +99,1806 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      // Verifica usuário logado
       const { data: { session } } = await supa.auth.getSession();
       if (session) {
         currentUser = session.user;
-        renderCurrentUserBadge();
+        if (typeof window.startPresenceHeartbeat === 'function') {
+          window.startPresenceHeartbeat();
+        }
+        await renderCurrentUserBadge();
       }
 
       await loadData();
-      
-      // Configurar Realtime para atualizações instantâneas
+      syncCurrentUserCommunityState();
+      await markPendingMessagesAsDelivered();
+      ensureActiveChatStillValid();
       setupRealtimeListeners();
-      
-      // Listeners
-      searchInput.addEventListener('input', applyFilters);
-      sortSelect.addEventListener('change', applyFilters);
-
-      // Modal Listeners
-      closeModal.onclick = () => profileModal.classList.remove('active');
-      profileModal.onclick = (e) => {
-        if (e.target === profileModal) profileModal.classList.remove('active');
-      };
-
+      setupCommunityRefresh();
+      applyFilters();
+      renderSidebar();
     } catch (err) {
       console.error('Erro ao inicializar comunidade:', err);
       usersGrid.innerHTML = '<p class="error" style="grid-column: 1/-1; text-align:center;">Erro ao carregar a comunidade.</p>';
     }
   }
 
+  function setupStaticListeners() {
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        if (filterRenderTimer) clearTimeout(filterRenderTimer);
+        filterRenderTimer = setTimeout(() => {
+          filterRenderTimer = null;
+          applyFilters();
+        }, 90);
+      });
+    }
+    if (sortSelect) sortSelect.addEventListener('change', applyFilters);
+
+    if (closeModal) {
+      closeModal.onclick = () => profileModal.classList.remove('active');
+    }
+
+    if (profileModal) {
+      profileModal.onclick = (event) => {
+        if (event.target === profileModal) profileModal.classList.remove('active');
+      };
+    }
+
+    if (closeSocialBtn) {
+      closeSocialBtn.addEventListener('click', closeSocialSidebar);
+    }
+
+    if (socialOverlay) {
+      socialOverlay.addEventListener('click', closeSocialSidebar);
+    }
+
+    if (followersTabBtn) {
+      followersTabBtn.addEventListener('click', () => {
+        selectSidebarTab('followers');
+      });
+    }
+
+    if (chatTabBtn) {
+      chatTabBtn.addEventListener('click', () => {
+        if (!activeChatUserId) {
+          const firstConversation = buildConversationSummaries()[0];
+          if (firstConversation) activeChatUserId = firstConversation.otherUserId;
+        }
+        selectSidebarTab('chat');
+      });
+    }
+
+    if (chatOpenProfileBtn) {
+      chatOpenProfileBtn.addEventListener('click', () => {
+        if (!activeChatUserId) return;
+        closeSocialSidebar();
+        openProfileModal(activeChatUserId);
+      });
+    }
+
+    if (conversationSearch) {
+      conversationSearch.addEventListener('input', renderConversationList);
+    }
+
+    if (chatForm) {
+      chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        await sendCurrentMessage();
+      });
+    }
+
+    if (chatInput) {
+      chatInput.addEventListener('keydown', async (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          await sendCurrentMessage();
+        }
+      });
+
+      chatInput.addEventListener('input', () => {
+        autoResizeTextarea();
+        persistDraftForActiveChat();
+        setChatInputState();
+      });
+    }
+
+    if (chatAttachmentBtn && chatAttachmentInput) {
+      chatAttachmentBtn.addEventListener('click', () => {
+        if (!chatAttachmentBtn.disabled) chatAttachmentInput.click();
+      });
+
+      chatAttachmentInput.addEventListener('change', async (event) => {
+        await handleChatAttachmentSelection(event.target.files?.[0] || null);
+      });
+    }
+
+    if (chatMessages) {
+      chatMessages.addEventListener('click', async (event) => {
+        const messageActionTrigger = event.target.closest('[data-chat-message-actions-open]');
+        if (messageActionTrigger) {
+          event.preventDefault();
+          openChatMessageActions(messageActionTrigger.getAttribute('data-chat-message-actions-open'));
+          return;
+        }
+
+        const trigger = event.target.closest('[data-chat-image-url]');
+        if (!trigger) return;
+
+        event.preventDefault();
+        openChatImageViewer(
+          trigger.getAttribute('data-chat-image-url') || '',
+          trigger.getAttribute('data-chat-image-name') || 'Imagem do chat'
+        );
+      });
+    }
+
+    if (chatImageViewerClose) {
+      chatImageViewerClose.addEventListener('click', closeChatImageViewer);
+    }
+
+    if (chatImageViewer) {
+      chatImageViewer.addEventListener('click', (event) => {
+        if (event.target === chatImageViewer) closeChatImageViewer();
+      });
+    }
+
+    if (chatDeleteConfirmCancel) {
+      chatDeleteConfirmCancel.addEventListener('click', () => {
+        resolveChatDeleteConfirm(false);
+      });
+    }
+
+    if (chatDeleteConfirmAccept) {
+      chatDeleteConfirmAccept.addEventListener('click', () => {
+        resolveChatDeleteConfirm(true);
+      });
+    }
+
+    if (chatDeleteConfirmModal) {
+      chatDeleteConfirmModal.addEventListener('click', (event) => {
+        if (event.target === chatDeleteConfirmModal) {
+          resolveChatDeleteConfirm(false);
+        }
+      });
+    }
+
+    if (chatActionCancel) {
+      chatActionCancel.addEventListener('click', closeChatMessageActions);
+    }
+
+    if (chatActionModal) {
+      chatActionModal.addEventListener('click', (event) => {
+        if (event.target === chatActionModal) {
+          closeChatMessageActions();
+          return;
+        }
+
+        const actionButton = event.target.closest('[data-chat-message-action]');
+        if (!actionButton) return;
+
+        const action = actionButton.getAttribute('data-chat-message-action');
+        const messageId = actionButton.getAttribute('data-chat-message-id');
+        closeChatMessageActions();
+        handleChatMessageAction(action, messageId);
+      });
+    }
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && chatDeleteConfirmResolver) {
+        resolveChatDeleteConfirm(false);
+        return;
+      }
+
+      if (event.key === 'Escape' && activeChatActionMessageId) {
+        closeChatMessageActions();
+        return;
+      }
+
+      if (event.key === 'Escape' && chatImageViewer?.classList.contains('active')) {
+        closeChatImageViewer();
+        return;
+      }
+    });
+  }
+
   function setupRealtimeListeners() {
+    if (realtimeReady) return;
+
     const supa = window.supabaseClient;
     if (!supa) return;
 
-    // 1. Escutar mudanças na tabela de seguidores (Seguidores em tempo real)
+    realtimeReady = true;
+
     supa
       .channel('followers-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'followers' }, async (payload) => {
         console.log('🔔 Mudança Realtime:', payload.eventType);
-        
+
         if (payload.eventType === 'INSERT') {
-          // INSERT é fácil: o payload.new tem tudo que precisamos
-          const exists = allFollowersData.some(f => 
-            (f.id && f.id === payload.new.id) || 
-            (f.follower_id === payload.new.follower_id && f.following_id === payload.new.following_id)
+          const exists = allFollowersData.some(item =>
+            (item.id && item.id === payload.new.id) ||
+            (item.follower_id === payload.new.follower_id && item.following_id === payload.new.following_id)
           );
-          if (!exists) {
-            allFollowersData.push(payload.new);
-          }
+          if (!exists) allFollowersData.push(payload.new);
           updateSpecificUserStats(payload.new.following_id);
         } else if (payload.eventType === 'DELETE' || payload.eventType === 'UPDATE') {
-          // DELETE é complexo porque payload.old pode vir incompleto dependendo da config do banco.
-          // Para garantir 100% de precisão no "deixar de seguir", buscamos a lista fresca.
           const { data: freshFollowers } = await supa.from('followers').select('*');
           if (freshFollowers) {
             allFollowersData = freshFollowers;
-            // Como não sabemos quem foi deletado só pelo payload.old incompleto, 
-            // atualizamos os contadores de todos para garantir. 
-            // Como otimizei a função abaixo, ela será rápida agora.
             updateAllFollowersUI();
           }
         }
-        
-        // Atualizar estatística global do topo
-        // (Removido totalFollowers)
       })
       .subscribe();
 
-    // 2. Escutar mudanças nos perfis (Status Online/Avatar/Nome)
     supa
       .channel('profiles-realtime')
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
-        const index = allUsers.findIndex(u => u.id === payload.new.id);
+        const index = allUsers.findIndex(user => user.id === payload.new.id);
         if (index !== -1) {
           allUsers[index] = { ...allUsers[index], ...payload.new };
-          updateUserCardUI(payload.new.id);
+          syncCurrentUserCommunityState();
+          refreshCommunityPresenceAndStats();
+          if (window.updateMyFollowers && socialSidebar?.classList.contains('active')) window.updateMyFollowers();
+        }
+      })
+      .subscribe();
+
+    if (!currentUser || !chatTableAvailable) return;
+
+    supa
+      .channel('direct-messages-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: CHAT_TABLE }, async (payload) => {
+        const candidate = payload.new || payload.old;
+        if (!candidate) return;
+
+        const belongsToCurrentUser =
+          candidate.sender_id === currentUser.id || candidate.recipient_id === currentUser.id;
+
+        if (!belongsToCurrentUser) return;
+
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          upsertDirectMessage(payload.new);
+        }
+
+        scheduleSidebarRender(payload.eventType === 'INSERT' ? 'auto' : 'preserve');
+
+        if (payload.eventType === 'INSERT' && payload.new && payload.new.recipient_id === currentUser.id) {
+          if (activeChatUserId && payload.new.sender_id === activeChatUserId && activeSidebarTab === 'chat') {
+            await markConversationAsRead(activeChatUserId);
+          } else {
+            await markPendingMessagesAsDelivered();
+          }
         }
       })
       .subscribe();
   }
 
-  // Função otimizada para atualizar TODOS os contadores sem lag
+  function restoreSidebarState() {
+    try {
+      activeChatUserId = sessionStorage.getItem(SESSION_KEYS.activeChat) || null;
+      activeSidebarTab = sessionStorage.getItem(SESSION_KEYS.activeTab) || 'followers';
+      conversationDrafts = JSON.parse(sessionStorage.getItem(SESSION_KEYS.drafts) || '{}') || {};
+    } catch (error) {
+      activeChatUserId = null;
+      activeSidebarTab = 'followers';
+      conversationDrafts = {};
+    }
+  }
+
+  function persistSidebarState() {
+    try {
+      if (activeChatUserId) {
+        sessionStorage.setItem(SESSION_KEYS.activeChat, activeChatUserId);
+      } else {
+        sessionStorage.removeItem(SESSION_KEYS.activeChat);
+      }
+      sessionStorage.setItem(SESSION_KEYS.activeTab, activeSidebarTab);
+      sessionStorage.setItem(SESSION_KEYS.drafts, JSON.stringify(conversationDrafts));
+    } catch (error) {
+      console.warn('Não foi possível persistir o estado da sidebar:', error);
+    }
+  }
+
+  function isMissingRelationError(error) {
+    const message = String(error?.message || '');
+    return error?.code === 'PGRST205'
+      || /relation .* does not exist/i.test(message)
+      || /Could not find the table/i.test(message);
+  }
+
+  function getUserDisplayName(user) {
+    return user?.full_name || user?.username || ('Membro_' + String(user?.id || '').substring(0, 5));
+  }
+
+  function getUserAvatar(user) {
+    return user?.avatar_url || 'assets/tryhard.png';
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function formatFileSize(bytes) {
+    const size = Number(bytes || 0);
+    if (!Number.isFinite(size) || size <= 0) return '';
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function sanitizeFileName(name) {
+    return String(name || 'arquivo')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9._-]+/g, '_')
+      .replace(/_+/g, '_')
+      .slice(0, 80) || 'arquivo';
+  }
+
+  function toFiniteNumber(value, fallback = 0) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : fallback;
+  }
+
+  function getUserCommunityProgress(user) {
+    const storeData = user?.store_data || {};
+    const xpCandidates = [
+      storeData.total_xp,
+      storeData.totalXP,
+      storeData.xp,
+      user?.total_xp,
+      user?.totalXP
+    ];
+
+    let totalXp = 0;
+    xpCandidates.some((candidate) => {
+      const parsed = Number(candidate);
+      if (!Number.isFinite(parsed)) return false;
+      totalXp = Math.max(0, parsed);
+      return true;
+    });
+
+    let explicitLevel = 0;
+    [storeData.level, storeData.userLevel, user?.level].some((candidate) => {
+      const parsed = parseInt(candidate, 10);
+      if (!Number.isFinite(parsed) || parsed < 1) return false;
+      explicitLevel = parsed;
+      return true;
+    });
+
+    if (currentUser?.id && user?.id === currentUser.id) {
+      const localTotalXp = parseInt(localStorage.getItem('animehouse_totalXP') || '', 10);
+      const localLevel = parseInt(localStorage.getItem('animehouse_userLevel') || '', 10);
+
+      if (Number.isFinite(localTotalXp) && localTotalXp >= 0) {
+        totalXp = localTotalXp;
+      }
+
+      if (Number.isFinite(localLevel) && localLevel >= 1) {
+        explicitLevel = Math.max(explicitLevel, localLevel);
+      }
+    }
+
+    const computedLevel = Math.floor(totalXp / COMMUNITY_LEVEL_XP_PER_LEVEL) + 1;
+    const level = Math.max(explicitLevel || 0, computedLevel, 1);
+
+    return {
+      totalXp,
+      level,
+      isVip: totalXp > 5000
+    };
+  }
+
+  function syncCurrentUserCommunityState() {
+    if (!currentUser) return;
+
+    const index = allUsers.findIndex((user) => user.id === currentUser.id);
+    if (index === -1) return;
+
+    const currentEntry = allUsers[index] || {};
+    const nextStoreData = { ...(currentEntry.store_data || {}) };
+    const localTotalXp = parseInt(localStorage.getItem('animehouse_totalXP') || '', 10);
+    const localLevel = parseInt(localStorage.getItem('animehouse_userLevel') || '', 10);
+
+    if (Number.isFinite(localTotalXp) && localTotalXp >= 0) {
+      nextStoreData.total_xp = localTotalXp;
+      nextStoreData.xp = localTotalXp;
+    }
+
+    if (Number.isFinite(localLevel) && localLevel >= 1) {
+      nextStoreData.level = localLevel;
+    }
+
+    allUsers[index] = {
+      ...currentEntry,
+      last_seen: new Date().toISOString(),
+      store_data: nextStoreData
+    };
+  }
+
+  function isImageFile(fileOrMime) {
+    const mimeType = typeof fileOrMime === 'string'
+      ? fileOrMime
+      : String(fileOrMime?.type || '');
+    return mimeType.startsWith('image/');
+  }
+
+  function getAttachmentKind(source) {
+    if (source?.attachment_kind === 'image' || source?.attachment_kind === 'file') {
+      return source.attachment_kind;
+    }
+
+    const mimeType = String(source?.attachment_mime_type || source?.type || '');
+    return isImageFile(mimeType) ? 'image' : 'file';
+  }
+
+  function getMessagePreview(message) {
+    if (!message) return 'Nova conversa';
+    if (isMessageDeletedForEveryone(message)) return 'Mensagem apagada pelo remetente';
+
+    const parts = [];
+    if (message.attachment_url) {
+      if (getAttachmentKind(message) === 'image') {
+        parts.push('Foto enviada');
+      } else {
+        parts.push(`Arquivo: ${message.attachment_name || 'anexo'}`);
+      }
+    }
+
+    if (String(message.content || '').trim()) {
+      parts.push(String(message.content).trim());
+    }
+
+    const preview = parts.join(' • ') || 'Nova conversa';
+    return message.sender_id === currentUser?.id ? `Você: ${preview}` : preview;
+  }
+
+  function getMessageStatus(message) {
+    if (message.read_at) return 'seen';
+    if (message.delivered_at) return 'delivered';
+    return 'sent';
+  }
+
+  function isMessageDeletedForEveryone(message) {
+    return !!message?.deleted_for_everyone_at;
+  }
+
+  function isMessageHiddenForCurrentUser(message) {
+    if (!currentUser || !message) return false;
+    if (message.sender_id === currentUser.id) return !!message.hidden_for_sender_at;
+    if (message.recipient_id === currentUser.id) return !!message.hidden_for_recipient_at;
+    return false;
+  }
+
+  function getRenderableMessageText(message) {
+    if (isMessageDeletedForEveryone(message)) {
+      return 'Esta mensagem foi apagada pelo usuario que a enviou.';
+    }
+
+    return String(message?.content || '').trim();
+  }
+
+  function getChatMessageById(messageId) {
+    return directMessages.find((message) => String(message.id) === String(messageId)) || null;
+  }
+
+  function getChatMessageActions(message) {
+    if (!message?.id || !currentUser) return [];
+
+    const actions = [{
+      key: 'delete-me',
+      label: 'Excluir para mim',
+      icon: 'fas fa-trash-alt',
+      danger: false
+    }];
+
+    if (message.sender_id === currentUser.id && !isMessageDeletedForEveryone(message)) {
+      actions.push({
+        key: 'delete-everyone',
+        label: 'Excluir para todos',
+        icon: 'fas fa-ban',
+        danger: true
+      });
+    }
+
+    return actions;
+  }
+
+  function openChatMessageActions(messageId) {
+    const message = getChatMessageById(messageId);
+    if (!message || !chatActionModal || !chatActionList) return;
+
+    const actions = getChatMessageActions(message);
+    if (actions.length === 0) return;
+
+    activeChatActionMessageId = String(message.id);
+    if (chatActionTitle) chatActionTitle.textContent = 'Acoes da mensagem';
+    if (chatActionText) {
+      chatActionText.textContent = message.sender_id === currentUser?.id
+        ? 'Voce pode remover esta mensagem so da sua conversa ou apagar para todos.'
+        : 'Voce pode remover esta mensagem apenas da sua conversa.';
+    }
+
+    chatActionList.innerHTML = actions.map((action) => `
+      <button
+        type="button"
+        class="chat-action-btn ${action.danger ? 'danger' : ''}"
+        data-chat-message-action="${escapeHtml(action.key)}"
+        data-chat-message-id="${escapeHtml(String(message.id))}"
+      >
+        <i class="${escapeHtml(action.icon)}"></i>
+        <span>${escapeHtml(action.label)}</span>
+      </button>
+    `).join('');
+
+    chatActionModal.classList.add('active');
+    chatActionModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeChatMessageActions() {
+    if (!activeChatActionMessageId) return;
+    activeChatActionMessageId = null;
+    if (chatActionModal) {
+      chatActionModal.classList.remove('active');
+      chatActionModal.setAttribute('aria-hidden', 'true');
+    }
+    document.body.style.overflow = '';
+  }
+
+  function renderMessageActionsMarkup(message) {
+    if (!message?.id || !currentUser) return '';
+    const messageId = escapeHtml(String(message.id));
+
+    return `
+      <div class="chat-bubble-head">
+        <div class="chat-message-action-wrap">
+          <button
+            type="button"
+            class="chat-message-menu-btn"
+            data-chat-message-actions-open="${messageId}"
+            title="Acoes da mensagem"
+          >
+            <i class="fas fa-ellipsis-v"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderMessageStatusMarkup(message) {
+    if (!message || message.sender_id !== currentUser?.id) return '';
+
+    const status = getMessageStatus(message);
+    if (status === 'seen') {
+      return `
+        <span class="chat-message-status seen" title="Visualizada">
+          <span class="chat-status-double">
+            <i class="fas fa-check"></i><i class="fas fa-check"></i>
+          </span>
+        </span>
+      `;
+    }
+
+    if (status === 'delivered') {
+      return `
+        <span class="chat-message-status delivered" title="Entregue">
+          <span class="chat-status-double">
+            <i class="fas fa-check"></i><i class="fas fa-check"></i>
+          </span>
+        </span>
+      `;
+    }
+
+    return `
+      <span class="chat-message-status sent" title="Enviada">
+        <i class="fas fa-check"></i>
+      </span>
+    `;
+  }
+
+  function renderMessageAttachmentMarkup(message) {
+    if (!message?.attachment_url || isMessageDeletedForEveryone(message)) return '';
+
+    const attachmentUrl = escapeHtml(message.attachment_url);
+    const attachmentName = escapeHtml(message.attachment_name || 'arquivo');
+    const attachmentSize = formatFileSize(message.attachment_size_bytes);
+    const attachmentMeta = attachmentSize
+      ? `<small>${escapeHtml(attachmentSize)}</small>`
+      : '';
+
+    if (getAttachmentKind(message) === 'image') {
+      return `
+        <button
+          type="button"
+          class="chat-attachment-image-link"
+          data-chat-image-url="${attachmentUrl}"
+          data-chat-image-name="${attachmentName}"
+          aria-label="Abrir imagem ${attachmentName}"
+        >
+          <img class="chat-attachment-image" src="${attachmentUrl}" alt="${attachmentName}">
+          <span class="chat-attachment-image-overlay">
+            <i class="fas fa-image"></i>
+            <span>Foto completa</span>
+          </span>
+        </button>
+        <div class="chat-attachment-actions">
+          <button
+            type="button"
+            class="chat-attachment-caption"
+            data-chat-image-url="${attachmentUrl}"
+            data-chat-image-name="${attachmentName}"
+          >
+            <i class="fas fa-image"></i>
+            <span>${attachmentName}</span>
+            ${attachmentMeta}
+          </button>
+          <a class="chat-attachment-inline-link" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
+            Abrir em nova aba
+          </a>
+        </div>
+      `;
+    }
+
+    const fileInfo = [
+      escapeHtml(message.attachment_mime_type || 'Arquivo'),
+      attachmentSize ? escapeHtml(attachmentSize) : ''
+    ].filter(Boolean).join(' • ');
+
+    return `
+      <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
+        <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
+        <span class="chat-file-meta">
+          <strong>${attachmentName}</strong>
+          <small>${fileInfo}</small>
+        </span>
+      </a>
+    `;
+  }
+
+  function isUserOnline(user) {
+    const lastSeen = user?.last_seen ? new Date(user.last_seen) : null;
+    return !!(lastSeen && (Date.now() - lastSeen.getTime()) < ONLINE_WINDOW_MS);
+  }
+
+  function getStatusText(user) {
+    if (isUserOnline(user)) return 'Online agora';
+
+    const lastSeen = user?.last_seen ? new Date(user.last_seen) : null;
+    if (!lastSeen || Number.isNaN(lastSeen.getTime())) return 'Offline';
+
+    const diffMinutes = Math.max(1, Math.round((Date.now() - lastSeen.getTime()) / 60000));
+    if (diffMinutes < 60) return `Visto há ${diffMinutes} min`;
+
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) return `Visto há ${diffHours} h`;
+
+    return 'Offline';
+  }
+
+  function formatConversationTime(value) {
+    if (!value) return '';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+
+    const diffMinutes = Math.max(1, Math.round((Date.now() - date.getTime()) / 60000));
+    if (diffMinutes < 60) return `${diffMinutes} min`;
+
+    const diffHours = Math.round(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} h`;
+
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  }
+
+  function formatMessageTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function buildConversationSummaries() {
+    const map = new Map();
+
+    directMessages
+      .filter((message) => !isMessageHiddenForCurrentUser(message))
+      .forEach((message) => {
+      const otherUserId = message.sender_id === currentUser.id ? message.recipient_id : message.sender_id;
+      const existing = map.get(otherUserId);
+      const nextUnread = (
+        message.recipient_id === currentUser.id &&
+        !message.read_at &&
+        !isMessageDeletedForEveryone(message)
+      ) ? 1 : 0;
+
+      if (!existing) {
+        map.set(otherUserId, {
+          otherUserId,
+          lastMessage: message,
+          unreadCount: nextUnread
+        });
+        return;
+      }
+
+      existing.unreadCount += nextUnread;
+      if (new Date(message.created_at).getTime() >= new Date(existing.lastMessage.created_at).getTime()) {
+        existing.lastMessage = message;
+      }
+    });
+
+    if (activeChatUserId && !map.has(activeChatUserId)) {
+      map.set(activeChatUserId, {
+        otherUserId: activeChatUserId,
+        lastMessage: null,
+        unreadCount: 0
+      });
+    }
+
+    return [...map.values()].sort((a, b) => {
+      const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
+      const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
+  }
+
+  function getConversationMessages(otherUserId) {
+    if (!currentUser) return [];
+    return directMessages.filter((message) => {
+      const belongsToConversation =
+        (message.sender_id === currentUser.id && message.recipient_id === otherUserId) ||
+        (message.sender_id === otherUserId && message.recipient_id === currentUser.id);
+
+      return belongsToConversation && !isMessageHiddenForCurrentUser(message);
+    });
+  }
+
+  function getConversationDraft(userId) {
+    return userId ? String(conversationDrafts[userId] || '') : '';
+  }
+
+  function getOnlineCount() {
+    let count = 0;
+    allUsers.forEach((user) => {
+      if (isUserOnline(user)) count += 1;
+    });
+    return count;
+  }
+
+  function refreshCommunityPresenceAndStats() {
+    syncCurrentUserCommunityState();
+    applyFilters();
+    scheduleSidebarRender('preserve');
+
+    if (profileModal?.classList.contains('active') && window.currentModalUserId) {
+      window.openProfileModal(window.currentModalUserId);
+    }
+  }
+
+  function setupCommunityRefresh() {
+    if (communityPresenceTimer) return;
+
+    communityPresenceTimer = setInterval(() => {
+      refreshCommunityPresenceAndStats();
+    }, COMMUNITY_PRESENCE_REFRESH_MS);
+
+    window.addEventListener('focus', () => {
+      syncCurrentUserCommunityState();
+      if (typeof window.startPresenceHeartbeat === 'function') {
+        window.startPresenceHeartbeat();
+      }
+      refreshCommunityPresenceAndStats();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      syncCurrentUserCommunityState();
+      refreshCommunityPresenceAndStats();
+    });
+  }
+
+  function buildFollowersCountMap() {
+    const counts = new Map();
+    allFollowersData.forEach((item) => {
+      counts.set(item.following_id, (counts.get(item.following_id) || 0) + 1);
+    });
+    return counts;
+  }
+
+  function buildFollowingSet(followerId = currentUser?.id) {
+    const following = new Set();
+    if (!followerId) return following;
+
+    allFollowersData.forEach((item) => {
+      if (item.follower_id === followerId) following.add(item.following_id);
+    });
+    return following;
+  }
+
+  function mergeChatRenderMode(currentMode, nextMode) {
+    const priority = { auto: 0, preserve: 1, bottom: 2 };
+    return (priority[nextMode] || 0) > (priority[currentMode] || 0) ? nextMode : currentMode;
+  }
+
+  function scheduleSidebarRender(mode = 'auto') {
+    pendingChatRenderMode = mergeChatRenderMode(pendingChatRenderMode, mode);
+    if (sidebarRenderQueued) return;
+    sidebarRenderQueued = true;
+
+    requestAnimationFrame(() => {
+      sidebarRenderQueued = false;
+      renderSidebar();
+    });
+  }
+
+  function setConversationDraft(userId, value) {
+    if (!userId) return;
+
+    const normalized = String(value || '').slice(0, 600);
+    if (normalized.trim()) {
+      conversationDrafts[userId] = normalized;
+    } else {
+      delete conversationDrafts[userId];
+    }
+
+    persistSidebarState();
+  }
+
+  function persistDraftForActiveChat() {
+    setConversationDraft(activeChatUserId, chatInput?.value || '');
+  }
+
+  function getUnreadCount() {
+    return directMessages.reduce((count, message) => {
+      if (
+        message.recipient_id === currentUser?.id &&
+        !message.read_at &&
+        !isMessageHiddenForCurrentUser(message) &&
+        !isMessageDeletedForEveryone(message)
+      ) {
+        return count + 1;
+      }
+      return count;
+    }, 0);
+  }
+
+  function renderUnreadBadges() {
+    const unreadCount = getUnreadCount();
+    const show = unreadCount > 0;
+
+    if (socialUnreadBadge) {
+      socialUnreadBadge.style.display = show ? 'inline-flex' : 'none';
+      socialUnreadBadge.textContent = unreadCount;
+    }
+
+    if (socialHeaderUnreadBadge) {
+      socialHeaderUnreadBadge.style.display = show ? 'inline-flex' : 'none';
+      socialHeaderUnreadBadge.textContent = unreadCount;
+    }
+  }
+
+  function updatePresenceLabel() {
+    if (!socialHeaderPresence) return;
+    const onlineCount = getOnlineCount();
+    socialHeaderPresence.innerHTML = `<i class="fas fa-signal"></i><span>${onlineCount} online agora</span>`;
+  }
+
+  function autoResizeTextarea() {
+    if (!chatInput) return;
+    chatInput.style.height = 'auto';
+    const nextHeight = Math.min(Math.max(chatInput.scrollHeight, 56), 112);
+    chatInput.style.height = `${nextHeight}px`;
+  }
+
+  function openChatImageViewer(imageUrl, imageName) {
+    if (!chatImageViewer || !chatImageViewerImg) return;
+    if (!imageUrl) return;
+
+    const safeName = String(imageName || 'Imagem do chat');
+    chatImageViewer.classList.add('active');
+    chatImageViewer.setAttribute('aria-hidden', 'false');
+    chatImageViewerImg.src = imageUrl;
+    chatImageViewerImg.alt = safeName;
+    if (chatImageViewerTitle) chatImageViewerTitle.textContent = safeName;
+    if (chatImageViewerOpen) chatImageViewerOpen.href = imageUrl;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeChatImageViewer() {
+    if (!chatImageViewer || !chatImageViewerImg) return;
+
+    chatImageViewer.classList.remove('active');
+    chatImageViewer.setAttribute('aria-hidden', 'true');
+    chatImageViewerImg.src = '';
+    if (chatImageViewerOpen) chatImageViewerOpen.href = '#';
+    document.body.style.overflow = '';
+  }
+
+  function openChatDeleteConfirm(options = {}) {
+    if (!chatDeleteConfirmModal || !chatDeleteConfirmAccept || !chatDeleteConfirmCancel) {
+      return Promise.resolve(false);
+    }
+
+    if (chatDeleteConfirmResolver) {
+      chatDeleteConfirmResolver(false);
+    }
+
+    if (chatDeleteConfirmTitle) {
+      chatDeleteConfirmTitle.textContent = options.title || 'Excluir mensagem?';
+    }
+
+    if (chatDeleteConfirmText) {
+      chatDeleteConfirmText.textContent = options.message || 'Essa acao nao podera ser desfeita.';
+    }
+
+    chatDeleteConfirmAccept.textContent = options.confirmLabel || 'Excluir';
+    chatDeleteConfirmCancel.textContent = options.cancelLabel || 'Cancelar';
+    chatDeleteConfirmModal.classList.add('active');
+    chatDeleteConfirmModal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    return new Promise((resolve) => {
+      chatDeleteConfirmResolver = resolve;
+      setTimeout(() => {
+        chatDeleteConfirmAccept.focus();
+      }, 0);
+    });
+  }
+
+  function resolveChatDeleteConfirm(confirmed) {
+    if (!chatDeleteConfirmResolver) return;
+
+    const resolver = chatDeleteConfirmResolver;
+    chatDeleteConfirmResolver = null;
+
+    if (chatDeleteConfirmModal) {
+      chatDeleteConfirmModal.classList.remove('active');
+      chatDeleteConfirmModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.body.style.overflow = '';
+    resolver(!!confirmed);
+  }
+
+  function clearSelectedChatAttachment() {
+    if (selectedChatPreviewUrl) {
+      URL.revokeObjectURL(selectedChatPreviewUrl);
+      selectedChatPreviewUrl = null;
+    }
+    selectedChatFile = null;
+    if (chatAttachmentInput) chatAttachmentInput.value = '';
+    renderSelectedAttachmentPreview();
+  }
+
+  async function handleChatAttachmentSelection(file) {
+    if (!file) {
+      clearSelectedChatAttachment();
+      setChatInputState();
+      return;
+    }
+
+    if (file.size > CHAT_ATTACHMENT_MAX_BYTES) {
+      clearSelectedChatAttachment();
+      showNotice('O arquivo excede o limite de 50 MB para o chat.');
+      setChatInputState();
+      return;
+    }
+
+    selectedChatFile = file;
+    renderSelectedAttachmentPreview();
+    setChatInputState();
+  }
+
+  function renderSelectedAttachmentPreview() {
+    if (!chatAttachmentPreview) return;
+
+    if (!selectedChatFile) {
+      chatAttachmentPreview.classList.add('hidden');
+      chatAttachmentPreview.innerHTML = '';
+      updateChatComposerMeta();
+      return;
+    }
+
+    if (selectedChatPreviewUrl) {
+      URL.revokeObjectURL(selectedChatPreviewUrl);
+      selectedChatPreviewUrl = null;
+    }
+
+    const isImage = isImageFile(selectedChatFile);
+    selectedChatPreviewUrl = isImage ? URL.createObjectURL(selectedChatFile) : null;
+
+    chatAttachmentPreview.classList.remove('hidden');
+    chatAttachmentPreview.innerHTML = `
+      <div class="chat-attachment-preview-main">
+        ${isImage
+          ? `<img class="chat-attachment-preview-thumb" src="${escapeHtml(selectedChatPreviewUrl)}" alt="${escapeHtml(selectedChatFile.name)}">`
+          : `<span class="chat-attachment-preview-icon"><i class="fas fa-file"></i></span>`}
+        <div class="chat-attachment-preview-meta">
+          <span class="chat-attachment-preview-name">${escapeHtml(selectedChatFile.name)}</span>
+          <span class="chat-attachment-preview-info">${escapeHtml(selectedChatFile.type || 'Arquivo')} • ${escapeHtml(formatFileSize(selectedChatFile.size))}</span>
+        </div>
+      </div>
+      <button type="button" class="chat-attachment-remove" title="Remover anexo">
+        <i class="fas fa-times"></i>
+      </button>
+    `;
+
+    const removeBtn = chatAttachmentPreview.querySelector('.chat-attachment-remove');
+    if (removeBtn) {
+      removeBtn.addEventListener('click', () => {
+        clearSelectedChatAttachment();
+        setChatInputState();
+      });
+    }
+
+    updateChatComposerMeta();
+  }
+
+  function updateChatComposerMeta() {
+    if (chatCharCounter) {
+      const length = String(chatInput?.value || '').length;
+      chatCharCounter.textContent = `${length}/600`;
+    }
+
+    if (!chatDraftLabel) return;
+
+    if (!currentUser) {
+      chatDraftLabel.textContent = 'Faca login para conversar.';
+      return;
+    }
+
+    if (!chatTableAvailable) {
+      chatDraftLabel.textContent = CHAT_SETUP_HINT;
+      return;
+    }
+
+    if (!activeChatUserId) {
+      chatDraftLabel.textContent = 'Escolha uma conversa para liberar o envio.';
+      return;
+    }
+
+    if (selectedChatFile) {
+      chatDraftLabel.textContent = `Anexo pronto para envio: ${selectedChatFile.name} (${formatFileSize(selectedChatFile.size)})`;
+      return;
+    }
+
+    const hasDraft = String(chatInput?.value || '').trim().length > 0;
+    chatDraftLabel.textContent = hasDraft
+      ? 'Rascunho salvo automaticamente. Clique em Enviar ou pressione Enter.'
+      : 'Digite, clique em Enviar ou anexe arquivos de ate 50 MB.';
+  }
+
+  function setChatBusy(isBusy) {
+    chatSending = isBusy;
+    if (chatSendBtnLabel) {
+      chatSendBtnLabel.textContent = isBusy ? 'Enviando...' : 'Enviar mensagem';
+    } else if (chatSendBtn) {
+      chatSendBtn.textContent = isBusy ? 'Enviando...' : 'Enviar mensagem';
+    }
+    setChatInputState();
+  }
+
+  function setChatInputState() {
+    const disabled = !currentUser || !chatTableAvailable || !activeChatUserId || chatSending;
+
+    if (activeChatUserId) {
+      const draft = getConversationDraft(activeChatUserId);
+      if (chatInput && chatInput.value !== draft) chatInput.value = draft;
+    } else if (chatInput?.value) {
+      chatInput.value = '';
+    }
+
+    const hasPayload = String(chatInput?.value || '').trim().length > 0 || !!selectedChatFile;
+
+    if (chatInput) {
+      chatInput.disabled = disabled;
+      chatInput.placeholder = !currentUser
+        ? 'Faça login para conversar...'
+        : !chatTableAvailable
+          ? 'Ative a tabela do chat no Supabase...'
+          : !activeChatUserId
+            ? 'Selecione uma conversa para comecar...'
+            : 'Digite sua mensagem ou envie uma foto...';
+    }
+
+    if (chatAttachmentBtn) chatAttachmentBtn.disabled = disabled;
+    if (chatAttachmentInput) chatAttachmentInput.disabled = disabled;
+    if (chatSendBtn) chatSendBtn.disabled = disabled || !hasPayload;
+
+    autoResizeTextarea();
+    updateChatComposerMeta();
+  }
+
+  function selectSidebarTab(tabName) {
+    activeSidebarTab = tabName === 'chat' ? 'chat' : 'followers';
+
+    if (activeSidebarTab === 'chat' && !activeChatUserId) {
+      const firstConversation = buildConversationSummaries()[0];
+      if (firstConversation) activeChatUserId = firstConversation.otherUserId;
+    }
+
+    if (followersTabBtn) followersTabBtn.classList.toggle('active', activeSidebarTab === 'followers');
+    if (chatTabBtn) chatTabBtn.classList.toggle('active', activeSidebarTab === 'chat');
+    if (followersPanel) followersPanel.classList.toggle('active', activeSidebarTab === 'followers');
+    if (chatPanel) chatPanel.classList.toggle('active', activeSidebarTab === 'chat');
+
+    persistSidebarState();
+
+    if (activeSidebarTab === 'chat' && activeChatUserId) {
+      markConversationAsRead(activeChatUserId);
+    }
+  }
+
+  function openSocialSidebar(tabName = activeSidebarTab) {
+    selectSidebarTab(tabName);
+    if (socialSidebar) socialSidebar.classList.add('active');
+    if (socialOverlay) socialOverlay.classList.add('active');
+    if (socialToggle) socialToggle.classList.add('active');
+    pendingChatRenderMode = 'bottom';
+    renderSidebar(true);
+  }
+
+  function closeSocialSidebar() {
+    if (socialSidebar) socialSidebar.classList.remove('active');
+    if (socialOverlay) socialOverlay.classList.remove('active');
+    if (socialToggle) socialToggle.classList.remove('active');
+  }
+
+  function ensureActiveChatStillValid() {
+    if (!activeChatUserId) return;
+    if (currentUser && activeChatUserId === currentUser.id) {
+      activeChatUserId = null;
+      persistSidebarState();
+      return;
+    }
+
+    const exists = allUsers.some((user) => user.id === activeChatUserId);
+    if (!exists && buildConversationSummaries().length === 0) {
+      activeChatUserId = null;
+      persistSidebarState();
+    }
+  }
+
+  function renderConversationList() {
+    if (!conversationList) return;
+
+    if (!currentUser) {
+      conversationList.innerHTML = '<div class="social-empty">Faça login para conversar com outros usuários.</div>';
+      return;
+    }
+
+    if (!chatTableAvailable) {
+      conversationList.innerHTML = `<div class="social-empty">${CHAT_SETUP_HINT}</div>`;
+      return;
+    }
+
+    const searchTerm = String(conversationSearch?.value || '').trim().toLowerCase();
+    const conversations = buildConversationSummaries().filter((summary) => {
+      const user = allUsers.find((item) => item.id === summary.otherUserId);
+      const text = `${getUserDisplayName(user)} ${getMessagePreview(summary.lastMessage)}`.toLowerCase();
+      return !searchTerm || text.includes(searchTerm);
+    });
+
+    if (conversations.length === 0) {
+      conversationList.innerHTML = searchTerm
+        ? '<div class="social-empty">Nenhuma conversa encontrada para essa busca.</div>'
+        : '<div class="social-empty">Nenhuma conversa iniciada ainda.</div>';
+      return;
+    }
+
+    conversationList.innerHTML = '';
+
+    conversations.forEach((summary) => {
+      const otherUser = allUsers.find((item) => item.id === summary.otherUserId);
+      if (!otherUser) return;
+
+      const isActive = activeChatUserId === summary.otherUserId;
+      const isOnline = isUserOnline(otherUser);
+      const preview = getMessagePreview(summary.lastMessage);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `conversation-item ${isActive ? 'active' : ''}`;
+      button.onclick = () => {
+        window.openChatWithUser(summary.otherUserId);
+      };
+
+      button.innerHTML = `
+        <div class="conversation-avatar-wrap">
+          <img src="${getUserAvatar(otherUser)}" class="conversation-avatar" alt="${escapeHtml(getUserDisplayName(otherUser))}">
+          <span class="conversation-dot ${isOnline ? 'online' : 'offline'}"></span>
+        </div>
+        <div class="conversation-meta">
+          <div class="conversation-name-row">
+            <span class="conversation-name">${escapeHtml(getUserDisplayName(otherUser))}</span>
+            <span class="conversation-time">${formatConversationTime(summary.lastMessage?.created_at)}</span>
+          </div>
+          <div class="conversation-preview-row">
+            <span class="conversation-preview">${escapeHtml(preview)}</span>
+            ${summary.unreadCount > 0 ? `<span class="conversation-unread">${summary.unreadCount}</span>` : ''}
+          </div>
+        </div>
+      `;
+
+      conversationList.appendChild(button);
+    });
+  }
+
+  function renderActiveChat() {
+    if (!chatEmptyState || !chatThread) return;
+
+    if (!currentUser) {
+      lastRenderedChatUserId = null;
+      chatEmptyState.style.display = 'block';
+      chatThread.classList.add('hidden');
+      chatEmptyState.innerHTML = '<i class="fas fa-lock" style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>Faça login para usar o chat.';
+      setChatInputState();
+      return;
+    }
+
+    if (!chatTableAvailable) {
+      lastRenderedChatUserId = null;
+      chatEmptyState.style.display = 'block';
+      chatThread.classList.add('hidden');
+      chatEmptyState.innerHTML = `<i class="fas fa-database" style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>${CHAT_SETUP_HINT}`;
+      setChatInputState();
+      return;
+    }
+
+    if (!activeChatUserId) {
+      lastRenderedChatUserId = null;
+      chatEmptyState.style.display = 'block';
+      chatThread.classList.add('hidden');
+      chatEmptyState.innerHTML = '<i class="fas fa-paper-plane" style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>Abra uma conversa por um seguidor ou pelo perfil de outro usuário.';
+      setChatInputState();
+      return;
+    }
+
+    const targetUser = allUsers.find((item) => item.id === activeChatUserId);
+    if (!targetUser) {
+      lastRenderedChatUserId = null;
+      chatEmptyState.style.display = 'block';
+      chatThread.classList.add('hidden');
+      chatEmptyState.innerHTML = '<i class="fas fa-user-slash" style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>Usuário não encontrado.';
+      setChatInputState();
+      return;
+    }
+
+    chatEmptyState.style.display = 'none';
+    chatThread.classList.remove('hidden');
+    chatHeaderAvatar.src = getUserAvatar(targetUser);
+    chatHeaderName.textContent = getUserDisplayName(targetUser);
+    chatHeaderStatus.textContent = getStatusText(targetUser);
+
+    const messages = getConversationMessages(activeChatUserId);
+    const previousScrollTop = chatMessages.scrollTop;
+    const previousScrollHeight = chatMessages.scrollHeight;
+    const previousClientHeight = chatMessages.clientHeight;
+    const previousDistanceFromBottom = previousScrollHeight - (previousScrollTop + previousClientHeight);
+    const shouldForceBottom = pendingChatRenderMode === 'bottom' || lastRenderedChatUserId !== activeChatUserId;
+    const shouldAutoStickBottom = pendingChatRenderMode === 'auto' && previousDistanceFromBottom <= 36;
+    closeChatMessageActions();
+    chatMessages.innerHTML = '';
+
+    if (messages.length === 0) {
+      chatMessages.innerHTML = '<div class="social-empty" style="padding: 24px 12px;">Conversa iniciada. Envie a primeira mensagem.</div>';
+    } else {
+      messages.forEach((message) => {
+        const bubble = document.createElement('div');
+        const isMine = message.sender_id === currentUser.id;
+        const hasAttachment = !!message.attachment_url;
+        const isDeleted = isMessageDeletedForEveryone(message);
+        bubble.className = `chat-bubble ${isMine ? 'me' : ''} ${hasAttachment ? 'has-attachment' : ''} ${isDeleted ? 'is-deleted' : ''}`.trim();
+        bubble.innerHTML = `
+          ${renderMessageActionsMarkup(message)}
+          ${renderMessageAttachmentMarkup(message)}
+          ${isDeleted
+            ? `<div class="chat-bubble-deleted"><i class="fas fa-ban"></i><span>${escapeHtml(getRenderableMessageText(message))}</span></div>`
+            : (getRenderableMessageText(message)
+              ? `<div class="chat-bubble-text">${escapeHtml(getRenderableMessageText(message))}</div>`
+              : '')}
+          <div class="chat-bubble-footer">
+            <span class="chat-bubble-time">${formatMessageTime(message.created_at)}</span>
+            ${renderMessageStatusMarkup(message)}
+          </div>
+        `;
+        chatMessages.appendChild(bubble);
+      });
+    }
+
+    if (shouldForceBottom || shouldAutoStickBottom) {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else {
+      const maxScrollTop = Math.max(chatMessages.scrollHeight - chatMessages.clientHeight, 0);
+      chatMessages.scrollTop = Math.min(previousScrollTop, maxScrollTop);
+    }
+
+    lastRenderedChatUserId = activeChatUserId;
+    pendingChatRenderMode = 'auto';
+    setChatInputState();
+  }
+
+  function renderSidebar(forceFull = false) {
+    renderUnreadBadges();
+    if (!forceFull && !socialSidebar?.classList.contains('active')) return;
+    updatePresenceLabel();
+    renderConversationList();
+    renderActiveChat();
+  }
+
+  function upsertDirectMessage(message) {
+    if (!message?.id) return;
+
+    const index = directMessages.findIndex((item) => item.id === message.id);
+    if (index === -1) {
+      directMessages.push(message);
+    } else {
+      directMessages[index] = { ...directMessages[index], ...message };
+    }
+
+    directMessages.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  }
+
+  async function markPendingMessagesAsDelivered() {
+    if (!currentUser || !chatTableAvailable) return;
+
+    const pending = directMessages.filter((message) =>
+      message.recipient_id === currentUser.id &&
+      !message.delivered_at &&
+      !isMessageHiddenForCurrentUser(message) &&
+      !isMessageDeletedForEveryone(message)
+    );
+
+    if (pending.length === 0) return;
+
+    const deliveredAt = new Date().toISOString();
+    pending.forEach((message) => {
+      message.delivered_at = deliveredAt;
+    });
+    scheduleSidebarRender('preserve');
+
+    try {
+      const { error } = await window.supabaseClient
+        .from(CHAT_TABLE)
+        .update({ delivered_at: deliveredAt })
+        .eq('recipient_id', currentUser.id)
+        .is('delivered_at', null);
+
+      if (error) throw error;
+    } catch (error) {
+      console.warn('Não foi possível marcar as mensagens como entregues:', error?.message || error);
+    }
+  }
+
+  async function markConversationAsRead(otherUserId) {
+    if (!currentUser || !chatTableAvailable) return;
+
+    const unread = directMessages.filter((message) =>
+      message.sender_id === otherUserId &&
+      message.recipient_id === currentUser.id &&
+      !message.read_at &&
+      !isMessageHiddenForCurrentUser(message) &&
+      !isMessageDeletedForEveryone(message)
+    );
+
+    if (unread.length === 0) {
+      renderUnreadBadges();
+      return;
+    }
+
+    const readAt = new Date().toISOString();
+    unread.forEach((message) => {
+      message.delivered_at = message.delivered_at || readAt;
+      message.read_at = readAt;
+    });
+    scheduleSidebarRender('preserve');
+
+    try {
+      const { error } = await window.supabaseClient
+        .from(CHAT_TABLE)
+        .update({ delivered_at: readAt, read_at: readAt })
+        .eq('sender_id', otherUserId)
+        .eq('recipient_id', currentUser.id)
+        .is('read_at', null);
+
+      if (error) throw error;
+    } catch (error) {
+      console.warn('Não foi possível marcar a conversa como lida:', error?.message || error);
+    }
+  }
+
+  function showNotice(message) {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, 'error', 7000);
+    } else {
+      alert(message);
+    }
+  }
+
+  function showSuccessNotice(message) {
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, 'success', 7000);
+    }
+  }
+
+  function isChatDeleteSchemaError(error) {
+    const message = String(error?.message || '');
+    return /hidden_for_sender_at/i.test(message)
+      || /hidden_for_recipient_at/i.test(message)
+      || /deleted_for_everyone_at/i.test(message)
+      || /direct_messages_payload_check/i.test(message)
+      || /check constraint/i.test(message);
+  }
+
+  function getChatDeleteErrorMessage(error) {
+    if (isChatDeleteSchemaError(error)) return CHAT_DELETE_SETUP_HINT;
+    return error?.message || 'Nao foi possivel atualizar a mensagem.';
+  }
+
+  function isMissingBucketError(error) {
+    const message = String(error?.message || '');
+    return /bucket/i.test(message) || /storage/i.test(message) || error?.statusCode === '404';
+  }
+
+  async function uploadChatAttachment(file) {
+    if (!currentUser) throw new Error('Faça login para enviar arquivos.');
+    if (!file) return null;
+
+    if (file.size > CHAT_ATTACHMENT_MAX_BYTES) {
+      throw new Error('O arquivo excede o limite de 50 MB para o chat.');
+    }
+
+    const ext = file.name.includes('.') ? `.${file.name.split('.').pop()}` : '';
+    const baseName = sanitizeFileName(file.name.replace(/\.[^.]+$/, ''));
+    const filePath = `${currentUser.id}/${Date.now()}_${baseName}${ext}`.replace(/\/+/g, '/');
+
+    const { error } = await window.supabaseClient.storage
+      .from(CHAT_ATTACHMENT_BUCKET)
+      .upload(filePath, file, {
+        contentType: file.type || 'application/octet-stream',
+        upsert: false
+      });
+
+    if (error) {
+      if (isMissingBucketError(error)) {
+        throw new Error(CHAT_ATTACHMENT_SETUP_HINT);
+      }
+      throw new Error(error.message || 'Não foi possível enviar o arquivo.');
+    }
+
+    const { data: { publicUrl } } = window.supabaseClient.storage
+      .from(CHAT_ATTACHMENT_BUCKET)
+      .getPublicUrl(filePath);
+
+    return {
+      attachment_url: publicUrl,
+      attachment_path: filePath,
+      attachment_name: file.name,
+      attachment_size_bytes: file.size,
+      attachment_mime_type: file.type || 'application/octet-stream',
+      attachment_kind: isImageFile(file) ? 'image' : 'file'
+    };
+  }
+
+  async function sendCurrentMessage() {
+    if (!currentUser) {
+      showNotice('Faça login para usar o chat.');
+      return;
+    }
+
+    if (!chatTableAvailable) {
+      showNotice(CHAT_SETUP_HINT);
+      return;
+    }
+
+    if (!activeChatUserId) {
+      showNotice('Selecione um usuário antes de enviar uma mensagem.');
+      return;
+    }
+
+    const content = String(chatInput?.value || '').trim();
+    if ((!content && !selectedChatFile) || chatSending) return;
+
+    setChatBusy(true);
+
+    try {
+      const attachmentPayload = selectedChatFile
+        ? await uploadChatAttachment(selectedChatFile)
+        : {};
+
+      const { data, error } = await window.supabaseClient
+        .from(CHAT_TABLE)
+        .insert({
+          sender_id: currentUser.id,
+          recipient_id: activeChatUserId,
+          content: content || null,
+          ...attachmentPayload
+        })
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      upsertDirectMessage(data);
+      setConversationDraft(activeChatUserId, '');
+      if (chatInput) chatInput.value = '';
+      clearSelectedChatAttachment();
+      autoResizeTextarea();
+      scheduleSidebarRender('bottom');
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      showNotice(error?.message || 'Não foi possível enviar a mensagem.');
+    } finally {
+      setChatBusy(false);
+      setChatInputState();
+    }
+  }
+
+  async function removeChatAttachmentFromStorage(attachmentPath) {
+    if (!attachmentPath) return;
+
+    const { error } = await window.supabaseClient.storage
+      .from(CHAT_ATTACHMENT_BUCKET)
+      .remove([attachmentPath]);
+
+    if (error) {
+      console.warn('Nao foi possivel remover o anexo do chat:', error?.message || error);
+    }
+  }
+
+  async function deleteMessageForCurrentUser(message) {
+    if (!currentUser || !message?.id) return;
+
+    const isMine = message.sender_id === currentUser.id;
+    const hideColumn = isMine ? 'hidden_for_sender_at' : 'hidden_for_recipient_at';
+    const ownerColumn = isMine ? 'sender_id' : 'recipient_id';
+
+    const { data, error } = await window.supabaseClient
+      .from(CHAT_TABLE)
+      .update({ [hideColumn]: new Date().toISOString() })
+      .eq('id', message.id)
+      .eq(ownerColumn, currentUser.id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    upsertDirectMessage(data);
+    scheduleSidebarRender('preserve');
+  }
+
+  async function deleteMessageForEveryone(message) {
+    if (!currentUser || !message?.id || message.sender_id !== currentUser.id || isMessageDeletedForEveryone(message)) {
+      return;
+    }
+
+    const attachmentPath = message.attachment_path || null;
+    const { data, error } = await window.supabaseClient
+      .from(CHAT_TABLE)
+      .update({
+        content: null,
+        attachment_url: null,
+        attachment_path: null,
+        attachment_name: null,
+        attachment_size_bytes: null,
+        attachment_mime_type: null,
+        attachment_kind: null,
+        deleted_for_everyone_at: new Date().toISOString()
+      })
+      .eq('id', message.id)
+      .eq('sender_id', currentUser.id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    upsertDirectMessage(data);
+    scheduleSidebarRender('preserve');
+
+    if (attachmentPath) {
+      await removeChatAttachmentFromStorage(attachmentPath);
+    }
+  }
+
+  async function handleChatMessageAction(action, messageId) {
+    const message = getChatMessageById(messageId);
+    if (!message) return;
+
+    try {
+      if (action === 'delete-me') {
+        const confirmDelete = await openChatDeleteConfirm({
+          title: 'Excluir so para voce?',
+          message: 'Essa mensagem vai sumir apenas da sua conversa. A outra pessoa continuara vendo normalmente.',
+          confirmLabel: 'Excluir para mim'
+        });
+        if (!confirmDelete) return;
+        await deleteMessageForCurrentUser(message);
+        showSuccessNotice('Voce excluiu a mensagem para voce.');
+        return;
+      }
+
+      if (action === 'delete-everyone') {
+        const confirmDelete = await openChatDeleteConfirm({
+          title: 'Excluir para todos?',
+          message: 'A mensagem sera removida da conversa dos dois lados e, se houver anexo, ele tambem sera retirado.',
+          confirmLabel: 'Excluir para todos'
+        });
+        if (!confirmDelete) return;
+        await deleteMessageForEveryone(message);
+        showSuccessNotice('Voce excluiu a mensagem para todos.');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar a mensagem do chat:', error);
+      showNotice(getChatDeleteErrorMessage(error));
+    }
+  }
+
+  window.openChatWithUser = async function(userId) {
+    if (!currentUser) {
+      showNotice('Você precisa estar logado para conversar.');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    if (!chatTableAvailable) {
+      showNotice(CHAT_SETUP_HINT);
+      return;
+    }
+
+    if (!userId || userId === currentUser.id) {
+      showNotice('Você não pode abrir um chat consigo mesmo.');
+      return;
+    }
+
+    if (activeChatUserId && activeChatUserId !== userId && selectedChatFile) {
+      clearSelectedChatAttachment();
+    }
+
+    activeChatUserId = userId;
+    selectSidebarTab('chat');
+    persistSidebarState();
+    if (profileModal) profileModal.classList.remove('active');
+    openSocialSidebar('chat');
+    scheduleSidebarRender();
+    await markConversationAsRead(userId);
+
+    if (chatInput) chatInput.focus();
+  };
+
   function updateAllFollowersUI() {
-    // Pegamos todos os cards de uma vez para evitar queries repetitivas ao DOM
+    const followersCountMap = buildFollowersCountMap();
+    const followingSet = buildFollowingSet();
     const allCards = document.querySelectorAll('.user-card[data-user-id]');
-    allCards.forEach(card => {
+    allCards.forEach((card) => {
       const userId = card.getAttribute('data-user-id');
-      const count = allFollowersData.filter(f => f.following_id === userId).length;
-      
+      const count = followersCountMap.get(userId) || 0;
+
       const countSpan = card.querySelector('.stat-box:nth-child(1) .stat-value');
       if (countSpan) countSpan.textContent = count;
 
-      // Atualizar botão de seguir se necessário
       if (currentUser && currentUser.id !== userId) {
-        const isFollowing = allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === userId);
+        const isFollowing = followingSet.has(userId);
         const btn = card.querySelector('.btn-follow');
         if (btn) {
-           if (isFollowing) {
-             btn.classList.add('following');
-             btn.innerHTML = '<span><i class="fas fa-check"></i> Seguindo</span>';
-           } else {
-             btn.classList.remove('following');
-             btn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-           }
+          btn.classList.toggle('following', isFollowing);
+          btn.innerHTML = isFollowing
+            ? '<span><i class="fas fa-check"></i> Seguindo</span>'
+            : '<i class="fas fa-user-plus"></i> Seguir';
         }
       }
     });
 
-    // Atualizar o modal se estiver aberto
     if (profileModal.classList.contains('active') && window.currentModalUserId) {
       updateSpecificUserStats(window.currentModalUserId);
     }
+
+    if (window.updateMyFollowers && socialSidebar?.classList.contains('active')) window.updateMyFollowers();
   }
 
-  // Função para carregar seguidores do usuário logado na Sidebar
   window.updateMyFollowers = function() {
     const listEl = document.getElementById('myFollowersList');
     if (!listEl || !currentUser) return;
 
-    const myFollowers = allFollowersData.filter(f => f.following_id === currentUser.id);
-    
+    const myFollowers = allFollowersData.filter((item) => item.following_id === currentUser.id);
     if (myFollowers.length === 0) {
       listEl.innerHTML = '<div class="social-empty">Você ainda não tem seguidores.</div>';
       return;
     }
 
     listEl.innerHTML = '';
-    myFollowers.forEach(follow => {
-      const follower = allUsers.find(u => u.id === follow.follower_id);
+    myFollowers.forEach((follow) => {
+      const follower = allUsers.find((user) => user.id === follow.follower_id);
       if (!follower) return;
-
-      const avatar = follower.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-      const name = follower.full_name || follower.username || 'Maratonista';
-      
-      // Status Online
-      const lastSeen = follower.last_seen ? new Date(follower.last_seen) : null;
-      const isOnline = lastSeen && (new Date() - lastSeen) < 300000;
-      const statusText = isOnline ? 'Online' : 'Visto por último recentemente';
-      const statusColor = isOnline ? 'var(--primary)' : 'var(--text-muted)';
 
       const card = document.createElement('div');
       card.className = 'follower-mini-card';
       card.onclick = () => {
-        document.getElementById('socialSidebar').classList.remove('active');
-        document.getElementById('socialOverlay').classList.remove('active');
+        closeSocialSidebar();
         openProfileModal(follower.id);
       };
-      
+
       card.innerHTML = `
-        <img src="${avatar}" class="follower-mini-avatar" alt="${name}">
+        <img src="${getUserAvatar(follower)}" class="follower-mini-avatar" alt="${escapeHtml(getUserDisplayName(follower))}">
         <div class="follower-mini-info">
-          <span class="follower-mini-name">${name}</span>
-          <span class="follower-mini-status" style="color: ${statusColor}">
-            <i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 4px;"></i> ${statusText}
+          <span class="follower-mini-name">${escapeHtml(getUserDisplayName(follower))}</span>
+          <span class="follower-mini-status" style="color: ${isUserOnline(follower) ? 'var(--primary)' : 'var(--text-muted)'}">
+            <i class="fas fa-circle" style="font-size: 0.5rem; margin-right: 4px;"></i> ${getStatusText(follower)}
           </span>
         </div>
+        <div class="follower-mini-actions">
+          <button class="social-icon-btn" type="button" title="Conversar">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
       `;
+
+      const chatBtn = card.querySelector('.social-icon-btn');
+      if (chatBtn) {
+        chatBtn.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          window.openChatWithUser(follower.id);
+        });
+      }
+
       listEl.appendChild(card);
     });
   };
 
   function updateSpecificUserStats(userId) {
-    const followersCount = allFollowersData.filter(f => f.following_id === userId).length;
-    
-    // 1. Atualizar Card na Grade
+    const followersCount = buildFollowersCountMap().get(userId) || 0;
+
     const card = document.querySelector(`.user-card[data-user-id="${userId}"]`);
     if (card) {
       const countSpan = card.querySelector('.stat-box:nth-child(1) .stat-value');
       if (countSpan) countSpan.textContent = followersCount;
-      
+
       if (currentUser && currentUser.id !== userId) {
-        const isFollowing = allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === userId);
+        const isFollowing = allFollowersData.some((item) => item.follower_id === currentUser.id && item.following_id === userId);
         const btn = card.querySelector('.btn-follow');
         if (btn) {
-           if (isFollowing) {
-             btn.classList.add('following');
-             btn.innerHTML = '<span><i class="fas fa-check"></i> Seguindo</span>';
-           } else {
-             btn.classList.remove('following');
-             btn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-           }
+          btn.classList.toggle('following', isFollowing);
+          btn.innerHTML = isFollowing
+            ? '<span><i class="fas fa-check"></i> Seguindo</span>'
+            : '<i class="fas fa-user-plus"></i> Seguir';
         }
       }
     }
 
-    // 2. Atualizar Modal se estiver aberto para esse usuário
     if (profileModal.classList.contains('active') && window.currentModalUserId === userId) {
       const modalStats = document.getElementById('modalStats');
       if (modalStats) {
         const countSpan = modalStats.querySelector('.stat-box:nth-child(1) .stat-value');
         if (countSpan) countSpan.textContent = followersCount;
       }
-      
-      const isFollowing = currentUser ? allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === userId) : false;
+
+      const isFollowing = currentUser ? buildFollowingSet().has(userId) : false;
       const modalBtn = document.querySelector('#modalActions .btn-follow');
-      if (modalBtn && currentUser.id !== userId) {
-        if (isFollowing) {
-          modalBtn.classList.add('following');
-          modalBtn.innerHTML = '<span><i class="fas fa-check"></i> Seguindo</span>';
-        } else {
-          modalBtn.classList.remove('following');
-          modalBtn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-        }
+      if (modalBtn && currentUser && currentUser.id !== userId) {
+        modalBtn.classList.toggle('following', isFollowing);
+        modalBtn.innerHTML = isFollowing
+          ? '<span><i class="fas fa-check"></i> Seguindo</span>'
+          : '<i class="fas fa-user-plus"></i> Seguir';
       }
     }
   }
 
   function updateUserCardUI(userId) {
-    // Localizar o card e atualizar elementos chave (status dot, nome, avatar)
     const card = document.querySelector(`.user-card[data-user-id="${userId}"]`);
-    const user = allUsers.find(u => u.id === userId);
+    const user = allUsers.find((item) => item.id === userId);
     if (!card || !user) return;
 
-    // Atualizar status online
-    const lastSeen = user.last_seen ? new Date(user.last_seen) : null;
-    const isOnline = lastSeen && (new Date() - lastSeen) < 300000;
     const dot = card.querySelector('.status-dot-indicator');
     if (dot) {
-      dot.className = `status-dot-indicator ${isOnline ? 'online' : 'offline'}`;
-      dot.title = isOnline ? 'Online' : 'Offline';
+      dot.className = `status-dot-indicator ${isUserOnline(user) ? 'online' : 'offline'}`;
+      dot.title = isUserOnline(user) ? 'Online' : 'Offline';
     }
 
-    // Atualizar stats do topo se mudou online count
-    const onlineCount = allUsers.filter(u => {
-      const ls = u.last_seen ? new Date(u.last_seen) : null;
-      return ls && (new Date() - ls) < 300000;
-    }).length;
+    const onlineCount = getOnlineCount();
     document.getElementById('onlineNow').textContent = onlineCount;
   }
 
@@ -258,85 +1913,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         .eq('id', currentUser.id)
         .single();
 
-      if (profile) {
-        const name = profile.full_name || profile.username || 'Minha Conta';
-        const avatar = profile.avatar_url || 'assets/tryhard.png';
-        
-        // Preencher Hub Unificado (Cápsula)
-        const userHub = document.getElementById('userHub');
-        const userHubName = document.getElementById('userHubName');
-        const userHubAvatar = document.getElementById('userHubAvatar');
-        const socialToggle = document.getElementById('socialToggle');
+      if (!profile) return;
 
-        if (userHubName) userHubName.textContent = name;
-        if (userHubAvatar) userHubAvatar.src = avatar;
-        
-        if (userHub) userHub.style.display = 'flex';
+      const userHub = document.getElementById('userHub');
+      const userHubName = document.getElementById('userHubName');
+      const userHubAvatar = document.getElementById('userHubAvatar');
+      const userHubProfile = document.getElementById('userHubProfile');
 
-        // Ativar Hub Social de forma independente
-        const openSocial = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const sidebar = document.getElementById('socialSidebar');
-          const overlay = document.getElementById('socialOverlay');
-          if (sidebar && overlay) {
-            sidebar.classList.add('active');
-            overlay.classList.add('active');
-            if (socialToggle) socialToggle.classList.add('active');
-            if (window.updateMyFollowers) window.updateMyFollowers();
-          }
-        };
+      if (userHubName) userHubName.textContent = profile.full_name || profile.username || 'Minha Conta';
+      if (userHubAvatar) userHubAvatar.src = profile.avatar_url || 'assets/tryhard.png';
+      if (userHub) userHub.style.display = 'flex';
 
-        if (socialToggle) socialToggle.onclick = openSocial;
-        const userHubProfile = document.getElementById('userHubProfile');
-        if (userHubProfile) userHubProfile.onclick = openSocial;
-      }
-    } catch (e) {
-      console.warn("Erro ao carregar badge do usuário:", e);
+      const openSocial = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openSocialSidebar(activeSidebarTab);
+        if (window.updateMyFollowers) window.updateMyFollowers();
+      };
+
+      if (socialToggle) socialToggle.onclick = openSocial;
+      if (userHubProfile) userHubProfile.onclick = openSocial;
+    } catch (error) {
+      console.warn('Erro ao carregar badge do usuário:', error);
     }
   }
 
   window.openProfileModal = function(userId) {
-    const user = allUsers.find(u => u.id === userId);
+    const user = allUsers.find((item) => item.id === userId);
     if (!user) return;
 
     const storeData = user.store_data || {};
+    const progress = getUserCommunityProgress(user);
     const equipped = storeData.equipped || {};
-    const name = user.full_name || user.username || ('Membro_' + user.id.substring(0, 5));
-    const avatar = user.avatar_url || 'assets/tryhard.png';
+    const name = getUserDisplayName(user);
+    const avatar = getUserAvatar(user);
     const banner = equipped.banner || 'none';
-    const level = storeData.xp ? Math.floor(storeData.xp / 1000) + 1 : 1;
-    const xp = storeData.xp || 0;
-    const followersCount = allFollowersData.filter(f => f.following_id === user.id).length;
+    const level = progress.level;
+    const xp = progress.totalXp;
+    const followersCount = buildFollowersCountMap().get(user.id) || 0;
     const isMe = currentUser && currentUser.id === user.id;
+    const statusClass = isUserOnline(user) ? 'online' : 'offline';
+    const statusText = isUserOnline(user) ? 'Online' : 'Offline';
 
-    // Lógica de Status Online
-    const lastSeen = user.last_seen ? new Date(user.last_seen) : null;
-    const now = new Date();
-    const isOnline = lastSeen && (now - lastSeen) < 300000;
-    const statusText = isOnline ? 'Online' : 'Offline';
-    const statusClass = isOnline ? 'online' : 'offline';
-
-    // Preenche campos do modal
     const modalImg = document.getElementById('modalImg');
     if (modalImg) modalImg.src = avatar;
-    
+
     document.getElementById('modalName').textContent = name;
-    
-    // Status no Modal
+
     const modalLevelEl = document.getElementById('modalLevel');
     modalLevelEl.innerHTML = `
-      Nível ${level} 
+      Nível ${level}
       <span class="status-badge ${statusClass}">
         <span class="status-dot"></span> ${statusText}
       </span>
     `;
-    
+
     const bannerEl = document.getElementById('modalBanner');
     if (banner !== 'none') {
       bannerEl.style.backgroundImage = `url('${banner}')`;
     } else {
-      bannerEl.style.background = `linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(0,0,0,0.6))`;
+      bannerEl.style.background = 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(0,0,0,0.6))';
     }
 
     document.getElementById('modalStats').innerHTML = `
@@ -352,13 +1988,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const actionsEl = document.getElementById('modalActions');
     if (isMe) {
-      actionsEl.innerHTML = `<a href="perfil.html" class="btn-follow" style="text-align:center; text-decoration:none; display:block;">Meu Perfil</a>`;
+      actionsEl.innerHTML = '<a href="perfil.html" class="btn-follow" style="text-align:center; text-decoration:none; display:block;">Meu Perfil</a>';
     } else {
-      const isFollowing = currentUser ? allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === user.id) : false;
+      const isFollowing = currentUser ? buildFollowingSet().has(user.id) : false;
       actionsEl.innerHTML = `
-        <button class="btn-follow ${isFollowing ? 'following' : ''}" onclick="toggleFollowFromModal('${user.id}')">
-          ${isFollowing ? '<span><i class="fas fa-check"></i> Seguindo</span>' : '<i class="fas fa-user-plus"></i> Seguir'}
-        </button>
+        <div class="modal-actions-row">
+          <button class="btn-follow ${isFollowing ? 'following' : ''}" onclick="toggleFollowFromModal('${user.id}')">
+            ${isFollowing ? '<span><i class="fas fa-check"></i> Seguindo</span>' : '<i class="fas fa-user-plus"></i> Seguir'}
+          </button>
+          <button class="btn-message" onclick="openChatWithUser('${user.id}')">
+            <i class="fas fa-paper-plane"></i> Conversar
+          </button>
+        </div>
       `;
     }
 
@@ -366,73 +2007,81 @@ document.addEventListener('DOMContentLoaded', async () => {
     profileModal.classList.add('active');
   };
 
-  // Função auxiliar para atualizar o modal após seguir
   window.toggleFollowFromModal = async function(id) {
     await window.toggleFollow(id);
   };
 
   async function loadData() {
     const supa = window.supabaseClient;
-    
-    // Busca todos os perfis
-    const { data: users, error: errorUsers } = await supa
+
+    const usersPromise = supa
       .from('profiles')
       .select('*')
       .order('id', { ascending: false });
 
-    if (errorUsers) throw errorUsers;
-
-    // Busca a tabela de seguidores (followers)
-    const { data: followers, error: errorFollowers } = await supa
+    const followersPromise = supa
       .from('followers')
       .select('*');
+
+    const messagesPromise = currentUser
+      ? supa
+          .from(CHAT_TABLE)
+          .select('*')
+          .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [], error: null });
+
+    const [
+      { data: users, error: errorUsers },
+      { data: followers, error: errorFollowers },
+      { data: messages, error: errorMessages }
+    ] = await Promise.all([usersPromise, followersPromise, messagesPromise]);
+
+    if (errorUsers) throw errorUsers;
 
     if (errorFollowers) {
       console.warn("A tabela 'followers' não foi encontrada. O SQL foi executado?", errorFollowers);
     }
 
-    allUsers = users;
-    allFollowersData = followers;
-    
-    // Atualizar Stats da Comunidade
-    const now = new Date();
-    const onlineCount = allUsers.filter(u => {
-      const lastSeen = u.last_seen ? new Date(u.last_seen) : null;
-      return lastSeen && (now - lastSeen) < 300000;
-    }).length;
-    
+    if (errorMessages) {
+      if (isMissingRelationError(errorMessages)) {
+        chatTableAvailable = false;
+        console.warn(CHAT_SETUP_HINT);
+      } else {
+        console.warn('Não foi possível carregar o chat:', errorMessages.message || errorMessages);
+      }
+    } else {
+      chatTableAvailable = true;
+    }
+
+    allUsers = users || [];
+    allFollowersData = followers || [];
+    directMessages = messages || [];
+
+    const onlineCount = getOnlineCount();
     document.getElementById('totalMembers').textContent = allUsers.length;
     document.getElementById('onlineNow').textContent = onlineCount;
-    
-    applyFilters();
+
+    if (window.updateMyFollowers) window.updateMyFollowers();
   }
 
   function applyFilters() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const sortBy = sortSelect.value;
+    const searchTerm = String(searchInput?.value || '').toLowerCase();
+    const sortBy = sortSelect?.value || 'recent';
 
-    let filteredUsers = allUsers.filter(user => {
+    let filteredUsers = allUsers.filter((user) => {
       const name = (user.full_name || user.username || 'Usuario').toLowerCase();
       return name.includes(searchTerm);
     });
 
     switch (sortBy) {
       case 'recent':
-        // A lista já vem ordenada por id desc (mais recentes) do banco
         break;
       case 'level-desc':
-        filteredUsers.sort((a, b) => {
-          const xpA = a.store_data?.xp || 0;
-          const xpB = b.store_data?.xp || 0;
-          return xpB - xpA;
-        });
+        filteredUsers.sort((a, b) => getUserCommunityProgress(b).level - getUserCommunityProgress(a).level);
         break;
       case 'xp-desc':
-        filteredUsers.sort((a, b) => {
-          const xpA = a.store_data?.xp || 0;
-          const xpB = b.store_data?.xp || 0;
-          return xpB - xpA;
-        });
+        filteredUsers.sort((a, b) => getUserCommunityProgress(b).totalXp - getUserCommunityProgress(a).totalXp);
         break;
       case 'nome-asc':
         filteredUsers.sort((a, b) => {
@@ -448,30 +2097,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.toggleFollow = async function(targetId) {
     if (!currentUser) {
-      alert("Você precisa estar logado para seguir alguém!");
-      window.location.href = "login.html";
+      alert('Você precisa estar logado para seguir alguém!');
+      window.location.href = 'login.html';
       return;
     }
 
     if (targetId === currentUser.id) {
-      alert("Você não pode seguir a si mesmo!");
+      alert('Você não pode seguir a si mesmo!');
       return;
     }
 
     try {
       const supa = window.supabaseClient;
-      const isCurrentlyFollowing = allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === targetId);
+      const isCurrentlyFollowing = allFollowersData.some((item) => item.follower_id === currentUser.id && item.following_id === targetId);
 
       if (isCurrentlyFollowing) {
-        // Unfollow
         const { error } = await supa
           .from('followers')
           .delete()
           .match({ follower_id: currentUser.id, following_id: targetId });
         if (error) throw error;
-        allFollowersData = allFollowersData.filter(f => !(f.follower_id === currentUser.id && f.following_id === targetId));
+        allFollowersData = allFollowersData.filter((item) => !(item.follower_id === currentUser.id && item.following_id === targetId));
       } else {
-        // Follow
         const { error } = await supa
           .from('followers')
           .insert({ follower_id: currentUser.id, following_id: targetId });
@@ -479,50 +2126,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         allFollowersData.push({ follower_id: currentUser.id, following_id: targetId, created_at: new Date().toISOString() });
       }
 
-      // Atualizar a UI sem recarregar tudo
       updateFollowUI(targetId, !isCurrentlyFollowing);
-    } catch (err) {
-      console.error("Erro ao seguir/deixar de seguir:", err);
-      alert("Ocorreu um erro ao atualizar os seguidores.");
+      if (window.updateMyFollowers && socialSidebar?.classList.contains('active')) window.updateMyFollowers();
+    } catch (error) {
+      console.error('Erro ao seguir/deixar de seguir:', error);
+      alert('Ocorreu um erro ao atualizar os seguidores.');
     }
   };
 
   function updateFollowUI(targetId, isNowFollowing) {
-    // 1. Atualizar botões na grade
     const gridButtons = document.querySelectorAll(`.btn-follow[onclick*="toggleFollow('${targetId}')"]`);
-    gridButtons.forEach(btn => {
-      if (isNowFollowing) {
-        btn.classList.add('following');
-        btn.innerHTML = '<span><i class="fas fa-check"></i> Seguindo</span>';
-      } else {
-        btn.classList.remove('following');
-        btn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-      }
+    gridButtons.forEach((btn) => {
+      btn.classList.toggle('following', isNowFollowing);
+      btn.innerHTML = isNowFollowing
+        ? '<span><i class="fas fa-check"></i> Seguindo</span>'
+        : '<i class="fas fa-user-plus"></i> Seguir';
     });
 
-    // 2. Atualizar contador de seguidores na grade (opcional, mas bom para UX)
-    const cards = document.querySelectorAll('.user-card');
-    cards.forEach(card => {
-      // Infelizmente não temos o ID do usuário no card de forma fácil sem um data-id
-      // Mas o botão está dentro do card, podemos subir
-    });
-
-    // 3. Atualizar o modal se estiver aberto para esse usuário
     if (profileModal.classList.contains('active')) {
       const modalActions = document.getElementById('modalActions');
       const modalBtn = modalActions.querySelector('.btn-follow');
-      if (modalBtn && modalBtn.getAttribute('onclick').includes(targetId)) {
-        if (isNowFollowing) {
-          modalBtn.classList.add('following');
-          modalBtn.innerHTML = '<span><i class="fas fa-check"></i> Seguindo</span>';
-        } else {
-          modalBtn.classList.remove('following');
-          modalBtn.innerHTML = '<i class="fas fa-user-plus"></i> Seguir';
-        }
+      if (modalBtn && modalBtn.getAttribute('onclick')?.includes(targetId)) {
+        modalBtn.classList.toggle('following', isNowFollowing);
+        modalBtn.innerHTML = isNowFollowing
+          ? '<span><i class="fas fa-check"></i> Seguindo</span>'
+          : '<i class="fas fa-user-plus"></i> Seguir';
       }
-      
-      // Atualizar contador de seguidores no modal
-      const followersCount = allFollowersData.filter(f => f.following_id === targetId).length;
+
+      const followersCount = allFollowersData.filter((item) => item.following_id === targetId).length;
       const modalStats = document.getElementById('modalStats');
       if (modalStats) {
         const xp = modalStats.querySelector('.stat-box:nth-child(2) .stat-value').innerHTML;
@@ -541,6 +2172,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderUsers(users) {
+    const followersCountMap = buildFollowersCountMap();
+    const followingSet = buildFollowingSet();
+
     if (users.length === 0) {
       usersGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: var(--text-muted); padding: 50px;">Nenhum maratonista encontrado.</p>';
       return;
@@ -550,26 +2184,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     users.forEach((user, index) => {
       const storeData = user.store_data || {};
-      const level = storeData.xp ? Math.floor(storeData.xp / 1000) + 1 : 1;
-      const xp = storeData.xp || 0;
-      const avatar = user.avatar_url || 'assets/tryhard.png';
-      const name = user.full_name || user.username || ('Membro_' + user.id.substring(0, 5));
-      const isVip = xp > 5000;
-      
-      // Lógica de Status Online
-      const lastSeen = user.last_seen ? new Date(user.last_seen) : null;
-      const now = new Date();
-      const isOnline = lastSeen && (now - lastSeen) < 300000; // 5 minutos em ms
-      const statusText = isOnline ? 'Online' : 'Offline';
-      const statusClass = isOnline ? 'online' : 'offline';
-      
+      const progress = getUserCommunityProgress(user);
+      const level = progress.level;
+      const xp = progress.totalXp;
+      const avatar = getUserAvatar(user);
+      const name = getUserDisplayName(user);
+      const isVip = progress.isVip;
+      const statusText = isUserOnline(user) ? 'Online' : 'Offline';
+      const statusClass = isUserOnline(user) ? 'online' : 'offline';
       const equipped = storeData.equipped || {};
       const aura = equipped.aura || 'none';
       const banner = equipped.banner || 'none';
       const accessory = equipped.acessorio || 'none';
-
-      const followersCount = allFollowersData.filter(f => f.following_id === user.id).length;
-      const isFollowing = currentUser ? allFollowersData.some(f => f.follower_id === currentUser.id && f.following_id === user.id) : false;
+      const followersCount = followersCountMap.get(user.id) || 0;
+      const isFollowing = currentUser ? followingSet.has(user.id) : false;
       const isMe = currentUser && currentUser.id === user.id;
 
       const userCard = document.createElement('div');
@@ -577,30 +2205,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       userCard.setAttribute('data-user-id', user.id);
       userCard.style.animationDelay = `${index * 0.05}s`;
       if (isMe) userCard.classList.add('me-card');
-      
+
       if (aura !== 'none') {
         userCard.classList.add('has-aura');
         userCard.setAttribute('data-aura', aura);
       }
 
-      const bannerStyle = banner !== 'none' 
-        ? `background-image: url('${banner}'); background-size: cover;` 
-        : `background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));`;
+      const bannerStyle = banner !== 'none'
+        ? `background-image: url('${banner}'); background-size: cover;`
+        : 'background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));';
 
       userCard.innerHTML = `
         ${isVip ? '<div class="vip-badge"><i class="fas fa-crown"></i> VIP</div>' : ''}
         <div class="user-banner" style="${bannerStyle}" onclick="openProfileModal('${user.id}')"></div>
-        
+
         <div class="user-avatar-wrapper" onclick="openProfileModal('${user.id}')">
-          <img src="${avatar}" alt="${name}" class="user-avatar" onerror="this.src='assets/tryhard.png'">
+          <img src="${avatar}" alt="${escapeHtml(name)}" class="user-avatar" onerror="this.src='assets/tryhard.png'">
           ${accessory !== 'none' ? `<img src="${accessory}" class="user-accessory" alt="Acessório">` : ''}
           <div class="status-dot-indicator ${statusClass}" title="${statusText}"></div>
         </div>
-        
+
         <div class="user-info-section">
-          <span class="user-name" onclick="openProfileModal('${user.id}')" style="cursor:pointer;">${name} ${isMe ? '<small>(Você)</small>' : ''}</span>
+          <span class="user-name" onclick="openProfileModal('${user.id}')" style="cursor:pointer;">${escapeHtml(name)} ${isMe ? '<small>(Você)</small>' : ''}</span>
           <div class="user-level">LVL ${level}</div>
-          
+
           <div class="user-stats-grid">
             <div class="stat-box">
               <span class="stat-value">${followersCount}</span>
@@ -623,6 +2251,4 @@ document.addEventListener('DOMContentLoaded', async () => {
       usersGrid.appendChild(userCard);
     });
   }
-
-  init();
 });
