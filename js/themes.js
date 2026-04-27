@@ -49,6 +49,68 @@
     "theme-cromatico",
   ];
 
+  const CHROMATIC_THEME = "theme-cromatico";
+  const CHROMATIC_LITE_CLASS = "theme-cromatico-lite";
+  const CHROMATIC_PAUSED_CLASS = "theme-cromatico-paused";
+  const CHROMATIC_HUE_START = 210;
+  const CHROMATIC_HUE_STEP = 10;
+  const CHROMATIC_TICK_MS = 450;
+  const chromaticMotionQuery = window.matchMedia
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
+  let chromaticHue = CHROMATIC_HUE_START;
+  let chromaticTimer = null;
+
+  function setChromaticHue(hue) {
+    chromaticHue = ((Number(hue) % 360) + 360) % 360;
+    const hueValue = `${chromaticHue}deg`;
+    document.documentElement.style.setProperty("--chromatic-hue", hueValue);
+    if (document.body) {
+      document.body.style.setProperty("--chromatic-hue", hueValue);
+    }
+  }
+
+  function stopChromaticCycle() {
+    if (!chromaticTimer) return;
+    window.clearInterval(chromaticTimer);
+    chromaticTimer = null;
+  }
+
+  function startChromaticCycle() {
+    if (chromaticTimer) return;
+    chromaticTimer = window.setInterval(() => {
+      if (document.hidden || chromaticMotionQuery?.matches) return;
+      setChromaticHue(chromaticHue + CHROMATIC_HUE_STEP);
+    }, CHROMATIC_TICK_MS);
+  }
+
+  function syncChromaticRuntimeClasses(theme) {
+    const normalizedTheme = normalizeTheme(theme);
+    const isChromatic = normalizedTheme === CHROMATIC_THEME;
+    const shouldPause =
+      !isChromatic || document.hidden || chromaticMotionQuery?.matches;
+    const targets = [document.documentElement, document.body].filter(Boolean);
+
+    targets.forEach((target) => {
+      target.classList.toggle(CHROMATIC_LITE_CLASS, isChromatic);
+      target.classList.toggle(CHROMATIC_PAUSED_CLASS, isChromatic && shouldPause);
+    });
+
+    if (!isChromatic) {
+      stopChromaticCycle();
+      return;
+    }
+
+    setChromaticHue(chromaticHue);
+
+    if (shouldPause) {
+      stopChromaticCycle();
+      return;
+    }
+
+    startChromaticCycle();
+  }
+
   function normalizeTheme(theme) {
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
@@ -93,6 +155,32 @@
   const savedTheme = normalizeTheme(sessionStorage.getItem("theme"));
   document.documentElement.className = savedTheme;
   sessionStorage.setItem("theme", savedTheme);
+  syncChromaticRuntimeClasses(savedTheme);
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!document.body) return;
+    const currentTheme = normalizeTheme(sessionStorage.getItem("theme"));
+
+    ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
+    document.body.classList.add(currentTheme);
+    syncChromaticRuntimeClasses(currentTheme);
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    syncChromaticRuntimeClasses(sessionStorage.getItem("theme"));
+  });
+
+  if (chromaticMotionQuery) {
+    const handleChromaticMotionChange = () => {
+      syncChromaticRuntimeClasses(sessionStorage.getItem("theme"));
+    };
+
+    if (typeof chromaticMotionQuery.addEventListener === "function") {
+      chromaticMotionQuery.addEventListener("change", handleChromaticMotionChange);
+    } else if (typeof chromaticMotionQuery.addListener === "function") {
+      chromaticMotionQuery.addListener(handleChromaticMotionChange);
+    }
+  }
 
   function applyTheme(theme) {
     const themeToApply = normalizeTheme(theme);
@@ -108,6 +196,8 @@
       ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
       document.body.classList.add(themeToApply);
     }
+
+    syncChromaticRuntimeClasses(themeToApply);
 
     sessionStorage.setItem("theme", themeToApply);
 

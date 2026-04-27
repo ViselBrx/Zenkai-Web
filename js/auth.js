@@ -976,6 +976,20 @@ window.updateNavbarCosmetics = function () {
         sidebar.style.backgroundPosition = "";
         sidebar.style.backgroundRepeat = "";
       }
+
+      sidebar.style.backgroundImage = "";
+      sidebar.style.backgroundSize = "";
+      sidebar.style.backgroundPosition = "";
+      sidebar.style.backgroundRepeat = "";
+
+      if (bannerUrl) {
+        sidebar.style.setProperty(
+          "--history-sidebar-banner",
+          `url('${bannerUrl}')`,
+        );
+      } else {
+        sidebar.style.removeProperty("--history-sidebar-banner");
+      }
     }
   }
 };

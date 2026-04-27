@@ -33,6 +33,8 @@
         border: 1px solid rgba(var(--primary-rgb), 0.4);
         border-radius: 16px;
         padding: 14px;
+        position: relative;
+        isolation: isolate;
         display: flex;
         flex-direction: column;
         box-shadow:
@@ -43,6 +45,33 @@
         height: calc(100vh - 120px);
         max-height: calc(100vh - 120px);
         overflow: hidden;
+      }
+
+      .history-sidebar::before {
+        content: "";
+        position: absolute;
+        inset: -12px;
+        border-radius: inherit;
+        background-image:
+          linear-gradient(
+            180deg,
+            rgba(10, 25, 47, 0.42) 0%,
+            rgba(10, 25, 47, 0.8) 58%,
+            rgba(10, 25, 47, 0.96) 100%
+          ),
+          var(--history-sidebar-banner, none);
+        background-size: 100% 100%, cover;
+        background-position: center center, center center;
+        background-repeat: no-repeat, no-repeat;
+        transform: scale(1.04);
+        transform-origin: center;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .history-sidebar > * {
+        position: relative;
+        z-index: 1;
       }
 
       .sidebar-head {
@@ -152,6 +181,9 @@
       }
 
       .history-item {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
         background: linear-gradient(
           160deg,
           rgba(var(--primary-rgb), 0.16),
@@ -191,6 +223,36 @@
         margin-bottom: 4px;
       }
 
+      .history-title-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      .history-title-row strong {
+        margin-bottom: 0;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .history-favorite-badge {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: rgba(255, 209, 102, 0.14);
+        border: 1px solid rgba(255, 209, 102, 0.28);
+        color: #ffd166;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
       .history-open span {
         display: block;
         font-size: 0.77rem;
@@ -211,11 +273,58 @@
       }
 
       .history-item-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .history-favorite-row {
         display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 6px;
-        margin-top: 8px;
+        justify-content: flex-start;
+        margin-top: 10px;
+      }
+
+      .history-action-symbol {
+        display: inline-block;
+        line-height: 1;
+        font-size: 0.92rem;
+      }
+
+      .history-favorite-btn {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        padding: 0;
+        border-color: rgba(255, 209, 102, 0.24);
+        border-radius: 9px;
+      }
+
+      .history-favorite-btn .history-action-symbol {
+        color: rgba(255, 255, 255, 0.65);
+        transition: color 0.2s ease, transform 0.2s ease;
+      }
+
+      .history-favorite-btn:hover .history-action-symbol {
+        color: #ffd166;
+        transform: scale(1.05);
+      }
+
+      .history-favorite-btn.active {
+        border-color: rgba(255, 209, 102, 0.45);
+        background: rgba(255, 209, 102, 0.12);
+      }
+
+      .history-favorite-btn.active .history-action-symbol {
+        color: #ffd166;
+      }
+
+      .history-action-btn {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        justify-content: center;
       }
 
       .rename-help {
@@ -881,6 +990,43 @@
         to {
           transform: rotate(360deg);
         }
+      }
+
+      .theme-cromatico-lite .item-card-emerald {
+        background-size:
+          100% 100%,
+          220% 220% !important;
+        animation: border-glow-chromatic 18s ease-in-out infinite !important;
+      }
+      .theme-cromatico-lite .item-card-emerald::before {
+        display: none !important;
+      }
+      .theme-cromatico-lite .item-card-emerald::after {
+        opacity: 0.45;
+        animation: chromatic-shine 18s ease-in-out infinite !important;
+      }
+      .theme-cromatico-lite .item-card-emerald .item-icon {
+        animation: chromatic-rainbow 18s ease-in-out infinite !important;
+        text-shadow:
+          0 0 10px rgba(255, 0, 128, 0.35),
+          0 0 18px rgba(0, 255, 255, 0.22);
+      }
+      .theme-cromatico-lite .item-card-emerald .item-rarity {
+        animation: chromatic-rainbow 22s linear infinite !important;
+      }
+      .theme-cromatico-lite .btn-equip-chromatic,
+      .theme-cromatico-lite .inventory-item-card .btn-equip.esmeralda:not(.equipped) {
+        animation: gradient-shift 14s ease infinite !important;
+      }
+      .theme-cromatico-lite .equipped-badge-chromatic,
+      .theme-cromatico-lite .inventory-item-card.esmeralda .equipped-indicator,
+      .theme-cromatico-lite .inventory-item-card.equipped {
+        animation: none !important;
+      }
+      .theme-cromatico-lite .inventory-item-card.esmeralda .equipped-indicator {
+        box-shadow:
+          0 0 10px rgba(255, 0, 128, 0.35),
+          0 0 14px rgba(0, 255, 255, 0.2) !important;
       }
 
       /* ===== INVENTORY CARD STYLES ===== */
@@ -2566,6 +2712,8 @@
         let historyItems = [];
         let historyEventsBound = false;
         let renameTargetItemId = null;
+        const pendingHistoryDeletes = new Map();
+        let pendingHistoryClearSnapshot = null;
 
         function escapeHtml(value) {
           return String(value || "")
@@ -2574,6 +2722,22 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+        }
+
+        function normalizeSearchText(value) {
+          return String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
+        }
+
+        function getSearchTokens(value) {
+          return normalizeSearchText(value)
+            .split(" ")
+            .map((token) => token.trim())
+            .filter(Boolean);
         }
 
         function formatTypeLabel(type) {
@@ -2676,26 +2840,173 @@
           return shortenText(description, 95);
         }
 
-        function getFilteredHistoryItems() {
-          const term = (historySearch?.value || "").trim().toLowerCase();
-          if (!term) return historyItems;
+        function getHistoryPayload(item) {
+          return item?.payload && typeof item.payload === "object"
+            ? item.payload
+            : {};
+        }
 
-          return historyItems.filter((item) => {
+        function isHistoryFavorite(item) {
+          return !!getHistoryPayload(item).favorite;
+        }
+
+        function getHistoryFavoriteStamp(item) {
+          const payload = getHistoryPayload(item);
+          const stamp =
+            payload.favorite_at ||
+            item?.last_watched_at ||
+            item?.created_at ||
+            item?.updated_at ||
+            0;
+          const time = new Date(stamp).getTime();
+          return Number.isFinite(time) ? time : 0;
+        }
+
+        function getVisibleHistoryItems() {
+          if (pendingHistoryClearSnapshot) return [];
+          return historyItems.filter(
+            (item) => !pendingHistoryDeletes.has(String(item.id)),
+          );
+        }
+
+        function showHistoryUndoToast(message, onComplete, onUndo) {
+          if (typeof window.showUndoToast === "function") {
+            window.showUndoToast(message, onComplete, onUndo);
+            return;
+          }
+
+          Promise.resolve(onComplete?.()).catch(() => {
+            if (typeof onUndo === "function") onUndo();
+          });
+        }
+
+        function getFilteredHistoryItems() {
+          const tokens = getSearchTokens(historySearch?.value || "");
+          const visibleItems = getVisibleHistoryItems();
+          if (tokens.length === 0) return visibleItems;
+
+          return visibleItems.filter((item) => {
             const payload =
               item.payload && typeof item.payload === "object"
                 ? item.payload
                 : {};
+            const payloadText = Object.values(payload)
+              .filter(
+                (value) =>
+                  typeof value === "string" ||
+                  typeof value === "number" ||
+                  typeof value === "boolean",
+              )
+              .join(" ");
             const base = [
               item.title || "",
               item.subtitle || "",
               getHistoryDescription(item),
               payload.fileName || "",
+              payload.customTitle || "",
+              payloadText,
               item.content_type || "",
             ]
-              .join(" ")
-              .toLowerCase();
-            return base.includes(term);
+              .join(" ");
+            const haystack = normalizeSearchText(base);
+            return tokens.every((token) => haystack.includes(token));
           });
+        }
+
+        function buildHistoryItemCard(item) {
+          const itemId = escapeHtml(item.id || "");
+          const title = escapeHtml(item.title || "ConteÃºdo sem tÃ­tulo");
+          const subtitle = escapeHtml(getHistoryPreview(item));
+          const stamp =
+            item.last_watched_at || item.created_at || item.updated_at;
+          const meta = getHistoryMeta(item, stamp);
+          const favorite = isHistoryFavorite(item);
+
+          return `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <div class="history-title-row">
+                  <strong>${title}</strong>
+                  ${favorite ? '<span class="history-favorite-badge"><i class="fas fa-star"></i> Favorito</span>' : ""}
+                </div>
+                <span class="history-preview">${subtitle}</span>
+                <div class="history-meta">${escapeHtml(meta)}</div>
+              </button>
+              <div class="history-item-actions">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-favorite-btn ${favorite ? "active" : ""}"
+                  data-favorite-id="${itemId}"
+                  aria-pressed="${favorite ? "true" : "false"}"
+                  title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                >
+                  <i class="fas fa-star"></i>
+                </button>
+                <button type="button" class="btn btn-ghost btn-sm" data-open-id="${itemId}">Abrir</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-rename-id="${itemId}">Renomear</button>
+                <button type="button" class="btn btn-danger btn-sm" data-delete-id="${itemId}">Excluir</button>
+              </div>
+            </div>
+          `;
+        }
+
+        function buildHistoryItemCard(item) {
+          const itemId = escapeHtml(item.id || "");
+          const title = escapeHtml(
+            item.title || "Conte\u00FAdo sem t\u00EDtulo",
+          );
+          const subtitle = escapeHtml(getHistoryPreview(item));
+          const stamp =
+            item.last_watched_at || item.created_at || item.updated_at;
+          const meta = getHistoryMeta(item, stamp);
+          const favorite = isHistoryFavorite(item);
+
+          return `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <div class="history-title-row">
+                  <strong>${title}</strong>
+                </div>
+                <span class="history-preview">${subtitle}</span>
+                <div class="history-meta">${escapeHtml(meta)}</div>
+              </button>
+              <div class="history-favorite-row">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-favorite-btn ${favorite ? "active" : ""}"
+                  data-favorite-id="${itemId}"
+                  aria-pressed="${favorite ? "true" : "false"}"
+                  aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                  title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                >
+                  <span class="history-action-symbol" aria-hidden="true">&#9733;</span>
+                </button>
+              </div>
+              <div class="history-item-actions">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-action-btn"
+                  data-open-id="${itemId}"
+                >
+                  Abrir
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-action-btn"
+                  data-rename-id="${itemId}"
+                >
+                  Renomear
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm history-action-btn"
+                  data-delete-id="${itemId}"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          `;
         }
 
         function renderHistory() {
@@ -2711,9 +3022,17 @@
           }
 
           historyEmpty.style.display = "none";
+          const favoriteItems = filtered
+            .filter((item) => isHistoryFavorite(item))
+            .sort(
+              (a, b) => getHistoryFavoriteStamp(b) - getHistoryFavoriteStamp(a),
+            );
+          const regularItems = filtered.filter(
+            (item) => !isHistoryFavorite(item),
+          );
           const groups = new Map();
 
-          filtered.forEach((item) => {
+          regularItems.forEach((item) => {
             const stamp =
               item.last_watched_at ||
               item.created_at ||
@@ -2725,10 +3044,21 @@
           });
 
           let html = "";
+
+          if (favoriteItems.length > 0) {
+            html += `<section class="history-group"><h4 class="history-group-label">Favoritos</h4>`;
+            favoriteItems.forEach((item) => {
+              html += buildHistoryItemCard(item);
+            });
+            html += "</section>";
+          }
+
           groups.forEach((items, label) => {
             html += `<section class="history-group"><h4 class="history-group-label">${escapeHtml(label)}</h4>`;
 
             items.forEach((item) => {
+              html += buildHistoryItemCard(item);
+              return;
               const itemId = escapeHtml(item.id || "");
               const title = escapeHtml(item.title || "Conteúdo sem título");
               const subtitle = escapeHtml(getHistoryPreview(item));
@@ -2752,6 +3082,130 @@
           `;
             });
 
+            html += "</section>";
+          });
+
+          historyList.innerHTML = html;
+        }
+
+        function getHistoryPreview(item) {
+          const description =
+            getHistoryDescription(item) || formatTypeLabel(item?.content_type);
+          if (item?.content_type === "ai_vision") {
+            return shortenText(`Descri\u00E7\u00E3o: ${description}`, 150);
+          }
+          return shortenText(description, 95);
+        }
+
+        function buildHistoryItemCard(item) {
+          const itemId = escapeHtml(item.id || "");
+          const title = escapeHtml(
+            item.title || "Conte\u00FAdo sem t\u00EDtulo",
+          );
+          const subtitle = escapeHtml(getHistoryPreview(item));
+          const stamp =
+            item.last_watched_at || item.created_at || item.updated_at;
+          const meta = getHistoryMeta(item, stamp);
+          const favorite = isHistoryFavorite(item);
+
+          return `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <div class="history-title-row">
+                  <strong>${title}</strong>
+                  ${favorite ? '<span class="history-favorite-badge"><span aria-hidden="true">★</span> Favorito</span>' : ""}
+                </div>
+                <span class="history-preview">${subtitle}</span>
+                <div class="history-meta">${escapeHtml(meta)}</div>
+              </button>
+              <div class="history-item-actions">
+                <div class="history-item-tools">
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm history-action-btn history-action-icon history-favorite-btn ${favorite ? "active" : ""}"
+                    data-favorite-id="${itemId}"
+                    aria-pressed="${favorite ? "true" : "false"}"
+                    aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                    title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                  >
+                    <span class="history-action-symbol" aria-hidden="true">★</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm history-action-btn"
+                    data-rename-id="${itemId}"
+                  >
+                    Renomear
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-danger btn-sm history-action-btn"
+                    data-delete-id="${itemId}"
+                  >
+                    Excluir
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm history-action-btn history-open-btn"
+                  data-open-id="${itemId}"
+                >
+                  Abrir
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
+        function renderHistory() {
+          if (!historyList || !historyEmpty || !historyCount) return;
+
+          const filtered = getFilteredHistoryItems();
+          historyCount.textContent = `${filtered.length} ${filtered.length === 1 ? "item" : "itens"}`;
+
+          if (filtered.length === 0) {
+            historyList.innerHTML = "";
+            historyEmpty.style.display = "block";
+            return;
+          }
+
+          historyEmpty.style.display = "none";
+          const favoriteItems = filtered
+            .filter((item) => isHistoryFavorite(item))
+            .sort(
+              (a, b) => getHistoryFavoriteStamp(b) - getHistoryFavoriteStamp(a),
+            );
+          const regularItems = filtered.filter(
+            (item) => !isHistoryFavorite(item),
+          );
+          const groups = new Map();
+
+          regularItems.forEach((item) => {
+            const stamp =
+              item.last_watched_at ||
+              item.created_at ||
+              item.updated_at ||
+              new Date().toISOString();
+            const label = formatGroupLabel(stamp);
+            if (!groups.has(label)) groups.set(label, []);
+            groups.get(label).push(item);
+          });
+
+          let html = "";
+
+          if (favoriteItems.length > 0) {
+            html += `<section class="history-group"><h4 class="history-group-label">Favoritos</h4>`;
+            favoriteItems.forEach((item) => {
+              html += buildHistoryItemCard(item);
+            });
+            html += "</section>";
+          }
+
+          groups.forEach((items, label) => {
+            html += `<section class="history-group"><h4 class="history-group-label">${escapeHtml(label)}</h4>`;
+            items.forEach((item) => {
+              html += buildHistoryItemCard(item);
+            });
             html += "</section>";
           });
 
@@ -2799,6 +3253,8 @@
         }
 
         async function deleteHistoryItem(itemId) {
+          requestDeleteHistoryItem(itemId);
+          return;
           if (typeof HistoryTracker === "undefined") return;
           const ok = await HistoryTracker.remove(itemId);
           if (!ok) {
@@ -2810,6 +3266,147 @@
           );
           renderHistory();
           showToast("Item removido do histórico.");
+        }
+
+        async function toggleHistoryFavorite(itemId) {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot || pendingHistoryDeletes.size > 0) {
+            showToast(
+              "Conclua ou desfaÃ§a a remoÃ§Ã£o pendente antes de editar favoritos.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          const item = findHistoryItem(itemId);
+          if (!item) return;
+
+          const nextFavorite = !isHistoryFavorite(item);
+          const ok = await HistoryTracker.setFavorite(itemId, nextFavorite);
+          if (!ok) {
+            showToast(
+              "NÃ£o foi possÃ­vel atualizar esse favorito.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          historyItems = historyItems.map((entry) => {
+            if (String(entry.id) !== String(itemId)) return entry;
+            const payload = getHistoryPayload(entry);
+            const nextPayload = { ...payload, favorite: nextFavorite };
+            if (nextFavorite) {
+              nextPayload.favorite_at = new Date().toISOString();
+            } else {
+              delete nextPayload.favorite_at;
+            }
+            return { ...entry, payload: nextPayload };
+          });
+
+          renderHistory();
+          showToast(
+            nextFavorite
+              ? "Item adicionado aos favoritos."
+              : "Item removido dos favoritos.",
+            "success",
+            7000,
+          );
+        }
+
+        function requestDeleteHistoryItem(itemId) {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot) {
+            showToast(
+              "A limpeza total do histÃ³rico jÃ¡ estÃ¡ em andamento.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          const item = findHistoryItem(itemId);
+          const normalizedId = String(itemId || "");
+          if (!item || pendingHistoryDeletes.has(normalizedId)) return;
+
+          pendingHistoryDeletes.set(normalizedId, item);
+          renderHistory();
+
+          const safeTitle = escapeHtml(
+            shortenText(item.title || "Item do histÃ³rico", 42),
+          );
+
+          showHistoryUndoToast(
+            `Removendo "${safeTitle}" do histÃ³rico...`,
+            async () => {
+              const ok = await HistoryTracker.remove(itemId);
+              pendingHistoryDeletes.delete(normalizedId);
+
+              if (!ok) {
+                renderHistory();
+                showToast(
+                  "Falha ao remover item do histÃ³rico.",
+                  "error",
+                  7000,
+                );
+                return;
+              }
+
+              historyItems = historyItems.filter(
+                (entry) => String(entry.id) !== normalizedId,
+              );
+              renderHistory();
+              showToast("Item removido do histÃ³rico.", "success", 7000);
+            },
+            () => {
+              pendingHistoryDeletes.delete(normalizedId);
+              renderHistory();
+            },
+          );
+        }
+
+        function requestClearHistory() {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot) return;
+          if (pendingHistoryDeletes.size > 0) {
+            showToast(
+              "Conclua ou desfaÃ§a a remoÃ§Ã£o pendente antes de apagar tudo.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          if (getVisibleHistoryItems().length === 0) {
+            showToast("Seu histÃ³rico jÃ¡ estÃ¡ vazio.", "error", 7000);
+            return;
+          }
+
+          pendingHistoryClearSnapshot = historyItems.slice();
+          renderHistory();
+
+          showHistoryUndoToast(
+            "Apagando todo o histÃ³rico da sua conta...",
+            async () => {
+              const ok = await HistoryTracker.clearAll();
+              pendingHistoryClearSnapshot = null;
+
+              if (!ok) {
+                renderHistory();
+                showToast("Falha ao limpar histÃ³rico.", "error", 7000);
+                return;
+              }
+
+              historyItems = [];
+              renderHistory();
+              showToast("HistÃ³rico excluÃ­do com sucesso.", "success", 7000);
+            },
+            () => {
+              pendingHistoryClearSnapshot = null;
+              renderHistory();
+            },
+          );
         }
 
         async function renameHistoryItem(itemId) {
@@ -2876,6 +3473,301 @@
           showToast("Conversa atualizada com sucesso.", "success", 7000);
         }
 
+        async function refreshHistory() {
+          if (typeof HistoryTracker === "undefined") {
+            historyItems = [];
+            renderHistory();
+            return;
+          }
+
+          const { items, source } = await HistoryTracker.list(240);
+          historyItems = Array.isArray(items) ? [...items] : [];
+          historyItems.sort((a, b) => {
+            const aTime = new Date(
+              a.last_watched_at || a.created_at || 0,
+            ).getTime();
+            const bTime = new Date(
+              b.last_watched_at || b.created_at || 0,
+            ).getTime();
+            return bTime - aTime;
+          });
+
+          if (historySourceNote) {
+            if (source === "error" || source === "no-client") {
+              historySourceNote.textContent =
+                "Nao foi possivel carregar o historico do Supabase agora.";
+              historySourceNote.style.display = "block";
+            } else {
+              historySourceNote.textContent = "";
+              historySourceNote.style.display = "none";
+            }
+          }
+
+          renderHistory();
+        }
+
+        async function deleteHistoryItem(itemId) {
+          requestDeleteHistoryItem(itemId);
+        }
+
+        async function toggleHistoryFavorite(itemId) {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot || pendingHistoryDeletes.size > 0) {
+            showToast(
+              "Conclua ou desfa\u00E7a a remocao pendente antes de editar favoritos.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          const item = findHistoryItem(itemId);
+          if (!item) return;
+
+          const nextFavorite = !isHistoryFavorite(item);
+          const ok = await HistoryTracker.setFavorite(itemId, nextFavorite);
+          if (!ok) {
+            showToast(
+              "Nao foi possivel atualizar esse favorito.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          historyItems = historyItems.map((entry) => {
+            if (String(entry.id) !== String(itemId)) return entry;
+            const payload = getHistoryPayload(entry);
+            const nextPayload = { ...payload, favorite: nextFavorite };
+            if (nextFavorite) {
+              nextPayload.favorite_at = new Date().toISOString();
+            } else {
+              delete nextPayload.favorite_at;
+            }
+            return { ...entry, payload: nextPayload };
+          });
+
+          renderHistory();
+          showToast(
+            nextFavorite
+              ? "Item adicionado aos favoritos."
+              : "Item removido dos favoritos.",
+            "success",
+            7000,
+          );
+        }
+
+        function requestDeleteHistoryItem(itemId) {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot) {
+            showToast(
+              "A limpeza completa do historico ja esta em andamento.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          const item = findHistoryItem(itemId);
+          const normalizedId = String(itemId || "");
+          if (!item || pendingHistoryDeletes.has(normalizedId)) return;
+
+          pendingHistoryDeletes.set(normalizedId, item);
+          renderHistory();
+
+          const safeTitle = escapeHtml(
+            shortenText(item.title || "Item do historico", 42),
+          );
+
+          showHistoryUndoToast(
+            `"${safeTitle}" sera removido do historico em 7 segundos.`,
+            async () => {
+              const ok = await HistoryTracker.remove(itemId);
+              pendingHistoryDeletes.delete(normalizedId);
+
+              if (!ok) {
+                renderHistory();
+                showToast(
+                  "Falha ao remover item do historico.",
+                  "error",
+                  7000,
+                );
+                return;
+              }
+
+              historyItems = historyItems.filter(
+                (entry) => String(entry.id) !== normalizedId,
+              );
+              renderHistory();
+              showToast("Item removido do historico.", "success", 7000);
+            },
+            () => {
+              pendingHistoryDeletes.delete(normalizedId);
+              renderHistory();
+            },
+          );
+        }
+
+        function requestClearHistory() {
+          if (typeof HistoryTracker === "undefined") return;
+          if (pendingHistoryClearSnapshot) return;
+          if (pendingHistoryDeletes.size > 0) {
+            showToast(
+              "Conclua ou desfa\u00E7a a remocao pendente antes de apagar tudo.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          if (getVisibleHistoryItems().length === 0) {
+            showToast("Seu historico ja esta vazio.", "error", 7000);
+            return;
+          }
+
+          pendingHistoryClearSnapshot = historyItems.slice();
+          renderHistory();
+
+          showHistoryUndoToast(
+            "Todo o seu historico sera apagado em 7 segundos.",
+            async () => {
+              const ok = await HistoryTracker.clearAll();
+              pendingHistoryClearSnapshot = null;
+
+              if (!ok) {
+                renderHistory();
+                showToast("Falha ao limpar historico.", "error", 7000);
+                return;
+              }
+
+              historyItems = [];
+              renderHistory();
+              showToast("Historico apagado com sucesso.", "success", 7000);
+            },
+            () => {
+              pendingHistoryClearSnapshot = null;
+              renderHistory();
+            },
+          );
+        }
+
+        async function renameHistoryItem(itemId) {
+          const item = findHistoryItem(itemId);
+          if (!item || typeof HistoryTracker === "undefined") return;
+
+          const currentTitle =
+            String(item.title || "").trim() || "Conversa sem titulo";
+          renameTargetItemId = itemId;
+          if (renameConversationInput) {
+            renameConversationInput.value = currentTitle;
+            renameConversationInput.focus();
+            renameConversationInput.select();
+          }
+          if (renameModal) renameModal.classList.add("open");
+        }
+
+        async function confirmRenameFromModal() {
+          if (!renameTargetItemId || typeof HistoryTracker === "undefined")
+            return;
+          const item = findHistoryItem(renameTargetItemId);
+          if (!item) {
+            closeRenameModal();
+            return;
+          }
+
+          const currentTitle =
+            String(item.title || "").trim() || "Conversa sem titulo";
+          const nextTitle = String(renameConversationInput?.value || "")
+            .replace(/\s+/g, " ")
+            .trim();
+          if (!nextTitle) {
+            showToast("Digite um nome valido.", "error", 7000);
+            return;
+          }
+          if (nextTitle === currentTitle) {
+            closeRenameModal();
+            return;
+          }
+
+          const ok = await HistoryTracker.rename(renameTargetItemId, nextTitle);
+          if (!ok) {
+            showToast(
+              "Nao foi possivel renomear essa conversa.",
+              "error",
+              7000,
+            );
+            return;
+          }
+
+          historyItems = historyItems.map((entry) =>
+            String(entry.id) === String(renameTargetItemId)
+              ? { ...entry, title: nextTitle }
+              : entry,
+          );
+          renderHistory();
+          closeRenameModal();
+          showToast("Conversa atualizada com sucesso.", "success", 7000);
+        }
+
+        function buildHistoryItemCard(item) {
+          const itemId = escapeHtml(item.id || "");
+          const title = escapeHtml(
+            item.title || "Conte\u00FAdo sem t\u00EDtulo",
+          );
+          const subtitle = escapeHtml(getHistoryPreview(item));
+          const stamp =
+            item.last_watched_at || item.created_at || item.updated_at;
+          const meta = getHistoryMeta(item, stamp);
+          const favorite = isHistoryFavorite(item);
+
+          return `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <div class="history-title-row">
+                  <strong>${title}</strong>
+                </div>
+                <span class="history-preview">${subtitle}</span>
+                <div class="history-meta">${escapeHtml(meta)}</div>
+              </button>
+              <div class="history-favorite-row">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-favorite-btn ${favorite ? "active" : ""}"
+                  data-favorite-id="${itemId}"
+                  aria-pressed="${favorite ? "true" : "false"}"
+                  aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                  title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
+                >
+                  <span class="history-action-symbol" aria-hidden="true">&#9733;</span>
+                </button>
+              </div>
+              <div class="history-item-actions">
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-action-btn"
+                  data-open-id="${itemId}"
+                >
+                  Abrir
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm history-action-btn"
+                  data-rename-id="${itemId}"
+                >
+                  Renomear
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-danger btn-sm history-action-btn"
+                  data-delete-id="${itemId}"
+                >
+                  Excluir
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
         function openHistoryItem(itemId) {
           const item = findHistoryItem(itemId);
           if (!item) return;
@@ -2898,6 +3790,14 @@
 
           if (historyList) {
             historyList.addEventListener("click", async (event) => {
+              const favoriteBtn = event.target.closest("[data-favorite-id]");
+              if (favoriteBtn) {
+                await toggleHistoryFavorite(
+                  favoriteBtn.getAttribute("data-favorite-id"),
+                );
+                return;
+              }
+
               const openBtn = event.target.closest("[data-open-id]");
               if (openBtn) {
                 openHistoryItem(openBtn.getAttribute("data-open-id"));
@@ -2914,7 +3814,7 @@
 
               const deleteBtn = event.target.closest("[data-delete-id]");
               if (deleteBtn) {
-                await deleteHistoryItem(
+                requestDeleteHistoryItem(
                   deleteBtn.getAttribute("data-delete-id"),
                 );
               }
@@ -2952,6 +3852,8 @@
 
           if (clearHistoryBtn) {
             clearHistoryBtn.addEventListener("click", async () => {
+              requestClearHistory();
+              return;
               if (!confirm("Deseja apagar todo o histórico da sua conta?"))
                 return;
               if (typeof HistoryTracker === "undefined") return;

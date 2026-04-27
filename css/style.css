@@ -23,17 +23,10 @@
  * de background-color/border-color que re-dispara em cada frame do --chromatic-hue.
  * Suprimir transitions de layout nesses cards específicos garante FPS sem afetar mais nada.
  */
-.theme-cromatico .inventory-item-card,
-.theme-cromatico .purchased-card,
-.theme-cromatico .item-card-emerald,
-.theme-cromatico .history-sidebar,
-.theme-cromatico .history-item,
-.theme-cromatico .history-list,
-.theme-cromatico .btn,
-.theme-cromatico .btn-equip-chromatic,
-.theme-cromatico .equipped-badge-chromatic,
-.theme-cromatico .card-badge,
-.theme-cromatico .badge-pill {
+.theme-cromatico,
+.theme-cromatico *,
+.theme-cromatico *::before,
+.theme-cromatico *::after {
   transition:
     transform 0.2s ease,
     opacity 0.2s ease !important;
@@ -1296,7 +1289,7 @@
  * Saturação 88% e luminosidade 58% → paleta mais suave e menos custosa no GPU.
  */
 .theme-cromatico {
-  animation: chromatic-hue-cycle 30s linear infinite;
+  --chromatic-hue: 210deg;
   /* 30 s → menos recalcs/s */
   isolation: isolate;
   contain: style;
@@ -1327,12 +1320,35 @@
   --scrollbar: hsl(var(--chromatic-hue), 88%, 58%);
 }
 
+.theme-cromatico-lite .inventory-item-card,
+.theme-cromatico-lite .purchased-card,
+.theme-cromatico-lite .item-card-emerald,
+.theme-cromatico-lite .history-sidebar,
+.theme-cromatico-lite .history-item,
+.theme-cromatico-lite .history-list,
+.theme-cromatico-lite .btn,
+.theme-cromatico-lite .btn-equip-chromatic,
+.theme-cromatico-lite .equipped-badge-chromatic,
+.theme-cromatico-lite .card-badge,
+.theme-cromatico-lite .badge-pill {
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease !important;
+}
+
+.theme-cromatico-paused,
+.theme-cromatico-paused *,
+.theme-cromatico-paused *::before,
+.theme-cromatico-paused *::after {
+  animation-play-state: paused !important;
+}
+
 /* Residual neon fix — raios menores para reduzir custo de repaint */
 .theme-cromatico .navbar-brand img,
 .theme-cromatico .home-icon,
 .theme-cromatico .stats-card,
 .theme-cromatico .manga-pill.active {
-  filter: drop-shadow(0 0 7px hsla(var(--chromatic-hue), 88%, 58%, 0.45)) !important;
+  filter: drop-shadow(0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.28)) !important;
 }
 
 /* Títulos com gradiente cromático — paleta elegante (lum 68 %) */
@@ -1359,12 +1375,12 @@
   background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   text-shadow: none !important;
-  filter: drop-shadow(0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.35)) !important;
+  filter: none !important;
 }
 
 .theme-cromatico .user-nav-container {
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
-  box-shadow: 0 0 18px hsla(var(--chromatic-hue), 88%, 58%, 0.16) !important;
+  box-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.1) !important;
   background: rgba(3, 3, 12, 0.5) !important;
 }
 
@@ -1378,7 +1394,7 @@
   background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.62) !important;
-  box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.25) !important;
+  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
 /* Overrides para remover o branco de elementos específicos */
@@ -1401,8 +1417,9 @@
 .theme-cromatico .history-search input {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.06) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.52) !important;
-  box-shadow: 0 0 18px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
-  backdrop-filter: blur(6px) !important;
+  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .theme-cromatico .xp-orb {
@@ -1410,7 +1427,7 @@
       var(--primary) 0%,
       hsla(var(--chromatic-hue), 88%, 58%, 0.25) 60%,
       transparent 100%) !important;
-  box-shadow: 0 0 26px hsla(var(--chromatic-hue), 88%, 58%, 0.5) !important;
+  box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.24) !important;
 }
 
 /* Ajuste para banners que têm fundos que podem conflitar */
@@ -1421,7 +1438,7 @@
       hsla(var(--chromatic-hue), 88%, 58%, 0.04) 50%,
       rgba(3, 3, 12, 0.97) 100%) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.5) !important;
-  box-shadow: 0 0 28px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
+  box-shadow: 0 0 12px hsla(var(--chromatic-hue), 88%, 58%, 0.05) !important;
 }
 
 .theme-cromatico .loja-hero-eyebrow::before,
@@ -1436,7 +1453,7 @@
 
 .theme-cromatico .stats-widget,
 .theme-cromatico .volume-card:hover {
-  box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.3) !important;
+  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.16) !important;
 }
 
 /* No layout overrides for history items in chromatic theme */
@@ -1448,17 +1465,17 @@
 .theme-cromatico .stats-progress-fill,
 .theme-cromatico .season-progress-fill {
   background: linear-gradient(90deg, var(--primary), var(--accent)) !important;
-  box-shadow: 0 0 10px var(--primary) !important;
+  box-shadow: none !important;
 }
 
 .theme-cromatico .stats-widget::before {
   background: var(--primary) !important;
-  box-shadow: 0 0 10px var(--primary) !important;
+  box-shadow: none !important;
 }
 
 .theme-cromatico .stats-info .count {
   color: var(--primary) !important;
-  text-shadow: 0 0 10px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+  text-shadow: none !important;
 }
 
 .theme-cromatico .card-badge,
@@ -1471,7 +1488,7 @@
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
   color: var(--primary) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
-  box-shadow: 0 0 7px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+  box-shadow: 0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
 }
 
 .theme-cromatico .btn-primary,
@@ -1483,7 +1500,7 @@
 
 .theme-cromatico .btn:hover {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.2) !important;
-  box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.32) !important;
+  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
 .theme-cromatico .msg.bot {
@@ -1491,7 +1508,7 @@
       hsla(var(--chromatic-hue), 88%, 58%, 0.07),
       rgba(3, 3, 12, 0.35)) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.5) !important;
-  box-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+  box-shadow: 0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
 }
 
 .theme-cromatico .msg.user {
@@ -1499,7 +1516,7 @@
       hsla(var(--chromatic-hue), 88%, 58%, 0.12),
       rgba(3, 3, 12, 0.25)) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.55) !important;
-  box-shadow: 0 0 12px hsla(var(--chromatic-hue), 88%, 58%, 0.16) !important;
+  box-shadow: 0 0 5px hsla(var(--chromatic-hue), 88%, 58%, 0.1) !important;
 }
 
 /* AI Page Overrides for Chromatic Theme */
@@ -1521,7 +1538,7 @@
       hsla(var(--chromatic-hue), 88%, 58%, 0.08),
       rgba(3, 3, 12, 0.45)) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.5) !important;
-  box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+  box-shadow: 0 0 6px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
 }
 
 .theme-cromatico .ai-tab-v.active,
@@ -1544,12 +1561,12 @@
 .theme-cromatico .ai-btn-send {
   background: var(--primary) !important;
   color: var(--bg-dark) !important;
-  box-shadow: 0 0 15px var(--primary) !important;
+  box-shadow: 0 0 8px var(--primary) !important;
 }
 
 .theme-cromatico .ai-card h3 {
   color: var(--primary) !important;
-  text-shadow: 0 0 8px hsla(var(--chromatic-hue), 100%, 50%, 0.5) !important;
+  text-shadow: none !important;
 }
 
 .theme-cromatico .upload-zone__content {
@@ -1563,7 +1580,7 @@
 .theme-cromatico .card-badge:hover,
 .theme-cromatico .badge-accent:hover {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
-  box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.38) !important;
+  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
 /* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessões */
@@ -1574,7 +1591,7 @@
   border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.52) !important;
   box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.35),
-    0 0 12px hsla(var(--chromatic-hue), 88%, 58%, 0.2) !important;
+    0 0 6px hsla(var(--chromatic-hue), 88%, 58%, 0.1) !important;
 }
 
 .theme-cromatico .card-cover-placeholder {
@@ -1582,7 +1599,7 @@
       var(--bg-card) 0%,
       hsla(var(--chromatic-hue), 88%, 58%, 0.32) 100%) !important;
   color: var(--primary) !important;
-  text-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.5) !important;
+  text-shadow: none !important;
 }
 
 .theme-cromatico .episodes-grid {
@@ -1598,7 +1615,7 @@
 .theme-cromatico .season-header:hover {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
   border-bottom: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.72) !important;
-  box-shadow: inset 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
+  box-shadow: inset 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
 }
 
 .theme-cromatico .cartoon-pill:hover,
@@ -1615,7 +1632,7 @@
 .theme-cromatico .purchased-card:hover,
 .theme-cromatico .history-item:hover,
 .theme-cromatico .episode-card:hover {
-  box-shadow: var(--shadow-neon-h) !important;
+  box-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.1) !important;
   border: 2px solid hsla(var(--chromatic-hue), 88%, 65%, 0.75) !important;
   background-color: #0c0c18 !important;
 }
@@ -1629,7 +1646,7 @@
 .theme-cromatico .page-header h1,
 .theme-cromatico .navbar-brand,
 .theme-cromatico .catalog-item .item-title {
-  text-shadow: 0 0 6px hsla(var(--chromatic-hue), 88%, 58%, 0.45);
+  text-shadow: none;
 }
 
 .theme-cromatico .navbar {
@@ -1637,14 +1654,14 @@
   border-bottom: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.58);
   box-shadow:
     0 4px 24px rgba(0, 0, 0, 0.85),
-    0 0 20px hsla(var(--chromatic-hue), 88%, 58%, 0.2);
+    0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.1);
 }
 
 /* Palette options inside the switcher should be more visible against pure black */
 .theme-cromatico .theme-options {
   background: #08080f !important;
   border: 2px solid var(--primary);
-  box-shadow: 0 0 22px hsla(var(--chromatic-hue), 88%, 58%, 0.38);
+  box-shadow: 0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.14);
 }
 
 /* Fixed positioning for palette switcher remains intact */
@@ -1661,6 +1678,61 @@
 /* Font variável para títulos no tema cromático */
 .theme-cromatico {
   --title-font: "Audiowide", cursive;
+}
+
+/* Lightweight runtime profile for the chromatic theme */
+.theme-cromatico.theme-cromatico-lite .navbar-brand img,
+.theme-cromatico.theme-cromatico-lite .home-icon,
+.theme-cromatico.theme-cromatico-lite .stats-card,
+.theme-cromatico.theme-cromatico-lite .manga-pill.active {
+  filter: none !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .hero-xp-card,
+.theme-cromatico.theme-cromatico-lite #homeUserStatus>div,
+.theme-cromatico.theme-cromatico-lite .search-bar input,
+.theme-cromatico.theme-cromatico-lite .history-search input {
+  backdrop-filter: none !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .page-header h1,
+.theme-cromatico.theme-cromatico-lite .navbar-brand,
+.theme-cromatico.theme-cromatico-lite .catalog-item .item-title,
+.theme-cromatico.theme-cromatico-lite .stats-info .count,
+.theme-cromatico.theme-cromatico-lite .ai-card h3 {
+  text-shadow: 0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .user-nav-container,
+.theme-cromatico.theme-cromatico-lite .loja-hero,
+.theme-cromatico.theme-cromatico-lite .home-banner,
+.theme-cromatico.theme-cromatico-lite .navbar {
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.34),
+    0 0 10px hsla(var(--chromatic-hue), 88%, 58%, 0.1) !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .xp-orb {
+  box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.22) !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .card,
+.theme-cromatico.theme-cromatico-lite .episode-card,
+.theme-cromatico.theme-cromatico-lite .manga-item,
+.theme-cromatico.theme-cromatico-lite .season-section {
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.3),
+    0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.12) !important;
+}
+
+.theme-cromatico.theme-cromatico-lite .catalog-item:hover,
+.theme-cromatico.theme-cromatico-lite .card:hover,
+.theme-cromatico.theme-cromatico-lite .volume-card:hover,
+.theme-cromatico.theme-cromatico-lite .inventory-item-card:hover,
+.theme-cromatico.theme-cromatico-lite .purchased-card:hover,
+.theme-cromatico.theme-cromatico-lite .history-item:hover,
+.theme-cromatico.theme-cromatico-lite .episode-card:hover {
+  box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
 /* ===== TRANSIÇÃO SUAVE DE TEMA ===== */
@@ -4726,4 +4798,4 @@ body.modo-cinema .history-sidebar {
 .fav-star-container {
   position: relative;
   display: inline-block;
-}
+}

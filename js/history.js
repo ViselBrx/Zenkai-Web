@@ -286,6 +286,44 @@ const HistoryTracker = (() => {
     }
   }
 
+  async function setFavorite(id, isFavorite) {
+    const user = await _getUser();
+    if (!user || !id) return false;
+
+    const supa = _getClient();
+    if (!supa) return false;
+
+    try {
+      const { data: existing } = await supa
+        .from(TABLE)
+        .select('payload')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const currentPayload = existing?.payload && typeof existing.payload === 'object'
+        ? existing.payload
+        : {};
+
+      const nextPayload = { ...currentPayload, favorite: !!isFavorite };
+      if (isFavorite) {
+        nextPayload.favorite_at = new Date().toISOString();
+      } else {
+        delete nextPayload.favorite_at;
+      }
+
+      const { error } = await supa
+        .from(TABLE)
+        .update({ payload: nextPayload })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      return !error;
+    } catch {
+      return false;
+    }
+  }
+
   async function clearAll() {
     const user = await _getUser();
     if (!user) return false;
@@ -389,6 +427,7 @@ const HistoryTracker = (() => {
     list,
     remove,
     rename,
+    setFavorite,
     clearAll,
     queueResumeAndOpen,
     consumeResumeFromUrl

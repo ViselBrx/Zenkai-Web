@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ONLINE_WINDOW_MS = 300000;
   const COMMUNITY_LEVEL_XP_PER_LEVEL = 100;
   const COMMUNITY_PRESENCE_REFRESH_MS = 30000;
+  const COMMUNITY_PIN_LIMIT = 3;
   const SESSION_KEYS = {
     activeChat: 'animehouse_active_chat_user',
     activeTab: 'animehouse_social_tab',
@@ -424,6 +425,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       .replace(/'/g, '&#39;');
   }
 
+  function normalizeSearchText(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function getSearchTokens(value) {
+    return normalizeSearchText(value)
+      .split(' ')
+      .map((token) => token.trim())
+      .filter(Boolean);
+  }
+
   function formatFileSize(bytes) {
     const size = Number(bytes || 0);
     if (!Number.isFinite(size) || size <= 0) return '';
@@ -522,6 +539,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  function getCurrentUserCommunityEntry() {
+    if (!currentUser) return null;
+    return allUsers.find((user) => user.id === currentUser.id) || null;
+  }
+
+  function getPinnedConversationIds() {
+    const storeData = getCurrentUserCommunityEntry()?.store_data || {};
+    const pinned = Array.isArray(storeData.community_pinned_chats)
+      ? storeData.community_pinned_chats
+      : Array.isArray(storeData.pinned_community_chats)
+        ? storeData.pinned_community_chats
+        : [];
+
+    const unique = [];
+    pinned.forEach((value) => {
+      const normalized = String(value || '').trim();
+      if (!normalized || normalized === currentUser?.id || unique.includes(normalized)) return;
+      unique.push(normalized);
+    });
+    return unique.slice(0, COMMUNITY_PIN_LIMIT);
+  }
+
+  async function persistCurrentUserCommunityStore(nextStoreData) {
+    if (!currentUser) throw new Error('Você precisa estar logado para salvar suas preferências.');
+
+    const supa = window.supabaseClient;
+    if (!supa) throw new Error('Cliente do Supabase indisponível no momento.');
+
+    const ts = new Date().toISOString();
+    const { error } = await supa
+      .from('profiles')
+      .update({ store_data: nextStoreData, updated_at: ts })
+      .eq('id', currentUser.id);
+
+    if (error) throw error;
+
+    const index = allUsers.findIndex((user) => user.id === currentUser.id);
+    if (index >= 0) {
+      allUsers[index] = {
+        ...allUsers[index],
+        store_data: nextStoreData,
+        updated_at: ts
+      };
+    }
+
+    if (window.DB?._store?.profile?.id === currentUser.id) {
+      window.DB._store.profile.store_data = nextStoreData;
+      window.DB._store.profile.updated_at = ts;
+    }
+  }
+
+  async function togglePinnedConversation(userId) {
+    if (!currentUser) {
+      showNotice('Faça login para fixar conversas.');
+      return;
+    }
+
+    const normalizedUserId = String(userId || '').trim();
+    if (!normalizedUserId || normalizedUserId === currentUser.id) return;
+
+    const currentEntry = getCurrentUserCommunityEntry();
+    const storeData = currentEntry?.store_data && typeof currentEntry.store_data === 'object'
+      ? { ...currentEntry.store_data }
+      : {};
+    const pinnedIds = getPinnedConversationIds();
+    const alreadyPinned = pinnedIds.includes(normalizedUserId);
+
+    if (!alreadyPinned && pinnedIds.length >= COMMUNITY_PIN_LIMIT) {
+      showNotice(`Você pode fixar no máximo ${COMMUNITY_PIN_LIMIT} conversas. Remova uma para adicionar outra.`);
+      return;
+    }
+
+    const nextPinnedIds = alreadyPinned
+      ? pinnedIds.filter((id) => id !== normalizedUserId)
+      : [normalizedUserId, ...pinnedIds].slice(0, COMMUNITY_PIN_LIMIT);
+
+    storeData.community_pinned_chats = nextPinnedIds;
+
+    try {
+      await persistCurrentUserCommunityStore(storeData);
+      renderConversationList();
+      showSuccessNotice(
+        alreadyPinned
+          ? 'Conversa removida dos fixados.'
+          : 'Conversa fixada no topo.'
+      );
+    } catch (error) {
+      console.error('Erro ao salvar conversas fixadas:', error);
+      showNotice(error?.message || 'Não foi possível atualizar as conversas fixadas.');
+    }
+  }
+
   function isImageFile(fileOrMime) {
     const mimeType = typeof fileOrMime === 'string'
       ? fileOrMime
@@ -557,6 +666,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const preview = parts.join(' • ') || 'Nova conversa';
     return message.sender_id === currentUser?.id ? `Você: ${preview}` : preview;
+  }
+
+  function getConversationSearchText(message) {
+    if (!message) return '';
+
+    const parts = [];
+    if (isMessageDeletedForEveryone(message)) {
+      parts.push('mensagem apagada pelo remetente');
+    }
+
+    if (message.attachment_url) {
+      parts.push(getAttachmentKind(message) === 'image' ? 'foto imagem' : 'arquivo anexo');
+    }
+
+    if (message.attachment_name) {
+      parts.push(message.attachment_name);
+    }
+
+    if (String(message.content || '').trim()) {
+      parts.push(String(message.content).trim());
+    }
+
+    return parts.join(' ');
   }
 
   function getMessageStatus(message) {
@@ -856,6 +988,69 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       return belongsToConversation && !isMessageHiddenForCurrentUser(message);
     });
+  }
+
+  function countMatchedSearchTokens(normalizedText, searchTokens) {
+    if (!normalizedText || !Array.isArray(searchTokens) || searchTokens.length === 0) {
+      return 0;
+    }
+
+    let matches = 0;
+    searchTokens.forEach((token) => {
+      if (normalizedText.includes(token)) matches += 1;
+    });
+    return matches;
+  }
+
+  function buildConversationSearchIndex(searchTokens = []) {
+    const index = new Map();
+    if (!currentUser) return index;
+
+    directMessages
+      .filter((message) => !isMessageHiddenForCurrentUser(message))
+      .forEach((message) => {
+        const otherUserId = message.sender_id === currentUser.id
+          ? message.recipient_id
+          : message.sender_id;
+        if (!otherUserId || otherUserId === currentUser.id) return;
+
+        const nextText = getConversationSearchText(message);
+        const normalizedText = normalizeSearchText(nextText);
+        const existing = index.get(otherUserId) || {
+          historyText: '',
+          matchPreview: '',
+          matchScore: 0,
+          matchTime: 0,
+          fullMatch: false
+        };
+
+        if (normalizedText) {
+          existing.historyText = existing.historyText
+            ? `${existing.historyText} ${normalizedText}`
+            : normalizedText;
+        }
+
+        if (searchTokens.length > 0 && normalizedText) {
+          const matchScore = countMatchedSearchTokens(normalizedText, searchTokens);
+          if (matchScore > 0) {
+            const messageTime = new Date(message.created_at || 0).getTime();
+            const shouldReplace =
+              matchScore > existing.matchScore ||
+              (matchScore === existing.matchScore && messageTime >= existing.matchTime);
+
+            if (shouldReplace) {
+              existing.matchPreview = getMessagePreview(message);
+              existing.matchScore = matchScore;
+              existing.matchTime = Number.isFinite(messageTime) ? messageTime : 0;
+              existing.fullMatch = matchScore === searchTokens.length;
+            }
+          }
+        }
+
+        index.set(otherUserId, existing);
+      });
+
+    return index;
   }
 
   function getConversationDraft(userId) {
@@ -1277,15 +1472,51 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const searchTerm = String(conversationSearch?.value || '').trim().toLowerCase();
-    const conversations = buildConversationSummaries().filter((summary) => {
-      const user = allUsers.find((item) => item.id === summary.otherUserId);
-      const text = `${getUserDisplayName(user)} ${getMessagePreview(summary.lastMessage)}`.toLowerCase();
-      return !searchTerm || text.includes(searchTerm);
-    });
+    const searchTokens = getSearchTokens(conversationSearch?.value || '');
+    const pinnedIds = getPinnedConversationIds();
+    const pinnedOrder = new Map(pinnedIds.map((id, index) => [id, index]));
+    const conversationSearchIndex = buildConversationSearchIndex(searchTokens);
+    const conversations = buildConversationSummaries()
+      .filter((summary) => {
+        const otherUser = allUsers.find((item) => item.id === summary.otherUserId);
+        if (!otherUser) return false;
+        if (searchTokens.length === 0) return true;
+
+        const searchEntry = conversationSearchIndex.get(summary.otherUserId);
+        const conversationHistory = searchEntry?.historyText || '';
+        const haystack = normalizeSearchText([
+          getUserDisplayName(otherUser),
+          otherUser.username || '',
+          otherUser.full_name || '',
+          getMessagePreview(summary.lastMessage),
+          conversationHistory
+        ].join(' '));
+
+        return searchTokens.every((token) => haystack.includes(token));
+      })
+      .sort((a, b) => {
+        const aPinned = pinnedOrder.has(a.otherUserId);
+        const bPinned = pinnedOrder.has(b.otherUserId);
+
+        if (aPinned && bPinned) {
+          return pinnedOrder.get(a.otherUserId) - pinnedOrder.get(b.otherUserId);
+        }
+        if (aPinned) return -1;
+        if (bPinned) return 1;
+
+        if (searchTokens.length > 0) {
+          const aScore = conversationSearchIndex.get(a.otherUserId)?.matchScore || 0;
+          const bScore = conversationSearchIndex.get(b.otherUserId)?.matchScore || 0;
+          if (aScore !== bScore) return bScore - aScore;
+        }
+
+        const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
+        const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
+        return bTime - aTime;
+      });
 
     if (conversations.length === 0) {
-      conversationList.innerHTML = searchTerm
+      conversationList.innerHTML = searchTokens.length
         ? '<div class="social-empty">Nenhuma conversa encontrada para essa busca.</div>'
         : '<div class="social-empty">Nenhuma conversa iniciada ainda.</div>';
       return;
@@ -1299,33 +1530,68 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const isActive = activeChatUserId === summary.otherUserId;
       const isOnline = isUserOnline(otherUser);
-      const preview = getMessagePreview(summary.lastMessage);
+      const isPinned = pinnedOrder.has(summary.otherUserId);
+      const searchEntry = conversationSearchIndex.get(summary.otherUserId) || null;
+      const hasSearchPreview = searchTokens.length > 0 && !!searchEntry?.matchPreview;
+      const preview = hasSearchPreview
+        ? searchEntry.matchPreview
+        : getMessagePreview(summary.lastMessage);
+      const previewLabel = hasSearchPreview
+        ? (searchEntry.fullMatch ? 'Trecho encontrado' : 'Historico relacionado')
+        : '';
 
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = `conversation-item ${isActive ? 'active' : ''}`;
-      button.onclick = () => {
-        window.openChatWithUser(summary.otherUserId);
-      };
+      const item = document.createElement('div');
+      item.className = `conversation-item ${isActive ? 'active' : ''} ${isPinned ? 'pinned' : ''} ${hasSearchPreview ? 'search-match' : ''}`;
 
-      button.innerHTML = `
-        <div class="conversation-avatar-wrap">
-          <img src="${getUserAvatar(otherUser)}" class="conversation-avatar" alt="${escapeHtml(getUserDisplayName(otherUser))}">
-          <span class="conversation-dot ${isOnline ? 'online' : 'offline'}"></span>
-        </div>
-        <div class="conversation-meta">
-          <div class="conversation-name-row">
-            <span class="conversation-name">${escapeHtml(getUserDisplayName(otherUser))}</span>
-            <span class="conversation-time">${formatConversationTime(summary.lastMessage?.created_at)}</span>
+      item.innerHTML = `
+        <button type="button" class="conversation-main-btn" data-open-chat-id="${escapeHtml(summary.otherUserId)}">
+          <div class="conversation-avatar-wrap">
+            <img src="${getUserAvatar(otherUser)}" class="conversation-avatar" alt="${escapeHtml(getUserDisplayName(otherUser))}">
+            <span class="conversation-dot ${isOnline ? 'online' : 'offline'}"></span>
           </div>
-          <div class="conversation-preview-row">
-            <span class="conversation-preview">${escapeHtml(preview)}</span>
-            ${summary.unreadCount > 0 ? `<span class="conversation-unread">${summary.unreadCount}</span>` : ''}
+          <div class="conversation-meta">
+            <div class="conversation-name-row">
+              <span class="conversation-name">${escapeHtml(getUserDisplayName(otherUser))}</span>
+              <span class="conversation-time">${formatConversationTime(summary.lastMessage?.created_at)}</span>
+            </div>
+            <div class="conversation-preview-row">
+              <div class="conversation-preview-copy">
+                ${previewLabel ? `<span class="conversation-preview-label">${previewLabel}</span>` : ''}
+                <span class="conversation-preview">${escapeHtml(preview)}</span>
+              </div>
+              ${summary.unreadCount > 0 ? `<span class="conversation-unread">${summary.unreadCount}</span>` : ''}
+            </div>
           </div>
-        </div>
+        </button>
+        <button
+          type="button"
+          class="conversation-pin-btn ${isPinned ? 'active' : ''}"
+          data-pin-user-id="${escapeHtml(summary.otherUserId)}"
+          aria-pressed="${isPinned ? 'true' : 'false'}"
+          title="${isPinned ? 'Desfixar conversa' : 'Fixar conversa'}"
+        >
+          <i class="fas fa-thumbtack"></i>
+        </button>
       `;
 
-      conversationList.appendChild(button);
+      const openBtn = item.querySelector('[data-open-chat-id]');
+      const pinBtn = item.querySelector('[data-pin-user-id]');
+
+      if (openBtn) {
+        openBtn.addEventListener('click', () => {
+          window.openChatWithUser(summary.otherUserId);
+        });
+      }
+
+      if (pinBtn) {
+        pinBtn.addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          await togglePinnedConversation(summary.otherUserId);
+        });
+      }
+
+      conversationList.appendChild(item);
     });
   }
 
