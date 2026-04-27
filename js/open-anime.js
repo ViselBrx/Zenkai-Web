@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const char2Inp = document.getElementById('char2');
   const chatWindow = document.getElementById('chatWindow');
   const sendBtn = document.getElementById('sendChat');
+  const cancelChatEditBtn = document.getElementById('cancelChatEdit');
   const toggleInfoCardBtn = document.getElementById('toggleInfoCard');
   const infoCard = document.getElementById('infoCard');
   const themeName = document.getElementById('themeName');
@@ -93,14 +94,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
+  const EDIT_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+  const RESEND_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"></path><path d="M21 3v6h-6"></path></svg>';
   const COPY_BUTTON_LABEL = 'Copiar';
   const COPIED_BUTTON_LABEL = 'Copiado';
+  const AI_CHAT_SESSION_KEYS = {
+    threadId: 'animehouse_ai_chat_thread',
+    history: 'animehouse_ai_chat_history',
+    draft: 'animehouse_ai_chat_draft',
+    editState: 'animehouse_ai_chat_edit_state'
+  };
   const VISION_FALLBACK_PREVIEW = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="16" fill="%23111827"/><path d="M34 80l18-22 12 14 8-10 14 18H34z" fill="%236b7280"/><circle cx="46" cy="42" r="8" fill="%239ca3af"/></svg>';
   let chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
   let cachedAIUser = null;
   let currentChatThreadId = '';
   let selectedVisionFile = null;
   let isComparing = false;
+  let isSendingChat = false;
+  let activeChatEditState = null;
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
@@ -109,6 +120,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function buildUniqueId(prefix) {
     return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function getActiveToolTab() {
+    return document.querySelector('.ai-tab-v.active')?.dataset?.tab || 'chat';
   }
 
   function sleep(ms) {
@@ -150,12 +165,152 @@ document.addEventListener('DOMContentLoaded', async () => {
     return String(resume.mediaType || resume.contentType || '').trim();
   }
 
+  function normalizeSessionChatMessage(message) {
+    if (!message || typeof message !== 'object') return null;
+    if (!['user', 'assistant'].includes(String(message.role || ''))) return null;
+    const content = normalizeBrokenEncoding(String(message.content || ''));
+    if (!content.trim()) return null;
+
+    return {
+      id: message.id ? String(message.id) : '',
+      role: String(message.role),
+      content,
+      context: String(message.context || 'chat'),
+      metadata: message.metadata && typeof message.metadata === 'object'
+        ? { ...message.metadata }
+        : {},
+      created_at: message.created_at || null
+    };
+  }
+
+  function getSerializableChatHistory() {
+    return chatHistory
+      .filter((message) => message && message.role !== 'system' && typeof message.content === 'string')
+      .map((message) => ({
+        id: message.id ? String(message.id) : '',
+        role: message.role,
+        content: normalizeBrokenEncoding(message.content),
+        context: message.context || 'chat',
+        metadata: message.metadata && typeof message.metadata === 'object'
+          ? { ...message.metadata }
+          : {},
+        created_at: message.created_at || null
+      }));
+  }
+
+  function readAIChatSessionState() {
+    try {
+      const rawHistory = sessionStorage.getItem(AI_CHAT_SESSION_KEYS.history);
+      const parsedHistory = rawHistory ? JSON.parse(rawHistory) : [];
+      const history = Array.isArray(parsedHistory)
+        ? parsedHistory.map(normalizeSessionChatMessage).filter(Boolean)
+        : [];
+
+      const rawEditState = sessionStorage.getItem(AI_CHAT_SESSION_KEYS.editState);
+      const parsedEditState = rawEditState ? JSON.parse(rawEditState) : null;
+
+      return {
+        threadId: String(sessionStorage.getItem(AI_CHAT_SESSION_KEYS.threadId) || '').trim(),
+        draft: String(sessionStorage.getItem(AI_CHAT_SESSION_KEYS.draft) || ''),
+        history,
+        editState: parsedEditState && typeof parsedEditState === 'object'
+          ? {
+              userMessageId: String(parsedEditState.userMessageId || ''),
+              previousDraft: String(parsedEditState.previousDraft || '')
+            }
+          : null
+      };
+    } catch {
+      return { threadId: '', draft: '', history: [], editState: null };
+    }
+  }
+
+  function persistAIChatSessionState(options = {}) {
+    try {
+      const draft = typeof options.draft === 'string'
+        ? options.draft
+        : String(chatInput?.value || '');
+      const history = options.history || getSerializableChatHistory();
+
+      if (currentChatThreadId) {
+        sessionStorage.setItem(AI_CHAT_SESSION_KEYS.threadId, currentChatThreadId);
+      } else {
+        sessionStorage.removeItem(AI_CHAT_SESSION_KEYS.threadId);
+      }
+
+      sessionStorage.setItem(AI_CHAT_SESSION_KEYS.history, JSON.stringify(history));
+
+      if (draft) {
+        sessionStorage.setItem(AI_CHAT_SESSION_KEYS.draft, draft);
+      } else {
+        sessionStorage.removeItem(AI_CHAT_SESSION_KEYS.draft);
+      }
+
+      if (activeChatEditState?.userMessageId) {
+        sessionStorage.setItem(AI_CHAT_SESSION_KEYS.editState, JSON.stringify(activeChatEditState));
+      } else {
+        sessionStorage.removeItem(AI_CHAT_SESSION_KEYS.editState);
+      }
+    } catch {
+      // ignore session persistence errors
+    }
+  }
+
+  function clearAIChatSessionState() {
+    try {
+      Object.values(AI_CHAT_SESSION_KEYS).forEach((key) => {
+        sessionStorage.removeItem(key);
+      });
+    } catch {
+      // ignore session cleanup errors
+    }
+  }
+
+  function mergeSessionHistoryWithPersisted(sessionHistory = [], persistedHistory = []) {
+    const persistedById = new Map();
+    const persistedByLocalEchoId = new Map();
+    persistedHistory.forEach((message) => {
+      if (message?.id) persistedById.set(String(message.id), message);
+      const localEchoId = String(message?.metadata?.localEchoId || '').trim();
+      if (localEchoId) persistedByLocalEchoId.set(localEchoId, message);
+    });
+
+    const merged = sessionHistory.map((message) => {
+      if (message?.id) {
+        const byId = persistedById.get(String(message.id));
+        if (byId) return byId;
+      }
+
+      const localEchoId = String(message?.metadata?.localEchoId || message?.id || '').trim();
+      if (localEchoId && persistedByLocalEchoId.has(localEchoId)) {
+        return persistedByLocalEchoId.get(localEchoId);
+      }
+
+      return message;
+    });
+
+    persistedHistory.forEach((message) => {
+      const localEchoId = String(message?.metadata?.localEchoId || '').trim();
+      const exists = merged.some((item) => (
+        String(item?.id || '') === String(message?.id || '')
+        || (localEchoId && String(item?.metadata?.localEchoId || item?.id || '').trim() === localEchoId)
+      ));
+      if (!exists) merged.push(message);
+    });
+
+    return merged;
+  }
+
   if (chatInput) {
     chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && getActiveToolTab() === 'chat') {
         e.preventDefault();
-        sendBtn.click();
+        handleChatSend();
       }
+    });
+
+    chatInput.addEventListener('input', () => {
+      persistAIChatSessionState();
     });
   }
 
@@ -170,7 +325,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (char2Inp) {
     char2Inp.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+      if (e.key === 'Enter' && getActiveToolTab() === 'compare') {
         e.preventDefault();
         compareBtn.click();
       }
@@ -270,6 +425,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     button.innerHTML = `${copied ? COPIED_ICON : COPY_ICON}<span>${label}</span>`;
     button.title = copied ? 'Mensagem copiada' : 'Copiar mensagem';
     button.setAttribute('aria-label', copied ? 'Mensagem copiada' : 'Copiar mensagem');
+  }
+
+  function isAIChatEditing() {
+    return !!activeChatEditState;
+  }
+
+  function syncAIChatEditStateWithHistory() {
+    if (!activeChatEditState?.userMessageId) return;
+    const exists = chatHistory.some((message) => String(message?.id || '') === String(activeChatEditState.userMessageId));
+    if (!exists) {
+      activeChatEditState = null;
+    }
+  }
+
+  function updateAIChatComposerState() {
+    syncAIChatEditStateWithHistory();
+    const editing = isAIChatEditing();
+
+    if (chatInput) {
+      chatInput.placeholder = editing
+        ? 'Edite sua pergunta e pressione Enter para salvar'
+        : 'Sua pergunta... (Pressione Enter)';
+    }
+
+    if (cancelChatEditBtn) {
+      cancelChatEditBtn.hidden = !editing;
+      cancelChatEditBtn.disabled = isSendingChat;
+    }
+
+    if (sendBtn) {
+      sendBtn.title = editing ? 'Salvar edição' : 'Enviar mensagem';
+      sendBtn.setAttribute('aria-label', editing ? 'Salvar edição' : 'Enviar mensagem');
+    }
+
+  }
+
+  function clearAIChatEditState(options = {}) {
+    if (!activeChatEditState) {
+      updateAIChatComposerState();
+      persistAIChatSessionState();
+      return;
+    }
+
+    const { restoreDraft = false } = options;
+    const previousDraft = activeChatEditState.previousDraft || '';
+    activeChatEditState = null;
+
+    if (restoreDraft && chatInput) {
+      chatInput.value = previousDraft;
+    } else if (chatInput && !isSendingChat) {
+      chatInput.value = '';
+    }
+
+    updateAIChatComposerState();
+    persistAIChatSessionState();
   }
 
   function writeTextToClipboard(text) {
@@ -572,12 +782,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function appendMsg(text, type) {
+  function appendMsg(text, type, options = {}) {
     if (!chatWindow) return;
     const normalizedText = normalizeBrokenEncoding(text);
 
     const div = document.createElement('div');
     div.className = `msg ${type}`;
+    if (options.isEditing) {
+      div.classList.add('is-editing');
+    }
 
     const content = document.createElement('div');
     content.className = 'msg-content';
@@ -591,6 +804,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.dataset.feedbackMessage = type === 'bot' ? 'Resposta copiada' : 'Mensagem copiada';
     updateCopyButton(copyBtn, false);
     copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+
+    if (options.canEdit) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'msg-edit-btn';
+      editBtn.type = 'button';
+      editBtn.title = options.isEditing ? 'Mensagem em edição' : 'Editar mensagem';
+      editBtn.setAttribute('aria-label', options.isEditing ? 'Mensagem em edição' : 'Editar mensagem');
+      editBtn.innerHTML = `${EDIT_ICON}<span>Editar</span>`;
+      editBtn.disabled = !!options.isEditing;
+      editBtn.addEventListener('click', () => {
+        if (typeof options.onEdit === 'function') {
+          options.onEdit();
+        }
+      });
+      div.appendChild(editBtn);
+    }
+
+    if (options.canResend) {
+      const resendBtn = document.createElement('button');
+      resendBtn.className = 'msg-resend-btn';
+      resendBtn.type = 'button';
+      resendBtn.title = 'Reenviar pergunta';
+      resendBtn.setAttribute('aria-label', 'Reenviar pergunta');
+      resendBtn.innerHTML = `${RESEND_ICON}<span>Reenviar</span>`;
+      resendBtn.addEventListener('click', () => {
+        if (typeof options.onResend === 'function') {
+          options.onResend();
+        }
+      });
+      div.appendChild(resendBtn);
+    }
 
     div.appendChild(content);
     div.appendChild(copyBtn);
@@ -606,11 +850,109 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!chatWindow) return;
     chatWindow.innerHTML = '';
 
-    messages.forEach((msg) => {
+    const editableTurn = getLastUndoableChatTurn();
+
+    messages.forEach((msg, index) => {
       if (!msg || msg.role === 'system' || typeof msg.content !== 'string') return;
       const type = msg.role === 'assistant' ? 'bot' : 'user';
-      appendMsg(msg.content, type);
+      const isEditing = !!(
+        activeChatEditState
+        && String(activeChatEditState.userMessageId || '') === String(msg.id || '')
+      );
+      const canEdit = !!(
+        msg.role === 'user'
+        && editableTurn
+        && editableTurn.userIndex === index
+        && !isSendingChat
+      );
+      const canResend = !!(
+        msg.role === 'user'
+        && editableTurn
+        && editableTurn.userIndex === index
+        && !isSendingChat
+        && !activeChatEditState
+      );
+
+      appendMsg(msg.content, type, {
+        canEdit,
+        canResend,
+        isEditing,
+        onEdit: () => beginAIChatEdit(index),
+        onResend: () => resendLastAIChatTurn()
+      });
     });
+  }
+
+  function getLastUndoableChatTurn() {
+    if (!Array.isArray(chatHistory) || chatHistory.length <= 1) return null;
+
+    const lastIndex = chatHistory.length - 1;
+    const lastMessage = chatHistory[lastIndex];
+    if (!lastMessage || lastMessage.role === 'system') return null;
+
+    if (lastMessage.role === 'user') {
+      return { userIndex: lastIndex, assistantIndex: -1 };
+    }
+
+    const previousMessage = chatHistory[lastIndex - 1];
+    if (lastMessage.role === 'assistant' && previousMessage?.role === 'user') {
+      return { userIndex: lastIndex - 1, assistantIndex: lastIndex };
+    }
+
+    return null;
+  }
+
+  function beginAIChatEdit(messageIndex) {
+    if (isSendingChat) return;
+
+    const turn = getLastUndoableChatTurn();
+    if (!turn || turn.userIndex !== messageIndex) {
+      showFeedback('Só a última pergunta pode ser editada agora');
+      return;
+    }
+
+    const userMessage = chatHistory[turn.userIndex];
+    if (!userMessage || userMessage.role !== 'user') return;
+
+    activeChatEditState = {
+      userMessageId: userMessage.id || '',
+      previousDraft: String(chatInput?.value || '')
+    };
+
+    if (chatInput) {
+      chatInput.value = userMessage.content || '';
+      chatInput.focus();
+      const length = chatInput.value.length;
+      if (typeof chatInput.setSelectionRange === 'function') {
+        chatInput.setSelectionRange(length, length);
+      }
+    }
+
+    renderChatFromMessages(chatHistory);
+    updateChatScrollInfo();
+    updateAIChatComposerState();
+    persistAIChatSessionState();
+  }
+
+  async function deleteAIHistoryMessagesByIds(ids = []) {
+    const validIds = ids
+      .map(id => String(id || '').trim())
+      .filter(Boolean);
+    if (validIds.length === 0) return true;
+
+    const supa = await waitForSupabaseClient();
+    if (!supa) return false;
+
+    try {
+      const { error } = await supa
+        .from(AI_HISTORY_TABLE)
+        .delete()
+        .in('id', validIds);
+      return !error;
+    } catch (error) {
+      console.error('Erro ao remover mensagens da IA:', error);
+      return false;
+    }
   }
 
   async function waitForSupabaseClient(timeoutMs = 6000) {
@@ -638,10 +980,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function saveAIHistoryMessage({ role, content, context = 'chat', metadata = {} }) {
     const supa = await waitForSupabaseClient();
-    if (!supa || !content) return false;
+    if (!supa || !content) return null;
 
     const user = await getAIHistoryUser();
-    if (!user) return false;
+    if (!user) return null;
 
     const normalizedContext = context === 'vision' ? 'vision' : context;
     const payloadMetadata = normalizedContext === 'vision'
@@ -666,6 +1008,170 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  async function saveAIHistoryMessageRecord({ role, content, context = 'chat', metadata = {} }) {
+    const supa = await waitForSupabaseClient();
+    if (!supa || !content) return null;
+
+    const user = await getAIHistoryUser();
+    if (!user) return null;
+
+    const normalizedContext = context === 'vision' ? 'vision' : context;
+    const payloadMetadata = normalizedContext === 'vision'
+      ? { ...metadata, aiContext: 'vision' }
+      : metadata;
+
+    try {
+      let { data, error } = await supa
+        .from(AI_HISTORY_TABLE)
+        .insert([{ user_id: user.id, role, content, context: normalizedContext, metadata: payloadMetadata }])
+        .select('id, role, content, context, metadata, created_at')
+        .single();
+
+      if (error && normalizedContext === 'vision') {
+        const fallback = await supa
+          .from(AI_HISTORY_TABLE)
+          .insert([{ user_id: user.id, role, content, context: 'compare', metadata: payloadMetadata }])
+          .select('id, role, content, context, metadata, created_at')
+          .single();
+        error = fallback.error;
+        data = fallback.data || null;
+      }
+
+      return error ? null : (data || null);
+    } catch (err) {
+      console.error('Erro ao salvar histÃ³rico detalhado da IA:', err);
+      return null;
+    }
+  }
+
+  async function updateAIHistoryMessageRecord(messageId, patch = {}) {
+    const id = String(messageId || '').trim();
+    if (!id) return null;
+
+    const supa = await waitForSupabaseClient();
+    if (!supa) return null;
+
+    const user = await getAIHistoryUser();
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supa
+        .from(AI_HISTORY_TABLE)
+        .update(patch)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select('id, role, content, context, metadata, created_at')
+        .single();
+
+      return error ? null : (data || null);
+    } catch (err) {
+      console.error('Erro ao atualizar mensagem da IA:', err);
+      return null;
+    }
+  }
+
+  function buildAIThreadHistoryTitle(prompt) {
+    return 'Open AnIme - ' + String(prompt || '').slice(0, 60);
+  }
+
+  async function syncAIThreadHistoryCard(prompt, assistantText) {
+    if (!currentChatThreadId || typeof HistoryTracker === 'undefined') return;
+
+    await HistoryTracker.track({
+      contentId: currentChatThreadId,
+      contentType: 'ai_chat',
+      title: buildAIThreadHistoryTitle(prompt),
+      subtitle: String(assistantText || '').slice(0, 120),
+      route: 'open-anime.html',
+      payload: {
+        mediaType: 'ai_chat',
+        tab: 'chat',
+        threadId: currentChatThreadId,
+        historyContentId: ''
+      }
+    });
+  }
+
+  async function requestAIText(requestMessages, options = {}) {
+    const target = options.target || 'groq';
+    const context = options.context || 'chat';
+    const model = options.model || DEFAULT_GROQ_MODEL;
+    const modelQueue = context === 'compare'
+      ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
+      : [model];
+    const maxRetriesPerModel = 2;
+
+    let aiResponse = '';
+    let lastError = null;
+
+    for (let modelIndex = 0; modelIndex < modelQueue.length; modelIndex += 1) {
+      const selectedModel = modelQueue[modelIndex];
+      for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
+        const res = await fetch('/api/ai/proxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target,
+            body: {
+              model: selectedModel,
+              messages: requestMessages,
+              temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
+              max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
+              stream: false
+            }
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          aiResponse = normalizeBrokenEncoding(
+            data.candidates?.[0]?.content?.parts?.[0]?.text
+            || data.choices?.[0]?.message?.content
+            || 'Sem resposta da IA.'
+          );
+          break;
+        }
+
+        const errData = await res.json().catch(() => ({}));
+        const erroMsg = normalizeBrokenEncoding(
+          typeof errData.error === 'object'
+            ? (errData.error.message || JSON.stringify(errData.error))
+            : (errData.error || '')
+        );
+        const composedError = erroMsg || ('Erro HTTP ' + res.status);
+        lastError = new Error(composedError);
+
+        if (!isTemporaryModelOverload(res.status, composedError)) {
+          throw lastError;
+        }
+
+        const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
+        if (hasRetryInCurrentModel) {
+          await sleep(800 * (attempt + 1));
+          continue;
+        }
+
+        const hasFallbackModel = modelIndex < (modelQueue.length - 1);
+        if (hasFallbackModel) {
+          await sleep(500);
+          break;
+        }
+
+        throw lastError;
+      }
+
+      if (aiResponse) {
+        break;
+      }
+    }
+
+    if (!aiResponse) {
+      throw (lastError || new Error('Sem resposta da IA.'));
+    }
+
+    return aiResponse;
+  }
+
   async function loadAIHistoryMessages(options = {}) {
     const context = options.context || 'chat';
     const metadataContains = options.metadataContains && typeof options.metadataContains === 'object'
@@ -683,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       let query = supa
         .from(AI_HISTORY_TABLE)
-        .select('role, content, context, metadata, created_at')
+        .select('id, role, content, context, metadata, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true })
         .limit(limit);
@@ -719,10 +1225,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function initializeChatView(options = {}) {
     const restoreSaved = options.restoreSaved === true;
     const resume = options.resume || resumeData;
+    const sessionState = restoreSaved ? readAIChatSessionState() : { threadId: '', draft: '', history: [], editState: null };
     const resumedThreadId = getResumeChatThreadId(resume);
     currentChatThreadId = resumedThreadId || buildUniqueId('open_anime_chat_thread');
+    activeChatEditState = restoreSaved ? sessionState.editState : null;
     chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }];
+    if (chatInput) {
+      chatInput.value = restoreSaved ? (sessionState.draft || '') : '';
+    }
+
+    if (restoreSaved && sessionState.history.length > 0) {
+      chatHistory = [{ role: 'system', content: SYSTEM_PROMPT }, ...sessionState.history];
+    }
+
     renderChatFromMessages(chatHistory);
+    updateAIChatComposerState();
 
     if (restoreSaved && resumedThreadId) {
       const persisted = await loadAIHistoryMessages({
@@ -730,17 +1247,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         metadataContains: { threadId: resumedThreadId }
       });
       if (persisted.length > 0) {
+        const normalizedPersisted = persisted.map(msg => ({
+          id: msg.id,
+          role: msg.role,
+          content: normalizeBrokenEncoding(msg.content),
+          context: msg.context,
+          metadata: msg.metadata,
+          created_at: msg.created_at
+        }));
+        const restoredMessages = sessionState.history.length > 0
+          ? mergeSessionHistoryWithPersisted(sessionState.history, normalizedPersisted)
+          : normalizedPersisted;
+
         chatHistory = [
           { role: 'system', content: SYSTEM_PROMPT },
-          ...persisted.map(msg => ({ role: msg.role, content: normalizeBrokenEncoding(msg.content) }))
+          ...restoredMessages
         ];
         renderChatFromMessages(chatHistory);
+        updateAIChatComposerState();
+        persistAIChatSessionState();
         return;
       }
     }
 
-    appendMsg(GREETING_MESSAGE, 'bot');
-    chatHistory.push({ role: 'assistant', content: GREETING_MESSAGE });
+    if (chatHistory.length <= 1) {
+      appendMsg(GREETING_MESSAGE, 'bot');
+      chatHistory.push({ role: 'assistant', content: GREETING_MESSAGE });
+    }
+    updateAIChatComposerState();
+    persistAIChatSessionState();
   }
 
   async function initializeComparisonView(options = {}) {
@@ -949,6 +1484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const context = options.context || 'chat';
     const metadata = { ...(options.metadata || {}) };
     const systemPrompt = options.systemPrompt || SYSTEM_PROMPT;
+    let chatUserEntry = options.existingUserEntry || null;
 
     if (context === 'chat') {
       currentChatThreadId = metadata.threadId || currentChatThreadId || buildUniqueId('open_anime_chat_thread');
@@ -961,96 +1497,53 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       if (useChatContext) {
-        chatHistory.push({ role: 'user', content: prompt });
+        if (chatUserEntry) {
+          chatUserEntry.content = prompt;
+          chatUserEntry.context = context;
+          chatUserEntry.metadata = { ...metadata };
+          if (!chatHistory.includes(chatUserEntry)) {
+            chatHistory.push(chatUserEntry);
+          }
+        } else {
+          chatUserEntry = { role: 'user', content: prompt, context, metadata: { ...metadata } };
+          chatHistory.push(chatUserEntry);
+        }
+        persistAIChatSessionState();
       }
 
       if (persistToAIHistory) {
-        await saveAIHistoryMessage({ role: 'user', content: prompt, context, metadata });
+        const persistedUserEntry = await saveAIHistoryMessageRecord({ role: 'user', content: prompt, context, metadata });
+        if (chatUserEntry && persistedUserEntry) {
+          Object.assign(chatUserEntry, persistedUserEntry);
+          persistAIChatSessionState();
+        }
       }
 
       const requestMessages = useChatContext
-        ? chatHistory
+        ? chatHistory.map(({ role, content }) => ({ role, content }))
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
-      const modelQueue = context === 'compare'
-        ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
-        : [model];
+      const aiResponse = await requestAIText(requestMessages, {
+        target,
+        model,
+        context,
+        temperature: options.temperature,
+        max_tokens: options.max_tokens
+      });
 
-      const maxRetriesPerModel = 2;
-      let aiResponse = '';
-      let lastError = null;
-
-      for (let modelIndex = 0; modelIndex < modelQueue.length; modelIndex += 1) {
-        const selectedModel = modelQueue[modelIndex];
-        for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
-          const res = await fetch('/api/ai/proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              target,
-              body: {
-                model: selectedModel,
-                messages: requestMessages,
-                temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
-                max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
-                stream: false
-              }
-            })
-          });
-
-          if (res.ok) {
-            const data = await res.json();
-            aiResponse = normalizeBrokenEncoding(
-              data.candidates?.[0]?.content?.parts?.[0]?.text
-              || data.choices?.[0]?.message?.content
-              || 'Sem resposta da IA.'
-            );
-            break;
-          }
-
-          const errData = await res.json().catch(() => ({}));
-          const erroMsg = normalizeBrokenEncoding(
-            typeof errData.error === 'object'
-              ? (errData.error.message || JSON.stringify(errData.error))
-              : (errData.error || '')
-          );
-          const composedError = erroMsg || ('Erro HTTP ' + res.status);
-          lastError = new Error(composedError);
-
-          if (!isTemporaryModelOverload(res.status, composedError)) {
-            throw lastError;
-          }
-
-          const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
-          if (hasRetryInCurrentModel) {
-            await sleep(800 * (attempt + 1));
-            continue;
-          }
-
-          const hasFallbackModel = modelIndex < (modelQueue.length - 1);
-          if (hasFallbackModel) {
-            await sleep(500);
-            break;
-          }
-
-          throw lastError;
-        }
-
-        if (aiResponse) {
-          break;
-        }
-      }
-
-      if (!aiResponse) {
-        throw (lastError || new Error('Sem resposta da IA.'));
-      }
-
+      let chatAssistantEntry = null;
       if (useChatContext) {
-        chatHistory.push({ role: 'assistant', content: aiResponse });
+        chatAssistantEntry = { role: 'assistant', content: aiResponse, context, metadata: { ...metadata } };
+        chatHistory.push(chatAssistantEntry);
+        persistAIChatSessionState();
       }
 
       if (persistToAIHistory) {
-        await saveAIHistoryMessage({ role: 'assistant', content: aiResponse, context, metadata });
+        const persistedAssistantEntry = await saveAIHistoryMessageRecord({ role: 'assistant', content: aiResponse, context, metadata });
+        if (chatAssistantEntry && persistedAssistantEntry) {
+          Object.assign(chatAssistantEntry, persistedAssistantEntry);
+          persistAIChatSessionState();
+        }
 
         if (typeof HistoryTracker !== 'undefined') {
           const isCompare = context === 'compare';
@@ -1059,7 +1552,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentType: isCompare ? 'ai_compare' : 'ai_chat',
             title: isCompare
               ? `Comparação IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
-              : ('Open AnIme - ' + prompt.slice(0, 60)),
+              : buildAIThreadHistoryTitle(prompt),
             subtitle: aiResponse.slice(0, 120),
             route: 'open-anime.html',
             payload: {
@@ -1078,10 +1571,225 @@ document.addEventListener('DOMContentLoaded', async () => {
       return aiResponse;
     } catch (e) {
       console.error(e);
-      if (useChatContext && chatHistory.length > 1) {
+      if (useChatContext && chatUserEntry && !chatUserEntry.id && !options.existingUserEntry && chatHistory[chatHistory.length - 1] === chatUserEntry) {
         chatHistory.pop();
       }
+      persistAIChatSessionState();
       return 'Falha: ' + e.message + '. Verifique o terminal do servidor para mais detalhes.';
+    }
+  }
+
+  async function saveEditedAIChatTurn(nextPrompt) {
+    if (!activeChatEditState || isSendingChat) return;
+
+    const turn = getLastUndoableChatTurn();
+    if (!turn) {
+      clearAIChatEditState({ restoreDraft: true });
+      showFeedback('Nao foi possivel localizar a ultima pergunta para editar');
+      return;
+    }
+
+    const userMessage = chatHistory[turn.userIndex];
+    const assistantMessage = turn.assistantIndex >= 0 ? chatHistory[turn.assistantIndex] : null;
+    if (!userMessage || userMessage.role !== 'user') return;
+
+    if (
+      activeChatEditState.userMessageId
+      && String(activeChatEditState.userMessageId) !== String(userMessage.id || '')
+    ) {
+      clearAIChatEditState({ restoreDraft: true });
+      showFeedback('A ultima pergunta mudou. Abra a edicao novamente');
+      return;
+    }
+
+    const updatedPrompt = normalizeBrokenEncoding(nextPrompt).trim();
+    if (!updatedPrompt) return;
+
+    const previousHistory = chatHistory.map((message) => ({
+      ...message,
+      metadata: message?.metadata && typeof message.metadata === 'object'
+        ? { ...message.metadata }
+        : message?.metadata
+    }));
+    const previousDraft = activeChatEditState.previousDraft || '';
+
+    isSendingChat = true;
+    sendBtn.disabled = true;
+    updateAIChatComposerState();
+
+    let loadingMsg = null;
+
+    try {
+      userMessage.content = updatedPrompt;
+      chatHistory = chatHistory.filter((_, index) => index !== turn.assistantIndex);
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      persistAIChatSessionState({ draft: updatedPrompt });
+
+      loadingMsg = document.createElement('div');
+      loadingMsg.className = 'msg bot loading-msg';
+      loadingMsg.innerHTML = '<span class="pulse">Atualizando resposta...</span>';
+      chatWindow.appendChild(loadingMsg);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      updateChatScrollInfo();
+
+      if (userMessage.id) {
+        const updatedUserRecord = await updateAIHistoryMessageRecord(userMessage.id, { content: updatedPrompt });
+        if (updatedUserRecord) {
+          Object.assign(userMessage, updatedUserRecord);
+        }
+      }
+
+      const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
+      const aiResponse = await requestAIText(requestMessages, {
+        target: 'groq',
+        model: DEFAULT_GROQ_MODEL,
+        context: 'chat'
+      });
+
+      let nextAssistantEntry = null;
+      if (assistantMessage?.id) {
+        nextAssistantEntry = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
+      }
+
+      if (!nextAssistantEntry) {
+        nextAssistantEntry = await saveAIHistoryMessageRecord({
+          role: 'assistant',
+          content: aiResponse,
+          context: 'chat',
+          metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId }
+        });
+      }
+
+      chatHistory.push(
+        nextAssistantEntry
+          ? { ...nextAssistantEntry, metadata: nextAssistantEntry.metadata || { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
+          : { role: 'assistant', content: aiResponse, context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
+      );
+
+      clearAIChatEditState();
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      persistAIChatSessionState();
+      await syncAIThreadHistoryCard(updatedPrompt, aiResponse);
+      showFeedback('Pergunta atualizada');
+    } catch (error) {
+      console.error('Erro ao editar mensagem da IA:', error);
+      chatHistory = previousHistory;
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      if (chatInput) {
+        chatInput.value = updatedPrompt;
+      }
+      if (activeChatEditState) {
+        activeChatEditState.previousDraft = previousDraft;
+      }
+      updateAIChatComposerState();
+      persistAIChatSessionState({ draft: updatedPrompt });
+      showFeedback('Nao foi possivel editar a pergunta agora');
+    } finally {
+      if (loadingMsg) loadingMsg.remove();
+      isSendingChat = false;
+      sendBtn.disabled = false;
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      updateAIChatComposerState();
+    }
+  }
+
+  async function resendLastAIChatTurn() {
+    if (isSendingChat) return;
+
+    if (isAIChatEditing()) {
+      showFeedback('Salve ou cancele a edicao antes de reenviar');
+      return;
+    }
+
+    const turn = getLastUndoableChatTurn();
+    if (!turn) {
+      showFeedback('Nao ha pergunta recente para reenviar');
+      return;
+    }
+
+    const userMessage = chatHistory[turn.userIndex];
+    const assistantMessage = turn.assistantIndex >= 0 ? chatHistory[turn.assistantIndex] : null;
+    const prompt = normalizeBrokenEncoding(userMessage?.content || '').trim();
+    if (!userMessage || userMessage.role !== 'user' || !prompt) return;
+
+    const previousHistory = chatHistory.map((message) => ({
+      ...message,
+      metadata: message?.metadata && typeof message.metadata === 'object'
+        ? { ...message.metadata }
+        : message?.metadata
+    }));
+    const preservedDraft = String(chatInput?.value || '');
+
+    isSendingChat = true;
+    sendBtn.disabled = true;
+    updateAIChatComposerState();
+
+    let loadingMsg = null;
+
+    try {
+      chatHistory = chatHistory.filter((_, index) => index !== turn.assistantIndex);
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      persistAIChatSessionState({ draft: preservedDraft });
+
+      loadingMsg = document.createElement('div');
+      loadingMsg.className = 'msg bot loading-msg';
+      loadingMsg.innerHTML = '<span class="pulse">Reenviando resposta...</span>';
+      chatWindow.appendChild(loadingMsg);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+      updateChatScrollInfo();
+
+      const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
+      const aiResponse = await requestAIText(requestMessages, {
+        target: 'groq',
+        model: DEFAULT_GROQ_MODEL,
+        context: 'chat'
+      });
+
+      let nextAssistantEntry = null;
+      if (assistantMessage?.id) {
+        nextAssistantEntry = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
+      }
+
+      if (!nextAssistantEntry) {
+        nextAssistantEntry = await saveAIHistoryMessageRecord({
+          role: 'assistant',
+          content: aiResponse,
+          context: 'chat',
+          metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId }
+        });
+      }
+
+      chatHistory.push(
+        nextAssistantEntry
+          ? { ...nextAssistantEntry, metadata: nextAssistantEntry.metadata || { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
+          : { role: 'assistant', content: aiResponse, context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
+      );
+
+      persistAIChatSessionState({ draft: preservedDraft });
+      await syncAIThreadHistoryCard(prompt, aiResponse);
+      showFeedback('Resposta reenviada');
+    } catch (error) {
+      console.error('Erro ao reenviar resposta da IA:', error);
+      chatHistory = previousHistory;
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      if (chatInput) {
+        chatInput.value = preservedDraft;
+      }
+      persistAIChatSessionState({ draft: preservedDraft });
+      showFeedback('Nao foi possivel reenviar a resposta agora');
+    } finally {
+      if (loadingMsg) loadingMsg.remove();
+      isSendingChat = false;
+      sendBtn.disabled = false;
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      updateAIChatComposerState();
     }
   }
 
@@ -1227,6 +1935,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const shouldRestoreSavedVision = resumeData?.mediaType === 'ai_vision'
     || resumeData?.contentType === 'ai_vision';
 
+  if (!shouldRestoreSavedChat) {
+    clearAIChatSessionState();
+  }
+
   await initializeChatView({ restoreSaved: shouldRestoreSavedChat });
   await initializeComparisonView({ restoreSaved: shouldRestoreSavedCompare });
   await initializeVisionView({ restoreSaved: shouldRestoreSavedVision });
@@ -1294,12 +2006,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  sendBtn.addEventListener('click', async () => {
+  async function handleChatSend() {
+    if (getActiveToolTab() !== 'chat' || isSendingChat) return;
+
     const val = chatInput.value.trim();
     if (!val) return;
 
-    appendMsg(val, 'user');
+    if (isAIChatEditing()) {
+      await saveEditedAIChatTurn(val);
+      return;
+    }
+
+    currentChatThreadId = currentChatThreadId || buildUniqueId('open_anime_chat_thread');
+    const localEchoId = buildUniqueId('pending_user');
+    const optimisticUserEntry = {
+      id: localEchoId,
+      role: 'user',
+      content: val,
+      context: 'chat',
+      metadata: { threadId: currentChatThreadId, localEchoId }
+    };
+    chatHistory.push(optimisticUserEntry);
+    renderChatFromMessages(chatHistory);
+    persistAIChatSessionState({ draft: '' });
     chatInput.value = '';
+    isSendingChat = true;
+    sendBtn.disabled = true;
+    updateAIChatComposerState();
 
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'msg bot loading-msg';
@@ -1308,10 +2041,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
     updateChatScrollInfo();
 
-    const response = await callAI(val, { useChatContext: true, persistToAIHistory: true, context: 'chat' });
-    loadingMsg.remove();
-    appendMsg(response, 'bot');
-  });
+    try {
+      const response = await callAI(val, {
+        useChatContext: true,
+        persistToAIHistory: true,
+        context: 'chat',
+        existingUserEntry: optimisticUserEntry
+      });
+      loadingMsg.remove();
+      const persistedAssistant = chatHistory[chatHistory.length - 1];
+      const shouldRenderPersistedHistory = persistedAssistant?.role === 'assistant'
+        && normalizeBrokenEncoding(persistedAssistant.content || '') === normalizeBrokenEncoding(response || '');
+
+      if (shouldRenderPersistedHistory) {
+        renderChatFromMessages(chatHistory);
+        updateChatScrollInfo();
+        persistAIChatSessionState();
+      } else {
+        chatHistory.push({
+          id: buildUniqueId('local_assistant'),
+          role: 'assistant',
+          content: response,
+          context: 'chat',
+          metadata: { threadId: currentChatThreadId, localOnly: true }
+        });
+        renderChatFromMessages(chatHistory);
+        updateChatScrollInfo();
+        persistAIChatSessionState();
+      }
+    } finally {
+      isSendingChat = false;
+      sendBtn.disabled = false;
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+      updateAIChatComposerState();
+      persistAIChatSessionState();
+    }
+  }
+
+  sendBtn.addEventListener('click', handleChatSend);
+  sendBtn.addEventListener('pointerup', handleChatSend);
+
+  if (cancelChatEditBtn) {
+    cancelChatEditBtn.addEventListener('click', () => {
+      clearAIChatEditState({ restoreDraft: true });
+      renderChatFromMessages(chatHistory);
+      updateChatScrollInfo();
+    });
+  }
 
   async function handleVisionSelection(file) {
     if (!file) return;
@@ -1417,6 +2194,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   compareBtn.addEventListener('click', async () => {
+    if (getActiveToolTab() !== 'compare') return;
+
     const c1 = char1Inp.value.trim();
     const c2 = char2Inp.value.trim();
     if (!c1 || !c2) return showToast('Digite dois nomes para comparar', 'error');

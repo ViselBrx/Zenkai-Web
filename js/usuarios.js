@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatSendBtnLabel = document.getElementById('chatSendBtnLabel');
   const chatDraftLabel = document.getElementById('chatDraftLabel');
   const chatCharCounter = document.getElementById('chatCharCounter');
+  const chatCancelEditBtn = document.getElementById('chatCancelEditBtn');
   const chatImageViewer = document.getElementById('chatImageViewer');
   const chatImageViewerImg = document.getElementById('chatImageViewerImg');
   const chatImageViewerTitle = document.getElementById('chatImageViewerTitle');
@@ -78,6 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let conversationDrafts = {};
   let selectedChatFile = null;
   let selectedChatPreviewUrl = null;
+  let activeChatEditState = null;
   let realtimeReady = false;
   let chatDeleteConfirmResolver = null;
   let activeChatActionMessageId = null;
@@ -200,6 +202,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         autoResizeTextarea();
         persistDraftForActiveChat();
         setChatInputState();
+      });
+    }
+
+    if (chatCancelEditBtn) {
+      chatCancelEditBtn.addEventListener('click', () => {
+        clearChatEditState({ restoreDraft: true });
       });
     }
 
@@ -731,6 +739,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }];
 
     if (message.sender_id === currentUser.id && !isMessageDeletedForEveryone(message)) {
+      actions.unshift({
+        key: 'edit',
+        label: 'Editar mensagem',
+        icon: 'fas fa-pen',
+        danger: false
+      });
       actions.push({
         key: 'delete-everyone',
         label: 'Excluir para todos',
@@ -753,7 +767,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (chatActionTitle) chatActionTitle.textContent = 'Acoes da mensagem';
     if (chatActionText) {
       chatActionText.textContent = message.sender_id === currentUser?.id
-        ? 'Voce pode remover esta mensagem so da sua conversa ou apagar para todos.'
+        ? 'Voce pode editar a mensagem, remover so da sua conversa ou apagar para todos.'
         : 'Voce pode remover esta mensagem apenas da sua conversa.';
     }
 
@@ -1057,6 +1071,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     return userId ? String(conversationDrafts[userId] || '') : '';
   }
 
+  function getActiveChatEditMessage() {
+    if (!activeChatEditState?.messageId) return null;
+    return getChatMessageById(activeChatEditState.messageId);
+  }
+
+  function clearChatEditState(options = {}) {
+    if (!activeChatEditState) {
+      setChatInputState();
+      return;
+    }
+
+    const { restoreDraft = false } = options;
+    const restoreValue = restoreDraft ? String(activeChatEditState.previousDraft || '') : '';
+    activeChatEditState = null;
+
+    if (chatInput) {
+      chatInput.value = restoreValue;
+    }
+
+    if (restoreDraft) {
+      setConversationDraft(activeChatUserId, restoreValue);
+    }
+
+    setChatInputState();
+  }
+
+  function beginChatMessageEdit(message) {
+    if (!currentUser || !message?.id || message.sender_id !== currentUser.id || isMessageDeletedForEveryone(message)) {
+      return;
+    }
+
+    activeChatEditState = {
+      messageId: String(message.id),
+      previousDraft: String(chatInput?.value || '')
+    };
+
+    if (selectedChatFile) {
+      clearSelectedChatAttachment();
+    }
+
+    if (chatInput) {
+      chatInput.value = String(message.content || '');
+      chatInput.focus();
+      const length = chatInput.value.length;
+      if (typeof chatInput.setSelectionRange === 'function') {
+        chatInput.setSelectionRange(length, length);
+      }
+    }
+
+    setChatInputState();
+  }
+
   function getOnlineCount() {
     let count = 0;
     allUsers.forEach((user) => {
@@ -1145,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function persistDraftForActiveChat() {
+    if (activeChatEditState) return;
     setConversationDraft(activeChatUserId, chatInput?.value || '');
   }
 
@@ -1357,6 +1424,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    if (activeChatEditState) {
+      const editingMessage = getActiveChatEditMessage();
+      const attachmentHint = editingMessage?.attachment_url ? ' O anexo original sera mantido.' : '';
+      chatDraftLabel.textContent = `Editando mensagem enviada.${attachmentHint}`;
+      return;
+    }
+
     if (selectedChatFile) {
       chatDraftLabel.textContent = `Anexo pronto para envio: ${selectedChatFile.name} (${formatFileSize(selectedChatFile.size)})`;
       return;
@@ -1370,10 +1444,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function setChatBusy(isBusy) {
     chatSending = isBusy;
+    const idleLabel = activeChatEditState ? 'Salvar edição' : 'Enviar mensagem';
     if (chatSendBtnLabel) {
-      chatSendBtnLabel.textContent = isBusy ? 'Enviando...' : 'Enviar mensagem';
+      chatSendBtnLabel.textContent = isBusy
+        ? (activeChatEditState ? 'Salvando...' : 'Enviando...')
+        : idleLabel;
     } else if (chatSendBtn) {
-      chatSendBtn.textContent = isBusy ? 'Enviando...' : 'Enviar mensagem';
+      chatSendBtn.textContent = isBusy
+        ? (activeChatEditState ? 'Salvando...' : 'Enviando...')
+        : idleLabel;
     }
     setChatInputState();
   }
@@ -1381,14 +1460,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setChatInputState() {
     const disabled = !currentUser || !chatTableAvailable || !activeChatUserId || chatSending;
 
-    if (activeChatUserId) {
+    if (activeChatEditState) {
+      const editingMessage = getActiveChatEditMessage();
+      const editingOtherUserId = editingMessage
+        ? (editingMessage.sender_id === currentUser?.id ? editingMessage.recipient_id : editingMessage.sender_id)
+        : null;
+      if (!editingMessage || editingOtherUserId !== activeChatUserId) {
+        activeChatEditState = null;
+      }
+    }
+
+    if (activeChatUserId && !activeChatEditState) {
       const draft = getConversationDraft(activeChatUserId);
       if (chatInput && chatInput.value !== draft) chatInput.value = draft;
-    } else if (chatInput?.value) {
+    } else if (!activeChatUserId && chatInput?.value) {
       chatInput.value = '';
     }
 
-    const hasPayload = String(chatInput?.value || '').trim().length > 0 || !!selectedChatFile;
+    const editingMessage = getActiveChatEditMessage();
+    const hasPayload = String(chatInput?.value || '').trim().length > 0
+      || !!selectedChatFile
+      || !!(activeChatEditState && editingMessage?.attachment_url);
 
     if (chatInput) {
       chatInput.disabled = disabled;
@@ -1398,12 +1490,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           ? 'Ative a tabela do chat no Supabase...'
           : !activeChatUserId
             ? 'Selecione uma conversa para comecar...'
-            : 'Digite sua mensagem ou envie uma foto...';
+            : activeChatEditState
+              ? 'Edite a mensagem e clique em Enviar para salvar...'
+              : 'Digite sua mensagem ou envie uma foto...';
     }
 
-    if (chatAttachmentBtn) chatAttachmentBtn.disabled = disabled;
-    if (chatAttachmentInput) chatAttachmentInput.disabled = disabled;
+    if (chatAttachmentBtn) chatAttachmentBtn.disabled = disabled || !!activeChatEditState;
+    if (chatAttachmentInput) chatAttachmentInput.disabled = disabled || !!activeChatEditState;
     if (chatSendBtn) chatSendBtn.disabled = disabled || !hasPayload;
+    if (chatCancelEditBtn) chatCancelEditBtn.hidden = !activeChatEditState;
 
     autoResizeTextarea();
     updateChatComposerMeta();
@@ -1447,6 +1542,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function ensureActiveChatStillValid() {
     if (!activeChatUserId) return;
     if (currentUser && activeChatUserId === currentUser.id) {
+      if (activeChatEditState) clearChatEditState();
       activeChatUserId = null;
       persistSidebarState();
       return;
@@ -1454,6 +1550,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const exists = allUsers.some((user) => user.id === activeChatUserId);
     if (!exists && buildConversationSummaries().length === 0) {
+      if (activeChatEditState) clearChatEditState();
       activeChatUserId = null;
       persistSidebarState();
     }
@@ -1851,6 +1948,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
   }
 
+  async function saveCurrentChatEdit() {
+    const editingMessage = getActiveChatEditMessage();
+    if (!currentUser || !editingMessage?.id || editingMessage.sender_id !== currentUser.id) {
+      clearChatEditState();
+      return;
+    }
+
+    const content = String(chatInput?.value || '').trim();
+    const hasExistingAttachment = !!editingMessage.attachment_url;
+    if (!content && !hasExistingAttachment) {
+      showNotice('A mensagem precisa ter texto ou anexo para ser salva.');
+      return;
+    }
+
+    setChatBusy(true);
+
+    try {
+      const { data, error } = await window.supabaseClient
+        .from(CHAT_TABLE)
+        .update({ content: content || null })
+        .eq('id', editingMessage.id)
+        .eq('sender_id', currentUser.id)
+        .select('*')
+        .single();
+
+      if (error) throw error;
+
+      upsertDirectMessage(data);
+      clearChatEditState();
+      setConversationDraft(activeChatUserId, '');
+      scheduleSidebarRender('preserve');
+      showSuccessNotice('Mensagem atualizada.');
+    } catch (error) {
+      console.error('Erro ao editar mensagem:', error);
+      showNotice(error?.message || 'Nao foi possivel editar a mensagem.');
+    } finally {
+      setChatBusy(false);
+      setChatInputState();
+    }
+  }
+
   async function sendCurrentMessage() {
     if (!currentUser) {
       showNotice('Faça login para usar o chat.');
@@ -1864,6 +2002,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!activeChatUserId) {
       showNotice('Selecione um usuário antes de enviar uma mensagem.');
+      return;
+    }
+
+    if (activeChatEditState) {
+      await saveCurrentChatEdit();
       return;
     }
 
@@ -1975,6 +2118,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!message) return;
 
     try {
+      if (action === 'edit') {
+        beginChatMessageEdit(message);
+        showSuccessNotice('Mensagem pronta para edição.');
+        return;
+      }
+
       if (action === 'delete-me') {
         const confirmDelete = await openChatDeleteConfirm({
           title: 'Excluir so para voce?',
@@ -2020,8 +2169,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    if (activeChatUserId && activeChatUserId !== userId && selectedChatFile) {
-      clearSelectedChatAttachment();
+    if (activeChatUserId && activeChatUserId !== userId) {
+      if (selectedChatFile) clearSelectedChatAttachment();
+      if (activeChatEditState) clearChatEditState({ restoreDraft: true });
     }
 
     activeChatUserId = userId;

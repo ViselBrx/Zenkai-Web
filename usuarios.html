@@ -1220,15 +1220,34 @@
       overflow: hidden;
     }
 
-    .chat-composer-meta span:first-child {
+    .chat-draft-label {
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    .chat-composer-meta span:last-child {
+    .chat-char-counter {
       flex-shrink: 0;
+    }
+
+    .chat-edit-cancel-btn {
+      border: 1px solid rgba(248, 113, 113, 0.28);
+      background: rgba(127, 29, 29, 0.16);
+      color: #fecaca;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 0.64rem;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    }
+
+    .chat-edit-cancel-btn:hover {
+      background: rgba(127, 29, 29, 0.28);
+      border-color: rgba(252, 165, 165, 0.4);
+      color: #fff1f2;
     }
 
     .chat-input {
@@ -2448,8 +2467,9 @@
                 <div id="chatAttachmentPreview" class="chat-attachment-preview hidden"></div>
                 <div class="chat-composer-footer">
                   <div class="chat-composer-meta">
-                    <span id="chatDraftLabel">Seu rascunho fica salvo enquanto navega.</span>
-                    <span id="chatCharCounter">0/600</span>
+                    <span id="chatDraftLabel" class="chat-draft-label">Seu rascunho fica salvo enquanto navega.</span>
+                    <button id="chatCancelEditBtn" class="chat-edit-cancel-btn" type="button" hidden>Cancelar edição</button>
+                    <span id="chatCharCounter" class="chat-char-counter">0/600</span>
                   </div>
                   <button id="chatSendBtn" class="chat-send-btn" type="submit" title="Enviar com o mouse">
                     <i class="fas fa-paper-plane"></i>

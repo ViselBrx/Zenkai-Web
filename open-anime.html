@@ -275,10 +275,15 @@
           </div>
           <div class="ai-input-wrapper">
             <input type="text" id="chatInput" placeholder="Sua pergunta... (Pressione Enter)" />
-            <button class="ai-btn-send" id="sendChat">
+            <button class="ai-btn-cancel-edit" id="cancelChatEdit" type="button" title="Cancelar edição" aria-label="Cancelar edição" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <span>Cancelar</span>
+            </button>
+            <button class="ai-btn-send" id="sendChat" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
             </button>
           </div>
+          <p class="ai-disclaimer">A IA pode cometer erros. Confira informações importantes antes de confiar totalmente na resposta.</p>
         </div>
       </div>
 
@@ -290,6 +295,7 @@
           <div class="tool-header">
             <h2>Leitura de Imagem</h2>
             <p>Envie uma imagem para a IA descrever, extrair textos visíveis e apontar pistas sobre a origem.</p>
+            <p class="ai-disclaimer">A IA pode cometer erros. Confira informações importantes antes de confiar totalmente na resposta.</p>
           </div>
           <label class="upload-zone" id="visionDropZone" for="visionUpload">
             <div class="upload-zone__content">
@@ -322,6 +328,7 @@
           <div class="tool-header">
             <h2>⚖️ Duelo de Titãs</h2>
             <p>Compare estatísticas e decida quem vence o combate.</p>
+            <p class="ai-disclaimer">A IA pode cometer erros. Confira informações importantes antes de confiar totalmente na resposta.</p>
           </div>
           <div class="comparison-inputs">
             <input type="text" id="char1" class="form-control" placeholder="Personagem 1" />
@@ -423,6 +430,9 @@
     border: 1px solid rgba(var(--primary-rgb), 0.3);
     border-radius: 12px;
     display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
     padding: 5px;
   }
 
@@ -446,17 +456,78 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+    pointer-events: auto;
   }
 
-  .ai-btn-send svg { width: 20px; }
+  .ai-btn-send svg {
+    width: 20px;
+    pointer-events: none;
+  }
+
+  .ai-disclaimer {
+    margin: 10px 4px 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+    opacity: 0.88;
+  }
+
+  .ai-btn-cancel-edit {
+    background: rgba(239, 68, 68, 0.08);
+    color: #fda4af;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    min-width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 14px;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+
+  .ai-btn-cancel-edit[hidden] {
+    display: none !important;
+  }
+
+  .ai-btn-cancel-edit svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .ai-btn-cancel-edit span {
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .ai-btn-cancel-edit:hover {
+    background: rgba(239, 68, 68, 0.16);
+    border-color: rgba(251, 113, 133, 0.35);
+    color: #ffe4e6;
+  }
+
+  .ai-btn-cancel-edit:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 
   .msg {
     position: relative;
   }
 
   .msg-content {
-    padding-right: 104px;
+    padding-right: 112px;
     line-height: 1.55;
+  }
+
+  .msg.user.is-editing {
+    border-color: rgba(250, 204, 21, 0.28);
+    box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.14);
   }
 
   .msg-content p,
@@ -519,24 +590,24 @@
 
   .msg-copy-btn {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    min-width: 40px;
-    height: 32px;
-    padding: 0 11px;
-    gap: 7px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 999px;
-    background: rgba(var(--bg-card), 0.82);
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    background: rgba(10, 16, 28, 0.62);
     backdrop-filter: blur(10px);
     color: var(--text-muted);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    opacity: 0;
-    transform: translateY(4px) scale(0.98);
-    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.22);
+    opacity: 0.72;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.18);
     transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
   }
 
@@ -550,7 +621,9 @@
     stroke-linejoin: round;
   }
 
-  .msg-copy-btn span {
+  .msg-copy-btn span,
+  .msg-edit-btn span,
+  .msg-resend-btn span {
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -558,26 +631,112 @@
     line-height: 1;
   }
 
+  .ai-chat-window .msg-copy-btn span {
+    display: none;
+  }
+
   .msg.user .msg-copy-btn {
-    background: rgba(var(--primary-rgb), 0.14);
-    color: rgba(255, 255, 255, 0.92);
-    border-color: rgba(var(--primary-rgb), 0.3);
+    background: rgba(var(--primary-rgb), 0.12);
+    color: rgba(255, 255, 255, 0.82);
+    border-color: rgba(var(--primary-rgb), 0.18);
+  }
+
+  .msg-edit-btn {
+    position: absolute;
+    top: 10px;
+    right: 44px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    border-radius: 8px;
+    background: rgba(var(--primary-rgb), 0.1);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.72;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.18);
+    transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .msg-edit-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ai-chat-window .msg-edit-btn span {
+    display: none;
+  }
+
+  .msg-resend-btn {
+    position: absolute;
+    top: 10px;
+    right: 78px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    gap: 0;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: rgba(148, 163, 184, 0.1);
+    backdrop-filter: blur(10px);
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.72;
+    transform: translateY(0) scale(1);
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.18);
+    transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .msg-resend-btn svg {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ai-chat-window .msg-resend-btn span {
+    display: none;
   }
 
   .msg:hover .msg-copy-btn,
-  .msg:focus-within .msg-copy-btn {
+  .msg:hover .msg-edit-btn,
+  .msg:hover .msg-resend-btn,
+  .msg:focus-within .msg-copy-btn,
+  .msg:focus-within .msg-edit-btn,
+  .msg:focus-within .msg-resend-btn {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 
-  .msg-copy-btn:hover {
+  .msg-copy-btn:hover,
+  .msg-edit-btn:hover,
+  .msg-resend-btn:hover {
     color: var(--text-main);
-    border-color: rgba(var(--primary-rgb), 0.45);
-    background: rgba(var(--primary-rgb), 0.16);
-    box-shadow: 0 14px 28px rgba(var(--primary-rgb), 0.18);
+    border-color: rgba(var(--primary-rgb), 0.28);
+    background: rgba(var(--primary-rgb), 0.14);
+    box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.12);
   }
 
-  .msg-copy-btn:focus-visible {
+  .msg-copy-btn:focus-visible,
+  .msg-edit-btn:focus-visible,
+  .msg-resend-btn:focus-visible {
     opacity: 1;
     transform: translateY(0) scale(1);
     outline: none;
@@ -596,18 +755,37 @@
   }
 
   @media (max-width: 720px) {
-    .msg-content {
-      padding-right: 56px;
-    }
-
-    .msg-copy-btn {
-      opacity: 0.96;
-      transform: translateY(0) scale(1);
-      padding: 0;
-    }
-
-    .msg-copy-btn span {
+    .ai-btn-cancel-edit span {
       display: none;
+    }
+
+    .ai-btn-cancel-edit {
+      padding: 0 12px;
+    }
+
+    .msg-content {
+      padding-right: 112px;
+    }
+
+    .msg-copy-btn,
+    .msg-edit-btn,
+    .msg-resend-btn {
+      opacity: 0.78;
+      transform: translateY(0) scale(1);
+    }
+
+    .msg-copy-btn span,
+    .msg-edit-btn span,
+    .msg-resend-btn span {
+      display: none;
+    }
+
+    .msg-edit-btn {
+      right: 44px;
+    }
+
+    .msg-resend-btn {
+      right: 78px;
     }
   }
 
@@ -993,3 +1171,6 @@
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>
 </body>
 </html>
+
+
+
