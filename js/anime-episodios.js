@@ -539,51 +539,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         iframe = `<iframe src="${iframe}" frameborder="0" height="400" scrolling="no" width="640" allow="encrypted-media" allowFullScreen></iframe>`;
       }
 
-      if (type === 'episode') {
-        const s = parseInt(epSeason.value);
-        const num = parseInt(epNumber.value);
-        if (!s || !num) return showToast('Preencha temporada e número', 'error');
-        
-        const epData = { epNumber: num, title, iframe };
+      try {
+        if (type === 'episode') {
+          const s = parseInt(epSeason.value);
+          const num = parseInt(epNumber.value);
+          if (!s || !num) return showToast('Preencha temporada e número', 'error');
+          
+          const epData = { epNumber: num, title, iframe };
 
-        if (editingEpId) {
-          await DB.updateAnimeEpisode(activeAnimeId, activeAudioForm.value, editingSeason, s, editingEpId, epData);
-          showDarkToast('Episódio atualizado!');
-          resetEpForm();
+          if (editingEpId) {
+            await DB.updateAnimeEpisode(activeAnimeId, activeAudioForm.value, editingSeason, s, editingEpId, epData);
+            showDarkToast('Episódio atualizado!');
+            resetEpForm();
+          } else {
+            const newEp = await DB.addAnimeEpisode(activeAnimeId, activeAudioForm.value, s, epData);
+            epNumber.value = num + 1;
+            epTitle.value = '';
+            epIframe.value = '';
+            showUndoToast(`Adicionado: ${activeAudioForm.value.toUpperCase()} - Temp ${s} - Ep ${num}`,
+              () => {},
+              async () => {
+                await DB.deleteAnimeEpisode(activeAnimeId, activeAudioForm.value, s, newEp.id);
+                renderContent();
+              }
+            );
+          }
         } else {
-          const newEp = await DB.addAnimeEpisode(activeAnimeId, activeAudioForm.value, s, epData);
-          epNumber.value = num + 1;
-          epTitle.value = '';
-          epIframe.value = '';
-          showUndoToast(`Adicionado: ${activeAudioForm.value.toUpperCase()} - Temp ${s} - Ep ${num}`,
-            () => {},
-            async () => {
-              await DB.deleteAnimeEpisode(activeAnimeId, activeAudioForm.value, s, newEp.id);
-              renderContent();
-            }
-          );
+          const movieData = { title, iframe };
+          if (editingMovieId) {
+            await DB.updateAnimeMovie(activeAnimeId, editingMovieId, movieData);
+            showDarkToast('Filme atualizado!');
+            resetEpForm();
+          } else {
+            const newMovie = await DB.addAnimeMovie(activeAnimeId, movieData);
+            epTitle.value = '';
+            epIframe.value = '';
+            showUndoToast('Filme adicionado!',
+              () => {},
+              async () => {
+                await DB.deleteAnimeMovie(activeAnimeId, newMovie.id);
+                renderContent();
+              }
+            );
+          }
         }
-      } else {
-        const movieData = { title, iframe };
-        if (editingMovieId) {
-          await DB.updateAnimeMovie(activeAnimeId, editingMovieId, movieData);
-          showDarkToast('Filme atualizado!');
-          resetEpForm();
-        } else {
-          const newMovie = await DB.addAnimeMovie(activeAnimeId, movieData);
-          epTitle.value = '';
-          epIframe.value = '';
-          showUndoToast('Filme adicionado!',
-            () => {},
-            async () => {
-              await DB.deleteAnimeMovie(activeAnimeId, newMovie.id);
-              renderContent();
-            }
-          );
-        }
+        renderContent();
+      } catch (err) {
+        console.error(err);
+        showToast(err.message || 'Erro ao salvar conteúdo.', 'error');
       }
-
-      renderContent();
     });
   }
 

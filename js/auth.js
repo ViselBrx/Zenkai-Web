@@ -9,50 +9,98 @@ const SUPABASE_ANON_KEY =
   window.ENV?.SUPABASE_ANON_KEY ||
   "sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol";
 
+// --- NOTIFICATION HUB STATE ---
+const notificationState = {
+  notificationCount: 0,
+  isOpen: false,
+  userId: null,
+  isAdmin: false,
+  logs: [],
+  activeFilter: 'all',
+  realtimeChannel: null,
+  initializedForUserId: null,
+  notifications: []
+};
+
 // 2. Inicializa o cliente
 let supaClient;
 let previousSessionId = null;
 
-if (window.supabase) {
+const initSupa = () => {
+  if (supaClient) return true; // Já inicializado
+  if (window.supabase) {
+    try {
+      supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+      window.supabaseClient = supaClient;
+      console.log("🚀 Supabase Client inicializado com sucesso.");
+      return true;
+    } catch (e) {
+      console.error("Erro ao inicializar Supabase:", e);
+    }
+  }
+  return false;
+};
+
+// Tentar inicializar imediatamente ou aguardar se necessário
+let isAuthLogicSetup = false;
+function tryInit() {
+  if (initSupa()) {
+    if (!isAuthLogicSetup) {
+      isAuthLogicSetup = true;
+      setupAuthLogic();
+    }
+    return true;
+  }
+  return false;
+}
+
+if (!tryInit()) {
+  const checkSupa = setInterval(() => {
+    if (tryInit()) clearInterval(checkSupa);
+  }, 100);
+  setTimeout(() => clearInterval(checkSupa), 5000);
+}
+
+// 🚀 Lógica de Redirecionamento e Auth State
+async function setupAuthLogic() {
+  if (!supaClient) return;
   try {
-    supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
-    window.supabaseClient = supaClient;
 
-    // 🚀 Redirecionar se já estiver logado (evitar registro/login duplicado)
-    (async () => {
-      const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
-      const isRecovery = window.location.hash.includes("type=recovery");
+  const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
+  const isRecovery = window.location.hash.includes("type=recovery");
 
-      if (isRecovery) {
-        sessionStorage.setItem('is_recovering_password', 'true');
-      }
+  if (isRecovery) {
+    sessionStorage.setItem('is_recovering_password', 'true');
+  }
 
-      if (isAuthPage && !isRecovery) {
-        // Se a pessoa atualizou a página no meio da recuperação (perdeu o hash), nós a desconectamos
-        if (sessionStorage.getItem('is_recovering_password') === 'true') {
-          sessionStorage.removeItem('is_recovering_password');
-          await supaClient.auth.signOut();
-          return; // Para aqui, forçando ela a ficar na página de login limpa
-        }
+  if (isAuthPage && !isRecovery) {
+    if (sessionStorage.getItem('is_recovering_password') === 'true') {
+      sessionStorage.removeItem('is_recovering_password');
+      await supaClient.auth.signOut();
+      return;
+    }
 
-        const { data: { session } } = await supaClient.auth.getSession();
-        if (session) {
-          window.location.href = "perfil.html";
-        }
-      }
-    })();
+    const { data: { session } } = await supaClient.auth.getSession();
+    if (session) {
+      window.location.href = "perfil.html";
+    }
+  }
 
-    supaClient.auth.onAuthStateChange((event, session) => {
-      console.log("🔔 [Auth Event]:", event, session?.user?.email);
-      const currentSessionId = session?.user?.id || null;
+  supaClient.auth.onAuthStateChange((event, session) => {
+    console.log("🔔 [Auth Event]:", event, session?.user?.email);
+    const currentSessionId = session?.user?.id || null;
 
-      if (event === 'PASSWORD_RECOVERY') {
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+       // Opcional: sincronizar sessão
+    }
+
+    if (event === 'PASSWORD_RECOVERY') {
         const modalHtml = `
           <div id="recoveryModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,10,15,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); display:flex; justify-content:center; align-items:center; z-index:9999; opacity:0; transition:opacity 0.3s ease;">
             <div id="recoveryCard" style="background:var(--bg-card); padding:2.5rem; border-radius:20px; border:1px solid rgba(var(--primary-rgb),0.3); width:90%; max-width:420px; text-align:center; box-shadow:0 0 40px rgba(0,0,0,0.6), 0 0 20px rgba(var(--primary-rgb),0.2); transform:translateY(20px); transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
@@ -236,12 +284,17 @@ if (window.supabase) {
           }
           keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) { }
-        window.location.reload();
+        
+        // Evita reload infinito se estivermos na página de login/registro
+        if (!isAuthPage) {
+          console.log("🔄 Recarregando para aplicar novos dados de usuário.");
+          window.location.reload();
+        }
       }
       previousSessionId = currentSessionId;
     });
   } catch (e) {
-    console.error("Erro Supabase:", e);
+    console.error("Erro setupAuthLogic:", e);
   }
 }
 
@@ -339,32 +392,37 @@ if (loginForm) {
         password,
       });
       if (error) {
+        console.error("Erro Login:", error.message);
         let msg = error.message;
-        if (msg === "Invalid login credentials") msg = "E-mail ou senha incorretos.";
-        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingido. Aguarde um pouco e tente novamente.";
+        if (msg.includes("Invalid login credentials")) msg = "E-mail ou senha incorretos.";
         else if (msg.includes("Email not confirmed")) msg = "Por favor, confirme seu e-mail antes de entrar.";
+        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingido. Aguarde um pouco e tente novamente.";
 
         errorDiv.textContent = "Erro: " + msg;
-        errorDiv.style.display = "block";
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Entrar no Painel";
-        return;
-      }
-
-      if (data.user && !data.user.email_confirmed_at) {
-        errorDiv.textContent = "⚠️ Confirme seu email antes de entrar.";
         errorDiv.style.display = "block";
         submitBtn.disabled = false;
         submitBtn.textContent = "Entrar";
         return;
       }
 
-      sessionStorage.setItem('freshLogin', 'true');
-      window.location.href = "perfil.html";
+      // Login bem sucedido
+      console.log("✅ Login realizado com sucesso. Verificando sessão...");
+      const { data: sessData } = await supaClient.auth.getSession();
+      
+      if (sessData && sessData.session) {
+        sessionStorage.setItem('freshLogin', 'true');
+        console.log("🚀 Redirecionando para perfil...");
+        window.location.href = "perfil.html";
+      } else {
+        console.warn("⚠️ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
+        window.location.href = "perfil.html";
+      }
     } catch (err) {
-      errorDiv.textContent = "Erro inesperado.";
+      console.error("Crash Login:", err);
+      errorDiv.textContent = "Erro inesperado ao processar login.";
       errorDiv.style.display = "block";
       submitBtn.disabled = false;
+      submitBtn.textContent = "Entrar";
     }
   });
 }
@@ -935,14 +993,16 @@ window.updateNavbarCosmetics = function () {
   }
 
   // 👑 COROA
-  const existingCrown = avatarBox.querySelector(".crown-nav");
-  if (existingCrown) existingCrown.remove();
-  if (savedCrown) {
-    const crown = document.createElement("div");
-    crown.className = "crown-nav"; // Usar classe do style.css
-    const crownIcon = getCosmetic("crownIcon", "👑");
-    crown.innerHTML = crownIcon;
-    avatarBox.appendChild(crown);
+  if (avatarBox) {
+    const existingCrown = avatarBox.querySelector(".crown-nav");
+    if (existingCrown) existingCrown.remove();
+    if (savedCrown) {
+      const crown = document.createElement("div");
+      crown.className = "crown-nav"; // Usar classe do style.css
+      const crownIcon = getCosmetic("crownIcon", "👑");
+      crown.innerHTML = crownIcon;
+      avatarBox.appendChild(crown);
+    }
   }
 
   // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
@@ -1134,6 +1194,12 @@ window.checkAuthStatus = async function () {
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
       authContainer.innerHTML = `
+                <div class="navbar-notification-wrapper">
+                  <button class="navbar-bell-trigger" id="navbarBellTrigger" aria-label="Notificações">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                    <span class="navbar-badge-dot" id="navbarBellBadge" style="display: none;">0</span>
+                  </button>
+                </div>
                 <a href="perfil.html" class="user-nav-link" style="text-decoration: none;">
                     <div class="user-nav-container">
                         <div class="user-nav-banner-bg"></div>
@@ -1145,6 +1211,9 @@ window.checkAuthStatus = async function () {
                 </a>
             `;
       nav.appendChild(authContainer);
+
+      // Iniciar Hub de Notificações
+      initializeNotificationHub(session.user.id);
 
       // Se estamos no perfil e não temos perfil no banco, não expulsar imediatamente
       if (!profile && currentPage === "perfil.html") {
@@ -1321,30 +1390,903 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// 6. Lógica de Login e Registro por Discord
+// 7. HUB DE NOTIFICAÇÕES (RE-INTEGRADO)
 // ==========================================
 
-async function signInWithDiscord() {
-  const { data, error } = await supaClient.auth.signInWithOAuth({
-    provider: 'discord',
-    options: {
-      redirectTo: window.location.origin + '/perfil.html'
-    }
-  });
-  if (error) {
-    console.error('Erro ao entrar com Discord:', error.message);
-    alert('Erro ao conectar com Discord: ' + error.message);
+async function initializeNotificationHub(userId) {
+  if (!userId) return;
+
+  const isSameUser = notificationState.initializedForUserId === userId;
+  notificationState.userId = userId;
+  if (!isSameUser) {
+    notificationState.activeFilter = 'all';
+  }
+  
+  // Identificar se é Admin principal
+  const { data: userData } = await supaClient.auth.getUser();
+  const email = (userData?.user?.email || "").toLowerCase();
+  notificationState.isAdmin = email === "davizeravisel@gmail.com";
+  
+  console.log(`[NotificationHub] User: ${email}, isAdmin: ${notificationState.isAdmin}`);
+
+  // Criar UI do Centro de Notificações se não existir
+  createNotificationCenterUI();
+
+  // Buscar contagem inicial
+  await fetchNotificationCount();
+
+  // Ouvir mudanças em tempo real
+  if (!isSameUser) {
+    setupNotificationRealtime();
+  }
+  notificationState.initializedForUserId = userId;
+
+  // Listener para o clique no sino
+  const bell = document.getElementById('navbarBellTrigger');
+  if (bell) {
+    bell.onclick = (e) => {
+      e.stopPropagation();
+      toggleNotificationCenter();
+    };
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const loginDiscordBtn = document.getElementById('discordLoginBtn');
-  if (loginDiscordBtn) {
-    loginDiscordBtn.addEventListener('click', signInWithDiscord);
+async function fetchNotificationCount() {
+  if (!supaClient || !notificationState.userId) return;
+
+  try {
+    const { count, error } = await supaClient
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', notificationState.userId)
+      .eq('read', false);
+
+    if (!error) {
+      updateNotificationBadge(count || 0);
+    }
+  } catch (err) {
+    console.warn("Erro ao buscar notificações:", err);
+  }
+}
+
+function updateNotificationBadge(count) {
+  notificationState.notificationCount = count;
+  const badge = document.getElementById('navbarBellBadge');
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+function createNotificationCenterUI() {
+  if (document.getElementById('notificationCenter')) return;
+
+  const center = document.createElement('div');
+  center.id = 'notificationCenter';
+  center.className = 'notification-center';
+  
+  // Seção de Admin (Apenas se for admin)
+  const adminPanel = notificationState.isAdmin ? `
+    <div class="notification-admin-panel" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+      <h4 style="color: var(--primary); margin: 0 0 10px 0; font-size: 0.8rem; text-transform: uppercase;">📢 Painel de Alerta Global</h4>
+      <input type="text" id="adminNotifTitle" placeholder="Título do Alerta" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
+      <textarea id="adminNotifMsg" placeholder="Mensagem para todos os usuários..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem; height:60px; resize:none;"></textarea>
+      <button id="sendGlobalNotifBtn" class="btn btn-primary btn-sm" style="width:100%;">Enviar Alerta Site-Wide</button>
+    </div>
+  ` : '';
+
+  center.innerHTML = `
+    <div class="notification-center__header">
+      <div class="notification-center__eyebrow">
+        <span>🔔 Notificações</span>
+      </div>
+      <button class="notification-center__close" id="closeNotifCenter">✕</button>
+    </div>
+    
+    ${adminPanel}
+
+    <div class="notif-tabs" style="display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;">
+      <button class="notif-tab active" data-tab="all" style="background:none; border:none; color:var(--primary); font-weight:bold; cursor:pointer; font-size:0.9rem; padding: 5px 10px; border-bottom: 2px solid var(--primary);">Tudo</button>
+      <button class="notif-tab" data-tab="site" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem; padding: 5px 10px;">Site</button>
+      <button class="notif-tab" data-tab="chat" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.9rem; padding: 5px 10px;">Mensagens</button>
+    </div>
+
+    <div class="notification-center__content" id="notifCenterContent">
+      <div class="notif-empty-state">
+        <div class="notif-empty-icon">📭</div>
+        <p>Buscando notificações...</p>
+      </div>
+    </div>
+    
+    <div class="notification-center__footer">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="selectAllNotifs">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Selecionar Tudo</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-notif-action" id="markSelectedReadBtn">Lidas</button>
+        <button class="btn-notif-action danger" id="deleteSelectedBtn">Excluir</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(center);
+
+  // Lógica das Abas
+  center.querySelectorAll('.notif-tab').forEach(tab => {
+    tab.onclick = () => {
+      center.querySelectorAll('.notif-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.color = 'var(--text-muted)';
+        t.style.borderBottom = 'none';
+      });
+      tab.classList.add('active');
+      tab.style.color = 'var(--primary)';
+      tab.style.borderBottom = '2px solid var(--primary)';
+      notificationState.activeFilter = tab.dataset.tab || 'all';
+      loadNotificationsList(tab.dataset.tab);
+    };
+  });
+
+  // Overlay para fechar ao clicar fora
+  const overlay = document.createElement('div');
+  overlay.id = 'notificationOverlay';
+  overlay.className = 'notification-center-overlay';
+  document.body.appendChild(overlay);
+
+  attachNotificationListeners();
+}
+
+function attachNotificationListeners() {
+  const center = document.getElementById('notificationCenter');
+  if (!center) return;
+  const content = document.getElementById('notifCenterContent');
+
+  const overlay = document.getElementById('notificationOverlay');
+  if (overlay) overlay.onclick = toggleNotificationCenter;
+
+  const closeBtn = document.getElementById('closeNotifCenter');
+  if (closeBtn) closeBtn.onclick = toggleNotificationCenter;
+
+  // Selecionar Tudo
+  const selectAll = document.getElementById('selectAllNotifs');
+  if (selectAll) {
+    selectAll.onchange = (e) => {
+      const isChecked = e.target.checked;
+      content?.querySelectorAll('.notification-item__checkbox').forEach(cb => {
+        cb.checked = isChecked;
+      });
+      syncNotificationSelectionState();
+    };
   }
 
-  const regDiscordBtn = document.getElementById('discordRegBtn');
-  if (regDiscordBtn) {
-    regDiscordBtn.addEventListener('click', signInWithDiscord);
+  // Ações em Lote
+  const markReadBtn = document.getElementById('markSelectedReadBtn');
+  if (markReadBtn) markReadBtn.onclick = () => handleBatchAction('markRead');
+
+  const deleteBtn = document.getElementById('deleteSelectedBtn');
+  if (deleteBtn) deleteBtn.onclick = () => handleBatchAction('delete');
+
+  // Evento de Envio Global (Admin)
+  if (notificationState.isAdmin) {
+    const sendBtn = document.getElementById('sendGlobalNotifBtn');
+    if (sendBtn) {
+      // Remover listener antigo para não duplicar
+      sendBtn.onclick = null; 
+      sendBtn.onclick = async (e) => {
+        console.log("[DEBUG] Iniciando processo de envio de alerta...");
+        e.preventDefault();
+        
+        const titleInput = document.getElementById('adminNotifTitle');
+        const msgInput = document.getElementById('adminNotifMsg');
+        const title = titleInput?.value?.trim();
+        const msg = msgInput?.value?.trim();
+
+        console.log(`[DEBUG] Dados coletados - Título: "${title}", Mensagem: "${msg}"`);
+
+        if (!title || !msg) {
+          console.warn("[DEBUG] Título ou mensagem vazios!");
+          alert("⚠️ Preencha o título e a mensagem do alerta.");
+          return;
+        }
+
+        /* Removido confirm pois estava retornando false automaticamente em alguns casos */
+        console.log("[DEBUG] Pulando confirmação para evitar bloqueios...");
+
+        sendBtn.disabled = true;
+        const originalText = sendBtn.textContent;
+        sendBtn.innerHTML = `<span class="loader-ring" style="width:18px; height:18px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Enviando...`;
+
+        try {
+          console.log("[DEBUG] Preparando chamada RPC...");
+          console.log("[DEBUG] RPC Name: 'send_global_notification'");
+          console.log("[DEBUG] Params:", { alert_title: title, alert_message: msg });
+
+          const { data, error } = await supaClient.rpc('send_global_notification', {
+            alert_title: title,
+            alert_message: msg
+          });
+
+          if (error) {
+            console.error("[DEBUG] O Supabase retornou um erro:", error);
+            alert("❌ Erro no Banco de Dados: " + error.message + "\n\nCódigo: " + error.code);
+            throw error;
+          }
+
+          console.log("[DEBUG] Resposta de sucesso do RPC:", data);
+          alert("✅ SUCESSO! O alerta foi disparado para todo o site.");
+          
+          if (titleInput) titleInput.value = "";
+          if (msgInput) msgInput.value = "";
+        } catch (err) {
+          console.error("[DEBUG] Erro capturado no catch:", err);
+          alert("⚠️ ERRO CRÍTICO: " + (err.message || "Erro desconhecido na comunicação com o servidor"));
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.textContent = originalText;
+          console.log("[DEBUG] Fluxo de envio encerrado.");
+        }
+      };
+    }
   }
-});
+}
+// Notification hub overrides
+async function initializeNotificationHub(userId) {
+  if (!userId) return;
+
+  const isSameUser = notificationState.initializedForUserId === userId;
+  notificationState.userId = userId;
+  if (!isSameUser) {
+    notificationState.activeFilter = 'all';
+    notificationState.notifications = [];
+  }
+
+  const { data: userData } = await supaClient.auth.getUser();
+  const email = (userData?.user?.email || "").toLowerCase();
+  notificationState.isAdmin = email === "davizeravisel@gmail.com";
+
+  createNotificationCenterUI();
+  await loadNotificationsList(notificationState.activeFilter);
+
+  if (!isSameUser) {
+    setupNotificationRealtime();
+  }
+  notificationState.initializedForUserId = userId;
+
+  const bell = document.getElementById('navbarBellTrigger');
+  if (bell) {
+    bell.onclick = (e) => {
+      e.stopPropagation();
+      toggleNotificationCenter();
+    };
+  }
+}
+
+function syncNotificationBadgeFromState() {
+  const unreadCount = notificationState.notifications.filter((item) => !item.read).length;
+  updateNotificationBadge(unreadCount);
+}
+
+function getFilteredNotificationState(filter = notificationState.activeFilter) {
+  if (filter === 'chat') {
+    return notificationState.notifications.filter((item) => item.type === 'chat');
+  }
+  if (filter === 'site') {
+    return notificationState.notifications.filter((item) => item.type !== 'chat');
+  }
+  return notificationState.notifications.slice();
+}
+
+function renderNotificationListFromState() {
+  const content = document.getElementById('notifCenterContent');
+  if (!content) return;
+
+  const notifications = getFilteredNotificationState();
+  if (!notifications.length) {
+    content.innerHTML = `
+      <div class="notif-empty-state">
+        <div class="notif-empty-icon">📭</div>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+      </div>
+    `;
+    syncNotificationSelectionState();
+    return;
+  }
+
+  content.innerHTML = notifications.map((notification) => {
+    const isUnread = !notification.read;
+    return `
+      <div class="notification-item ${isUnread ? 'unread' : 'read'}" data-id="${notification.id}" onclick="handleNotificationClick('${notification.id}', '${notification.link || ''}')">
+        <input type="checkbox" class="notification-item__checkbox" onclick="event.stopPropagation()">
+        <div class="notification-item__icon">${getNotifIcon(notification.type)}</div>
+        <div class="notification-item__main">
+          <div class="notification-item__title">${notification.title}</div>
+          <div class="notification-item__text">${notification.message}</div>
+          <div class="notification-item__time">${formatNotifTime(notification.created_at)}</div>
+        </div>
+        ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
+        <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${notification.id}'])">
+          🗑️
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  content.querySelectorAll('.notification-item__checkbox').forEach((checkbox) => {
+    checkbox.onchange = () => syncNotificationSelectionState();
+  });
+  syncNotificationSelectionState();
+}
+
+function clearNotificationBatchSelection() {
+  const selectAll = document.getElementById('selectAllNotifs');
+  if (selectAll) {
+    selectAll.checked = false;
+    selectAll.indeterminate = false;
+  }
+  syncNotificationSelectionState();
+}
+
+async function loadNotificationsList(filter = 'all') {
+  const content = document.getElementById('notifCenterContent');
+  if (!content) return;
+
+  notificationState.activeFilter = filter || 'all';
+  if (notificationState.notifications.length > 0) {
+    renderNotificationListFromState();
+    return;
+  }
+
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregando...</div>';
+  syncNotificationSelectionState();
+
+  try {
+    let query = supaClient
+      .from('notifications')
+      .select('*')
+      .eq('user_id', notificationState.userId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (notificationState.activeFilter === 'chat') {
+      query = query.eq('type', 'chat');
+    } else if (notificationState.activeFilter === 'site') {
+      query = query.neq('type', 'chat');
+    }
+
+    const { data: notifs, error } = await query;
+    if (error) throw error;
+
+    notificationState.notifications = Array.isArray(notifs) ? notifs : [];
+    syncNotificationBadgeFromState();
+    renderNotificationListFromState();
+  } catch (err) {
+    console.error("Erro ao carregar lista:", err);
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+  }
+}
+
+async function handleBatchAction(action) {
+  const content = document.getElementById('notifCenterContent');
+  const selectedCheckboxes = content?.querySelectorAll('.notification-item__checkbox:checked') || [];
+  const ids = Array.from(selectedCheckboxes)
+    .map((checkbox) => checkbox.closest('.notification-item')?.dataset?.id)
+    .filter(Boolean);
+  const actionButton = action === 'delete'
+    ? document.getElementById('deleteSelectedBtn')
+    : document.getElementById('markSelectedReadBtn');
+  const originalActionText = actionButton?.textContent || '';
+
+  if (!ids.length) {
+    alert("Selecione pelo menos uma notificação para realizar esta ação.");
+    return;
+  }
+
+  if (actionButton) {
+    actionButton.disabled = true;
+    actionButton.textContent = action === 'delete' ? 'Excluindo...' : 'Marcando...';
+  }
+
+  try {
+    if (action === 'delete') {
+      await deleteNotifications(ids);
+    } else {
+      await markNotificationsRead(ids);
+    }
+    clearNotificationBatchSelection();
+  } finally {
+    if (actionButton) {
+      actionButton.textContent = originalActionText;
+    }
+  }
+}
+
+async function markNotificationsRead(ids) {
+  if (!ids || !ids.length) return;
+
+  try {
+    const { error } = await supaClient
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', notificationState.userId)
+      .in('id', ids);
+
+    if (error) throw error;
+
+    notificationState.notifications = notificationState.notifications.map((item) => (
+      ids.includes(item.id) ? { ...item, read: true } : item
+    ));
+    syncNotificationBadgeFromState();
+    renderNotificationListFromState();
+  } catch (err) {
+    console.error("Erro ao marcar como lidas:", err);
+  }
+}
+
+async function deleteNotifications(ids) {
+  if (!ids || !ids.length) return;
+
+  try {
+    const { error } = await supaClient
+      .from('notifications')
+      .delete()
+      .eq('user_id', notificationState.userId)
+      .in('id', ids);
+
+    if (error) throw error;
+
+    notificationState.notifications = notificationState.notifications.filter((item) => !ids.includes(item.id));
+    syncNotificationBadgeFromState();
+    renderNotificationListFromState();
+  } catch (err) {
+    console.error("Erro ao deletar notificações:", err);
+    alert("Erro ao excluir: " + err.message);
+  }
+}
+
+function setupNotificationRealtime() {
+  if (!supaClient || !notificationState.userId) return;
+
+  if (notificationState.realtimeChannel) {
+    supaClient.removeChannel(notificationState.realtimeChannel);
+    notificationState.realtimeChannel = null;
+  }
+
+  notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${notificationState.userId}`
+    }, (payload) => {
+      if (payload.eventType === 'INSERT' && payload.new) {
+        notificationState.notifications = notificationState.notifications
+          .filter((item) => item.id !== payload.new.id);
+        notificationState.notifications.unshift(payload.new);
+        notificationState.notifications = notificationState.notifications
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 30);
+      } else if (payload.eventType === 'UPDATE' && payload.new) {
+        const exists = notificationState.notifications.some((item) => item.id === payload.new.id);
+        notificationState.notifications = exists
+          ? notificationState.notifications.map((item) => (item.id === payload.new.id ? payload.new : item))
+          : [payload.new, ...notificationState.notifications].slice(0, 30);
+      } else if (payload.eventType === 'DELETE' && payload.old?.id) {
+        notificationState.notifications = notificationState.notifications.filter((item) => item.id !== payload.old.id);
+      } else {
+        return;
+      }
+
+      syncNotificationBadgeFromState();
+      if (notificationState.isOpen) {
+        renderNotificationListFromState();
+      }
+
+      if (payload.eventType === 'INSERT' && payload.new && window.showToast) {
+        showToast(`🔔 ${payload.new.title}`, "info");
+        const bell = document.getElementById('navbarBellTrigger');
+        if (bell) {
+          bell.classList.remove('ringing');
+          void bell.offsetWidth; // Trigger reflow
+          bell.classList.add('ringing');
+        }
+      }
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log("✅ Escutando notificações em tempo real");
+      }
+    });
+}
+
+function syncNotificationSelectionState() {
+  const content = document.getElementById('notifCenterContent');
+  const selectAll = document.getElementById('selectAllNotifs');
+  const actionButtons = [
+    document.getElementById('markSelectedReadBtn'),
+    document.getElementById('deleteSelectedBtn')
+  ];
+
+  const checkboxes = Array.from(content?.querySelectorAll('.notification-item__checkbox') || []);
+  const checkedCount = checkboxes.filter(cb => cb.checked).length;
+  const hasItems = checkboxes.length > 0;
+
+  if (selectAll) {
+    selectAll.disabled = !hasItems;
+    selectAll.checked = hasItems && checkedCount === checkboxes.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+  }
+
+  actionButtons.forEach((button) => {
+    if (button) button.disabled = !hasItems || checkedCount === 0;
+  });
+}
+
+function getFilteredNotificationState(filter = notificationState.activeFilter) {
+  if (filter === 'chat') {
+    return notificationState.notifications.filter((item) => item.type === 'chat');
+  }
+  if (filter === 'site') {
+    return notificationState.notifications.filter((item) => item.type !== 'chat');
+  }
+  return notificationState.notifications.slice();
+}
+
+function syncNotificationBadgeFromState() {
+  const unreadCount = notificationState.notifications.filter((item) => !item.read).length;
+  updateNotificationBadge(unreadCount);
+}
+
+function renderNotificationListFromState() {
+  const content = document.getElementById('notifCenterContent');
+  if (!content) return;
+
+  const notifications = getFilteredNotificationState();
+  if (!notifications.length) {
+    content.innerHTML = `
+      <div class="notif-empty-state">
+        <div class="notif-empty-icon">📭</div>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+      </div>
+    `;
+    syncNotificationSelectionState();
+    return;
+  }
+
+  const notifHtml = notifications.map((n) => {
+    const isUnread = !n.read;
+    return `
+      <div class="notification-item ${isUnread ? 'unread' : 'read'}" data-id="${n.id}" onclick="handleNotificationClick('${n.id}', '${n.link || ''}')">
+        <input type="checkbox" class="notification-item__checkbox" onclick="event.stopPropagation()">
+        <div class="notification-item__icon">${getNotifIcon(n.type)}</div>
+        <div class="notification-item__main">
+          <div class="notification-item__title">${n.title}</div>
+          <div class="notification-item__text">${n.message}</div>
+          <div class="notification-item__time">${formatNotifTime(n.created_at)}</div>
+        </div>
+        ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
+        <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${n.id}'])">
+          🗑️
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  content.innerHTML = notifHtml;
+  content.querySelectorAll('.notification-item__checkbox').forEach((checkbox) => {
+    checkbox.onchange = () => syncNotificationSelectionState();
+  });
+  syncNotificationSelectionState();
+}
+
+async function handleBatchActionLegacy(action) {
+  const content = document.getElementById('notifCenterContent');
+  const selectedCheckboxes = content?.querySelectorAll('.notification-item__checkbox:checked') || [];
+  const ids = Array.from(selectedCheckboxes)
+    .map(cb => cb.closest('.notification-item')?.dataset?.id)
+    .filter(id => !!id);
+  const actionButton = action === 'delete'
+    ? document.getElementById('deleteSelectedBtn')
+    : document.getElementById('markSelectedReadBtn');
+  const originalActionText = actionButton?.textContent || '';
+
+  if (ids.length === 0) {
+    alert("Selecione pelo menos uma notificação para realizar esta ação.");
+    return;
+  }
+
+  if (actionButton) {
+    actionButton.disabled = true;
+    actionButton.textContent = action === 'delete' ? 'Excluindo...' : 'Marcando...';
+  }
+
+  try {
+    if (action === 'delete') {
+      await deleteNotifications(ids);
+    } else {
+      await markNotificationsRead(ids);
+    }
+  } finally {
+    if (actionButton) {
+      actionButton.textContent = originalActionText;
+    }
+  }
+
+  // Limpar o estado do checkbox "Selecionar Tudo"
+  const selectAllBatch = document.getElementById('selectAllNotifs');
+  if (selectAllBatch) {
+    selectAllBatch.checked = false;
+    selectAllBatch.indeterminate = false;
+  }
+  syncNotificationSelectionState();
+  return;
+
+  if (false && action === 'delete') {
+    if (!confirm(`Deseja excluir definitivamente as ${ids.length} notificações selecionadas?`)) return;
+    await deleteNotifications(ids);
+  } else {
+    await markNotificationsRead(ids);
+  }
+  
+  // Limpar o estado do checkbox "Selecionar Tudo"
+  const selectAll = document.getElementById('selectAllNotifs');
+  if (selectAll) {
+    selectAll.checked = false;
+    selectAll.indeterminate = false;
+  }
+  syncNotificationSelectionState();
+}
+
+function toggleNotificationCenter() {
+  const center = document.getElementById('notificationCenter');
+  const overlay = document.getElementById('notificationOverlay');
+  
+  if (!center || !overlay) return;
+
+  notificationState.isOpen = !notificationState.isOpen;
+  
+  if (notificationState.isOpen) {
+    center.classList.add('active');
+    overlay.classList.add('active');
+    loadNotificationsList(notificationState.activeFilter);
+    // Re-anexar listeners para garantir que funcionem
+    attachNotificationListeners();
+  } else {
+    center.classList.remove('active');
+    overlay.classList.remove('active');
+  }
+}
+
+async function loadNotificationsListLegacy(filter = 'all') {
+  const content = document.getElementById('notifCenterContent');
+  if (!content) return;
+  notificationState.activeFilter = filter || 'all';
+
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregando...</div>';
+  syncNotificationSelectionState();
+
+  try {
+    let query = supaClient
+      .from('notifications')
+      .select('*')
+      .eq('user_id', notificationState.userId)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (filter === 'chat') {
+      query = query.eq('type', 'chat');
+    } else if (filter === 'site') {
+      query = query.neq('type', 'chat');
+    }
+
+    const { data: notifs, error } = await query;
+
+    if (error) throw error;
+    notificationState.notifications = Array.isArray(notifs) ? notifs : [];
+    syncNotificationBadgeFromState();
+    renderNotificationListFromState();
+    return;
+
+    if (!notifs || notifs.length === 0) {
+      content.innerHTML = `
+        <div class="notif-empty-state">
+          <div class="notif-empty-icon">📭</div>
+          <p>${filter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+        </div>
+      `;
+      return;
+    }
+
+    const notifHtml = notifs.map(n => {
+      const isUnread = !n.read;
+      return `
+        <div class="notification-item ${isUnread ? 'unread' : 'read'}" data-id="${n.id}" onclick="handleNotificationClick('${n.id}', '${n.link || ''}')">
+          <input type="checkbox" class="notification-item__checkbox" onclick="event.stopPropagation()">
+          <div class="notification-item__icon">${getNotifIcon(n.type)}</div>
+          <div class="notification-item__main">
+            <div class="notification-item__title">${n.title}</div>
+            <div class="notification-item__text">${n.message}</div>
+            <div class="notification-item__time">${formatNotifTime(n.created_at)}</div>
+          </div>
+          ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
+          <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${n.id}'])">
+            🗑️
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    content.innerHTML = notifHtml;
+    content.querySelectorAll('.notification-item__checkbox').forEach((checkbox) => {
+      checkbox.onchange = () => syncNotificationSelectionState();
+    });
+    syncNotificationSelectionState();
+
+  } catch (err) {
+    console.error("Erro ao carregar lista:", err);
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+  }
+}
+
+async function handleNotificationClick(id, link) {
+  await markAsRead(id);
+  if (link) {
+    window.location.href = link;
+  }
+}
+
+function getNotifIcon(type) {
+  const icons = {
+    'system': '⚙️',
+    'social': '👥',
+    'loja': '🎌',
+    'xp': '✨',
+    'medalha': '🏅',
+    'chat': '💬'
+  };
+  return icons[type] || '🔔';
+}
+
+function formatNotifTime(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) return 'Agora mesmo';
+  if (diffMins < 60) return `Há ${diffMins} min`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Há ${diffHours}h`;
+  
+  return date.toLocaleDateString('pt-BR');
+}
+
+async function markNotificationsReadLegacy(ids) {
+  if (!ids || ids.length === 0) return;
+  try {
+    const { error } = await supaClient
+      .from('notifications')
+      .update({ read: true })
+      .eq('user_id', notificationState.userId)
+      .in('id', ids);
+
+    if (!error) {
+      notificationState.notifications = notificationState.notifications.map((item) => (
+        ids.includes(item.id) ? { ...item, read: true } : item
+      ));
+      syncNotificationBadgeFromState();
+      renderNotificationListFromState();
+      return;
+
+      ids.forEach(id => {
+        const item = document.querySelector(`.notification-item[data-id="${id}"]`);
+        if (item) {
+          item.classList.remove('unread');
+          item.classList.add('read');
+          const dot = item.querySelector('.notification-item__dot');
+          if (dot) dot.remove();
+        }
+      });
+      await fetchNotificationCount();
+      syncNotificationSelectionState();
+    }
+  } catch (err) {
+    console.error("Erro ao marcar como lidas:", err);
+  }
+}
+
+async function deleteNotificationsLegacy(ids) {
+  if (!ids || ids.length === 0) return;
+  
+  try {
+    console.log(`[NotificationHub] Excluindo ${ids.length} notificações...`);
+    const { error } = await supaClient
+      .from('notifications')
+      .delete()
+      .eq('user_id', notificationState.userId)
+      .in('id', ids);
+    if (error) throw error;
+    notificationState.notifications = notificationState.notifications.filter((item) => !ids.includes(item.id));
+    syncNotificationBadgeFromState();
+    renderNotificationListFromState();
+    return;
+
+    if (error) throw error;
+
+    // Remover do DOM com animação
+    ids.forEach(id => {
+      const item = document.querySelector(`.notification-item[data-id="${id}"]`);
+      if (item) {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(30px)';
+        item.style.pointerEvents = 'none';
+        setTimeout(() => {
+          item.remove();
+          // Se não sobrar nenhum item, recarrega a lista para mostrar o "Vazio"
+          if (document.querySelectorAll('.notification-item').length === 0) {
+            loadNotificationsList(notificationState.activeFilter);
+          }
+        }, 300);
+      }
+    });
+
+    await fetchNotificationCount();
+    await loadNotificationsList(notificationState.activeFilter);
+  } catch (err) {
+    console.error("Erro ao deletar notificações:", err);
+    alert("Erro ao excluir: " + err.message);
+  }
+}
+
+async function markAsRead(id) {
+  await markNotificationsRead([id]);
+}
+
+async function markAllAsRead() {
+  // Mantendo para compatibilidade se necessário, mas agora usamos handleBatchAction
+  const allIds = Array.from(document.querySelectorAll('.notification-item')).map(el => el.dataset.id);
+  if (allIds.length > 0) await markNotificationsRead(allIds);
+}
+
+function setupNotificationRealtimeLegacy() {
+  if (!supaClient || !notificationState.userId) return;
+
+  if (notificationState.realtimeChannel) {
+    supaClient.removeChannel(notificationState.realtimeChannel);
+    notificationState.realtimeChannel = null;
+  }
+
+  // Canal para mudanças nas notificações do usuário
+  notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
+    .on('postgres_changes', {
+      event: '*', // Ouvir TUDO (INSERT, UPDATE, DELETE)
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${notificationState.userId}`
+    }, (payload) => {
+      console.log("Evento de notificação:", payload.eventType, payload);
+      
+      // Atualizar contagem do badge sempre
+      fetchNotificationCount();
+
+      // Se o painel estiver aberto, recarregar a lista para refletir a mudança
+      if (notificationState.isOpen) {
+        const activeTab = document.querySelector('.notif-tab.active')?.dataset.tab || 'all';
+        loadNotificationsList(activeTab);
+      }
+      
+      // Se for uma inserção, mostrar um Toast
+      if (payload.eventType === 'INSERT' && window.showToast) {
+        showToast(`🔔 ${payload.new.title}`, "info");
+      }
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        console.log("✅ Escutando notificações em tempo real");
+      }
+    });
+}

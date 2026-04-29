@@ -195,6 +195,7 @@ const USER_CATALOG_TABLES = [
     'movies',
     'animes',
     'anime_episodes',
+    'anime_movies',
     'mangas',
     'manga_volumes',
     'manga_notes',
@@ -301,10 +302,14 @@ const DB = {
           ? supa.from('youtube_videos').select('*').or(ownerFilter)
           : supa.from('youtube_videos').select('*').eq('user_id', userId);
 
+        const animeMoviesQuery = isMainAccount
+          ? supa.from('anime_movies').select('*').or(ownerFilter)
+          : supa.from('anime_movies').select('*').eq('user_id', userId);
+
         const [
             cartoons, episodes, movies,
             animes, animeEps, mangas, mangaVols,
-            mangaNotes, filmesData, ytPlaylists, ytVideos, settings
+            mangaNotes, filmesData, ytPlaylists, ytVideos, animeMovies, settings
         ] = await Promise.all([
             safeFetch(cartoonQuery, 'Cartoons'),
             safeFetch(episodesQuery, 'Episodes'),
@@ -317,6 +322,7 @@ const DB = {
             safeFetch(filmesQuery, 'Filmes'),
             safeFetch(youtubePlaylistsQuery, 'YoutubePlaylists'),
             safeFetch(youtubeVideosQuery, 'YoutubeVideos'),
+            safeFetch(animeMoviesQuery, 'AnimeMovies'),
             safeFetch(supa.from('settings').select('*'), 'Settings')
         ]);
 
@@ -541,8 +547,15 @@ const DB = {
             }
         }
 
-        // TODO: Anime Movies if it exists in Supabase, but schema.sql didn't have anime_movies table! 
-        // We'll just init it empty for now, as it wasn't migrated.
+        // Agrupar anime movies
+        if (animeMovies) {
+            animeMovies.forEach(m => {
+                if (!_store.animeMovies[m.anime_id]) _store.animeMovies[m.anime_id] = [];
+                _store.animeMovies[m.anime_id].push({
+                    id: m.id, title: m.title, iframe: cleanIframe(m.iframe)
+                });
+            });
+        }
         console.log("Banco de dados sincronizado com o Supabase!");
 
     } catch (e) {
@@ -888,22 +901,42 @@ const DB = {
   /* Animes: Filmes */
   getAnimeMoviesFor(aId) { return _store.animeMovies[aId] || []; },
   async addAnimeMovie(aId, movieData) {
-    await getRequiredUserId();
-      if (!_store.animeMovies[aId]) _store.animeMovies[aId] = [];
-      const item = { id: 'm_a_' + Date.now(), ...movieData };
-      _store.animeMovies[aId].push(item); return item;
-      // Not fully integrated to Supabase schema, storing in local _store only (as per previous instructions).
+    const userId = await getRequiredUserId();
+    const item = { 
+        id: 'm_a_' + Date.now(), 
+        anime_id: aId, 
+        title: movieData.title, 
+        iframe: cleanIframe(movieData.iframe),
+        user_id: userId
+    };
+    const { error } = await getSupa().from('anime_movies').insert([item]);
+    if (error) throw new Error(error.message);
+
+    if (!_store.animeMovies[aId]) _store.animeMovies[aId] = [];
+    _store.animeMovies[aId].push({ id: item.id, title: item.title, iframe: item.iframe });
+    return item;
   },
   async updateAnimeMovie(aId, mId, data) {
-      if (_store.animeMovies[aId]) {
-          _store.animeMovies[aId] = _store.animeMovies[aId].map(m => m.id === mId ? { ...m, ...data } : m);
-      }
+    await checkItemOwnership(mId, 'anime_movies');
+    const updatePayload = { ...data };
+    if (updatePayload.iframe) updatePayload.iframe = cleanIframe(updatePayload.iframe);
+
+    const { error } = await getSupa().from('anime_movies').update(updatePayload).eq('id', mId);
+    if (error) throw new Error(error.message);
+
+    if (_store.animeMovies[aId]) {
+      _store.animeMovies[aId] = _store.animeMovies[aId].map(m => m.id === mId ? { ...m, ...data } : m);
+    }
   },
   async deleteAnimeMovie(aId, mId) {
-      if (_store.animeMovies[aId]) {
-          clearWatchedItems([mId]);
-          _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
-      }
+    await checkItemOwnership(mId, 'anime_movies');
+    const { error } = await getSupa().from('anime_movies').delete().eq('id', mId);
+    if (error) throw new Error(error.message);
+
+    clearWatchedItems([mId]);
+    if (_store.animeMovies[aId]) {
+      _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
+    }
   },
 
   /* MangÃ¡s */

@@ -1029,8 +1029,133 @@
           0 0 14px rgba(0, 255, 255, 0.2) !important;
       }
 
-      /* ===== INVENTORY CARD STYLES ===== */
+      /* ===== INVENTORY CARD STYLES (SIMPLIFIED) ===== */
       .inventory-item-card {
+        background: rgba(15, 15, 30, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        transition: border-color 0.2s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .inventory-item-card:hover {
+        border-color: rgba(var(--primary-rgb), 0.3);
+      }
+      .inventory-item-card.ouro {
+        border-color: rgba(212, 175, 55, 0.3);
+      }
+      .inventory-item-card.diamante {
+        border-color: rgba(100, 200, 255, 0.3);
+      }
+      .inventory-item-card.esmeralda {
+        border-color: rgba(255, 215, 0, 0.4);
+      }
+      .inventory-item-card.equipped {
+        border: 2px solid var(--primary) !important;
+        background: rgba(var(--primary-rgb), 0.05);
+      }
+      .inventory-item-card .item-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: auto;
+      }
+      .inventory-item-card .btn-equip {
+        flex: 1;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .inventory-item-card .btn-equip.ouro {
+        background: linear-gradient(135deg, #d4af37, #b8960c);
+        color: #1a1200;
+      }
+      .inventory-item-card .btn-equip.diamante {
+        background: linear-gradient(135deg, #64c8ff, #3aa8e0);
+        color: #001a2e;
+      }
+      .inventory-item-card .btn-equip.esmeralda:not(.equipped) {
+        background: linear-gradient(
+          135deg,
+          #ff0080,
+          #ff8000,
+          #80ff00,
+          #00ff80,
+          #0080ff,
+          #8000ff
+        ) !important;
+        background-size: 300% auto !important;
+        animation:
+          gradient-shift 4s ease infinite,
+          chromatic-shine-btn 3s linear infinite !important;
+        color: #fff !important;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.6) !important;
+        font-weight: 800 !important;
+      }
+      .inventory-item-card .btn-equip.equipped {
+        background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+        color: #fff !important;
+      }
+      .equipped-indicator {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        z-index: 2;
+      }
+      .inventory-item-card.esmeralda .equipped-indicator {
+        background: linear-gradient(
+          135deg,
+          #ff0080,
+          #00ffff,
+          #ff0080
+        ) !important;
+        background-size: 200% auto !important;
+        animation: chromatic-shine 2s linear infinite !important;
+        box-shadow:
+          0 0 15px rgba(255, 0, 128, 0.7),
+          0 0 25px rgba(0, 255, 255, 0.5) !important;
+      }
+      .inventory-item-card.equipped.esmeralda {
+        animation: pulse-equip 3s ease-in-out infinite;
+      }
+      @keyframes pulse-equip {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3); }
+        50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.5); }
+      }
+      .inventory-item-card {
+        background: rgba(15, 15, 30, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        transition: border-color 0.2s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .inventory-item-card-ignore {
         background: linear-gradient(
           145deg,
           rgba(30, 30, 50, 0.6),
