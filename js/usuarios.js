@@ -51,6 +51,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatActionText = document.getElementById('chatActionText');
   const chatActionList = document.getElementById('chatActionList');
   const chatActionCancel = document.getElementById('chatActionCancel');
+  const redirectModal = document.getElementById('redirectModal');
+  const redirectTitle = document.getElementById('redirectTitle');
+  const redirectText = document.getElementById('redirectText');
+  const redirectUrlDisplay = document.getElementById('redirectUrl');
+  const redirectCancel = document.getElementById('redirectCancel');
+  const redirectAccept = document.getElementById('redirectAccept');
+  const modalImg = document.getElementById('modalImg');
+  const avatarViewOverlay = document.getElementById('avatarViewOverlay');
+  const avatarViewImg = document.getElementById('avatarViewImg');
+  const avatarViewClose = document.getElementById('avatarViewClose');
 
   const CHAT_TABLE = 'direct_messages';
   const CHAT_ATTACHMENT_BUCKET = 'chat-attachments';
@@ -191,12 +201,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (chatInput) {
-      chatInput.addEventListener('keydown', async (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
+      chatInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          if (event.shiftKey) {
+            // Shift + Enter: Para qualquer tentativa de envio e permite apenas a quebra de linha
+            event.stopPropagation();
+            return;
+          }
+          // Enter sozinho: Bloqueia tudo e envia a mensagem
           event.preventDefault();
-          await sendCurrentMessage();
+          event.stopImmediatePropagation();
+          sendCurrentMessage();
         }
-      });
+      }, true);
 
       chatInput.addEventListener('input', () => {
         autoResizeTextarea();
@@ -227,6 +244,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (messageActionTrigger) {
           event.preventDefault();
           openChatMessageActions(messageActionTrigger.getAttribute('data-chat-message-actions-open'));
+          return;
+        }
+
+        const downloadTrigger = event.target.closest('[data-chat-download-url]');
+        if (downloadTrigger) {
+          event.preventDefault();
+          downloadFileFromChat(
+            downloadTrigger.getAttribute('data-chat-download-url') || '',
+            downloadTrigger.getAttribute('data-chat-download-name') || 'arquivo'
+          );
           return;
         }
 
@@ -292,7 +319,55 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    if (usersGrid) {
+      usersGrid.addEventListener('mousemove', (e) => {
+        const card = e.target.closest('.creators-card');
+        if (!card) return;
+        const rect = card.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mouse-x', `${x}%`);
+        card.style.setProperty('--mouse-y', `${y}%`);
+      });
+
+      usersGrid.addEventListener('click', (event) => {
+        const trigger = event.target.closest('.external-link-trigger');
+        if (!trigger) return;
+
+        event.preventDefault();
+        const url = trigger.getAttribute('data-link');
+        const label = trigger.getAttribute('data-label');
+        const creatorName = trigger.closest('.creator-item')?.querySelector('h5')?.innerText || 'Criador';
+
+        openRedirectModal(url, label, creatorName);
+      });
+    }
+
+    if (modalImg) {
+      modalImg.style.cursor = 'pointer';
+      modalImg.addEventListener('click', () => {
+        if (avatarViewImg && modalImg.src) {
+          avatarViewImg.src = modalImg.src;
+          avatarViewOverlay?.classList.add('active');
+        }
+      });
+    }
+
+    if (avatarViewClose) {
+      avatarViewClose.onclick = () => avatarViewOverlay?.classList.remove('active');
+    }
+
+    if (avatarViewOverlay) {
+      avatarViewOverlay.onclick = (e) => {
+        if (e.target === avatarViewOverlay) avatarViewOverlay.classList.remove('active');
+      };
+    }
+
     document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && avatarViewOverlay?.classList.contains('active')) {
+        avatarViewOverlay.classList.remove('active');
+        return;
+      }
       if (event.key === 'Escape' && chatDeleteConfirmResolver) {
         resolveChatDeleteConfirm(false);
         return;
@@ -646,13 +721,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     return mimeType.startsWith('image/');
   }
 
+  function isVideoFile(fileOrMime) {
+    const mimeType = typeof fileOrMime === 'string'
+      ? fileOrMime
+      : String(fileOrMime?.type || '');
+    return mimeType.startsWith('video/');
+  }
+
   function getAttachmentKind(source) {
-    if (source?.attachment_kind === 'image' || source?.attachment_kind === 'file') {
+    if (source?.attachment_kind === 'image' || source?.attachment_kind === 'video' || source?.attachment_kind === 'file') {
       return source.attachment_kind;
     }
 
     const mimeType = String(source?.attachment_mime_type || source?.type || '');
-    return isImageFile(mimeType) ? 'image' : 'file';
+    if (isImageFile(mimeType)) return 'image';
+    if (isVideoFile(mimeType)) return 'video';
+    return 'file';
   }
 
   function getMessagePreview(message) {
@@ -668,8 +752,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    if (String(message.content || '').trim()) {
-      parts.push(String(message.content).trim());
+    const content = String(message.content || '').trim();
+    if (content && content !== '[Arquivo]') {
+      parts.push(content);
     }
 
     const preview = parts.join(' • ') || 'Nova conversa';
@@ -692,8 +777,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       parts.push(message.attachment_name);
     }
 
-    if (String(message.content || '').trim()) {
-      parts.push(String(message.content).trim());
+    const content = String(message.content || '').trim();
+    if (content && content !== '[Arquivo]') {
+      parts.push(content);
     }
 
     return parts.join(' ');
@@ -721,7 +807,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       return 'Esta mensagem foi apagada pelo usuario que a enviou.';
     }
 
-    return String(message?.content || '').trim();
+    const content = String(message?.content || '').trim();
+    return content === '[Arquivo]' ? '' : content;
   }
 
   function getChatMessageById(messageId) {
@@ -737,6 +824,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       icon: 'fas fa-trash-alt',
       danger: false
     }];
+
+    if (message.attachment_url && !isMessageDeletedForEveryone(message)) {
+      actions.unshift({
+        key: 'download',
+        label: 'Baixar arquivo',
+        icon: 'fas fa-download',
+        danger: false
+      });
+    }
 
     if (message.sender_id === currentUser.id && !isMessageDeletedForEveryone(message)) {
       actions.unshift({
@@ -796,6 +892,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       chatActionModal.setAttribute('aria-hidden', 'true');
     }
     document.body.style.overflow = '';
+  }
+
+  async function downloadFileFromChat(fileUrl, fileName) {
+    if (!fileUrl) return;
+
+    try {
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = sanitizeFileName(fileName || 'arquivo');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showSuccessNotice('Arquivo baixado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao baixar arquivo:', error);
+      showNotice('Erro ao baixar o arquivo. Tente novamente.');
+    }
   }
 
   function renderMessageActionsMarkup(message) {
@@ -858,8 +978,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const attachmentMeta = attachmentSize
       ? `<small>${escapeHtml(attachmentSize)}</small>`
       : '';
+    const kind = getAttachmentKind(message);
 
-    if (getAttachmentKind(message) === 'image') {
+    if (kind === 'image') {
       return `
         <button
           type="button"
@@ -875,19 +996,54 @@ document.addEventListener('DOMContentLoaded', async () => {
           </span>
         </button>
         <div class="chat-attachment-actions">
-          <button
-            type="button"
-            class="chat-attachment-caption"
-            data-chat-image-url="${attachmentUrl}"
-            data-chat-image-name="${attachmentName}"
-          >
+          <div class="chat-file-name-tag">
             <i class="fas fa-image"></i>
             <span>${attachmentName}</span>
             ${attachmentMeta}
+          </div>
+          <button 
+            type="button" 
+            class="chat-attachment-download-btn" 
+            data-chat-download-url="${attachmentUrl}"
+            data-chat-download-name="${attachmentName}"
+            title="Baixar arquivo"
+            aria-label="Baixar ${attachmentName}"
+          >
+            <i class="fas fa-download"></i>
+            <span>Baixar</span>
           </button>
           <a class="chat-attachment-inline-link" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
             Abrir em nova aba
           </a>
+        </div>
+      `;
+    }
+
+    if (kind === 'video') {
+      return `
+        <div class="chat-attachment-video-wrapper">
+          <video class="chat-attachment-video" controls preload="metadata">
+            <source src="${attachmentUrl}" type="${escapeHtml(message.attachment_mime_type || 'video/mp4')}">
+            Seu navegador não suporta vídeos.
+          </video>
+        </div>
+        <div class="chat-attachment-actions">
+          <div class="chat-file-name-tag">
+            <i class="fas fa-video"></i>
+            <span>${attachmentName}</span>
+            ${attachmentMeta}
+          </div>
+          <button 
+            type="button" 
+            class="chat-attachment-download-btn" 
+            data-chat-download-url="${attachmentUrl}"
+            data-chat-download-name="${attachmentName}"
+            title="Baixar vídeo"
+            aria-label="Baixar ${attachmentName}"
+          >
+            <i class="fas fa-download"></i>
+            <span>Baixar</span>
+          </button>
         </div>
       `;
     }
@@ -898,13 +1054,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     ].filter(Boolean).join(' • ');
 
     return `
-      <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
-        <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
-        <span class="chat-file-meta">
-          <strong>${attachmentName}</strong>
-          <small>${fileInfo}</small>
-        </span>
-      </a>
+      <div class="chat-file-card-wrapper">
+        <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
+          <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
+          <span class="chat-file-meta">
+            <strong>${attachmentName}</strong>
+            <small>${fileInfo}</small>
+          </span>
+        </a>
+        <button 
+          type="button" 
+          class="chat-file-download-btn" 
+          data-chat-download-url="${attachmentUrl}"
+          data-chat-download-name="${attachmentName}"
+          title="Baixar arquivo"
+          aria-label="Baixar ${attachmentName}"
+        >
+          <i class="fas fa-download"></i>
+          <span>Baixar</span>
+        </button>
+      </div>
     `;
   }
 
@@ -1252,8 +1421,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function autoResizeTextarea() {
     if (!chatInput) return;
-    chatInput.style.height = 'auto';
-    const nextHeight = Math.min(Math.max(chatInput.scrollHeight, 56), 112);
+    chatInput.style.height = '52px';
+    const nextHeight = Math.min(Math.max(chatInput.scrollHeight, 52), 150);
     chatInput.style.height = `${nextHeight}px`;
   }
 
@@ -1310,6 +1479,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatDeleteConfirmAccept.focus();
       }, 0);
     });
+  }
+
+  function getChatDateLabel(date) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    if (target.getTime() === today.getTime()) return 'Hoje';
+    if (target.getTime() === yesterday.getTime()) return 'Ontem';
+    
+    return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
   }
 
   function resolveChatDeleteConfirm(confirmed) {
@@ -1426,8 +1609,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeChatEditState) {
       const editingMessage = getActiveChatEditMessage();
-      const attachmentHint = editingMessage?.attachment_url ? ' O anexo original sera mantido.' : '';
-      chatDraftLabel.textContent = `Editando mensagem enviada.${attachmentHint}`;
+      if (selectedChatFile) {
+        chatDraftLabel.textContent = `Trocar anexo por: ${selectedChatFile.name} (${formatFileSize(selectedChatFile.size)})`;
+      } else {
+        const attachmentHint = editingMessage?.attachment_url ? ' Você pode trocar ou remover o anexo clicando no clipe.' : ' Você pode adicionar um anexo a esta mensagem.';
+        chatDraftLabel.textContent = `Editando mensagem.${attachmentHint}`;
+      }
       return;
     }
 
@@ -1495,8 +1682,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               : 'Digite sua mensagem ou envie uma foto...';
     }
 
-    if (chatAttachmentBtn) chatAttachmentBtn.disabled = disabled || !!activeChatEditState;
-    if (chatAttachmentInput) chatAttachmentInput.disabled = disabled || !!activeChatEditState;
+    if (chatAttachmentBtn) chatAttachmentBtn.disabled = disabled;
+    if (chatAttachmentInput) chatAttachmentInput.disabled = disabled;
     if (chatSendBtn) chatSendBtn.disabled = disabled || !hasPayload;
     if (chatCancelEditBtn) chatCancelEditBtn.hidden = !activeChatEditState;
 
@@ -1531,6 +1718,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (socialToggle) socialToggle.classList.add('active');
     pendingChatRenderMode = 'bottom';
     renderSidebar(true);
+    
+    // Forçar atualização dos seguidores ao abrir
+    if (window.updateMyFollowers) window.updateMyFollowers();
   }
 
   function closeSocialSidebar() {
@@ -1690,6 +1880,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       conversationList.appendChild(item);
     });
+
+    // Abrir automaticamente a primeira correspondência encontrada na busca
+    const searchTerm = String(conversationSearch?.value || '').trim().toLowerCase();
+    if (searchTerm && conversations.length > 0) {
+      const firstMatch = conversations[0];
+      if (activeChatUserId !== firstMatch.otherUserId) {
+        // Usar um pequeno timeout para não quebrar o foco do input durante a digitação
+        setTimeout(() => {
+          if (conversationSearch?.value.trim().toLowerCase() === searchTerm) {
+            window.openChatWithUser(firstMatch.otherUserId, { skipFocus: true });
+          }
+        }, 500);
+      }
+    }
   }
 
   function renderActiveChat() {
@@ -1751,7 +1955,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (messages.length === 0) {
       chatMessages.innerHTML = '<div class="social-empty" style="padding: 24px 12px;">Conversa iniciada. Envie a primeira mensagem.</div>';
     } else {
+      let lastDateLabel = '';
       messages.forEach((message) => {
+        const msgDate = new Date(message.created_at);
+        const dateLabel = getChatDateLabel(msgDate);
+        
+        if (dateLabel !== lastDateLabel) {
+          const separator = document.createElement('div');
+          separator.className = 'chat-date-separator';
+          separator.innerHTML = `<span>${dateLabel}</span>`;
+          chatMessages.appendChild(separator);
+          lastDateLabel = dateLabel;
+        }
+
         const bubble = document.createElement('div');
         const isMine = message.sender_id === currentUser.id;
         const hasAttachment = !!message.attachment_url;
@@ -1944,7 +2160,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attachment_name: file.name,
       attachment_size_bytes: file.size,
       attachment_mime_type: file.type || 'application/octet-stream',
-      attachment_kind: isImageFile(file) ? 'image' : 'file'
+      attachment_kind: getAttachmentKind(file)
     };
   }
 
@@ -1965,9 +2181,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     setChatBusy(true);
 
     try {
+      let attachmentPayload = {};
+      if (selectedChatFile) {
+        attachmentPayload = await uploadChatAttachment(selectedChatFile);
+        
+        // Se havia um anexo antigo, removemos do storage (opcional, mas bom para limpeza)
+        if (editingMessage.attachment_path) {
+          await removeChatAttachmentFromStorage(editingMessage.attachment_path);
+        }
+      }
+
+      const finalContent = content || (attachmentPayload.attachment_url || editingMessage.attachment_url ? '[Arquivo]' : '');
+
       const { data, error } = await window.supabaseClient
         .from(CHAT_TABLE)
-        .update({ content: content || null })
+        .update({ 
+          content: finalContent,
+          ...attachmentPayload
+        })
         .eq('id', editingMessage.id)
         .eq('sender_id', currentUser.id)
         .select('*')
@@ -1977,7 +2208,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       upsertDirectMessage(data);
       clearChatEditState();
+      clearSelectedChatAttachment(); // Limpar anexo após editar
       setConversationDraft(activeChatUserId, '');
+      if (chatInput) chatInput.value = ''; // Limpar texto após editar
+      autoResizeTextarea();
       scheduleSidebarRender('preserve');
       showSuccessNotice('Mensagem atualizada.');
     } catch (error) {
@@ -2019,13 +2253,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       const attachmentPayload = selectedChatFile
         ? await uploadChatAttachment(selectedChatFile)
         : {};
+      
+      const attachmentUrl = attachmentPayload.attachment_url || null;
+      const finalMessage = content || (attachmentUrl ? '[Arquivo]' : '');
 
       const { data, error } = await window.supabaseClient
         .from(CHAT_TABLE)
         .insert({
           sender_id: currentUser.id,
           recipient_id: activeChatUserId,
-          content: content || null,
+          content: finalMessage,
           ...attachmentPayload
         })
         .select('*')
@@ -2136,6 +2373,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      if (action === 'download') {
+        downloadFileFromChat(message.attachment_url, message.attachment_name);
+        return;
+      }
+
       if (action === 'delete-everyone') {
         const confirmDelete = await openChatDeleteConfirm({
           title: 'Excluir para todos?',
@@ -2152,7 +2394,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  window.openChatWithUser = async function(userId) {
+  window.openChatWithUser = async function(userId, options = {}) {
     if (!currentUser) {
       showNotice('Você precisa estar logado para conversar.');
       window.location.href = 'login.html';
@@ -2182,7 +2424,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     scheduleSidebarRender();
     await markConversationAsRead(userId);
 
-    if (chatInput) chatInput.focus();
+    if (!options.skipFocus && chatInput) {
+      chatInput.focus();
+    }
   };
 
   function updateAllFollowersUI() {
@@ -2371,7 +2615,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusClass = isUserOnline(user) ? 'online' : 'offline';
     const statusText = isUserOnline(user) ? 'Online' : 'Offline';
 
-    const modalImg = document.getElementById('modalImg');
     if (modalImg) modalImg.src = avatar;
 
     document.getElementById('modalName').textContent = name;
@@ -2596,7 +2839,46 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    usersGrid.innerHTML = '';
+    usersGrid.innerHTML = `
+      <div class="creators-card">
+        <div class="creators-banner"></div>
+        <div class="creators-content">
+          <div class="creators-header">
+            <h2 class="creators-title">Conheça os Criadores</h2>
+            <p class="creators-desc">
+              O projeto <strong>Anime House</strong> foi idealizado e desenvolvido com o objetivo de criar a melhor experiência 
+              para maratonistas de animes, desenhos e filmes. Nosso foco é performance, design premium e uma comunidade ativa.
+            </p>
+          </div>
+          <div class="creators-grid">
+            <div class="creator-item">
+              <img src="https://github.com/ViselBrx.png" class="creator-avatar" alt="ViselBrx">
+              <div class="creator-info">
+                <h5>ViselBrx (Enzo)</h5>
+                <div class="creator-links">
+                  <a href="#" data-link="https://github.com/ViselBrx" data-label="GitHub Pessoal" class="creator-link external-link-trigger" title="GitHub Pessoal"><i class="fab fa-github"></i></a>
+                  <a href="#" data-link="https://github.com/EnzoToniato567" data-label="GitHub Profissional" class="creator-link external-link-trigger" title="GitHub Profissional"><i class="fas fa-briefcase"></i> <i class="fab fa-github"></i></a>
+                  <a href="#" data-link="https://linkedin.com/in/enzotoniato" data-label="LinkedIn" class="creator-link external-link-trigger" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" data-link="mailto:enzotoniato339@gmail.com" data-label="E-mail" class="creator-link external-link-trigger" title="E-mail"><i class="fas fa-envelope"></i></a>
+                </div>
+              </div>
+            </div>
+            <div class="creator-item">
+              <img src="https://github.com/DaviMoraes07.png" class="creator-avatar" alt="DaviMoraes07">
+              <div class="creator-info">
+                <h5>Davi Moraes</h5>
+                <div class="creator-links">
+                  <a href="#" data-link="https://github.com/DaviMoraes07" data-label="GitHub Pessoal" class="creator-link external-link-trigger" title="GitHub Pessoal"><i class="fab fa-github"></i></a>
+                  <a href="#" data-link="https://github.com/DaviMoraes07" data-label="GitHub Profissional" class="creator-link external-link-trigger" title="GitHub Profissional"><i class="fas fa-briefcase"></i> <i class="fab fa-github"></i></a>
+                  <a href="#" data-link="https://linkedin.com/in/davimoraes" data-label="LinkedIn" class="creator-link external-link-trigger" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                  <a href="#" data-link="mailto:davi@exemplo.com" data-label="E-mail" class="creator-link external-link-trigger" title="E-mail"><i class="fas fa-envelope"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
     users.forEach((user, index) => {
       const storeData = user.store_data || {};
@@ -2666,5 +2948,47 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       usersGrid.appendChild(userCard);
     });
+  }
+
+  function openRedirectModal(url, label, creatorName) {
+    if (!redirectModal) return;
+
+    redirectTitle.innerText = `Visitar ${label}`;
+    redirectText.innerHTML = `Você está prestes a ser redirecionado para o <strong>${label}</strong> de <strong>${creatorName}</strong>.`;
+    redirectUrlDisplay.innerText = url;
+    redirectModal.classList.add('active');
+
+    const handleCancel = () => {
+      closeRedirectModal();
+      cleanup();
+    };
+
+    const handleAccept = () => {
+      if (url.startsWith('mailto:')) {
+        window.location.href = url;
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+      closeRedirectModal();
+      cleanup();
+    };
+
+    const cleanup = () => {
+      redirectCancel.removeEventListener('click', handleCancel);
+      redirectAccept.removeEventListener('click', handleAccept);
+      redirectModal.removeEventListener('click', handleOverlayClick);
+    };
+
+    const handleOverlayClick = (e) => {
+      if (e.target === redirectModal) handleCancel();
+    };
+
+    redirectCancel.addEventListener('click', handleCancel);
+    redirectAccept.addEventListener('click', handleAccept);
+    redirectModal.addEventListener('click', handleOverlayClick);
+  }
+
+  function closeRedirectModal() {
+    if (redirectModal) redirectModal.classList.remove('active');
   }
 });

@@ -193,10 +193,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <div class="navbar-brand">
+  <a href="index.html" class="navbar-brand">
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Open</span>AnIme
-  </div>
+  </a>
   <ul class="navbar-links" id="navLinks" style="list-style: none !important; margin: 0; padding: 0;">
   </ul>
   <button class="navbar-burger" id="navBurger" aria-label="Menu">
@@ -274,7 +274,7 @@
           <div class="ai-chat-window" id="chatWindow">
           </div>
           <div class="ai-input-wrapper">
-            <input type="text" id="chatInput" placeholder="Sua pergunta... (Pressione Enter)" />
+            <textarea id="chatInput" rows="1" placeholder="Sua pergunta... (Pressione Enter para enviar, Shift+Enter para nova linha)"></textarea>
             <button class="ai-btn-cancel-edit" id="cancelChatEdit" type="button" title="Cancelar edição" aria-label="Cancelar edição" hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               <span>Cancelar</span>
@@ -436,13 +436,21 @@
     padding: 5px;
   }
 
-  .ai-input-wrapper input {
+  .ai-input-wrapper textarea {
     flex: 1;
     background: transparent;
     border: none;
     color: var(--text-main);
     padding: 12px 20px;
     outline: none;
+    resize: none;
+    font-family: inherit;
+    font-size: 1rem;
+    max-height: 200px;
+    min-height: 48px;
+    line-height: 1.5;
+    transition: height 0.1s ease;
+    overflow-y: hidden;
   }
 
   .ai-btn-send {
@@ -523,6 +531,8 @@
   .msg-content {
     padding-right: 112px;
     line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   .msg.user.is-editing {
@@ -631,7 +641,9 @@
     line-height: 1;
   }
 
-  .ai-chat-window .msg-copy-btn span {
+  .ai-chat-window .msg-copy-btn span,
+  .ocr-result .msg-copy-btn span,
+  #compareResult .msg-copy-btn span {
     display: none;
   }
 

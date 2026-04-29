@@ -302,16 +302,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (chatInput) {
+    const autoResize = () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = chatInput.scrollHeight + 'px';
+    };
+
     chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && getActiveToolTab() === 'chat') {
-        e.preventDefault();
-        handleChatSend();
+      if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          // Shift + Enter: Apenas permite a quebra de linha (padrão do textarea)
+          e.stopPropagation();
+          setTimeout(autoResize, 0);
+          return;
+        }
+        
+        if (getActiveToolTab() === 'chat') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          handleChatSend();
+        }
       }
     });
 
     chatInput.addEventListener('input', () => {
+      autoResize();
       persistAIChatSessionState();
     });
+
+    // Inicializar tamanho
+    setTimeout(autoResize, 100);
   }
 
   if (char1Inp) {
@@ -446,7 +465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (chatInput) {
       chatInput.placeholder = editing
         ? 'Edite sua pergunta e pressione Enter para salvar'
-        : 'Sua pergunta... (Pressione Enter)';
+        : 'Sua pergunta... (Pressione Enter para enviar, Shift+Enter para nova linha)';
     }
 
     if (cancelChatEditBtn) {
@@ -474,8 +493,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (restoreDraft && chatInput) {
       chatInput.value = previousDraft;
+      chatInput.style.height = 'auto';
+      chatInput.style.height = chatInput.scrollHeight + 'px';
     } else if (chatInput && !isSendingChat) {
       chatInput.value = '';
+      chatInput.style.height = 'auto';
     }
 
     updateAIChatComposerState();
@@ -921,6 +943,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (chatInput) {
       chatInput.value = userMessage.content || '';
+      chatInput.style.height = 'auto';
+      chatInput.style.height = chatInput.scrollHeight + 'px';
       chatInput.focus();
       const length = chatInput.value.length;
       if (typeof chatInput.setSelectionRange === 'function') {
@@ -2030,6 +2054,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderChatFromMessages(chatHistory);
     persistAIChatSessionState({ draft: '' });
     chatInput.value = '';
+    chatInput.style.height = 'auto';
     isSendingChat = true;
     sendBtn.disabled = true;
     updateAIChatComposerState();

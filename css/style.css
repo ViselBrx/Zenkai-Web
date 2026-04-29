@@ -1887,7 +1887,7 @@ body {
   border-bottom: none;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   overflow: visible;
-  gap: 20px;
+  gap: 0;
 }
 
 /* Crown styles - Preservado do fix de estabilidade */
@@ -2011,6 +2011,12 @@ body {
   font-weight: 700;
 }
 
+/* Garantir que notificações + perfil nunca se comprimam e fiquem na direita */
+#globalAuthContainer {
+  flex-shrink: 0 !important;
+  margin-left: auto;
+}
+
 .main-content {
   max-width: 1400px;
   margin: 0 auto;
@@ -2034,31 +2040,12 @@ body {
   }
 }
 
+/* Ocultar o botão burger em todos os tamanhos para remover a bolinha branca */
+.navbar-burger {
+  display: none !important;
+}
+
 @media (max-width: 1024px) {
-  .navbar {
-    transform: translateX(-100%);
-  }
-
-  .navbar.open {
-    transform: translateX(0);
-  }
-
-  .main-content {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .navbar-burger {
-    display: flex !important;
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 1100;
-    background: var(--bg-card);
-    padding: 10px;
-    border-radius: 8px;
-    box-shadow: var(--shadow-md);
-  }
 }
 
 /* ===== CONTAINER ===== */
