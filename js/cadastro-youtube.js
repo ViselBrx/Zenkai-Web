@@ -1,64 +1,39 @@
 document.addEventListener('DOMContentLoaded', async () => {
     await DB.init();
-  
-    const tbody = document.getElementById('tableBody');
-    const emptyState = document.getElementById('emptyState');
-    const searchInput = document.getElementById('searchInput');
-    const filterCategory = document.getElementById('filterCategory');
 
-    const formModal = document.getElementById('formModal');
-    const cadastroForm = document.getElementById('cadastroForm');
-    const formActionTitle = document.getElementById('formActionTitle');
-    
-    const addBtn = document.getElementById('addBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const modalClose = document.getElementById('modalClose');
-
-    const deleteModal = document.getElementById('deleteModal');
+    // ── Refs DOM ──────────────────────────────────────────────────────────────
+    const tbody            = document.getElementById('tableBody');
+    const emptyState       = document.getElementById('emptyState');
+    const searchInput      = document.getElementById('searchInput');
+    const formModal        = document.getElementById('formModal');
+    const cadastroForm     = document.getElementById('cadastroForm');
+    const formActionTitle  = document.getElementById('formActionTitle');
+    const addBtn           = document.getElementById('addBtn');
+    const cancelBtn        = document.getElementById('cancelBtn');
+    const modalClose       = document.getElementById('modalClose');
+    const deleteModal      = document.getElementById('deleteModal');
     const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
-    const deleteCancelBtn = document.getElementById('deleteCancelBtn');
-    const deleteClose = document.getElementById('deleteClose');
-    
-    // Inputs
-    const iEditId = document.getElementById('editId');
-    const iNome = document.getElementById('nome');
-    const iCapaFile = document.getElementById('capaFile');
-    const iCapaUrl = document.getElementById('capaUrl');
+    const deleteCancelBtn  = document.getElementById('deleteCancelBtn');
+    const deleteClose      = document.getElementById('deleteClose');
+
+    // Inputs do formulário
+    const iEditId    = document.getElementById('editId');
+    const iNome      = document.getElementById('nome');
+    const iCapaFile  = document.getElementById('capaFile');
+    const iCapaUrl   = document.getElementById('capaUrl');
     const coverPreview = document.getElementById('coverPreview');
-    
-    let currentFilter = { term: '' };
+
+    // ── Estado ────────────────────────────────────────────────────────────────
+    let currentFilter   = { term: '' };
     let base64CapaCache = null;
-    let deletingId = null;
-  
+    let deletingId      = null;
+
+    // ── Funções ───────────────────────────────────────────────────────────────
     function getCoverValue() {
       if (base64CapaCache) return base64CapaCache;
       return iCapaUrl.value.trim() || '';
     }
-  
-    iCapaFile.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) {
-        base64CapaCache = null;
-        updatePreview();
-        return;
-      }
-      try {
-        base64CapaCache = await fileToBase64(file);
-        iCapaUrl.value = ''; 
-        updatePreview();
-      } catch (err) {
-        showToast('Erro ao ler imagem', 'error');
-      }
-    });
-  
-    iCapaUrl.addEventListener('input', () => {
-      if (iCapaUrl.value.trim()) {
-        base64CapaCache = null;
-        iCapaFile.value = ''; 
-      }
-      updatePreview();
-    });
-  
+
     function updatePreview() {
       const src = getCoverValue();
       if (src) {
@@ -69,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         coverPreview.style.display = 'none';
       }
     }
-  
+
     function resetForm() {
       iEditId.value = '';
       iNome.value = '';
@@ -77,18 +52,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       iCapaFile.value = '';
       base64CapaCache = null;
       updatePreview();
-      
       formModal.classList.remove('open');
       formActionTitle.textContent = 'Nova Playlist';
     }
-  
+
     function renderTable() {
       const playlists = DB.getYoutubePlaylists();
-      
+
       const filtered = playlists.filter(pl => {
         if (window.pendingDeletions && window.pendingDeletions.has(pl.id)) return false;
-        const matchName = pl.nome.toLowerCase().includes(currentFilter.term);
-        return matchName;
+        return pl.nome.toLowerCase().includes(currentFilter.term);
       });
 
       tbody.innerHTML = '';
@@ -99,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         filtered.forEach(pl => {
           const videoCount = DB.getYoutubeVideosFor(pl.id).length;
           const tr = document.createElement('tr');
-          
+
           const img = pl.capa ? `<img src="${pl.capa}" class="td-cover" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
           const placeholder = `<div class="td-cover" style="display:${pl.capa ? 'none' : 'flex'};align-items:center;justify-content:center;font-size:1.5rem">▶️</div>`;
 
@@ -116,14 +89,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
     }
-  
+
+    // ── Globals para onclick inline no HTML ───────────────────────────────────
     window.editItem = (id) => {
       const pl = DB.getYoutubePlaylistById(id);
       if (!pl) return;
-      
+
       iEditId.value = pl.id;
       iNome.value = pl.nome;
-      
+
       if (pl.capa && pl.capa.length > 500) {
         base64CapaCache = pl.capa;
         iCapaUrl.value = '';
@@ -133,7 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       iCapaFile.value = '';
       updatePreview();
-  
+
       formModal.classList.add('open');
       formActionTitle.textContent = 'Editar Playlist';
     };
@@ -144,36 +118,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       deleteModal.classList.add('open');
     };
 
-    const closeDelete = () => deleteModal.classList.remove('open');
-    if (deleteClose) deleteClose.addEventListener('click', closeDelete);
-    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDelete);
-
-    deleteConfirmBtn.addEventListener('click', () => {
-      if (deletingId) {
-        const name = document.getElementById('deleteItemName').textContent;
-        closeDelete();
-
-        const idToHide = deletingId;
-        showUndoToast(`Excluindo "${name}"...`,
-          () => {
-            DB.deleteYoutubePlaylist(idToHide);
-            renderTable();
-          },
-          () => {
-            // Não faz nada
-          }
-        );
+    // ── Listeners ─────────────────────────────────────────────────────────────
+    iCapaFile.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) { base64CapaCache = null; updatePreview(); return; }
+      try {
+        base64CapaCache = await fileToBase64(file);
+        iCapaUrl.value = '';
+        updatePreview();
+      } catch (err) {
+        showToast('Erro ao ler imagem', 'error');
       }
     });
-  
-    addBtn.addEventListener('click', () => {
-      resetForm();
-      formModal.classList.add('open');
+
+    iCapaUrl.addEventListener('input', () => {
+      if (iCapaUrl.value.trim()) { base64CapaCache = null; iCapaFile.value = ''; }
+      updatePreview();
     });
-  
-    cancelBtn.addEventListener('click', resetForm);
-    if (modalClose) modalClose.addEventListener('click', resetForm);
-  
+
     cadastroForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btnSalvar = document.getElementById('saveBtn');
@@ -181,21 +143,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const nome = iNome.value.trim();
       if (!nome) {
-          showToast('Nome é obrigatório', 'error');
-          return;
+        showToast('Nome é obrigatório', 'error');
+        return;
       }
 
       btnSalvar.disabled = true;
       const originalText = btnSalvar.innerHTML;
       btnSalvar.innerHTML = '⏳ Salvando...';
-      
-      const payload = { nome };
-      const coverVal = getCoverValue();
 
+      const payload = { nome };
       if (base64CapaCache) payload.capaBase64 = base64CapaCache;
       else if (iCapaUrl.value.trim()) payload.capa = iCapaUrl.value.trim();
-      else payload.capa = "";
-  
+      else payload.capa = '';
+
       try {
         if (iEditId.value) {
           await DB.updateYoutubePlaylist(iEditId.value, payload);
@@ -206,8 +166,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           const newItem = await DB.addYoutubePlaylist(payload);
           resetForm();
           renderTable();
-          showUndoToast('Playlist cadastrada!', 
-            () => {}, 
+          showUndoToast('Playlist cadastrada!',
+            () => {},
             async () => {
               await DB.deleteYoutubePlaylist(newItem.id);
               renderTable();
@@ -215,23 +175,40 @@ document.addEventListener('DOMContentLoaded', async () => {
           );
         }
       } catch (err) {
-        showToast(err.message, 'error');
+        showToast(err.message || 'Erro ao salvar', 'error');
       } finally {
         btnSalvar.disabled = false;
         btnSalvar.innerHTML = originalText;
       }
     });
 
-    searchInput.addEventListener('input', e => { 
-        currentFilter.term = e.target.value.toLowerCase(); 
-        renderTable(); 
-    });
-    searchInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') { 
-          e.preventDefault(); 
-          searchInput.blur(); 
+    const closeDelete = () => deleteModal.classList.remove('open');
+    if (deleteClose) deleteClose.addEventListener('click', closeDelete);
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDelete);
+
+    deleteConfirmBtn.addEventListener('click', () => {
+      if (deletingId) {
+        const name = document.getElementById('deleteItemName').textContent;
+        closeDelete();
+        const idToHide = deletingId;
+        showUndoToast(`Excluindo "${name}"...`,
+          () => { DB.deleteYoutubePlaylist(idToHide); renderTable(); },
+          () => {}
+        );
       }
     });
-  
+
+    addBtn.addEventListener('click', () => { resetForm(); formModal.classList.add('open'); });
+    cancelBtn.addEventListener('click', resetForm);
+    if (modalClose) modalClose.addEventListener('click', resetForm);
+
+    searchInput.addEventListener('input', e => {
+      currentFilter.term = e.target.value.toLowerCase();
+      renderTable();
+    });
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); searchInput.blur(); }
+    });
+
     renderTable();
 });

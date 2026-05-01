@@ -1339,6 +1339,9 @@ document.addEventListener("keydown", (e) => {
   const el = document.activeElement;
   if (!el || !["INPUT", "TEXTAREA"].includes(el.tagName)) return;
 
+  // Permitir Shift+Enter livremente em Textareas para quebra de linha
+  if (e.shiftKey && el.tagName === "TEXTAREA") return;
+
   // Nunca ativar Enter em campos de exclusão de conta
   const dangerIds = ["deleteConfirmEmail", "deleteConfirmPassword"];
   if (dangerIds.includes(el.id)) return;

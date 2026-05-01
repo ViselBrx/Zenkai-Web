@@ -44,10 +44,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <a href="index.html" class="navbar-brand">
+  <div class="navbar-brand">
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Anime</span>House
-  </a>
+  </div>
   <ul class="navbar-links" id="navLinks">
   </ul>
   <button class="navbar-burger" id="navBurger" aria-label="Menu">
@@ -85,7 +85,7 @@
         <h2 id="formActionTitle">Nova Playlist</h2>
         <button class="modal-close" id="modalClose">✕</button>
       </div>
-      <form id="cadastroForm" novalidate>
+      <form id="cadastroForm" novalidate onsubmit="return false">
         <input type="hidden" id="editId" />
         <div class="form-group">
           <label for="nome">Nome da Playlist *</label>

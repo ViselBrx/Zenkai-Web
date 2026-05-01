@@ -49,10 +49,10 @@
 
 <!-- NAVBAR -->
 <nav class="navbar">
-  <a href="index.html" class="navbar-brand">
+  <div class="navbar-brand">
     <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
     <span>Anime</span>House
-  </a>
+  </div>
   <ul class="navbar-links" id="navLinks">
   </ul>
   <button class="navbar-burger" id="navBurger" aria-label="Menu">
@@ -81,7 +81,7 @@
 
   <div id="videosPanel" style="display:none;">
     <!-- ADICIONAR VIDEO -->
-    <form id="videoForm" novalidate style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
+    <form id="videoForm" novalidate onsubmit="return false" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
         <h3 id="formActionTitle" style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--primary);letter-spacing:1px;margin:0;">➕ Adicionar Vídeo</h3>
       </div>

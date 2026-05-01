@@ -25,6 +25,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatHeaderName = document.getElementById('chatHeaderName');
   const chatHeaderStatus = document.getElementById('chatHeaderStatus');
   const chatOpenProfileBtn = document.getElementById('chatOpenProfileBtn');
+  const chatDeleteChatBtn = document.getElementById('chatDeleteChatBtn');
+  const chatToggleSelectionBtn = document.getElementById('chatToggleSelectionBtn');
+  const chatSelectionTools = document.getElementById('chatSelectionTools');
+  const chatDefaultTools = document.getElementById('chatDefaultTools');
+  const chatSelectionCount = document.getElementById('chatSelectionCount');
+  const chatDeleteSelectedBtn = document.getElementById('chatDeleteSelectedBtn');
+  const chatCancelSelectionBtn = document.getElementById('chatCancelSelectionBtn');
   const chatMessages = document.getElementById('chatMessages');
   const chatForm = document.getElementById('chatForm');
   const chatInput = document.getElementById('chatInput');
@@ -51,16 +58,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const chatActionText = document.getElementById('chatActionText');
   const chatActionList = document.getElementById('chatActionList');
   const chatActionCancel = document.getElementById('chatActionCancel');
-  const redirectModal = document.getElementById('redirectModal');
-  const redirectTitle = document.getElementById('redirectTitle');
-  const redirectText = document.getElementById('redirectText');
-  const redirectUrlDisplay = document.getElementById('redirectUrl');
-  const redirectCancel = document.getElementById('redirectCancel');
-  const redirectAccept = document.getElementById('redirectAccept');
-  const modalImg = document.getElementById('modalImg');
-  const avatarViewOverlay = document.getElementById('avatarViewOverlay');
-  const avatarViewImg = document.getElementById('avatarViewImg');
-  const avatarViewClose = document.getElementById('avatarViewClose');
 
   const CHAT_TABLE = 'direct_messages';
   const CHAT_ATTACHMENT_BUCKET = 'chat-attachments';
@@ -98,6 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let communityPresenceTimer = null;
   let filterRenderTimer = null;
   let sidebarRenderQueued = false;
+  let isChatSelectionMode = false;
+  let selectedChatMessages = new Set();
 
   document.body.classList.add('community-performance');
   restoreSidebarState();
@@ -189,6 +188,32 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    if (chatDeleteChatBtn) {
+      chatDeleteChatBtn.addEventListener('click', async () => {
+        if (!activeChatUserId) return;
+        openChatBulkDeleteActions(activeChatUserId);
+      });
+    }
+
+    if (chatToggleSelectionBtn) {
+      chatToggleSelectionBtn.addEventListener('click', () => {
+        toggleChatSelectionMode(true);
+      });
+    }
+
+    if (chatCancelSelectionBtn) {
+      chatCancelSelectionBtn.addEventListener('click', () => {
+        toggleChatSelectionMode(false);
+      });
+    }
+
+    if (chatDeleteSelectedBtn) {
+      chatDeleteSelectedBtn.addEventListener('click', async () => {
+        if (selectedChatMessages.size === 0) return;
+        openChatBulkDeleteActions(activeChatUserId, selectedChatMessages);
+      });
+    }
+
     if (conversationSearch) {
       conversationSearch.addEventListener('input', renderConversationList);
     }
@@ -201,19 +226,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (chatInput) {
-      chatInput.addEventListener('keydown', (event) => {
+      chatInput.addEventListener('keydown', async (event) => {
         if (event.key === 'Enter') {
-          if (event.shiftKey) {
-            // Shift + Enter: Para qualquer tentativa de envio e permite apenas a quebra de linha
-            event.stopPropagation();
-            return;
+          if (!event.shiftKey) {
+            event.preventDefault();
+            await sendCurrentMessage();
           }
-          // Enter sozinho: Bloqueia tudo e envia a mensagem
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          sendCurrentMessage();
+          // Shift+Enter will naturally insert a newline in the textarea
         }
-      }, true);
+      });
 
       chatInput.addEventListener('input', () => {
         autoResizeTextarea();
@@ -240,20 +261,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (chatMessages) {
       chatMessages.addEventListener('click', async (event) => {
+        if (isChatSelectionMode) {
+          const bubble = event.target.closest('.chat-bubble');
+          if (bubble) {
+            const msgId = bubble.getAttribute('data-message-id');
+            if (msgId) {
+              if (selectedChatMessages.has(msgId)) {
+                selectedChatMessages.delete(msgId);
+                bubble.classList.remove('selected');
+              } else {
+                selectedChatMessages.add(msgId);
+                bubble.classList.add('selected');
+              }
+              updateChatSelectionUI();
+            }
+          }
+          return;
+        }
+
         const messageActionTrigger = event.target.closest('[data-chat-message-actions-open]');
         if (messageActionTrigger) {
           event.preventDefault();
           openChatMessageActions(messageActionTrigger.getAttribute('data-chat-message-actions-open'));
-          return;
-        }
-
-        const downloadTrigger = event.target.closest('[data-chat-download-url]');
-        if (downloadTrigger) {
-          event.preventDefault();
-          downloadFileFromChat(
-            downloadTrigger.getAttribute('data-chat-download-url') || '',
-            downloadTrigger.getAttribute('data-chat-download-name') || 'arquivo'
-          );
           return;
         }
 
@@ -310,64 +339,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const actionButton = event.target.closest('[data-chat-message-action]');
-        if (!actionButton) return;
+        const bulkActionButton = event.target.closest('[data-chat-bulk-action]');
 
-        const action = actionButton.getAttribute('data-chat-message-action');
-        const messageId = actionButton.getAttribute('data-chat-message-id');
-        closeChatMessageActions();
-        handleChatMessageAction(action, messageId);
-      });
-    }
+        if (actionButton) {
+          const action = actionButton.getAttribute('data-chat-message-action');
+          const messageId = actionButton.getAttribute('data-chat-message-id');
+          closeChatMessageActions();
+          handleChatMessageAction(action, messageId);
+          return;
+        }
 
-    if (usersGrid) {
-      usersGrid.addEventListener('mousemove', (e) => {
-        const card = e.target.closest('.creators-card');
-        if (!card) return;
-        const rect = card.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mouse-x', `${x}%`);
-        card.style.setProperty('--mouse-y', `${y}%`);
-      });
-
-      usersGrid.addEventListener('click', (event) => {
-        const trigger = event.target.closest('.external-link-trigger');
-        if (!trigger) return;
-
-        event.preventDefault();
-        const url = trigger.getAttribute('data-link');
-        const label = trigger.getAttribute('data-label');
-        const creatorName = trigger.closest('.creator-item')?.querySelector('h5')?.innerText || 'Criador';
-
-        openRedirectModal(url, label, creatorName);
-      });
-    }
-
-    if (modalImg) {
-      modalImg.style.cursor = 'pointer';
-      modalImg.addEventListener('click', () => {
-        if (avatarViewImg && modalImg.src) {
-          avatarViewImg.src = modalImg.src;
-          avatarViewOverlay?.classList.add('active');
+        if (bulkActionButton) {
+          const action = bulkActionButton.getAttribute('data-chat-bulk-action');
+          const otherUserId = bulkActionButton.getAttribute('data-chat-target-user-id');
+          const messageIdsStr = bulkActionButton.getAttribute('data-chat-message-ids');
+          const messageIds = messageIdsStr ? new Set(messageIdsStr.split(',')) : null;
+          closeChatMessageActions();
+          handleChatBulkAction(action, otherUserId, messageIds);
         }
       });
     }
 
-    if (avatarViewClose) {
-      avatarViewClose.onclick = () => avatarViewOverlay?.classList.remove('active');
-    }
-
-    if (avatarViewOverlay) {
-      avatarViewOverlay.onclick = (e) => {
-        if (e.target === avatarViewOverlay) avatarViewOverlay.classList.remove('active');
-      };
-    }
-
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && avatarViewOverlay?.classList.contains('active')) {
-        avatarViewOverlay.classList.remove('active');
-        return;
-      }
       if (event.key === 'Escape' && chatDeleteConfirmResolver) {
         resolveChatDeleteConfirm(false);
         return;
@@ -721,22 +714,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     return mimeType.startsWith('image/');
   }
 
-  function isVideoFile(fileOrMime) {
-    const mimeType = typeof fileOrMime === 'string'
-      ? fileOrMime
-      : String(fileOrMime?.type || '');
-    return mimeType.startsWith('video/');
-  }
-
   function getAttachmentKind(source) {
-    if (source?.attachment_kind === 'image' || source?.attachment_kind === 'video' || source?.attachment_kind === 'file') {
+    if (source?.attachment_kind === 'image' || source?.attachment_kind === 'file') {
       return source.attachment_kind;
     }
 
     const mimeType = String(source?.attachment_mime_type || source?.type || '');
-    if (isImageFile(mimeType)) return 'image';
-    if (isVideoFile(mimeType)) return 'video';
-    return 'file';
+    return isImageFile(mimeType) ? 'image' : 'file';
   }
 
   function getMessagePreview(message) {
@@ -752,9 +736,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     }
 
-    const content = String(message.content || '').trim();
-    if (content && content !== '[Arquivo]') {
-      parts.push(content);
+    if (String(message.content || '').trim()) {
+      parts.push(String(message.content).trim());
     }
 
     const preview = parts.join(' • ') || 'Nova conversa';
@@ -777,9 +760,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       parts.push(message.attachment_name);
     }
 
-    const content = String(message.content || '').trim();
-    if (content && content !== '[Arquivo]') {
-      parts.push(content);
+    if (String(message.content || '').trim()) {
+      parts.push(String(message.content).trim());
     }
 
     return parts.join(' ');
@@ -807,8 +789,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return 'Esta mensagem foi apagada pelo usuario que a enviou.';
     }
 
-    const content = String(message?.content || '').trim();
-    return content === '[Arquivo]' ? '' : content;
+    return String(message?.content || '').trim();
   }
 
   function getChatMessageById(messageId) {
@@ -824,15 +805,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       icon: 'fas fa-trash-alt',
       danger: false
     }];
-
-    if (message.attachment_url && !isMessageDeletedForEveryone(message)) {
-      actions.unshift({
-        key: 'download',
-        label: 'Baixar arquivo',
-        icon: 'fas fa-download',
-        danger: false
-      });
-    }
 
     if (message.sender_id === currentUser.id && !isMessageDeletedForEveryone(message)) {
       actions.unshift({
@@ -885,37 +857,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function closeChatMessageActions() {
-    if (!activeChatActionMessageId) return;
     activeChatActionMessageId = null;
     if (chatActionModal) {
       chatActionModal.classList.remove('active');
       chatActionModal.setAttribute('aria-hidden', 'true');
     }
     document.body.style.overflow = '';
-  }
-
-  async function downloadFileFromChat(fileUrl, fileName) {
-    if (!fileUrl) return;
-
-    try {
-      const response = await fetch(fileUrl);
-      if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = sanitizeFileName(fileName || 'arquivo');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showSuccessNotice('Arquivo baixado com sucesso!');
-    } catch (error) {
-      console.error('Erro ao baixar arquivo:', error);
-      showNotice('Erro ao baixar o arquivo. Tente novamente.');
-    }
   }
 
   function renderMessageActionsMarkup(message) {
@@ -978,9 +925,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const attachmentMeta = attachmentSize
       ? `<small>${escapeHtml(attachmentSize)}</small>`
       : '';
-    const kind = getAttachmentKind(message);
 
-    if (kind === 'image') {
+    if (getAttachmentKind(message) === 'image') {
       return `
         <button
           type="button"
@@ -996,54 +942,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           </span>
         </button>
         <div class="chat-attachment-actions">
-          <div class="chat-file-name-tag">
+          <button
+            type="button"
+            class="chat-attachment-caption"
+            data-chat-image-url="${attachmentUrl}"
+            data-chat-image-name="${attachmentName}"
+          >
             <i class="fas fa-image"></i>
             <span>${attachmentName}</span>
             ${attachmentMeta}
-          </div>
-          <button 
-            type="button" 
-            class="chat-attachment-download-btn" 
-            data-chat-download-url="${attachmentUrl}"
-            data-chat-download-name="${attachmentName}"
-            title="Baixar arquivo"
-            aria-label="Baixar ${attachmentName}"
-          >
-            <i class="fas fa-download"></i>
-            <span>Baixar</span>
           </button>
           <a class="chat-attachment-inline-link" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
             Abrir em nova aba
           </a>
-        </div>
-      `;
-    }
-
-    if (kind === 'video') {
-      return `
-        <div class="chat-attachment-video-wrapper">
-          <video class="chat-attachment-video" controls preload="metadata">
-            <source src="${attachmentUrl}" type="${escapeHtml(message.attachment_mime_type || 'video/mp4')}">
-            Seu navegador não suporta vídeos.
-          </video>
-        </div>
-        <div class="chat-attachment-actions">
-          <div class="chat-file-name-tag">
-            <i class="fas fa-video"></i>
-            <span>${attachmentName}</span>
-            ${attachmentMeta}
-          </div>
-          <button 
-            type="button" 
-            class="chat-attachment-download-btn" 
-            data-chat-download-url="${attachmentUrl}"
-            data-chat-download-name="${attachmentName}"
-            title="Baixar vídeo"
-            aria-label="Baixar ${attachmentName}"
-          >
-            <i class="fas fa-download"></i>
-            <span>Baixar</span>
-          </button>
         </div>
       `;
     }
@@ -1054,26 +965,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     ].filter(Boolean).join(' • ');
 
     return `
-      <div class="chat-file-card-wrapper">
-        <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
-          <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
-          <span class="chat-file-meta">
-            <strong>${attachmentName}</strong>
-            <small>${fileInfo}</small>
-          </span>
-        </a>
-        <button 
-          type="button" 
-          class="chat-file-download-btn" 
-          data-chat-download-url="${attachmentUrl}"
-          data-chat-download-name="${attachmentName}"
-          title="Baixar arquivo"
-          aria-label="Baixar ${attachmentName}"
-        >
-          <i class="fas fa-download"></i>
-          <span>Baixar</span>
-        </button>
-      </div>
+      <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
+        <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
+        <span class="chat-file-meta">
+          <strong>${attachmentName}</strong>
+          <small>${fileInfo}</small>
+        </span>
+      </a>
     `;
   }
 
@@ -1421,8 +1319,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function autoResizeTextarea() {
     if (!chatInput) return;
-    chatInput.style.height = '52px';
-    const nextHeight = Math.min(Math.max(chatInput.scrollHeight, 52), 150);
+    chatInput.style.height = 'auto';
+    const nextHeight = Math.min(Math.max(chatInput.scrollHeight, 56), 180);
     chatInput.style.height = `${nextHeight}px`;
   }
 
@@ -1481,20 +1379,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  function getChatDateLabel(date) {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-    if (target.getTime() === today.getTime()) return 'Hoje';
-    if (target.getTime() === yesterday.getTime()) return 'Ontem';
-    
-    return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
-  }
-
   function resolveChatDeleteConfirm(confirmed) {
     if (!chatDeleteConfirmResolver) return;
 
@@ -1537,6 +1421,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     selectedChatFile = file;
     renderSelectedAttachmentPreview();
     setChatInputState();
+  }
+
+  function openChatBulkDeleteActions(otherUserId, messageIds = null) {
+    if (!chatActionModal || !chatActionList || !currentUser) return;
+
+    let messages;
+    if (messageIds) {
+      messages = Array.from(messageIds).map(id => getChatMessageById(id)).filter(Boolean);
+    } else {
+      messages = getConversationMessages(otherUserId);
+    }
+
+    if (messages.length === 0) return;
+
+    const hasMyMessages = messages.some(m => m.sender_id === currentUser.id && !isMessageDeletedForEveryone(m));
+    const title = messageIds ? `Apagar ${messages.length} mensagem(ns)` : 'Apagar conversa inteira';
+    
+    if (chatActionTitle) chatActionTitle.textContent = title;
+    if (chatActionText) {
+      chatActionText.textContent = hasMyMessages 
+        ? 'Deseja apagar estas mensagens para todos ou apenas para você?'
+        : 'Deseja apagar estas mensagens para você?';
+    }
+
+    const actions = [
+      {
+        key: 'bulk-delete-me',
+        label: 'Apagar para mim',
+        icon: 'fas fa-trash-alt',
+        description: 'As mensagens sumirão apenas para você. A outra pessoa continuará vendo.',
+        danger: false
+      }
+    ];
+
+    if (hasMyMessages) {
+      actions.push({
+        key: 'bulk-delete-everyone',
+        label: 'Apagar para todos',
+        icon: 'fas fa-ban',
+        description: 'Suas mensagens enviadas serão apagadas para ambos. As recebidas somem só para você.',
+        danger: true
+      });
+    }
+
+    chatActionList.innerHTML = actions.map((action) => `
+      <button
+        type="button"
+        class="chat-action-btn ${action.danger ? 'danger' : ''}"
+        data-chat-bulk-action="${escapeHtml(action.key)}"
+        data-chat-target-user-id="${escapeHtml(otherUserId)}"
+        data-chat-message-ids="${messageIds ? escapeHtml(Array.from(messageIds).join(',')) : ''}"
+        style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px 16px; height: auto; width: 100%; border-radius: 12px; margin-bottom: 8px;"
+      >
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="${escapeHtml(action.icon)}" style="font-size: 1.1rem;"></i>
+          <strong style="font-size: 0.95rem;">${escapeHtml(action.label)}</strong>
+        </div>
+        <small style="font-size: 0.72rem; opacity: 0.75; font-weight: normal; text-align: left; display: block; white-space: normal; line-height: 1.3;">
+          ${escapeHtml(action.description)}
+        </small>
+      </button>
+    `).join('');
+
+    chatActionModal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  async function handleChatBulkAction(action, otherUserId, messageIds = null) {
+    const isEveryone = action === 'bulk-delete-everyone';
+    
+    const confirm = await openChatDeleteConfirm({
+      title: isEveryone ? 'Excluir para todos?' : 'Excluir para você?',
+      message: isEveryone 
+        ? 'Suas mensagens enviadas serão removidas para ambos os lados. Mensagens recebidas sumirão apenas para você.'
+        : 'As mensagens selecionadas sumirão apenas da sua conversa. A outra pessoa continuará vendo normalmente.',
+      confirmLabel: isEveryone ? 'Excluir para todos' : 'Excluir para mim'
+    });
+
+    if (!confirm) return;
+
+    try {
+      if (messageIds) {
+        await deleteSelectedMessages(messageIds, isEveryone);
+        toggleChatSelectionMode(false);
+      } else {
+        await deleteWholeChat(otherUserId, isEveryone);
+      }
+      showSuccessNotice(`Mensagem(ns) apagada(s) ${isEveryone ? 'para todos' : 'para você'}.`);
+    } catch (error) {
+      console.error('Erro na ação em massa do chat:', error);
+      showNotice('Não foi possível concluir a exclusão.');
+    }
   }
 
   function renderSelectedAttachmentPreview() {
@@ -1587,7 +1563,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateChatComposerMeta() {
     if (chatCharCounter) {
       const length = String(chatInput?.value || '').length;
-      chatCharCounter.textContent = `${length}/600`;
+      chatCharCounter.textContent = `${length} / 600 caracteres`;
     }
 
     if (!chatDraftLabel) return;
@@ -1609,14 +1585,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeChatEditState) {
       const editingMessage = getActiveChatEditMessage();
-      if (selectedChatFile) {
-        chatDraftLabel.textContent = `Trocar anexo por: ${selectedChatFile.name} (${formatFileSize(selectedChatFile.size)})`;
-      } else {
-        const attachmentHint = editingMessage?.attachment_url ? ' Você pode trocar ou remover o anexo clicando no clipe.' : ' Você pode adicionar um anexo a esta mensagem.';
-        chatDraftLabel.textContent = `Editando mensagem.${attachmentHint}`;
-      }
+      const attachmentHint = editingMessage?.attachment_url ? ' O anexo original sera mantido.' : '';
+      chatDraftLabel.classList.add('editing');
+      chatDraftLabel.textContent = `Modo de edição ativo (alterando a mensagem)${attachmentHint}`;
       return;
     }
+
+    chatDraftLabel.classList.remove('editing');
 
     if (selectedChatFile) {
       chatDraftLabel.textContent = `Anexo pronto para envio: ${selectedChatFile.name} (${formatFileSize(selectedChatFile.size)})`;
@@ -1631,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function setChatBusy(isBusy) {
     chatSending = isBusy;
-    const idleLabel = activeChatEditState ? 'Salvar edição' : 'Enviar mensagem';
+    const idleLabel = activeChatEditState ? 'Salvar' : 'Enviar';
     if (chatSendBtnLabel) {
       chatSendBtnLabel.textContent = isBusy
         ? (activeChatEditState ? 'Salvando...' : 'Enviando...')
@@ -1718,9 +1693,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (socialToggle) socialToggle.classList.add('active');
     pendingChatRenderMode = 'bottom';
     renderSidebar(true);
-    
-    // Forçar atualização dos seguidores ao abrir
-    if (window.updateMyFollowers) window.updateMyFollowers();
   }
 
   function closeSocialSidebar() {
@@ -1850,19 +1822,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
           </div>
         </button>
-        <button
-          type="button"
-          class="conversation-pin-btn ${isPinned ? 'active' : ''}"
-          data-pin-user-id="${escapeHtml(summary.otherUserId)}"
-          aria-pressed="${isPinned ? 'true' : 'false'}"
-          title="${isPinned ? 'Desfixar conversa' : 'Fixar conversa'}"
-        >
-          <i class="fas fa-thumbtack"></i>
-        </button>
+        <div class="conversation-item-actions" style="display:flex; flex-direction:column; gap:4px; margin-left: 8px;">
+          <button
+            type="button"
+            class="conversation-pin-btn ${isPinned ? 'active' : ''}"
+            data-pin-user-id="${escapeHtml(summary.otherUserId)}"
+            aria-pressed="${isPinned ? 'true' : 'false'}"
+            title="${isPinned ? 'Desfixar conversa' : 'Fixar conversa'}"
+            style="width:34px; height:34px; border-radius:12px; border:1px solid rgba(var(--primary-rgb), 0.2); background:rgba(var(--primary-rgb), 0.05); color:var(--primary); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;"
+          >
+            <i class="fas fa-thumbtack" style="font-size:0.85rem;"></i>
+          </button>
+          <button
+            type="button"
+            class="conversation-item-delete-btn"
+            data-delete-conv-id="${escapeHtml(summary.otherUserId)}"
+            title="Apagar conversa"
+            style="width:34px; height:34px; border-radius:12px; border:1px solid rgba(239,68,68,0.2); background:rgba(239,68,68,0.05); color:#ef4444; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;"
+          >
+            <i class="fas fa-trash-can" style="font-size:0.85rem;"></i>
+          </button>
+        </div>
       `;
 
       const openBtn = item.querySelector('[data-open-chat-id]');
       const pinBtn = item.querySelector('[data-pin-user-id]');
+      const delBtn = item.querySelector('[data-delete-conv-id]');
 
       if (openBtn) {
         openBtn.addEventListener('click', () => {
@@ -1878,22 +1863,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
+      if (delBtn) {
+        delBtn.addEventListener('click', async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          
+          const confirmed = await openChatDeleteConfirm({
+            title: 'Apagar conversa',
+            message: 'Deseja realmente apagar esta conversa inteira?',
+            confirmLabel: 'Sim, apagar',
+            cancelLabel: 'Cancelar'
+          });
+          
+          if (!confirmed) {
+            return;
+          }
+          
+          openChatBulkDeleteActions(summary.otherUserId);
+        });
+      }
+
       conversationList.appendChild(item);
     });
-
-    // Abrir automaticamente a primeira correspondência encontrada na busca
-    const searchTerm = String(conversationSearch?.value || '').trim().toLowerCase();
-    if (searchTerm && conversations.length > 0) {
-      const firstMatch = conversations[0];
-      if (activeChatUserId !== firstMatch.otherUserId) {
-        // Usar um pequeno timeout para não quebrar o foco do input durante a digitação
-        setTimeout(() => {
-          if (conversationSearch?.value.trim().toLowerCase() === searchTerm) {
-            window.openChatWithUser(firstMatch.otherUserId, { skipFocus: true });
-          }
-        }, 500);
-      }
-    }
   }
 
   function renderActiveChat() {
@@ -1955,24 +1946,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (messages.length === 0) {
       chatMessages.innerHTML = '<div class="social-empty" style="padding: 24px 12px;">Conversa iniciada. Envie a primeira mensagem.</div>';
     } else {
-      let lastDateLabel = '';
       messages.forEach((message) => {
-        const msgDate = new Date(message.created_at);
-        const dateLabel = getChatDateLabel(msgDate);
-        
-        if (dateLabel !== lastDateLabel) {
-          const separator = document.createElement('div');
-          separator.className = 'chat-date-separator';
-          separator.innerHTML = `<span>${dateLabel}</span>`;
-          chatMessages.appendChild(separator);
-          lastDateLabel = dateLabel;
-        }
-
         const bubble = document.createElement('div');
         const isMine = message.sender_id === currentUser.id;
         const hasAttachment = !!message.attachment_url;
         const isDeleted = isMessageDeletedForEveryone(message);
-        bubble.className = `chat-bubble ${isMine ? 'me' : ''} ${hasAttachment ? 'has-attachment' : ''} ${isDeleted ? 'is-deleted' : ''}`.trim();
+        bubble.className = `chat-bubble ${isMine ? 'me' : ''} ${hasAttachment ? 'has-attachment' : ''} ${isDeleted ? 'is-deleted' : ''} ${selectedChatMessages.has(String(message.id)) ? 'selected' : ''}`.trim();
+        bubble.setAttribute('data-message-id', String(message.id));
         bubble.innerHTML = `
           ${renderMessageActionsMarkup(message)}
           ${renderMessageAttachmentMarkup(message)}
@@ -2160,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       attachment_name: file.name,
       attachment_size_bytes: file.size,
       attachment_mime_type: file.type || 'application/octet-stream',
-      attachment_kind: getAttachmentKind(file)
+      attachment_kind: isImageFile(file) ? 'image' : 'file'
     };
   }
 
@@ -2182,22 +2162,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       let attachmentPayload = {};
+      const oldAttachmentPath = editingMessage.attachment_path;
+
       if (selectedChatFile) {
         attachmentPayload = await uploadChatAttachment(selectedChatFile);
-        
-        // Se havia um anexo antigo, removemos do storage (opcional, mas bom para limpeza)
-        if (editingMessage.attachment_path) {
-          await removeChatAttachmentFromStorage(editingMessage.attachment_path);
-        }
       }
-
-      const finalContent = content || (attachmentPayload.attachment_url || editingMessage.attachment_url ? '[Arquivo]' : '');
 
       const { data, error } = await window.supabaseClient
         .from(CHAT_TABLE)
         .update({ 
-          content: finalContent,
-          ...attachmentPayload
+          content: content || null,
+          ...attachmentPayload 
         })
         .eq('id', editingMessage.id)
         .eq('sender_id', currentUser.id)
@@ -2206,12 +2181,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (error) throw error;
 
+      if (selectedChatFile && oldAttachmentPath) {
+        await removeChatAttachmentFromStorage(oldAttachmentPath);
+      }
+
       upsertDirectMessage(data);
       clearChatEditState();
-      clearSelectedChatAttachment(); // Limpar anexo após editar
+      clearSelectedChatAttachment();
       setConversationDraft(activeChatUserId, '');
-      if (chatInput) chatInput.value = ''; // Limpar texto após editar
-      autoResizeTextarea();
       scheduleSidebarRender('preserve');
       showSuccessNotice('Mensagem atualizada.');
     } catch (error) {
@@ -2253,16 +2230,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const attachmentPayload = selectedChatFile
         ? await uploadChatAttachment(selectedChatFile)
         : {};
-      
-      const attachmentUrl = attachmentPayload.attachment_url || null;
-      const finalMessage = content || (attachmentUrl ? '[Arquivo]' : '');
 
       const { data, error } = await window.supabaseClient
         .from(CHAT_TABLE)
         .insert({
           sender_id: currentUser.id,
           recipient_id: activeChatUserId,
-          content: finalMessage,
+          content: content || null,
           ...attachmentPayload
         })
         .select('*')
@@ -2373,11 +2347,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      if (action === 'download') {
-        downloadFileFromChat(message.attachment_url, message.attachment_name);
-        return;
-      }
-
       if (action === 'delete-everyone') {
         const confirmDelete = await openChatDeleteConfirm({
           title: 'Excluir para todos?',
@@ -2394,7 +2363,172 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  window.openChatWithUser = async function(userId, options = {}) {
+  function updateChatSelectionUI() {
+    if (!chatSelectionCount) return;
+    chatSelectionCount.textContent = `${selectedChatMessages.size} selecionadas`;
+    if (chatDeleteSelectedBtn) {
+      chatDeleteSelectedBtn.disabled = selectedChatMessages.size === 0;
+    }
+  }
+
+  function toggleChatSelectionMode(active) {
+    isChatSelectionMode = active;
+    selectedChatMessages.clear();
+    
+    if (chatSelectionTools) chatSelectionTools.classList.toggle('hidden', !active);
+    if (chatDefaultTools) chatDefaultTools.classList.toggle('hidden', active);
+    
+    if (chatMessages) {
+      chatMessages.classList.toggle('selection-mode', active);
+    }
+    
+    updateChatSelectionUI();
+    renderActiveChat();
+  }
+
+  async function deleteWholeChat(otherUserId, deleteMyMessagesForEveryone = false) {
+    if (!currentUser || !otherUserId) return;
+    const messages = getConversationMessages(otherUserId);
+    if (messages.length === 0) return;
+
+    try {
+      const ts = new Date().toISOString();
+      
+      if (deleteMyMessagesForEveryone) {
+        const myMessages = messages.filter(m => m.sender_id === currentUser.id && !isMessageDeletedForEveryone(m));
+        if (myMessages.length > 0) {
+          const ids = myMessages.map(m => m.id);
+          const attachmentPaths = myMessages.map(m => m.attachment_path).filter(Boolean);
+
+          await window.supabaseClient.from(CHAT_TABLE).update({
+            content: null,
+            attachment_url: null,
+            attachment_path: null,
+            attachment_name: null,
+            attachment_size_bytes: null,
+            attachment_mime_type: null,
+            attachment_kind: null,
+            deleted_for_everyone_at: ts
+          }).in('id', ids);
+
+          myMessages.forEach(m => {
+            m.content = null;
+            m.attachment_url = null;
+            m.deleted_for_everyone_at = ts;
+          });
+
+          for (const path of attachmentPaths) {
+            await removeChatAttachmentFromStorage(path);
+          }
+        }
+      }
+
+      const hideAsSender = messages.filter(m => m.sender_id === currentUser.id).map(m => m.id);
+      const hideAsRecipient = messages.filter(m => m.recipient_id === currentUser.id).map(m => m.id);
+
+      if (hideAsSender.length > 0) {
+        await window.supabaseClient.from(CHAT_TABLE).update({ hidden_for_sender_at: ts }).in('id', hideAsSender);
+      }
+      if (hideAsRecipient.length > 0) {
+        await window.supabaseClient.from(CHAT_TABLE).update({ hidden_for_recipient_at: ts }).in('id', hideAsRecipient);
+      }
+
+      messages.forEach(m => {
+        if (m.sender_id === currentUser.id) m.hidden_for_sender_at = ts;
+        if (m.recipient_id === currentUser.id) m.hidden_for_recipient_at = ts;
+        upsertDirectMessage(m);
+      });
+
+      if (activeChatUserId === otherUserId) {
+        activeChatUserId = null;
+      }
+      persistSidebarState();
+      selectSidebarTab('chat');
+      scheduleSidebarRender('preserve');
+    } catch (e) {
+      console.error('Erro ao apagar conversa inteira:', e);
+      throw e;
+    }
+  }
+
+  async function deleteSelectedMessages(messageIdsSet, deleteMyMessagesForEveryone = false) {
+    if (!currentUser || !messageIdsSet || messageIdsSet.size === 0) return;
+
+    const ids = Array.from(messageIdsSet);
+    const messagesToProcess = ids.map(id => getChatMessageById(id)).filter(Boolean);
+    
+    try {
+      const ts = new Date().toISOString();
+      const myIdsDeletedForEveryone = new Set();
+
+      if (deleteMyMessagesForEveryone) {
+        const myMessages = messagesToProcess.filter(m => m.sender_id === currentUser.id && !isMessageDeletedForEveryone(m));
+        if (myMessages.length > 0) {
+          const myIds = myMessages.map(m => m.id);
+          myIds.forEach(id => myIdsDeletedForEveryone.add(id));
+          const attachmentPaths = myMessages.map(m => m.attachment_path).filter(Boolean);
+
+          await window.supabaseClient.from(CHAT_TABLE).update({
+            content: null,
+            attachment_url: null,
+            attachment_path: null,
+            attachment_name: null,
+            attachment_size_bytes: null,
+            attachment_mime_type: null,
+            attachment_kind: null,
+            deleted_for_everyone_at: ts
+          }).in('id', myIds);
+
+          myMessages.forEach(m => {
+            m.content = null;
+            m.attachment_url = null;
+            m.deleted_for_everyone_at = ts;
+            upsertDirectMessage(m);
+          });
+
+          for (const path of attachmentPaths) {
+            await removeChatAttachmentFromStorage(path);
+          }
+        }
+      }
+
+      // Hide logic: 
+      // - If deleteMyMessagesForEveryone is FALSE, hide EVERYTHING selected.
+      // - If deleteMyMessagesForEveryone is TRUE, only hide messages from OTHERS.
+      // (Sent messages will stay as "Deleted" for the sender)
+      
+      const messagesToHide = messagesToProcess.filter(m => {
+        if (!deleteMyMessagesForEveryone) return true;
+        return m.sender_id !== currentUser.id;
+      });
+
+      if (messagesToHide.length > 0) {
+        const hideAsSender = messagesToHide.filter(m => m.sender_id === currentUser.id).map(m => m.id);
+        const hideAsRecipient = messagesToHide.filter(m => m.recipient_id === currentUser.id).map(m => m.id);
+
+        if (hideAsSender.length > 0) {
+          await window.supabaseClient.from(CHAT_TABLE).update({ hidden_for_sender_at: ts }).in('id', hideAsSender);
+        }
+        if (hideAsRecipient.length > 0) {
+          await window.supabaseClient.from(CHAT_TABLE).update({ hidden_for_recipient_at: ts }).in('id', hideAsRecipient);
+        }
+
+        messagesToHide.forEach(m => {
+          if (m.sender_id === currentUser.id) m.hidden_for_sender_at = ts;
+          if (m.recipient_id === currentUser.id) m.hidden_for_recipient_at = ts;
+          upsertDirectMessage(m);
+        });
+      }
+
+      renderActiveChat();
+      scheduleSidebarRender('preserve');
+    } catch (e) {
+      console.error('Erro ao apagar mensagens selecionadas:', e);
+      throw e;
+    }
+  }
+
+  window.openChatWithUser = async function(userId) {
     if (!currentUser) {
       showNotice('Você precisa estar logado para conversar.');
       window.location.href = 'login.html';
@@ -2414,6 +2548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (activeChatUserId && activeChatUserId !== userId) {
       if (selectedChatFile) clearSelectedChatAttachment();
       if (activeChatEditState) clearChatEditState({ restoreDraft: true });
+      if (isChatSelectionMode) toggleChatSelectionMode(false);
     }
 
     activeChatUserId = userId;
@@ -2424,9 +2559,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     scheduleSidebarRender();
     await markConversationAsRead(userId);
 
-    if (!options.skipFocus && chatInput) {
-      chatInput.focus();
-    }
+    if (chatInput) chatInput.focus();
   };
 
   function updateAllFollowersUI() {
@@ -2615,6 +2748,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statusClass = isUserOnline(user) ? 'online' : 'offline';
     const statusText = isUserOnline(user) ? 'Online' : 'Offline';
 
+    const modalImg = document.getElementById('modalImg');
     if (modalImg) modalImg.src = avatar;
 
     document.getElementById('modalName').textContent = name;
@@ -2839,46 +2973,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    usersGrid.innerHTML = `
-      <div class="creators-card">
-        <div class="creators-banner"></div>
-        <div class="creators-content">
-          <div class="creators-header">
-            <h2 class="creators-title">Conheça os Criadores</h2>
-            <p class="creators-desc">
-              O projeto <strong>Anime House</strong> foi idealizado e desenvolvido com o objetivo de criar a melhor experiência 
-              para maratonistas de animes, desenhos e filmes. Nosso foco é performance, design premium e uma comunidade ativa.
-            </p>
-          </div>
-          <div class="creators-grid">
-            <div class="creator-item">
-              <img src="https://github.com/ViselBrx.png" class="creator-avatar" alt="ViselBrx">
-              <div class="creator-info">
-                <h5>ViselBrx (Enzo)</h5>
-                <div class="creator-links">
-                  <a href="#" data-link="https://github.com/ViselBrx" data-label="GitHub Pessoal" class="creator-link external-link-trigger" title="GitHub Pessoal"><i class="fab fa-github"></i></a>
-                  <a href="#" data-link="https://github.com/EnzoToniato567" data-label="GitHub Profissional" class="creator-link external-link-trigger" title="GitHub Profissional"><i class="fas fa-briefcase"></i> <i class="fab fa-github"></i></a>
-                  <a href="#" data-link="https://linkedin.com/in/enzotoniato" data-label="LinkedIn" class="creator-link external-link-trigger" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                  <a href="#" data-link="mailto:enzotoniato339@gmail.com" data-label="E-mail" class="creator-link external-link-trigger" title="E-mail"><i class="fas fa-envelope"></i></a>
-                </div>
-              </div>
-            </div>
-            <div class="creator-item">
-              <img src="https://github.com/DaviMoraes07.png" class="creator-avatar" alt="DaviMoraes07">
-              <div class="creator-info">
-                <h5>Davi Moraes</h5>
-                <div class="creator-links">
-                  <a href="#" data-link="https://github.com/DaviMoraes07" data-label="GitHub Pessoal" class="creator-link external-link-trigger" title="GitHub Pessoal"><i class="fab fa-github"></i></a>
-                  <a href="#" data-link="https://github.com/DaviMoraes07" data-label="GitHub Profissional" class="creator-link external-link-trigger" title="GitHub Profissional"><i class="fas fa-briefcase"></i> <i class="fab fa-github"></i></a>
-                  <a href="#" data-link="https://linkedin.com/in/davimoraes" data-label="LinkedIn" class="creator-link external-link-trigger" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
-                  <a href="#" data-link="mailto:davi@exemplo.com" data-label="E-mail" class="creator-link external-link-trigger" title="E-mail"><i class="fas fa-envelope"></i></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+    usersGrid.innerHTML = '';
 
     users.forEach((user, index) => {
       const storeData = user.store_data || {};
@@ -2948,47 +3043,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       usersGrid.appendChild(userCard);
     });
-  }
-
-  function openRedirectModal(url, label, creatorName) {
-    if (!redirectModal) return;
-
-    redirectTitle.innerText = `Visitar ${label}`;
-    redirectText.innerHTML = `Você está prestes a ser redirecionado para o <strong>${label}</strong> de <strong>${creatorName}</strong>.`;
-    redirectUrlDisplay.innerText = url;
-    redirectModal.classList.add('active');
-
-    const handleCancel = () => {
-      closeRedirectModal();
-      cleanup();
-    };
-
-    const handleAccept = () => {
-      if (url.startsWith('mailto:')) {
-        window.location.href = url;
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-      closeRedirectModal();
-      cleanup();
-    };
-
-    const cleanup = () => {
-      redirectCancel.removeEventListener('click', handleCancel);
-      redirectAccept.removeEventListener('click', handleAccept);
-      redirectModal.removeEventListener('click', handleOverlayClick);
-    };
-
-    const handleOverlayClick = (e) => {
-      if (e.target === redirectModal) handleCancel();
-    };
-
-    redirectCancel.addEventListener('click', handleCancel);
-    redirectAccept.addEventListener('click', handleAccept);
-    redirectModal.addEventListener('click', handleOverlayClick);
-  }
-
-  function closeRedirectModal() {
-    if (redirectModal) redirectModal.classList.remove('active');
   }
 });

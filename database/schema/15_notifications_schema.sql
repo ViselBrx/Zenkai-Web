@@ -51,8 +51,14 @@ BEGIN
         NEW.recipient_id,
         'Nova mensagem de ' || COALESCE(sender_name, 'Alguém'),
         CASE 
-            WHEN length(NEW.content) > 50 THEN left(NEW.content, 47) || '...'
-            ELSE NEW.content
+            WHEN NEW.content IS NOT NULL AND NEW.content <> '' THEN
+                CASE 
+                    WHEN length(NEW.content) > 50 THEN left(NEW.content, 47) || '...'
+                    ELSE NEW.content
+                END
+            WHEN NEW.attachment_kind = 'image' THEN '📷 Enviou uma imagem'
+            WHEN NEW.attachment_kind = 'file' THEN '📁 Enviou um arquivo: ' || COALESCE(NEW.attachment_name, 'anexo')
+            ELSE 'Nova mensagem recebida'
         END,
         'chat',
         'usuarios.html?chat=' || NEW.sender_id
