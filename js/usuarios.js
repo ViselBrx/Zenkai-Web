@@ -98,6 +98,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let isChatSelectionMode = false;
   let selectedChatMessages = new Set();
   let pendingChatScrollToMessageId = null;
+  let activeTypingUsers = new Set();
+  let typingTimeoutMap = new Map();
+  let myTypingTimeout = null;
 
   document.body.classList.add('community-performance');
   restoreSidebarState();
@@ -242,6 +245,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         autoResizeTextarea();
         persistDraftForActiveChat();
         setChatInputState();
+        
+        broadcastTypingStatus(true);
+        clearTimeout(myTypingTimeout);
+        myTypingTimeout = setTimeout(() => {
+          broadcastTypingStatus(false);
+        }, 3000);
       });
     }
 
@@ -425,8 +434,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!currentUser || !chatTableAvailable) return;
 
-    supa
-      .channel('direct-messages-realtime')
+    window.chatChannel = supa.channel('direct-messages-realtime', {
+      config: { broadcast: { ack: false } }
+    });
+
+    window.chatChannel
       .on('postgres_changes', { event: '*', schema: 'public', table: CHAT_TABLE }, async (payload) => {
         const candidate = payload.new || payload.old;
         if (!candidate) return;
@@ -448,6 +460,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           } else {
             await markPendingMessagesAsDelivered();
           }
+        }
+      })
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload && payload.payload.recipient_id === currentUser.id) {
+          handleTypingEvent(payload.payload.sender_id, payload.payload.isTyping);
         }
       })
       .subscribe();
@@ -1976,7 +1993,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     chatThread.classList.remove('hidden');
     chatHeaderAvatar.src = getUserAvatar(targetUser);
     chatHeaderName.textContent = getUserDisplayName(targetUser);
-    chatHeaderStatus.textContent = getStatusText(targetUser);
+    if (chatHeaderStatus) {
+      updateTypingUI();
+    }
 
     const messages = getConversationMessages(activeChatUserId);
     const previousScrollTop = chatMessages.scrollTop;
@@ -2055,6 +2074,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     updatePresenceLabel();
     renderConversationList();
     renderActiveChat();
+  }
+
+  function broadcastTypingStatus(isTyping) {
+    if (!window.chatChannel || !activeChatUserId || !currentUser) return;
+    window.chatChannel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: {
+        sender_id: currentUser.id,
+        recipient_id: activeChatUserId,
+        isTyping: isTyping
+      }
+    }).catch(() => {});
+  }
+
+  function handleTypingEvent(senderId, isTyping) {
+    if (isTyping) {
+      activeTypingUsers.add(senderId);
+      clearTimeout(typingTimeoutMap.get(senderId));
+      typingTimeoutMap.set(senderId, setTimeout(() => {
+        activeTypingUsers.delete(senderId);
+        updateTypingUI();
+      }, 4000));
+    } else {
+      activeTypingUsers.delete(senderId);
+      clearTimeout(typingTimeoutMap.get(senderId));
+    }
+    updateTypingUI();
+  }
+
+  function updateTypingUI() {
+    if (!chatHeaderStatus) return;
+    if (activeChatUserId && activeTypingUsers.has(activeChatUserId)) {
+      chatHeaderStatus.textContent = 'Digitando...';
+      chatHeaderStatus.style.color = '#4fc3ff';
+      chatHeaderStatus.style.fontWeight = 'bold';
+    } else {
+      const targetUser = allUsers.find(u => u.id === activeChatUserId);
+      chatHeaderStatus.textContent = getStatusText(targetUser);
+      chatHeaderStatus.style.color = '';
+      chatHeaderStatus.style.fontWeight = '';
+    }
   }
 
   function upsertDirectMessage(message) {
@@ -2291,6 +2352,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const content = String(chatInput?.value || '').trim();
     if ((!content && !selectedChatFile) || chatSending) return;
 
+    broadcastTypingStatus(false);
+    clearTimeout(myTypingTimeout);
+    
     setChatBusy(true);
 
     try {

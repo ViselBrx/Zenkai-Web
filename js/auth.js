@@ -2027,21 +2027,6 @@ async function handleBatchActionLegacy(action) {
   }
   syncNotificationSelectionState();
   return;
-
-  if (false && action === 'delete') {
-    if (!confirm(`Deseja excluir definitivamente as ${ids.length} notificações selecionadas?`)) return;
-    await deleteNotifications(ids);
-  } else {
-    await markNotificationsRead(ids);
-  }
-  
-  // Limpar o estado do checkbox "Selecionar Tudo"
-  const selectAll = document.getElementById('selectAllNotifs');
-  if (selectAll) {
-    selectAll.checked = false;
-    selectAll.indeterminate = false;
-  }
-  syncNotificationSelectionState();
 }
 
 function toggleNotificationCenter() {
@@ -2093,41 +2078,6 @@ async function loadNotificationsListLegacy(filter = 'all') {
     syncNotificationBadgeFromState();
     renderNotificationListFromState();
     return;
-
-    if (!notifs || notifs.length === 0) {
-      content.innerHTML = `
-        <div class="notif-empty-state">
-          <div class="notif-empty-icon">📭</div>
-          <p>${filter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
-        </div>
-      `;
-      return;
-    }
-
-    const notifHtml = notifs.map(n => {
-      const isUnread = !n.read;
-      return `
-        <div class="notification-item ${isUnread ? 'unread' : 'read'}" data-id="${n.id}" onclick="handleNotificationClick('${n.id}', '${n.link || ''}')">
-          <input type="checkbox" class="notification-item__checkbox" onclick="event.stopPropagation()">
-          <div class="notification-item__icon">${getNotifIcon(n.type)}</div>
-          <div class="notification-item__main">
-            <div class="notification-item__title">${n.title}</div>
-            <div class="notification-item__text">${n.message}</div>
-            <div class="notification-item__time">${formatNotifTime(n.created_at)}</div>
-          </div>
-          ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
-          <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${n.id}'])">
-            🗑️
-          </button>
-        </div>
-      `;
-    }).join('');
-
-    content.innerHTML = notifHtml;
-    content.querySelectorAll('.notification-item__checkbox').forEach((checkbox) => {
-      checkbox.onchange = () => syncNotificationSelectionState();
-    });
-    syncNotificationSelectionState();
 
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
@@ -2185,18 +2135,6 @@ async function markNotificationsReadLegacy(ids) {
       syncNotificationBadgeFromState();
       renderNotificationListFromState();
       return;
-
-      ids.forEach(id => {
-        const item = document.querySelector(`.notification-item[data-id="${id}"]`);
-        if (item) {
-          item.classList.remove('unread');
-          item.classList.add('read');
-          const dot = item.querySelector('.notification-item__dot');
-          if (dot) dot.remove();
-        }
-      });
-      await fetchNotificationCount();
-      syncNotificationSelectionState();
     }
   } catch (err) {
     console.error("Erro ao marcar como lidas:", err);
@@ -2218,28 +2156,6 @@ async function deleteNotificationsLegacy(ids) {
     syncNotificationBadgeFromState();
     renderNotificationListFromState();
     return;
-
-    if (error) throw error;
-
-    // Remover do DOM com animação
-    ids.forEach(id => {
-      const item = document.querySelector(`.notification-item[data-id="${id}"]`);
-      if (item) {
-        item.style.opacity = '0';
-        item.style.transform = 'translateX(30px)';
-        item.style.pointerEvents = 'none';
-        setTimeout(() => {
-          item.remove();
-          // Se não sobrar nenhum item, recarrega a lista para mostrar o "Vazio"
-          if (document.querySelectorAll('.notification-item').length === 0) {
-            loadNotificationsList(notificationState.activeFilter);
-          }
-        }, 300);
-      }
-    });
-
-    await fetchNotificationCount();
-    await loadNotificationsList(notificationState.activeFilter);
   } catch (err) {
     console.error("Erro ao deletar notificações:", err);
     alert("Erro ao excluir: " + err.message);
