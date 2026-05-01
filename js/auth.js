@@ -1079,31 +1079,49 @@ window.addEventListener("storage", (e) => {
 });
 
 // 🚀 Rastreamento de Presença (Online Status)
-window.startPresenceHeartbeat = function() {
+window.startPresenceHeartbeat = async function() {
   if (!supaClient || window.presenceStarted) return;
   window.presenceStarted = true;
   
-  const updateStatus = async () => {
-    try {
-      const { data: { session } } = await supaClient.auth.getSession();
-      if (!session) return;
-      
-      const { error } = await supaClient
-        .from('profiles')
-        .update({ last_seen: new Date().toISOString() })
-        .eq('id', session.user.id);
-        
-      if (error) {
-        console.warn("⚠️ Não foi possível atualizar status online. Verifique se a coluna 'last_seen' existe na tabela 'profiles'.", error.message);
-      }
-    } catch (e) {
-      console.error("Erro no heartbeat de presença:", e);
-    }
-  };
+  window.onlineUsersSet = new Set();
+  
+  try {
+    const { data: { session } } = await supaClient.auth.getSession();
+    if (!session) return;
+    
+    // Atualização de fallback no banco
+    const updateStatus = async () => {
+      try {
+        await supaClient.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', session.user.id);
+      } catch (e) {}
+    };
+    updateStatus();
+    setInterval(updateStatus, 120000);
 
-  // Atualiza na hora e depois a cada 2 minutos
-  updateStatus();
-  setInterval(updateStatus, 120000); 
+    // Canal global de presença em tempo real
+    const globalPresenceChannel = supaClient.channel('global_presence', {
+      config: { presence: { key: session.user.id } }
+    });
+
+    globalPresenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        window.onlineUsersSet = new Set();
+        const state = globalPresenceChannel.presenceState();
+        for (const [key] of Object.entries(state)) {
+           window.onlineUsersSet.add(key);
+        }
+        document.dispatchEvent(new Event('presence_updated'));
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await globalPresenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+      
+    window.globalPresenceChannel = globalPresenceChannel;
+  } catch (e) {
+    console.error("Erro no heartbeat de presença:", e);
+  }
 };
 
 // 🚀 Carregar banners automaticamente quando DOM estiver pronto

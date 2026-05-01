@@ -139,6 +139,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function setupStaticListeners() {
+    document.addEventListener('presence_updated', () => {
+      scheduleSidebarRender('preserve');
+      if (typeof updateTypingUI === 'function') updateTypingUI();
+      if (typeof applyFilters === 'function') applyFilters();
+      
+      const onlineNowEl = document.getElementById('onlineNow');
+      if (onlineNowEl && typeof getOnlineCount === 'function') onlineNowEl.textContent = getOnlineCount();
+      
+      const socialHeaderPresenceEl = document.getElementById('socialHeaderPresence');
+      if (socialHeaderPresenceEl && typeof getOnlineCount === 'function') {
+        socialHeaderPresenceEl.innerHTML = `<i class="fas fa-signal"></i><span>${getOnlineCount()} online agora</span>`;
+      }
+      
+      if (profileModal?.classList.contains('active') && window.currentModalUserId) {
+        if (typeof window.openProfileModal === 'function') window.openProfileModal(window.currentModalUserId);
+      }
+    });
+
     if (searchInput) {
       searchInput.addEventListener('input', () => {
         if (filterRenderTimer) clearTimeout(filterRenderTimer);
@@ -246,11 +264,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         persistDraftForActiveChat();
         setChatInputState();
         
-        broadcastTypingStatus(true);
+        const isTypingNow = chatInput.value.trim().length > 0;
+        broadcastTypingStatus(isTypingNow);
+        
         clearTimeout(myTypingTimeout);
-        myTypingTimeout = setTimeout(() => {
-          broadcastTypingStatus(false);
-        }, 3000);
+        if (isTypingNow) {
+          myTypingTimeout = setTimeout(() => {
+            broadcastTypingStatus(false);
+          }, 2000);
+        }
       });
     }
 
@@ -1014,6 +1036,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function isUserOnline(user) {
+    if (window.onlineUsersSet) {
+      return window.onlineUsersSet.has(user.id);
+    }
     const lastSeen = user?.last_seen ? new Date(user.last_seen) : null;
     return !!(lastSeen && (Date.now() - lastSeen.getTime()) < ONLINE_WINDOW_MS);
   }
