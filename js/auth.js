@@ -1264,6 +1264,7 @@ function populateNavbarLinks() {
     { name: "▶️ YouTube", url: "youtube.html" },
     { name: "🎌 SenseiMod Store", url: "loja.html" },
     { name: "🤖 Open AnIme", url: "open-anime.html" },
+    { name: "👥 Equipe", url: "sobre.html" },
     { name: "💖 Agradecimento", url: "agradecimento.html" }
   ];
 

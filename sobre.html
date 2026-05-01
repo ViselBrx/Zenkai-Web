@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre a Equipe — Anime House</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="js/themes.js"></script>
+  <style>
+    :root {
+      --card-bg: rgba(20, 20, 25, 0.7);
+      --card-border: rgba(var(--primary-rgb), 0.3);
+      --glass-bg: rgba(255, 255, 255, 0.03);
+    }
+
+    body {
+      background: radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.1), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(var(--primary-rgb), 0.05), transparent 40%),
+        var(--bg-main);
+      min-height: 100vh;
+    }
+
+    .about-container {
+      max-width: 1100px;
+      margin: 120px auto 60px;
+      padding: 0 20px;
+    }
+
+    /* Hero Section */
+    .about-hero {
+      text-align: center;
+      margin-bottom: 80px;
+      animation: fadeInDown 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .about-hero h1 {
+      font-family: 'Bangers', cursive;
+      font-size: 4.5rem;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #fff 30%, var(--primary));
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 15px rgba(var(--primary-rgb), 0.4));
+    }
+
+    .about-hero p {
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    /* Manifesto Section */
+    .manifesto-section {
+      background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(0, 0, 0, 0.2));
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 40px;
+      padding: 60px;
+      margin-bottom: 100px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .manifesto-section::before {
+      content: 'AH';
+      position: absolute;
+      top: -20px;
+      left: -20px;
+      font-size: 15rem;
+      font-family: 'Bangers';
+      color: rgba(255, 255, 255, 0.02);
+      pointer-events: none;
+    }
+
+    .manifesto-section h2 {
+      font-family: 'Bangers', cursive;
+      font-size: 3rem;
+      margin-bottom: 25px;
+      color: var(--primary);
+    }
+
+    .manifesto-text {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    /* Tech Stack Section */
+    .tech-stack {
+      margin-bottom: 100px;
+    }
+
+    .tech-stack h2 {
+      text-align: center;
+      font-family: 'Bangers', cursive;
+      font-size: 3rem;
+      margin-bottom: 50px;
+      color: #fff;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 25px;
+    }
+
+    .tech-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .tech-item:hover {
+      background: rgba(var(--primary-rgb), 0.05);
+      border-color: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .tech-item i {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .tech-item h4 {
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .tech-item p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Stats Banner */
+    .stats-banner {
+      display: flex;
+      justify-content: space-around;
+      background: var(--primary);
+      padding: 40px;
+      border-radius: 30px;
+      margin-bottom: 100px;
+      color: #000;
+    }
+
+    .stat-box h4 {
+      font-size: 3rem;
+      font-family: 'Bangers';
+      line-height: 1;
+    }
+
+    .stat-box p {
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+    }
+
+    /* Floating Particles */
+    .particle {
+      position: fixed;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0.1;
+      filter: blur(5px);
+      pointer-events: none;
+      z-index: -1;
+      animation: floatParticle 20s linear infinite;
+    }
+
+    @keyframes floatParticle {
+      from {
+        transform: translateY(100vh) rotate(0deg);
+      }
+
+      to {
+        transform: translateY(-100vh) rotate(360deg);
+      }
+    }
+
+    /* Intent Section */
+    .intent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 100px;
+    }
+
+    .intent-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .intent-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .intent-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(var(--primary-rgb), 0.2);
+      border-color: var(--primary);
+    }
+
+    .intent-card:hover::before {
+      opacity: 1;
+    }
+
+    .intent-icon {
+      font-size: 3rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+      display: inline-block;
+      filter: drop-shadow(0 0 10px rgba(var(--primary-rgb), 0.5));
+    }
+
+    .intent-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 1.8rem;
+      color: #fff;
+      margin-bottom: 15px;
+      letter-spacing: 1px;
+    }
+
+    .intent-card p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    /* Team Section */
+    .team-section {
+      text-align: center;
+    }
+
+    .team-section h2 {
+      font-family: 'Bangers', cursive;
+      font-size: 3rem;
+      margin-bottom: 50px;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .admin-card {
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 30px;
+      padding: 50px 30px 40px;
+      position: relative;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .admin-card::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 30px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent, rgba(var(--primary-rgb), 0.3));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .admin-card:hover {
+      transform: scale(1.02);
+      border-color: var(--primary);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .admin-avatar-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin-bottom: 25px;
+    }
+
+    .admin-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--bg-main);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      background: var(--bg-card);
+    }
+
+    .admin-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+      letter-spacing: 1px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      margin-bottom: 10px;
+    }
+
+    .admin-card h4 {
+      font-family: 'Bangers', cursive;
+      font-size: 2.8rem;
+      color: #fff;
+      margin-bottom: 2px;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .admin-role {
+      color: var(--primary);
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      margin-bottom: 25px;
+      opacity: 0.9;
+    }
+
+    .admin-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: auto;
+    }
+
+    .social-btn {
+      width: 45px;
+      height: 45px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 1.2rem;
+      text-decoration: none;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .social-btn:hover {
+      background: var(--primary);
+      color: #000;
+      transform: translateY(-5px) rotate(8deg);
+      box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.4);
+    }
+
+    .social-btn[data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 120%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: #000;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      pointer-events: none;
+      border: 1px solid var(--primary);
+    }
+
+    .social-btn:hover::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Modal de Confirmação */
+    .confirm-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .confirm-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .confirm-card {
+      background: var(--bg-card);
+      border: 1px solid var(--primary);
+      border-radius: 24px;
+      width: 90%;
+      max-width: 400px;
+      padding: 40px 30px;
+      text-align: center;
+      transform: scale(0.8);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .confirm-modal.active .confirm-card {
+      transform: scale(1);
+    }
+
+    .confirm-icon {
+      font-size: 3rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .confirm-card h3 {
+      font-family: 'Bangers', cursive;
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #fff;
+    }
+
+    .confirm-card p {
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .confirm-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+      .about-hero h1 {
+        font-size: 3rem;
+      }
+
+      .team-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Watermark */
+    .watermark {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.3);
+      z-index: 1000;
+      pointer-events: none;
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    .watermark a {
+      pointer-events: auto;
+      color: inherit;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .watermark a:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </a>
+    <ul class="navbar-links" id="navLinks"></ul>
+    <button class="navbar-burger" id="navBurger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <main class="about-container">
+
+    <section class="about-hero">
+      <h1>Explore o Inexplorado</h1>
+      <p>A Anime House não é apenas um player, é uma plataforma de transcendência digital. Projetada milimetricamente
+        para fãs que buscam o equilíbrio perfeito entre organização, entretenimento e evolução pessoal através da
+        gamificação.</p>
+    </section>
+
+    <div class="manifesto-section">
+      <h2>O Manifesto Anime House</h2>
+      <p class="manifesto-text">
+        Nascida da paixão visceral pela cultura pop e do desejo de criar um refúgio digital definitivo, a Anime House é
+        o resultado de uma visão: transformar o ato de assistir em uma experiência de evolução constante.
+        <br><br>
+        Não somos apenas um catálogo; somos uma plataforma viva que respira inovação, integrando IA e
+        gamificação profunda para que cada minuto da sua jornada seja recompensado.
+      </p>
+    </div>
+
+    <section class="intent-grid">
+      <div class="intent-card">
+        <i class="fas fa-layer-group intent-icon"></i>
+        <h3>Curadoria de Elite</h3>
+        <p>Transformamos o caos em ordem absoluta. Organize sua biblioteca com precisão cirúrgica e mantenha o controle
+          total sobre cada episódio e volume consumido.</p>
+      </div>
+      <div class="intent-card">
+        <i class="fas fa-gamepad intent-icon"></i>
+        <h3>Ascensão de Poder</h3>
+        <p>Aqui, sua maratona se torna uma jornada de progresso. Acumule XP, suba na hierarquia global e conquiste itens
+          lendários que definem sua presença no servidor.</p>
+      </div>
+      <div class="intent-card">
+        <i class="fas fa-robot intent-icon"></i>
+        <h3>Vanguarda Digital</h3>
+        <p>Equipado com modelos de IA para análises, duelos e uma interatividade que redefine o que
+          significa ser parte de uma comunidade otaku.</p>
+      </div>
+      <div class="intent-card">
+        <i class="fas fa-video intent-icon"></i>
+        <h3>Parceria RedeCanais</h3>
+        <p>Agradecimento especial ao RedeCanais por disponibilizar os iframes que tornam este catálogo possível para
+          toda a comunidade.</p>
+      </div>
+    </section>
+
+    <div class="tech-stack">
+      <h2>Tecnologias que Movem a Casa</h2>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <i class="fab fa-js"></i>
+          <h4>Vanilla JS & CSS3</h4>
+          <p>Performance pura e interatividade fluida, sem o peso de frameworks externos.</p>
+        </div>
+        <div class="tech-item">
+          <i class="fas fa-database"></i>
+          <h4>Supabase</h4>
+          <p>O coração do nosso banco de dados, autenticação e armazenamento em nuvem.</p>
+        </div>
+        <div class="tech-item">
+          <i class="fas fa-bolt"></i>
+          <h4>Groq AI</h4>
+          <p>Velocidade extrema para processamento de IA, alimentando nosso agente interativo.</p>
+        </div>
+        <div class="tech-item">
+          <i class="fas fa-shield-alt"></i>
+          <h4>Cloudflare Workers AI</h4>
+          <p>Proteção de elite e inteligência artificial distribuída na borda (edge) para respostas instantâneas e seguras.</p>
+        </div>
+        <div class="tech-item">
+          <i class="fab fa-node-js"></i>
+          <h4>Node.js</h4>
+          <p>Backend robusto para gestão de arquivos local e proxy de serviços de IA.</p>
+        </div>
+        <div class="tech-item">
+          <i class="fab fa-git-alt"></i>
+          <h4>Git & GitHub</h4>
+          <p>Controle de versão rigoroso para manter a integridade total do código-fonte.</p>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="stats-banner">
+      <div class="stat-box">
+        <h4>100%</h4>
+        <p>Desenvolvimento Próprio</p>
+      </div>
+      <div class="stat-box">
+        <h4>24/7</h4>
+        <p>Evolução Constante</p>
+      </div>
+      <div class="stat-box">
+        <h4>∞</h4>
+        <p>Possibilidades</p>
+      </div>
+    </div>
+
+    <section class="team-section">
+      <h2>O Conselho Fundador</h2>
+      <div class="team-grid">
+
+        <!-- CARD VISELBRX -->
+        <div class="admin-card">
+          <div class="admin-avatar-wrap">
+            <img src="assets/viselauraenorme.jpg" alt="ViselBrx" class="admin-avatar">
+          </div>
+          <h4>ViselBrx</h4>
+          <span class="admin-badge">Adm 1 — Fundador</span>
+          <div class="admin-role">Desenvolvedor Lead & Arquiteto de Sistemas</div>
+          <div class="admin-links">
+            <a href="https://github.com/ViselBrx" class="social-btn external-link" data-tip="GitHub">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="https://github.com/EnzoToniato567" class="social-btn external-link" data-tip="GitHub Profissional">
+              <i class="fas fa-user-tie"></i>
+            </a>
+            <a href="https://instagram.com/visel.jar" class="social-btn external-link" data-tip="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.tiktok.com/@visel.jar" target="_blank" class="social-btn external-link" data-tip="TikTok">
+              <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=enzotoniato339@gmail.com" target="_blank" class="social-btn external-link" data-tip="E-mail (Gmail)">
+              <i class="fas fa-envelope"></i>
+            </a>
+            <a href="#" class="social-btn" data-tip="LinkedIn (Em breve)">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- CARD DAVIMORAES07 -->
+        <div class="admin-card">
+          <div class="admin-avatar-wrap">
+            <img src="assets/daviyagami.jpg" alt="DaviMoraes07" class="admin-avatar">
+          </div>
+          <h4>DaviMoraes07</h4>
+          <span class="admin-badge">Adm 2 — Fundador</span>
+          <div class="admin-role">Desenvolvedor & Visionário de UX/UI</div>
+          <div class="admin-links">
+            <a href="https://github.com/davimoraes07" class="social-btn external-link" data-tip="GitHub">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="https://instagram.com/moraesz.davi" class="social-btn external-link" data-tip="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.tiktok.com/@odavizeraa7" target="_blank" class="social-btn external-link" data-tip="TikTok">
+              <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=selingardidavi@gmail.com" target="_blank" class="social-btn external-link" data-tip="E-mail (Gmail)">
+              <i class="fas fa-envelope"></i>
+            </a>
+            <a href="#" class="social-btn" data-tip="LinkedIn (Em breve)">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DE CONFIRMAÇÃO DE LINK EXTERNO -->
+  <div class="confirm-modal" id="linkModal">
+    <div class="confirm-card">
+      <i class="fas fa-external-link-alt confirm-icon"></i>
+      <h3>Sair do Site?</h3>
+      <p>Você está prestes a ser redirecionado para um link externo. Deseja continuar?</p>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="cancelLink">Cancelar</button>
+        <a href="" class="btn btn-primary" id="confirmLink" target="_blank">Continuar</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Menu Mobile
+      const burger = document.getElementById('navBurger');
+      const menu = document.getElementById('navLinks');
+      if (burger && menu) {
+        burger.addEventListener('click', () => menu.classList.toggle('open'));
+      }
+
+      // Lógica do Modal de Link
+      const modal = document.getElementById('linkModal');
+      const confirmBtn = document.getElementById('confirmLink');
+      const cancelBtn = document.getElementById('cancelLink');
+      const externalLinks = document.querySelectorAll('.external-link');
+
+      externalLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const targetUrl = link.href;
+          confirmBtn.href = targetUrl;
+          modal.classList.add('active');
+        });
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+      });
+
+      confirmBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+      });
+
+      // Fechar modal ao clicar fora
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('active');
+      });
+      // Sistema de Partículas
+      function createParticles() {
+        const container = document.body;
+        for (let i = 0; i < 15; i++) {
+          const p = document.createElement('div');
+          p.className = 'particle';
+          const size = Math.random() * 80 + 20;
+          p.style.width = `${size}px`;
+          p.style.height = `${size}px`;
+          p.style.left = `${Math.random() * 100}vw`;
+          p.style.animationDelay = `${Math.random() * 10}s`;
+          p.style.animationDuration = `${Math.random() * 20 + 10}s`;
+          container.appendChild(p);
+        }
+      }
+      createParticles();
+    });
+  </script>
+  <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">© ViselBrx &
+      DaviMoraes07™</a></div>
+</body>
+
+</html>
