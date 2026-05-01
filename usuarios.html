@@ -177,7 +177,7 @@
       inset: 0;
       background: rgba(0, 0, 0, 0.4);
       backdrop-filter: blur(4px);
-      z-index: 5000;
+      z-index: 10000;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
@@ -197,7 +197,7 @@
       background: rgba(var(--bg-card-rgb, 15, 15, 20), 0.96);
       backdrop-filter: blur(25px);
       -webkit-backdrop-filter: blur(25px);
-      z-index: 5001;
+      z-index: 10001;
       transition: left 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
       display: flex;
       flex-direction: column;
@@ -747,6 +747,8 @@
       border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      position: relative;
+      z-index: 10;
     }
 
     .chat-empty {
@@ -1361,6 +1363,44 @@
       text-decoration: underline;
     }
 
+    .chat-file-card-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .chat-file-card-wrapper .chat-file-card {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .chat-file-download-btn {
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 13px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      color: var(--primary);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .chat-file-download-btn:hover {
+      background: rgba(var(--primary-rgb), 0.2);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .watermark {
+      z-index: 5 !important;
+    }
+
     .chat-confirm-modal {
       position: fixed;
       inset: 0;
@@ -1373,7 +1413,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
-      z-index: 5300;
+      z-index: 20100;
     }
 
     .chat-confirm-modal.active {
@@ -1473,7 +1513,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.2s ease;
-      z-index: 5290;
+      z-index: 20000;
     }
 
     .chat-action-modal.active {
@@ -1580,7 +1620,7 @@
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.22s ease;
-      z-index: 5200;
+      z-index: 20200;
     }
 
     .chat-image-viewer.active {
@@ -1944,6 +1984,83 @@
     .user-card.has-aura {
       border-color: var(--primary);
       box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .user-level-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .user-equipped-icons {
+      display: flex;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(5px);
+    }
+
+    .user-equipped-icons span {
+      font-size: 1rem;
+      transition: all 0.2s;
+      position: relative;
+      cursor: help;
+    }
+
+    .user-equipped-icons span:hover {
+      transform: scale(1.3);
+    }
+
+    /* Premium Tooltip */
+    .user-equipped-icons span::before {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.9);
+      color: #fff;
+      font-size: 0.75rem;
+      border-radius: 8px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+      z-index: 100;
+      font-weight: 600;
+    }
+
+    .user-equipped-icons span:hover::before {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Tooltip Triangle */
+    .user-equipped-icons span::after {
+      content: '';
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%) translateY(5px);
+      border: 6px solid transparent;
+      border-top-color: rgba(var(--primary-rgb), 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .user-equipped-icons span:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
     .user-avatar-wrapper {
@@ -2367,6 +2484,81 @@
     .hidden {
       display: none !important;
     }
+
+    /* Avatar View Modal */
+    .avatar-view-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 20000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .avatar-view-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .avatar-view-container {
+      position: relative;
+      transform: scale(0.85);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .avatar-view-overlay.active .avatar-view-container {
+      transform: scale(1);
+    }
+
+    .avatar-view-img {
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      object-fit: cover;
+      box-shadow: 0 0 60px rgba(var(--primary-rgb), 0.45);
+      background: var(--bg-card);
+    }
+
+    .avatar-view-close {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    @media (max-width: 480px) {
+      .avatar-view-img {
+        width: 85vw;
+        height: 85vw;
+      }
+    }
+
+    .user-avatar, .user-hub-avatar {
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .user-avatar:hover, .user-hub-avatar:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 
@@ -2460,9 +2652,52 @@
     </div>
   </main>
 
+  <!-- AVATAR VIEW MODAL -->
+  <div class="avatar-view-overlay" id="avatarViewOverlay">
+    <div class="avatar-view-container">
+      <button class="avatar-view-close" id="avatarViewClose">✕</button>
+      <img src="" class="avatar-view-img" id="avatarViewImg" alt="Avatar Aumentado" />
+    </div>
+  </div>
+
   <script src="js/db.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/usuarios.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const overlay = document.getElementById('avatarViewOverlay');
+      const viewImg = document.getElementById('avatarViewImg');
+      const closeBtn = document.getElementById('avatarViewClose');
+
+      if (overlay && viewImg) {
+        // Delegar evento para os avatares (já que são gerados dinamicamente)
+        document.addEventListener('click', (e) => {
+          const isEnlargeable = e.target.classList.contains('modal-img') ||
+                                e.target.classList.contains('user-hub-avatar') ||
+                                e.target.classList.contains('admin-avatar') ||
+                                e.target.id === 'userHubAvatar';
+
+          if (isEnlargeable) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            viewImg.src = e.target.src;
+            overlay.classList.add('active');
+          }
+        }, true);
+
+        const closeView = () => overlay.classList.remove('active');
+        
+        closeBtn?.addEventListener('click', closeView);
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeView();
+        });
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeView();
+        });
+      }
+    });
+  </script>
 
   <!-- Social Sidebar UI -->
   <div class="social-sidebar-overlay" id="socialOverlay"></div>

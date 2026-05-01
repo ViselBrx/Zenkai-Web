@@ -2554,7 +2554,7 @@
     <script src="js/auth.js"></script>
     <script>
       const STORE_KEY = "animehouse_store";
-      const ALL_ITEMS = [
+      /* ALL_ITEMS is now loaded from db.js
         {
           id: "banner_claro",
           name: "Banner Aurora Simples",
@@ -2774,15 +2774,7 @@
           currency: "esmeralda",
           price: 4,
         },
-        {
-          id: "tema_cromatico",
-          name: "Tema Cromático",
-          icon: "🌈",
-          category: "tema",
-          currency: "esmeralda",
-          price: 8,
-        },
-      ];
+      */
 
       function showToast(msg, type = "success", ms = 7000) {
         const container = document.getElementById("toast");

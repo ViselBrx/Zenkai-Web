@@ -806,6 +806,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       danger: false
     }];
 
+    if (message.attachment_url && !isMessageDeletedForEveryone(message)) {
+      actions.unshift({
+        key: 'download',
+        label: 'Baixar arquivo',
+        icon: 'fas fa-download',
+        danger: false
+      });
+    }
+
     if (message.sender_id === currentUser.id && !isMessageDeletedForEveryone(message)) {
       actions.unshift({
         key: 'edit',
@@ -832,11 +841,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (actions.length === 0) return;
 
     activeChatActionMessageId = String(message.id);
-    if (chatActionTitle) chatActionTitle.textContent = 'Acoes da mensagem';
+    if (chatActionTitle) chatActionTitle.textContent = 'Ações da mensagem';
     if (chatActionText) {
       chatActionText.textContent = message.sender_id === currentUser?.id
-        ? 'Voce pode editar a mensagem, remover so da sua conversa ou apagar para todos.'
-        : 'Voce pode remover esta mensagem apenas da sua conversa.';
+        ? 'Você pode editar a mensagem, baixar o arquivo, remover só da sua conversa ou apagar para todos.'
+        : 'Você pode baixar o arquivo ou remover esta mensagem apenas da sua conversa.';
     }
 
     chatActionList.innerHTML = actions.map((action) => `
@@ -876,7 +885,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             type="button"
             class="chat-message-menu-btn"
             data-chat-message-actions-open="${messageId}"
-            title="Acoes da mensagem"
+            title="Ações da mensagem"
           >
             <i class="fas fa-ellipsis-v"></i>
           </button>
@@ -920,7 +929,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!message?.attachment_url || isMessageDeletedForEveryone(message)) return '';
 
     const attachmentUrl = escapeHtml(message.attachment_url);
-    const attachmentName = escapeHtml(message.attachment_name || 'arquivo');
+    const rawAttachmentName = message.attachment_name || 'arquivo';
+    const attachmentName = escapeHtml(rawAttachmentName);
     const attachmentSize = formatFileSize(message.attachment_size_bytes);
     const attachmentMeta = attachmentSize
       ? `<small>${escapeHtml(attachmentSize)}</small>`
@@ -955,6 +965,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           <a class="chat-attachment-inline-link" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
             Abrir em nova aba
           </a>
+          <span style="color:rgba(255,255,255,0.15)">•</span>
+          <a class="chat-attachment-inline-link" href="${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}download=${encodeURIComponent(rawAttachmentName)}" title="Baixar imagem">
+            <i class="fas fa-download"></i> Baixar
+          </a>
         </div>
       `;
     }
@@ -965,13 +979,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     ].filter(Boolean).join(' • ');
 
     return `
-      <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
-        <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
-        <span class="chat-file-meta">
-          <strong>${attachmentName}</strong>
-          <small>${fileInfo}</small>
-        </span>
-      </a>
+      <div class="chat-file-card-wrapper">
+        <a class="chat-file-card" href="${attachmentUrl}" target="_blank" rel="noopener noreferrer">
+          <span class="chat-file-icon"><i class="fas fa-paperclip"></i></span>
+          <span class="chat-file-meta">
+            <strong>${attachmentName}</strong>
+            <small>${fileInfo}</small>
+          </span>
+        </a>
+        <a class="chat-file-download-btn" href="${attachmentUrl}${attachmentUrl.includes('?') ? '&' : '?'}download=${encodeURIComponent(rawAttachmentName)}" title="Baixar arquivo">
+          <i class="fas fa-download"></i>
+        </a>
+      </div>
     `;
   }
 
@@ -1362,7 +1381,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (chatDeleteConfirmText) {
-      chatDeleteConfirmText.textContent = options.message || 'Essa acao nao podera ser desfeita.';
+      chatDeleteConfirmText.textContent = options.message || 'Essa ação não poderá ser desfeita.';
     }
 
     chatDeleteConfirmAccept.textContent = options.confirmLabel || 'Excluir';
@@ -1569,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!chatDraftLabel) return;
 
     if (!currentUser) {
-      chatDraftLabel.textContent = 'Faca login para conversar.';
+      chatDraftLabel.textContent = 'Faça login para conversar.';
       return;
     }
 
@@ -1585,7 +1604,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeChatEditState) {
       const editingMessage = getActiveChatEditMessage();
-      const attachmentHint = editingMessage?.attachment_url ? ' O anexo original sera mantido.' : '';
+      const attachmentHint = editingMessage?.attachment_url ? ' O anexo original será mantido.' : '';
       chatDraftLabel.classList.add('editing');
       chatDraftLabel.textContent = `Modo de edição ativo (alterando a mensagem)${attachmentHint}`;
       return;
@@ -1601,7 +1620,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const hasDraft = String(chatInput?.value || '').trim().length > 0;
     chatDraftLabel.textContent = hasDraft
       ? 'Rascunho salvo automaticamente. Clique em Enviar ou pressione Enter.'
-      : 'Digite, clique em Enviar ou anexe arquivos de ate 50 MB.';
+      : 'Digite, clique em Enviar ou anexe arquivos de até 50 MB.';
   }
 
   function setChatBusy(isBusy) {
@@ -2329,6 +2348,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!message) return;
 
     try {
+      if (action === 'download') {
+        if (!message.attachment_url) return;
+        const url = `${message.attachment_url}${message.attachment_url.includes('?') ? '&' : '?'}download=${encodeURIComponent(message.attachment_name || 'arquivo')}`;
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showSuccessNotice('Iniciando download...');
+        return;
+      }
+
       if (action === 'edit') {
         beginChatMessageEdit(message);
         showSuccessNotice('Mensagem pronta para edição.');
@@ -2337,20 +2369,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (action === 'delete-me') {
         const confirmDelete = await openChatDeleteConfirm({
-          title: 'Excluir so para voce?',
-          message: 'Essa mensagem vai sumir apenas da sua conversa. A outra pessoa continuara vendo normalmente.',
+          title: 'Excluir só para você?',
+          message: 'Essa mensagem vai sumir apenas da sua conversa. A outra pessoa continuará vendo normalmente.',
           confirmLabel: 'Excluir para mim'
         });
         if (!confirmDelete) return;
         await deleteMessageForCurrentUser(message);
-        showSuccessNotice('Voce excluiu a mensagem para voce.');
+        showSuccessNotice('Você excluiu a mensagem para você.');
         return;
       }
 
       if (action === 'delete-everyone') {
         const confirmDelete = await openChatDeleteConfirm({
           title: 'Excluir para todos?',
-          message: 'A mensagem sera removida da conversa dos dois lados e, se houver anexo, ele tambem sera retirado.',
+          message: 'A mensagem será removida da conversa dos dois lados e, se houver anexo, ele também será retirado.',
           confirmLabel: 'Excluir para todos'
         });
         if (!confirmDelete) return;
@@ -2988,7 +3020,28 @@ document.addEventListener('DOMContentLoaded', async () => {
       const equipped = storeData.equipped || {};
       const aura = equipped.aura || 'none';
       const banner = equipped.banner || 'none';
-      const accessory = equipped.acessorio || 'none';
+      // Mapear acessórios: perfil usa crownId, usuários usava acessorio
+      const accessoryId = equipped.acessorio || equipped.crownId || 'none';
+      
+      // Coletar ícones dos itens equipados (Aura, Banner, Coroa, Título)
+      const equippedIcons = [];
+      if (aura !== 'none') {
+        const item = ALL_ITEMS.find(i => i.id === aura);
+        if (item) equippedIcons.push({ icon: item.icon, name: item.name });
+      }
+      if (banner !== 'none') {
+        const item = ALL_ITEMS.find(i => i.id === banner);
+        if (item) equippedIcons.push({ icon: item.icon, name: item.name });
+      }
+      if (accessoryId !== 'none') {
+        const item = ALL_ITEMS.find(i => i.id === accessoryId);
+        if (item) equippedIcons.push({ icon: item.icon, name: item.name });
+      }
+      if (equipped.titulo) {
+        const item = ALL_ITEMS.find(i => i.name.includes(equipped.titulo));
+        if (item) equippedIcons.push({ icon: item.icon, name: item.name });
+      }
+
       const followersCount = followersCountMap.get(user.id) || 0;
       const isFollowing = currentUser ? followingSet.has(user.id) : false;
       const isMe = currentUser && currentUser.id === user.id;
@@ -3014,13 +3067,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         <div class="user-avatar-wrapper" onclick="openProfileModal('${user.id}')">
           <img src="${avatar}" alt="${escapeHtml(name)}" class="user-avatar" onerror="this.src='assets/tryhard.png'">
-          ${accessory !== 'none' ? `<img src="${accessory}" class="user-accessory" alt="Acessório">` : ''}
+          ${accessoryId !== 'none' && !accessoryId.includes('coroa') ? `<img src="${accessoryId}" class="user-accessory" alt="Acessório">` : ''}
           <div class="status-dot-indicator ${statusClass}" title="${statusText}"></div>
         </div>
 
         <div class="user-info-section">
           <span class="user-name" onclick="openProfileModal('${user.id}')" style="cursor:pointer;">${escapeHtml(name)} ${isMe ? '<small>(Você)</small>' : ''}</span>
-          <div class="user-level">LVL ${level}</div>
+          <div class="user-level-row">
+            <div class="user-level">LVL ${level}</div>
+            ${equippedIcons.length > 0 ? `
+              <div class="user-equipped-icons">
+                ${equippedIcons.map(item => `<span data-tooltip="${item.name}">${item.icon}</span>`).join('')}
+              </div>
+            ` : ''}
+          </div>
 
           <div class="user-stats-grid">
             <div class="stat-box">

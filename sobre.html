@@ -522,6 +522,81 @@
     .watermark a:hover {
       color: var(--primary);
     }
+
+    /* Avatar View Modal */
+    .avatar-view-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 20000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .avatar-view-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .avatar-view-container {
+      position: relative;
+      transform: scale(0.85);
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .avatar-view-overlay.active .avatar-view-container {
+      transform: scale(1);
+    }
+
+    .avatar-view-img {
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      border: 4px solid var(--primary);
+      object-fit: cover;
+      box-shadow: 0 0 60px rgba(var(--primary-rgb), 0.45);
+      background: var(--card-bg);
+    }
+
+    .avatar-view-close {
+      position: absolute;
+      top: -15px;
+      right: -15px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
+    @media (max-width: 480px) {
+      .avatar-view-img {
+        width: 85vw;
+        height: 85vw;
+      }
+    }
+
+    .admin-avatar {
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .admin-avatar:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 
@@ -607,7 +682,8 @@
         <div class="tech-item">
           <i class="fas fa-shield-alt"></i>
           <h4>Cloudflare Workers AI</h4>
-          <p>Proteção de elite e inteligência artificial distribuída na borda (edge) para respostas instantâneas e seguras.</p>
+          <p>Proteção de elite e inteligência artificial distribuída na borda (edge) para respostas instantâneas e
+            seguras.</p>
         </div>
         <div class="tech-item">
           <i class="fab fa-node-js"></i>
@@ -660,10 +736,12 @@
             <a href="https://instagram.com/visel.jar" class="social-btn external-link" data-tip="Instagram">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="https://www.tiktok.com/@visel.jar" target="_blank" class="social-btn external-link" data-tip="TikTok">
+            <a href="https://www.tiktok.com/@visel.jar" target="_blank" class="social-btn external-link"
+              data-tip="TikTok">
               <i class="fab fa-tiktok"></i>
             </a>
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=enzotoniato339@gmail.com" target="_blank" class="social-btn external-link" data-tip="E-mail (Gmail)">
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=enzotoniato339@gmail.com" target="_blank"
+              class="social-btn external-link" data-tip="E-mail (Gmail)">
               <i class="fas fa-envelope"></i>
             </a>
             <a href="#" class="social-btn" data-tip="LinkedIn (Em breve)">
@@ -687,10 +765,12 @@
             <a href="https://instagram.com/moraesz.davi" class="social-btn external-link" data-tip="Instagram">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="https://www.tiktok.com/@odavizeraa7" target="_blank" class="social-btn external-link" data-tip="TikTok">
+            <a href="https://www.tiktok.com/@odavizeraa7" target="_blank" class="social-btn external-link"
+              data-tip="TikTok">
               <i class="fab fa-tiktok"></i>
             </a>
-            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=selingardidavi@gmail.com" target="_blank" class="social-btn external-link" data-tip="E-mail (Gmail)">
+            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=selingardidavi@gmail.com" target="_blank"
+              class="social-btn external-link" data-tip="E-mail (Gmail)">
               <i class="fas fa-envelope"></i>
             </a>
             <a href="#" class="social-btn" data-tip="LinkedIn (Em breve)">
@@ -714,6 +794,14 @@
         <button class="btn btn-secondary" id="cancelLink">Cancelar</button>
         <a href="" class="btn btn-primary" id="confirmLink" target="_blank">Continuar</a>
       </div>
+    </div>
+  </div>
+
+  <!-- AVATAR VIEW MODAL -->
+  <div class="avatar-view-overlay" id="avatarViewOverlay">
+    <div class="avatar-view-container">
+      <button class="avatar-view-close" id="avatarViewClose">✕</button>
+      <img src="" class="avatar-view-img" id="avatarViewImg" alt="Avatar Aumentado" />
     </div>
   </div>
 
@@ -771,6 +859,30 @@
         }
       }
       createParticles();
+
+      // Lógica do Overlay de Avatar
+      const overlay = document.getElementById('avatarViewOverlay');
+      const viewImg = document.getElementById('avatarViewImg');
+      const closeBtn = document.getElementById('avatarViewClose');
+
+      if (overlay && viewImg) {
+        document.addEventListener('click', (e) => {
+          if (e.target.classList.contains('admin-avatar')) {
+            viewImg.src = e.target.src;
+            overlay.classList.add('active');
+          }
+        });
+
+        const closeView = () => overlay.classList.remove('active');
+
+        closeBtn?.addEventListener('click', closeView);
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeView();
+        });
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeView();
+        });
+      }
     });
   </script>
   <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">© ViselBrx &
