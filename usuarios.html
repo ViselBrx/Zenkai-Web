@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,7 @@
   <script src="js/themes.js"></script>
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <style>
     .community-container {
       max-width: 1200px;
@@ -43,7 +44,9 @@
     }
 
     @keyframes shineText {
-      to { background-position: 200% center; }
+      to {
+        background-position: 200% center;
+      }
     }
 
     .community-hero p {
@@ -91,7 +94,7 @@
       margin: -40px auto 40px;
       position: relative;
       z-index: 100;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
     .community-search {
@@ -129,8 +132,14 @@
       z-index: 5;
     }
 
-    .status-dot-indicator.online { background: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
-    .status-dot-indicator.offline { background: #95a5a6; }
+    .status-dot-indicator.online {
+      background: #2ecc71;
+      box-shadow: 0 0 10px #2ecc71;
+    }
+
+    .status-dot-indicator.offline {
+      background: #95a5a6;
+    }
 
     .status-badge {
       display: inline-flex;
@@ -145,8 +154,15 @@
       text-transform: uppercase;
     }
 
-    .status-badge.online { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-    .status-badge.offline { background: rgba(149, 165, 166, 0.15); color: #95a5a6; }
+    .status-badge.online {
+      background: rgba(46, 204, 113, 0.15);
+      color: #2ecc71;
+    }
+
+    .status-badge.offline {
+      background: rgba(149, 165, 166, 0.15);
+      color: #95a5a6;
+    }
 
     .status-dot {
       width: 8px;
@@ -194,7 +210,7 @@
 
     .social-header {
       padding: 22px 20px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -252,7 +268,9 @@
       transition: color 0.2s;
     }
 
-    .social-close-btn:hover { color: var(--danger); }
+    .social-close-btn:hover {
+      color: var(--danger);
+    }
 
     .social-content {
       flex: 1;
@@ -269,8 +287,8 @@
     }
 
     .social-tab {
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-muted);
       border-radius: 14px;
       padding: 11px 14px;
@@ -332,7 +350,7 @@
       content: '';
       flex: 1;
       height: 1px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     .follower-mini-card {
@@ -341,7 +359,7 @@
       gap: 12px;
       padding: 10px;
       border-radius: 12px;
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       margin-bottom: 8px;
       transition: background 0.2s;
       cursor: pointer;
@@ -470,7 +488,7 @@
       padding: 10px 12px 10px 34px;
       border-radius: 12px;
       border: 1px solid rgba(var(--primary-rgb), 0.16);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-main);
       outline: none;
     }
@@ -497,11 +515,11 @@
       gap: 12px;
       padding: 16px 12px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.05);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       background:
-        linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(255,255,255,0.015)),
+        linear-gradient(180deg, rgba(var(--primary-rgb), 0.08), rgba(255, 255, 255, 0.015)),
         rgba(10, 10, 14, 0.78);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
     .conversation-list {
@@ -524,8 +542,8 @@
       width: 100%;
       padding: 11px;
       border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.04);
-      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.035);
       color: inherit;
       cursor: pointer;
       transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
@@ -570,9 +588,9 @@
       height: 34px;
       flex-shrink: 0;
       border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
-      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.7);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -723,12 +741,12 @@
       min-height: 0;
       background:
         radial-gradient(circle at top left, rgba(var(--primary-rgb), 0.14), transparent 40%),
-        linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
         rgba(10, 10, 14, 0.82);
-      border: 1px solid rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.28);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
     }
 
     .chat-empty {
@@ -758,9 +776,9 @@
       justify-content: space-between;
       gap: 12px;
       padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       background: rgba(var(--primary-rgb), 0.08);
-      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.03);
+      box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.03);
     }
 
     .chat-thread-user {
@@ -803,7 +821,7 @@
       flex-direction: column;
       gap: 12px;
       background:
-        radial-gradient(circle at center, rgba(255,255,255,0.02), transparent 60%),
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.02), transparent 60%),
         linear-gradient(180deg, rgba(8, 9, 14, 0.76), rgba(8, 9, 14, 0.92));
     }
 
@@ -814,9 +832,9 @@
       max-width: min(88%, 720px);
       padding: 11px 12px 10px;
       border-radius: 22px 22px 22px 8px;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.05);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.14);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
     }
 
     .chat-bubble.me {
@@ -831,7 +849,7 @@
     }
 
     .chat-bubble.is-deleted {
-      background: rgba(255,255,255,0.045);
+      background: rgba(255, 255, 255, 0.045);
       border-style: dashed;
     }
 
@@ -854,8 +872,8 @@
       align-items: center;
       justify-content: center;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text-muted);
       cursor: pointer;
       transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
@@ -888,8 +906,8 @@
       border-radius: 18px;
       padding: 8px;
       background: linear-gradient(180deg, rgba(5, 8, 16, 0.95), rgba(13, 17, 28, 0.95));
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
     }
 
     .chat-attachment-image-overlay {
@@ -932,8 +950,8 @@
       color: inherit;
       text-decoration: none;
       border-radius: 13px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .chat-attachment-caption {
@@ -1050,7 +1068,7 @@
       margin-left: -2px;
     }
 
-    .chat-message-status .chat-status-double i + i {
+    .chat-message-status .chat-status-double i+i {
       margin-left: -3px;
     }
 
@@ -1059,8 +1077,8 @@
       flex-direction: column;
       gap: 6px;
       padding: 8px 10px 10px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-      background: rgba(0,0,0,0.12);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.12);
     }
 
     .chat-composer-card {
@@ -1070,7 +1088,7 @@
       padding: 8px;
       border-radius: 14px;
       border: 1px solid rgba(var(--primary-rgb), 0.13);
-      background: rgba(255,255,255,0.025);
+      background: rgba(255, 255, 255, 0.025);
     }
 
     .chat-composer-row {
@@ -1100,7 +1118,7 @@
       flex-shrink: 0;
       border-radius: 14px;
       border: 1px solid rgba(var(--primary-rgb), 0.24);
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--primary);
       cursor: pointer;
       font-size: 0.88rem;
@@ -1154,7 +1172,7 @@
       background: rgba(10, 12, 18, 0.92);
       padding: 4px;
       flex-shrink: 0;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .chat-attachment-preview-icon {
@@ -1165,7 +1183,7 @@
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--primary);
     }
 
@@ -1194,8 +1212,8 @@
       width: 34px;
       height: 34px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.18);
       color: var(--text-muted);
       cursor: pointer;
       flex-shrink: 0;
@@ -1272,7 +1290,7 @@
       resize: none;
       border-radius: 12px;
       border: 1px solid rgba(var(--primary-rgb), 0.18);
-      background: rgba(255,255,255,0.045);
+      background: rgba(255, 255, 255, 0.045);
       color: var(--text-main);
       padding: 9px 11px;
       outline: none;
@@ -1370,11 +1388,11 @@
       gap: 14px;
       padding: 18px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background:
         radial-gradient(circle at top, rgba(var(--primary-rgb), 0.16), transparent 58%),
         linear-gradient(180deg, rgba(10, 12, 18, 0.98), rgba(14, 18, 28, 0.98));
-      box-shadow: 0 24px 60px rgba(0,0,0,0.36);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
     }
 
     .chat-confirm-icon {
@@ -1417,8 +1435,8 @@
     .chat-confirm-btn {
       min-height: 42px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text-main);
       font: inherit;
       font-weight: 700;
@@ -1429,7 +1447,7 @@
     .chat-confirm-btn:hover {
       transform: translateY(-1px);
       border-color: rgba(var(--primary-rgb), 0.3);
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
     }
 
     .chat-confirm-btn.danger {
@@ -1470,11 +1488,11 @@
       gap: 12px;
       padding: 16px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background:
         radial-gradient(circle at top, rgba(var(--primary-rgb), 0.16), transparent 58%),
         linear-gradient(180deg, rgba(10, 12, 18, 0.98), rgba(14, 18, 28, 0.98));
-      box-shadow: 0 24px 60px rgba(0,0,0,0.36);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.36);
     }
 
     .chat-action-header {
@@ -1510,8 +1528,8 @@
       min-height: 46px;
       padding: 0 14px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text-main);
       text-align: left;
       font: inherit;
@@ -1523,7 +1541,7 @@
     .chat-action-btn:hover {
       transform: translateY(-1px);
       border-color: rgba(var(--primary-rgb), 0.28);
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
     }
 
     .chat-action-btn.danger {
@@ -1542,7 +1560,7 @@
       width: 100%;
       min-height: 42px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background: transparent;
       color: var(--text-muted);
       font: inherit;
@@ -1597,7 +1615,7 @@
       justify-content: space-between;
       gap: 12px;
       padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(0,0,0,0.68), rgba(0,0,0,0));
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0));
     }
 
     .chat-image-viewer-title {
@@ -1631,8 +1649,8 @@
       width: 40px;
       height: 40px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
       color: #fff;
       cursor: pointer;
     }
@@ -1874,6 +1892,7 @@
         opacity: 0;
         transform: translateY(30px) scale(0.9);
       }
+
       to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -1900,7 +1919,10 @@
     .user-card.has-aura .user-banner::after {
       content: '';
       position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: var(--primary);
       opacity: 0.25;
       mix-blend-mode: screen;
@@ -1908,8 +1930,15 @@
     }
 
     @keyframes auraPulse {
-      0%, 100% { opacity: 0.15; }
-      50% { opacity: 0.4; }
+
+      0%,
+      100% {
+        opacity: 0.15;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
     }
 
     .user-card.has-aura {
@@ -2159,8 +2188,13 @@
     }
 
     @keyframes shimmerEffect {
-      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+      0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+      }
     }
 
     .modal-banner {
@@ -2200,7 +2234,7 @@
       border-radius: 50%;
       object-fit: cover;
       border: 6px solid var(--bg-card);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
       background: var(--bg-card);
     }
 
@@ -2244,7 +2278,7 @@
       cursor: pointer;
       z-index: 10;
       transition: transform 0.3s;
-      text-shadow: 0 0 10px rgba(0,0,0,0.5);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     .modal-close:hover {
@@ -2310,26 +2344,32 @@
       opacity: 0.85;
       transition: all 0.2s;
     }
+
     .chat-messages.selection-mode .chat-bubble:hover {
       opacity: 1;
       transform: scale(0.98);
     }
+
     .chat-messages.selection-mode .chat-bubble.selected {
       opacity: 1;
       outline: 2px solid var(--primary);
       box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.5);
     }
+
     .chat-messages.selection-mode .chat-message-action-wrap {
       display: none !important;
     }
+
     .chat-selection-tools:not(.hidden) {
       display: flex !important;
     }
+
     .hidden {
       display: none !important;
     }
   </style>
 </head>
+
 <body>
   <!-- Navbar -->
   <nav class="navbar">
@@ -2362,10 +2402,10 @@
           <span id="socialUnreadBadge" class="social-unread-pill social-badge-floating" style="display:none;">0</span>
         </button>
       </div>
-      
+
       <h1>Nossa Comunidade</h1>
       <p>Conecte-se com outros maratonistas, compartilhe sua jornada e suba no ranking da nossa tribo!</p>
-      
+
       <div class="community-stats-bar">
         <div class="stat-item">
           <span class="value" id="totalMembers">--</span>
@@ -2383,7 +2423,7 @@
         <i class="fas fa-search"></i>
         <input type="text" id="userSearch" placeholder="Pesquisar maratonistas por nome de usuário...">
       </div>
-      
+
       <div class="community-filter">
         <select id="userSort">
           <option value="recent">Mais Recentes</option>
@@ -2427,27 +2467,30 @@
   <!-- Social Sidebar UI -->
   <div class="social-sidebar-overlay" id="socialOverlay"></div>
   <div class="social-sidebar" id="socialSidebar">
-      <div class="social-header" style="padding-bottom: 12px; gap: 10px;">
-        <div class="social-header-top">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <h2 style="margin: 0; display: flex; align-items: center;">Conexões</h2>
-            <div class="social-header-status" id="socialHeaderPresence" style="margin: 0; font-size: 0.65rem; padding: 4px 8px;">
-              <i class="fas fa-signal"></i>
-              <span>Comunidade ativa</span>
-            </div>
+    <div class="social-header" style="padding-bottom: 12px; gap: 10px;">
+      <div class="social-header-top">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h2 style="margin: 0; display: flex; align-items: center;">Conexões</h2>
+          <div class="social-header-status" id="socialHeaderPresence"
+            style="margin: 0; font-size: 0.65rem; padding: 4px 8px;">
+            <i class="fas fa-signal"></i>
+            <span>Comunidade ativa</span>
           </div>
-          <button class="social-close-btn" id="closeSocial">✕</button>
         </div>
-        <div class="social-tabs">
-          <button id="followersTabBtn" class="social-tab active" type="button">Seguidores</button>
-          <button id="chatTabBtn" class="social-tab" type="button" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-            Chat
-            <span id="socialHeaderUnreadBadge" class="social-unread-pill" style="display:none; min-width: 16px; height: 16px; font-size: 0.65rem; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center;">0</span>
-          </button>
-        </div>
+        <button class="social-close-btn" id="closeSocial">✕</button>
       </div>
-      
-      <div class="social-content">
+      <div class="social-tabs">
+        <button id="followersTabBtn" class="social-tab active" type="button">Seguidores</button>
+        <button id="chatTabBtn" class="social-tab" type="button"
+          style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          Chat
+          <span id="socialHeaderUnreadBadge" class="social-unread-pill"
+            style="display:none; min-width: 16px; height: 16px; font-size: 0.65rem; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center;">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="social-content">
       <div id="followersPanel" class="social-section social-panel active">
         <h3 class="social-section-title"><i class="fas fa-users"></i> Seguidores</h3>
         <div id="myFollowersList">
@@ -2471,25 +2514,29 @@
           </div>
           <div class="chat-shell">
             <div id="chatEmptyState" class="social-empty chat-empty">
-              <i class="fas fa-paper-plane" style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>
+              <i class="fas fa-paper-plane"
+                style="display:block; font-size: 1.4rem; margin-bottom: 10px; opacity: 0.55;"></i>
               Abra uma conversa por um seguidor ou pelo perfil de outro usuário.
             </div>
 
             <div id="chatThread" class="chat-thread chat-thread-shell hidden">
               <div class="chat-thread-header">
                 <div class="chat-thread-user">
-                  <img id="chatHeaderAvatar" class="chat-thread-avatar" src="assets/tryhard.png" alt="Avatar da conversa">
+                  <img id="chatHeaderAvatar" class="chat-thread-avatar" src="assets/tryhard.png"
+                    alt="Avatar da conversa">
                   <div>
                     <strong id="chatHeaderName">Maratonista</strong>
                     <span id="chatHeaderStatus" class="chat-thread-status">Offline</span>
                   </div>
                 </div>
-                
+
                 <div class="chat-header-actions" style="display:flex; align-items:center;">
                   <!-- Ferramentas de Seleção (WhatsApp Style) -->
                   <div id="chatSelectionTools" class="chat-selection-tools hidden" style="align-items:center; gap:8px;">
-                    <span id="chatSelectionCount" style="font-size:0.8rem; color:var(--text-muted); margin-right: 4px;">0 selecionadas</span>
-                    <button id="chatDeleteSelectedBtn" class="social-icon-btn danger" type="button" title="Apagar selecionadas">
+                    <span id="chatSelectionCount"
+                      style="font-size:0.8rem; color:var(--text-muted); margin-right: 4px;">0 selecionadas</span>
+                    <button id="chatDeleteSelectedBtn" class="social-icon-btn danger" type="button"
+                      title="Apagar selecionadas">
                       <i class="fas fa-trash-can"></i>
                     </button>
                     <button id="chatCancelSelectionBtn" class="social-icon-btn" type="button" title="Cancelar seleção">
@@ -2498,11 +2545,14 @@
                   </div>
 
                   <!-- Ferramentas Padrão -->
-                  <div id="chatDefaultTools" class="chat-default-tools" style="display:flex; align-items:center; gap:4px;">
-                    <button id="chatToggleSelectionBtn" class="social-icon-btn" type="button" title="Selecionar mensagens">
+                  <div id="chatDefaultTools" class="chat-default-tools"
+                    style="display:flex; align-items:center; gap:4px;">
+                    <button id="chatToggleSelectionBtn" class="social-icon-btn" type="button"
+                      title="Selecionar mensagens">
                       <i class="fas fa-list-check"></i>
                     </button>
-                    <button id="chatDeleteChatBtn" class="social-icon-btn danger" type="button" title="Apagar conversa inteira">
+                    <button id="chatDeleteChatBtn" class="social-icon-btn danger" type="button"
+                      title="Apagar conversa inteira">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                     <button id="chatOpenProfileBtn" class="social-icon-btn" type="button" title="Abrir perfil">
@@ -2518,21 +2568,27 @@
                 <input id="chatAttachmentInput" type="file" hidden>
                 <div class="chat-composer-card">
                   <div class="chat-composer-row">
-                    <button id="chatAttachmentBtn" class="chat-attach-btn" type="button" title="Adicionar foto ou arquivo">
+                    <button id="chatAttachmentBtn" class="chat-attach-btn" type="button"
+                      title="Adicionar foto ou arquivo">
                       <i class="fas fa-paperclip"></i>
                       <span>Foto ou arquivo</span>
                     </button>
-                    <span class="chat-composer-tip">Clique em Enviar ou pressione Enter. Shift+Enter quebra linha.</span>
+                    <span class="chat-composer-tip">Clique em Enviar ou pressione Enter. Shift+Enter quebra
+                      linha.</span>
                   </div>
-                  <textarea id="chatInput" class="chat-input" maxlength="600" placeholder="Digite sua mensagem ou envie uma foto..."></textarea>
-                  
-                  <div class="chat-composer-meta" style="background: transparent; border: none; padding: 4px 2px 0; margin: 0; align-items: center;">
+                  <textarea id="chatInput" class="chat-input" maxlength="600"
+                    placeholder="Digite sua mensagem ou envie uma foto..."></textarea>
+
+                  <div class="chat-composer-meta"
+                    style="background: transparent; border: none; padding: 4px 2px 0; margin: 0; align-items: center;">
                     <span id="chatDraftLabel" class="chat-draft-label">Seu rascunho fica salvo enquanto navega.</span>
-                    <button id="chatCancelEditBtn" class="chat-edit-cancel-btn" type="button" hidden>Cancelar edição</button>
-                    
+                    <button id="chatCancelEditBtn" class="chat-edit-cancel-btn" type="button" hidden>Cancelar
+                      edição</button>
+
                     <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
                       <span id="chatCharCounter" class="chat-char-counter" style="margin: 0;">0/600</span>
-                      <button id="chatSendBtn" class="chat-send-btn" type="submit" title="Enviar com o mouse" style="min-width: auto; min-height: 32px; padding: 0 16px; border-radius: 8px;">
+                      <button id="chatSendBtn" class="chat-send-btn" type="submit" title="Enviar com o mouse"
+                        style="min-width: auto; min-height: 32px; padding: 0 16px; border-radius: 8px;">
                         <i class="fas fa-paper-plane"></i>
                         <span id="chatSendBtnLabel">Enviar</span>
                       </button>
@@ -2553,8 +2609,10 @@
       <div class="chat-image-viewer-topbar">
         <span id="chatImageViewerTitle" class="chat-image-viewer-title">Foto completa</span>
         <div class="chat-image-viewer-actions">
-          <a id="chatImageViewerOpen" class="chat-image-viewer-open" href="#" target="_blank" rel="noopener noreferrer">Abrir em nova aba</a>
-          <button id="chatImageViewerClose" class="chat-image-viewer-close" type="button" aria-label="Fechar visualizacao">
+          <a id="chatImageViewerOpen" class="chat-image-viewer-open" href="#" target="_blank"
+            rel="noopener noreferrer">Abrir em nova aba</a>
+          <button id="chatImageViewerClose" class="chat-image-viewer-close" type="button"
+            aria-label="Fechar visualizacao">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -2566,7 +2624,8 @@
   </div>
 
   <div id="chatDeleteConfirmModal" class="chat-confirm-modal" aria-hidden="true">
-    <div class="chat-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="chatDeleteConfirmTitle" aria-describedby="chatDeleteConfirmText">
+    <div class="chat-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="chatDeleteConfirmTitle"
+      aria-describedby="chatDeleteConfirmText">
       <span class="chat-confirm-icon">
         <i class="fas fa-trash-alt"></i>
       </span>
@@ -2582,7 +2641,8 @@
   </div>
 
   <div id="chatActionModal" class="chat-action-modal" aria-hidden="true">
-    <div class="chat-action-dialog" role="dialog" aria-modal="true" aria-labelledby="chatActionTitle" aria-describedby="chatActionText">
+    <div class="chat-action-dialog" role="dialog" aria-modal="true" aria-labelledby="chatActionTitle"
+      aria-describedby="chatActionText">
       <div class="chat-action-header">
         <h4 id="chatActionTitle">Acoes da mensagem</h4>
         <p id="chatActionText">Escolha o que deseja fazer com esta mensagem.</p>
@@ -2594,4 +2654,5 @@
 
   <div id="toast"></div>
 </body>
+
 </html>
