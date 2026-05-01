@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Loja</title>
+    <style>
+        body { background: #0a0a0f; color: white; font-family: sans-serif; padding: 20px; }
+        #result { padding: 20px; background: #1a1a2e; border-radius: 8px; margin: 10px 0; }
+        .ok { color: #22c55e; } .err { color: #ef4444; } .warn { color: #f59e0b; }
+        .card { border: 1px solid #333; border-radius: 8px; padding: 10px; margin: 5px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <h2>🧪 Teste de Diagnóstico da Loja</h2>
+    <div id="result">Carregando...</div>
+    <div id="catalog" style="margin-top:20px;"></div>
+
+    <!-- Mesma ordem de scripts que loja.html -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        const result = document.getElementById('result');
+        const catalog = document.getElementById('catalog');
+        const log = (msg, type='') => {
+            result.innerHTML += `<div class="${type}">• ${msg}</div>`;
+        };
+
+        result.innerHTML = '';
+
+        // Teste 1: ALL_ITEMS do db.js
+        if (typeof ALL_ITEMS !== 'undefined') {
+            log(`✅ ALL_ITEMS carregado: ${ALL_ITEMS.length} itens`, 'ok');
+        } else {
+            log('❌ ALL_ITEMS NÃO definido — db.js falhou!', 'err');
+        }
+
+        // Teste 2: CATALOG_ITEMS local
+        const CATALOG_ITEMS = [
+            { id: "banner_claro", name: "Banner Aurora", icon: "🌅", currency: "ouro", price: 3 },
+            { id: "aura_chama", name: "Aura Chama", icon: "🔥", currency: "ouro", price: 8 },
+            { id: "coroa_lendaria", name: "Coroa Rei", icon: "👑", currency: "esmeralda", price: 3 },
+        ];
+        log(`✅ CATALOG_ITEMS local: ${CATALOG_ITEMS.length} itens de teste`, 'ok');
+
+        // Teste 3: supabaseClient
+        if (window.supabaseClient) {
+            log('✅ window.supabaseClient disponível', 'ok');
+        } else {
+            log('⚠️ window.supabaseClient ainda não disponível (auth.js pode estar inicializando)', 'warn');
+        }
+
+        // Teste 4: DB
+        if (window.DB) {
+            log('✅ window.DB disponível', 'ok');
+        } else {
+            log('❌ window.DB não disponível', 'err');
+        }
+
+        // Teste 5: DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', () => {
+            log('✅ DOMContentLoaded disparou', 'ok');
+        });
+
+        // Teste 6: readyState
+        log(`ℹ️ document.readyState = "${document.readyState}"`, '');
+
+        // Renderizar catálogo de teste
+        catalog.innerHTML = '<h3>📦 Catálogo de Teste (deve aparecer 3 cards abaixo):</h3>';
+        CATALOG_ITEMS.forEach(item => {
+            catalog.innerHTML += `<div class="card">${item.icon} ${item.name} — ${item.currency} ${item.price}</div>`;
+        });
+        log('✅ Renderização direta funcionou!', 'ok');
+
+        // Teste async após 2s
+        setTimeout(async () => {
+            let attempts = 0;
+            while (!window.supabaseClient && attempts < 20) {
+                await new Promise(r => setTimeout(r, 100));
+                attempts++;
+            }
+            if (window.supabaseClient) {
+                log('✅ supabaseClient disponível após espera', 'ok');
+                try {
+                    const { data: { user } } = await window.supabaseClient.auth.getUser();
+                    log(user ? `✅ Usuário logado: ${user.email}` : '⚠️ Sem usuário logado (anônimo)', user ? 'ok' : 'warn');
+                } catch(e) {
+                    log(`❌ Erro ao obter usuário: ${e.message}`, 'err');
+                }
+            } else {
+                log('❌ supabaseClient NUNCA ficou disponível — CDN falhou ou auth.js tem erro', 'err');
+            }
+        }, 500);
+    </script>
+</body>
+</html>

@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let sidebarRenderQueued = false;
   let isChatSelectionMode = false;
   let selectedChatMessages = new Set();
+  let pendingChatScrollToMessageId = null;
 
   document.body.classList.add('community-performance');
   restoreSidebarState();
@@ -215,6 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (conversationSearch) {
+      conversationSearch.value = '';
       conversationSearch.addEventListener('input', renderConversationList);
     }
 
@@ -1035,6 +1037,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   }
 
+  function formatMessageDateDivider(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const isToday = date.getDate() === today.getDate() && 
+                    date.getMonth() === today.getMonth() && 
+                    date.getFullYear() === today.getFullYear();
+                    
+    const isYesterday = date.getDate() === yesterday.getDate() && 
+                        date.getMonth() === yesterday.getMonth() && 
+                        date.getFullYear() === yesterday.getFullYear();
+                        
+    if (isToday) return 'Hoje';
+    if (isYesterday) return 'Ontem';
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
   function buildConversationSummaries() {
     const map = new Map();
 
@@ -1121,7 +1144,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           matchPreview: '',
           matchScore: 0,
           matchTime: 0,
-          fullMatch: false
+          fullMatch: false,
+          matchMessageId: null
         };
 
         if (normalizedText) {
@@ -1143,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               existing.matchScore = matchScore;
               existing.matchTime = Number.isFinite(messageTime) ? messageTime : 0;
               existing.fullMatch = matchScore === searchTokens.length;
+              existing.matchMessageId = message.id;
             }
           }
         }
@@ -1870,7 +1895,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (openBtn) {
         openBtn.addEventListener('click', () => {
-          window.openChatWithUser(summary.otherUserId);
+          const matchMessageId = hasSearchPreview && searchEntry ? searchEntry.matchMessageId : null;
+          window.openChatWithUser(summary.otherUserId, matchMessageId);
         });
       }
 
@@ -1965,7 +1991,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (messages.length === 0) {
       chatMessages.innerHTML = '<div class="social-empty" style="padding: 24px 12px;">Conversa iniciada. Envie a primeira mensagem.</div>';
     } else {
+      let lastDateLabel = null;
+
       messages.forEach((message) => {
+        const currentDateLabel = formatMessageDateDivider(message.created_at);
+        if (currentDateLabel && currentDateLabel !== lastDateLabel) {
+          const divider = document.createElement('div');
+          divider.className = 'chat-date-divider';
+          divider.innerHTML = `<span>${currentDateLabel}</span>`;
+          chatMessages.appendChild(divider);
+          lastDateLabel = currentDateLabel;
+        }
+
         const bubble = document.createElement('div');
         const isMine = message.sender_id === currentUser.id;
         const hasAttachment = !!message.attachment_url;
@@ -1989,7 +2026,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (shouldForceBottom || shouldAutoStickBottom) {
+    if (pendingChatScrollToMessageId) {
+      const targetBubble = chatMessages.querySelector(`[data-message-id="${pendingChatScrollToMessageId}"]`);
+      if (targetBubble) {
+        targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetBubble.style.transition = 'background-color 0.5s ease';
+        targetBubble.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
+        setTimeout(() => targetBubble.style.backgroundColor = '', 1500);
+      } else {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      pendingChatScrollToMessageId = null;
+    } else if (shouldForceBottom || shouldAutoStickBottom) {
       chatMessages.scrollTop = chatMessages.scrollHeight;
     } else {
       const maxScrollTop = Math.max(chatMessages.scrollHeight - chatMessages.clientHeight, 0);
@@ -2560,7 +2608,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  window.openChatWithUser = async function(userId) {
+  window.openChatWithUser = async function(userId, targetMessageId = null) {
     if (!currentUser) {
       showNotice('Você precisa estar logado para conversar.');
       window.location.href = 'login.html';
@@ -2584,6 +2632,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     activeChatUserId = userId;
+    if (targetMessageId) pendingChatScrollToMessageId = targetMessageId;
     selectSidebarTab('chat');
     persistSidebarState();
     if (profileModal) profileModal.classList.remove('active');

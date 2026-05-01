@@ -494,7 +494,7 @@
             const STORE_KEY = "animehouse_store";
 
             // Lista completa de base para recuperar dados dos itens pelo ID
-            const ALL_ITEMS = [
+            const CATALOG_ITEMS = [
                 {
                     id: "banner_claro",
                     name: "Banner Aurora Simples",
@@ -791,7 +791,7 @@
                 const grid = document.getElementById("inventoryGrid");
 
                 store.purchased.forEach((itemId) => {
-                    const item = ALL_ITEMS.find((i) => i.id === itemId);
+                    const item = CATALOG_ITEMS.find((i) => i.id === itemId);
                     if (!item) return;
 
                     // Verificar se está equipado usando chaves ISOLADAS
@@ -853,7 +853,7 @@
             let itemToSell = null;
 
             window.sellItem = function (id) {
-                const item = ALL_ITEMS.find((i) => i.id === id);
+                const item = CATALOG_ITEMS.find((i) => i.id === id);
                 if (!item) return;
 
                 itemToSell = item;
@@ -918,16 +918,6 @@
                             if (store.equipped[id]) delete store.equipped[id];
                         }
 
-                        if (window.DB && window.DB.saveStoreData) {
-                            await window.DB.saveStoreData(store);
-                        } else {
-                            localStorage.setItem(
-                                STORE_KEY,
-                                JSON.stringify(store),
-                            );
-                        }
-
-                        // Fallback desequipar individual (compatibilidadeLegado) usando chaves isoladas
                         let userId = null;
                         try {
                             if (window.supabaseClient) {
@@ -935,6 +925,17 @@
                                 userId = user?.id;
                             }
                         } catch (e) {}
+                        
+                        if (window.DB && window.DB.saveStoreData) {
+                            await window.DB.saveStoreData(store);
+                        } else {
+                            localStorage.setItem(
+                                userId ? `animehouse_store_${userId}` : STORE_KEY,
+                                JSON.stringify(store),
+                            );
+                        }
+
+                        // Fallback desequipar individual (compatibilidadeLegado) usando chaves isoladas
                         const userKey = (base) => userId ? `${base}_${userId}` : base;
 
                         if (localStorage.getItem(userKey("animehouse_customAura")) === id)
@@ -1045,7 +1046,7 @@
                     } else if (type === "exclusivo" && id.includes("coroa")) {
                         localStorage.setItem(userKey("animehouse_showCrown"), "true");
                         localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
-                        const item = ALL_ITEMS.find((i) => i.id === id);
+                        const item = CATALOG_ITEMS.find((i) => i.id === id);
                         localStorage.setItem(userKey("animehouse_equippedCrownIcon"), item?.icon || "👑");
                         store.equipped.crown = true;
                         store.equipped.crownId = id;
@@ -1061,7 +1062,7 @@
                 if (window.DB && window.DB.saveStoreData) {
                     window.DB.saveStoreData(store).catch(console.error);
                 } else {
-                    localStorage.setItem(STORE_KEY, JSON.stringify(store));
+                    localStorage.setItem(userId ? `animehouse_store_${userId}` : STORE_KEY, JSON.stringify(store));
                 }
 
                 // 🎨 Atualização VISUAL EM TEMPO REAL (sem renderInventory completo)
@@ -1122,9 +1123,12 @@
                 if (window.DB && window.DB.init) {
                     await window.DB.init();
                     if (window.DB._store.profile?.store_data) {
+                        const storeData = window.DB._store.profile.store_data;
+                        const userId = storeData._userId;
+                        const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
                         localStorage.setItem(
-                            STORE_KEY,
-                            JSON.stringify(window.DB._store.profile.store_data),
+                            key,
+                            JSON.stringify(storeData),
                         );
                     }
                 }

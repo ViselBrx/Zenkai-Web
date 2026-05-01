@@ -827,6 +827,28 @@
         linear-gradient(180deg, rgba(8, 9, 14, 0.76), rgba(8, 9, 14, 0.92));
     }
 
+    .chat-date-divider {
+      text-align: center;
+      margin: 12px 0 6px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .chat-date-divider span {
+      background: rgba(var(--primary-rgb), 0.15);
+      border: 1px solid rgba(var(--primary-rgb), 0.25);
+      color: var(--text-main);
+      padding: 4px 14px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: inline-block;
+    }
+
     .chat-bubble {
       position: relative;
       align-self: flex-start;
