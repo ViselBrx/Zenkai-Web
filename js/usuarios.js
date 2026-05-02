@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('presence_updated', () => {
       scheduleSidebarRender('preserve');
       if (typeof updateTypingUI === 'function') updateTypingUI();
-      if (typeof applyFilters === 'function') applyFilters();
       
       const onlineNowEl = document.getElementById('onlineNow');
       if (onlineNowEl && typeof getOnlineCount === 'function') onlineNowEl.textContent = getOnlineCount();
@@ -151,6 +150,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (socialHeaderPresenceEl && typeof getOnlineCount === 'function') {
         socialHeaderPresenceEl.innerHTML = `<i class="fas fa-signal"></i><span>${getOnlineCount()} online agora</span>`;
       }
+
+      // Atualiza diretamente as bolinhas de status na grade sem recarregar tudo
+      document.querySelectorAll('.user-card').forEach(card => {
+        const uid = card.getAttribute('data-id');
+        const dot = card.querySelector('.status-dot-indicator');
+        if (uid && dot) {
+          const u = allUsers.find(x => x.id === uid);
+          const isOnline = isUserOnline(u || { id: uid });
+          dot.className = `status-dot-indicator ${isOnline ? 'online' : 'offline'}`;
+          dot.title = isOnline ? 'Online' : 'Offline';
+        }
+      });
       
       if (profileModal?.classList.contains('active') && window.currentModalUserId) {
         if (typeof window.openProfileModal === 'function') window.openProfileModal(window.currentModalUserId);
@@ -472,6 +483,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
           upsertDirectMessage(payload.new);
+        }
+
+        // Se a mensagem pertence ao chat aberto, atualiza a tela de mensagens
+        const isCurrentChatUpdate = activeChatUserId && 
+          (candidate.sender_id === activeChatUserId || candidate.recipient_id === activeChatUserId);
+        
+        if (isCurrentChatUpdate && typeof renderActiveChat === 'function') {
+          renderActiveChat();
         }
 
         scheduleSidebarRender(payload.eventType === 'INSERT' ? 'auto' : 'preserve');
@@ -1036,10 +1055,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function isUserOnline(user) {
-    if (window.onlineUsersSet) {
-      return window.onlineUsersSet.has(user.id);
-    }
-    const lastSeen = user?.last_seen ? new Date(user.last_seen) : null;
+    if (!user) return false;
+    // 1. Prioridade: Presence Channel (Tempo Real)
+    if (window.onlineUsersSet && window.onlineUsersSet.has(user.id)) return true;
+    
+    // 2. Fallback: Atividade recente no banco (para evitar oscilação se a rede cair por 1s)
+    const lastSeen = user.last_seen ? new Date(user.last_seen) : null;
     return !!(lastSeen && (Date.now() - lastSeen.getTime()) < ONLINE_WINDOW_MS);
   }
 

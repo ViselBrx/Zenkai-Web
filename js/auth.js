@@ -1119,6 +1119,32 @@ window.startPresenceHeartbeat = async function() {
       });
       
     window.globalPresenceChannel = globalPresenceChannel;
+
+    // 🚚 Marcar mensagens pendentes como entregues (Funciona em todas as páginas)
+    const markAsDelivered = async () => {
+      try {
+        await supaClient
+          .from('direct_messages')
+          .update({ delivered_at: new Date().toISOString() })
+          .eq('recipient_id', session.user.id)
+          .is('delivered_at', null);
+      } catch (err) {}
+    };
+    
+    // Executa ao carregar qualquer página
+    markAsDelivered();
+    
+    // Escuta novas mensagens para marcar como entregue em tempo real (mesmo fora da aba de chat)
+    supaClient
+      .channel('delivery-tracker')
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'direct_messages', 
+        filter: `recipient_id=eq.${session.user.id}` 
+      }, () => markAsDelivered())
+      .subscribe();
+
   } catch (e) {
     console.error("Erro no heartbeat de presença:", e);
   }

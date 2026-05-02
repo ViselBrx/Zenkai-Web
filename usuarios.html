@@ -1073,8 +1073,9 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      color: var(--text-muted);
-      font-size: 0.7rem;
+      color: #7f8c8d; /* Enviado: Cinza Padrão (1 check) */
+      font-size: 0.65rem;
+      transition: all 0.3s ease;
     }
 
     .chat-message-status.delivered,
@@ -1082,8 +1083,15 @@
       gap: 2px;
     }
 
+    /* Mensagem Lida: Verde WhatsApp/Online (2 checks verdes) */
     .chat-message-status.seen {
-      color: #4fc3ff;
+      color: #2ecc71;
+      filter: drop-shadow(0 0 3px rgba(46, 204, 113, 0.5));
+    }
+
+    /* Mensagem Entregue: Cinza bem discreto/apagado (2 checks cinzas) */
+    .chat-message-status.delivered {
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .chat-message-status .chat-status-double {
@@ -1092,7 +1100,7 @@
     }
 
     .chat-message-status .chat-status-double i+i {
-      margin-left: -3px;
+      margin-left: -5px;
     }
 
     .chat-composer {
