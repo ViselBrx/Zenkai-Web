@@ -255,6 +255,9 @@ const _DEFAULT = {
     mangas: [],
     mangaVolumes: {},
     mangaNotes: {},
+    hqs: [],
+    hqEditions: {},
+    hqNotes: {},
     filmes: [],
     youtube_playlists: [],
     youtube_videos: {},
@@ -437,6 +440,9 @@ const USER_CATALOG_TABLES = [
     'mangas',
     'manga_volumes',
     'manga_notes',
+    'hqs',
+    'hq_editions',
+    'hq_notes',
     'filmes',
     'youtube_playlists',
     'youtube_videos'
@@ -544,10 +550,23 @@ const DB = {
           ? supa.from('anime_movies').select('*').or(ownerFilter)
           : supa.from('anime_movies').select('*').eq('user_id', userId);
 
+        const hqQuery = isMainAccount
+          ? supa.from('hqs').select('*').or(ownerFilter).order('created_at', { ascending: true })
+          : supa.from('hqs').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+
+        const hqEditionsQuery = isMainAccount
+          ? supa.from('hq_editions').select('*').or(ownerFilter).order('edition_number', { ascending: true })
+          : supa.from('hq_editions').select('*').eq('user_id', userId).order('edition_number', { ascending: true });
+
+        const hqNotesQuery = isMainAccount
+          ? supa.from('hq_notes').select('*').or(ownerFilter)
+          : supa.from('hq_notes').select('*').eq('user_id', userId);
+
         const [
             cartoons, episodes, movies,
             animes, animeEps, mangas, mangaVols,
-            mangaNotes, filmesData, ytPlaylists, ytVideos, animeMovies, settings
+            mangaNotes, filmesData, ytPlaylists, ytVideos, animeMovies,
+            hqs, hqEditions, hqNotes, settings
         ] = await Promise.all([
             safeFetch(cartoonQuery, 'Cartoons'),
             safeFetch(episodesQuery, 'Episodes'),
@@ -561,6 +580,9 @@ const DB = {
             safeFetch(youtubePlaylistsQuery, 'YoutubePlaylists'),
             safeFetch(youtubeVideosQuery, 'YoutubeVideos'),
             safeFetch(animeMoviesQuery, 'AnimeMovies'),
+            safeFetch(hqQuery, 'HQs'),
+            safeFetch(hqEditionsQuery, 'HQEditions'),
+            safeFetch(hqNotesQuery, 'HQNotes'),
             safeFetch(supa.from('settings').select('*'), 'Settings')
         ]);
 
@@ -688,6 +710,7 @@ const DB = {
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
+        _store.hqs = (hqs || []).map(h => ({...h, createdAt: h.created_at}));
         _store.filmes = (filmesData || []).map(f => ({...f, createdAt: f.created_at}));
         _store.youtube_playlists = (ytPlaylists || []).map(p => ({...p, createdAt: p.created_at}));
         // Settings
@@ -1309,6 +1332,130 @@ const DB = {
       return _store.mangaNotes[volumeId];
   },
   
+  /* HQs (Histórias em Quadrinhos) */
+  getHQs() { return [..._store.hqs]; },
+  getHQById(id) { return _store.hqs.find(h => h.id === id) || null; },
+  async addHQ(data) {
+    const userId = await getRequiredUserId();
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    const item = { id: 'hq_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const { error } = await getSupa().from('hqs').insert([item]);
+    if (error) throw new Error(error.message);
+    _store.hqs.push({...item, createdAt: item.created_at});
+    return item;
+  },
+  async updateHQ(id, data) {
+    await checkItemOwnership(id, 'hqs');
+    if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
+    delete data.capaBase64;
+    const { error } = await getSupa().from('hqs').update(data).eq('id', id);
+    if (error) throw new Error(error.message);
+    _store.hqs = _store.hqs.map(h => h.id === id ? { ...h, ...data } : h);
+  },
+  async deleteHQ(id) {
+    await checkItemOwnership(id, 'hqs');
+    const { error } = await getSupa().from('hqs').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    clearWatchedItems((_store.hqEditions[id] || []).map(v => v.id));
+    _store.hqs = _store.hqs.filter(h => h.id !== id);
+    delete _store.hqEditions[id];
+  },
+
+  /* HQ Editions */
+  getHQEditionsFor(hqId) { return _store.hqEditions[hqId] || []; },
+  async addHQEdition(hqId, file, urlExterna, editionData) {
+    const userId = await getRequiredUserId();
+    let pdfUrl = '';
+    if (file) {
+        pdfUrl = await DB.uploadHQPdf(file);
+    } else if (urlExterna) {
+        pdfUrl = urlExterna;
+    }
+    const item = {
+        id: 'hqe_' + Date.now(),
+        hq_id: hqId,
+        edition_number: editionData.edition,
+        title: editionData.title || '',
+        pdf_url: pdfUrl,
+        created_at: Date.now(),
+        user_id: userId
+    };
+    const { error } = await getSupa().from('hq_editions').insert([item]);
+    if (error) throw new Error(error.message);
+    if (!_store.hqEditions[hqId]) _store.hqEditions[hqId] = [];
+    _store.hqEditions[hqId].push({
+        id: item.id, edition_number: item.edition_number, title: item.title, pdf_url: item.pdf_url
+    });
+    _store.hqEditions[hqId].sort((a, b) => a.edition_number - b.edition_number);
+    return item;
+  },
+  async deleteHQEdition(hqId, edId) {
+    await checkItemOwnership(edId, 'hq_editions');
+    const { error } = await getSupa().from('hq_editions').delete().eq('id', edId);
+    if (error) throw new Error(error.message);
+    clearWatchedItems([edId]);
+    if (_store.hqEditions[hqId]) {
+        _store.hqEditions[hqId] = _store.hqEditions[hqId].filter(v => v.id !== edId);
+    }
+  },
+  async updateHQEdition(hqId, edId, file, urlExterna, editionData) {
+    await checkItemOwnership(edId, 'hq_editions');
+    let pdfUrl = '';
+    if (file) {
+        pdfUrl = await DB.uploadHQPdf(file);
+    } else if (urlExterna) {
+        pdfUrl = urlExterna;
+    }
+    const updatePayload = {
+        edition_number: editionData.edition,
+        title: editionData.title || ''
+    };
+    if (pdfUrl) updatePayload.pdf_url = pdfUrl;
+    const { error } = await getSupa().from('hq_editions').update(updatePayload).eq('id', edId);
+    if (error) throw new Error(error.message);
+    if (_store.hqEditions[hqId]) {
+        _store.hqEditions[hqId] = _store.hqEditions[hqId].map(v =>
+            v.id === edId ? { ...v, ...updatePayload } : v
+        );
+        _store.hqEditions[hqId].sort((a, b) => a.edition_number - b.edition_number);
+    }
+  },
+
+  /* HQ Notes & Bookmarks */
+  getHQNote(editionId) { return _store.hqNotes[editionId] || null; },
+  async saveHQNote(hqId, editionId, noteText, pageBookmark) {
+    const userId = await getRequiredUserId();
+    const existing = _store.hqNotes[editionId];
+    const payload = {
+        hq_id: hqId,
+        edition_id: editionId,
+        note_text: noteText || '',
+        page_bookmark: pageBookmark ? parseInt(pageBookmark) : null,
+        user_id: userId,
+        updated_at: Date.now()
+    };
+    let id = existing ? existing.id : 'hqn_' + Date.now();
+    if (!existing) payload.id = id;
+    const { error } = await getSupa().from('hq_notes').upsert([{ id, ...payload }]);
+    if (error) throw new Error(error.message);
+    _store.hqNotes[editionId] = { id, ...payload };
+    return _store.hqNotes[editionId];
+  },
+
+  /* Upload de PDF para HQs */
+  async uploadHQPdf(file) {
+    const supa = getSupa();
+    const ext = file.name.split('.').pop() || 'pdf';
+    const filename = `hq_ed_${Date.now()}.${ext}`;
+    const { data, error } = await supa.storage
+        .from('hqs_pdfs')
+        .upload(filename, file, { contentType: file.type || 'application/pdf', upsert: false });
+    if (error) throw new Error('Falha no upload do PDF: ' + error.message);
+    const { data: { publicUrl } } = supa.storage.from('hqs_pdfs').getPublicUrl(filename);
+    return publicUrl;
+  },
+
   /* Filmes */
   getFilmes() { return [..._store.filmes]; },
   getFilmeById(id) { return _store.filmes.find(f => f.id === id) || null; },

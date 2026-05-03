@@ -2178,6 +2178,23 @@
                       ></div>
                     </div>
                   </div>
+                  <!-- HQs -->
+                  <div class="analysis-item">
+                    <div class="analysis-label">
+                      <span style="color: var(--secondary, #3b82f6)">🗯️ HQs</span>
+                      <span id="hqLabel">0/0</span>
+                    </div>
+                    <div
+                      class="analysis-bar-bg"
+                      style="background: rgba(59, 130, 246, 0.1);"
+                    >
+                      <div
+                        class="analysis-bar-fill"
+                        id="hqBar"
+                        style="background: #3b82f6; box-shadow: 0 0 10px #3b82f6;"
+                      ></div>
+                    </div>
+                  </div>
                   <!-- Filmes -->
                   <div class="analysis-item">
                     <div
@@ -4388,12 +4405,13 @@
               colorPrimary,
               colorAccent2,
               colorAccent,
+              "#3b82f6",
               "#ffcc00",
               "#ff0000",
             ];
 
             const chartData = {
-              labels: ["Animes", "Desenhos", "Mangás", "Filmes", "YouTube"],
+              labels: ["Animes", "Desenhos", "Mangás", "HQs", "Filmes", "YouTube"],
               datasets: [
                 {
                   data: dataValues,
@@ -4463,6 +4481,8 @@
               cartoonWatched = 0;
             let mangaTotal = 0,
               mangaWatched = 0;
+            let hqTotal = 0,
+              hqWatched = 0;
             let youtubeTotal = 0,
               youtubeWatched = 0;
 
@@ -4532,6 +4552,21 @@
               }
             });
 
+            // D2. HQs
+            const siteHQs = DB.getHQs();
+            siteHQs.forEach((hq) => {
+              const editions = DB.getHQEditionsFor(hq.id);
+              if (editions.length > 0) {
+                editions.forEach((e) => {
+                  hqTotal++;
+                  if (Watched.isWatched(e.id)) hqWatched++;
+                });
+              } else {
+                hqTotal++;
+                if (Watched.isWatched(hq.id)) hqWatched++;
+              }
+            });
+
             // E. YOUTUBE
             const youtubePlaylists = DB.getYoutubePlaylists();
             youtubePlaylists.forEach((p) => {
@@ -4549,6 +4584,8 @@
               cartoonTotal > 0 ? (cartoonWatched / cartoonTotal) * 100 : 0;
             const mangaPercent =
               mangaTotal > 0 ? (mangaWatched / mangaTotal) * 100 : 0;
+            const hqPercent =
+              hqTotal > 0 ? (hqWatched / hqTotal) * 100 : 0;
             const moviePercent =
               movieTotal > 0 ? (movieWatched / movieTotal) * 100 : 0;
             const youtubePercent =
@@ -4591,6 +4628,13 @@
               mangaPercent,
             );
             updateAnalysisBar(
+              "hqBar",
+              "hqLabel",
+              hqWatched,
+              hqTotal,
+              hqPercent,
+            );
+            updateAnalysisBar(
               "movieBar",
               "movieLabel",
               movieWatched,
@@ -4611,15 +4655,16 @@
                 animeWatched,
                 cartoonWatched,
                 mangaWatched,
+                hqWatched,
                 movieWatched,
                 youtubeWatched,
               ]);
             }
 
             const totalRegistered =
-              animeTotal + movieTotal + cartoonTotal + mangaTotal + youtubeTotal;
+              animeTotal + movieTotal + cartoonTotal + mangaTotal + hqTotal + youtubeTotal;
             const totalWatchedCount =
-              animeWatched + movieWatched + cartoonWatched + mangaWatched + youtubeWatched;
+              animeWatched + movieWatched + cartoonWatched + mangaWatched + hqWatched + youtubeWatched;
             const globalText = document.getElementById("globalStatsText");
             if (globalText) {
               globalText.textContent = `${totalWatchedCount} de ${totalRegistered} itens totais assistidos/lidos no projeto.`;
@@ -4639,6 +4684,7 @@
               animeWatched * 10 +
               cartoonWatched * 10 +
               mangaWatched * 15 +
+              hqWatched * 15 +
               movieWatched * 50 +
               youtubeWatched * 5;
 

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Painel de Cadastros</title>
+  <meta name="description" content="Central de gerenciamento e cadastro de mídias." />
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/themes.js"></script>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </a>
+    <ul class="navbar-links" id="navLinks">
+    </ul>
+
+    <button class="navbar-burger" id="navBurger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <main class="container">
+
+    <div class="page-header">
+      <div>
+        <h1>📝 Painel de Cadastros</h1>
+        <p style="margin:0;">Central de gerenciamento para todas as mídias da Anime House.</p>
+      </div>
+    </div>
+
+    <div class="home-grid" style="margin-top: 2rem;">
+      <a href="cadastro.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">📺</div>
+        <h3 style="color:var(--primary)">Cadastrar Desenho Clássico</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Adicione novas séries ocidentais e crie temporadas.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Cadastro</span>
+      </a>
+
+      <a href="cadastro-animes.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">⛩️</div>
+        <h3 style="color:var(--primary)">Cadastrar Anime</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Adicione séries orientais, temporadas dubladas ou legendadas.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Cadastro</span>
+      </a>
+
+      <a href="cadastro-filmes.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">🎬</div>
+        <h3 style="color:var(--primary)">Cadastrar Filme</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Adicione filmes avulsos (fora das categorias de séries/animes).</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Cadastro</span>
+      </a>
+
+      <a href="cadastro-youtube.html" class="home-card">
+        <div class="home-icon" style="background:rgba(var(--primary-rgb), 0.1);color:var(--primary)">▶️</div>
+        <h3 style="color:var(--primary)">Cadastrar Playlist YT</h3>
+        <p style="color:var(--text-muted);font-size:0.9rem">Crie playlists e adicione vídeos do YouTube.</p>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Cadastro</span>
+      </a>
+    </div>
+
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const burger = document.getElementById('navBurger');
+      const menu = document.getElementById('navLinks');
+      if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/history.js"></script>
+  <script src="js/auth.js"></script>
+  <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">© ViselBrx & DaviMoraes07™</a></div>
+</body>
+
+</html>

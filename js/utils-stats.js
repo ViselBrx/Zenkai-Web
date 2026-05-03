@@ -59,6 +59,15 @@ const StatsManager = (() => {
           if (allWatched.has(v.id)) watchedCount++;
         });
       });
+    } else if (category === 'hqs') {
+      const allHQs = DB.getHQs();
+      allHQs.forEach(h => {
+        const editions = DB.getHQEditionsFor(h.id);
+        editions.forEach(e => {
+          total++;
+          if (allWatched.has(e.id)) watchedCount++;
+        });
+      });
     } else if (category === 'filmes') {
       const allFilmes = DB.getFilmes();
       total = allFilmes.length;
@@ -88,6 +97,7 @@ const StatsManager = (() => {
       'desenhos': 'Episódios',
       'animes': 'Episódios',
       'mangas': 'Volumes',
+      'hqs': 'Edições',
       'filmes': 'Filmes',
       'youtube': 'Vídeos'
     };
@@ -131,6 +141,7 @@ document.addEventListener('watched:change', () => {
     if (path.includes('desenhos')) StatsManager.render('desenhos');
     else if (path.includes('anime-episodios')) StatsManager.render('animes');
     else if (path.includes('mangas')) StatsManager.render('mangas');
+    else if (path.includes('hq')) StatsManager.render('hqs');
     else if (path.includes('filmes')) StatsManager.render('filmes');
     else if (path.includes('youtube-videos')) StatsManager.render('youtube');
 });

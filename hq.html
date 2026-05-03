@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anime House — Leitor de HQs</title>
+  <meta name="description" content="Leitor interativo de PDFs das suas HQs, quadrinhos e graphic novels." />
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="js/themes.js"></script>
+  <style>
+    .hq-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .7rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .hq-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 40px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: .88rem;
+      color: var(--text-muted);
+      transition: all var(--transition);
+    }
+    .hq-pill:hover, .hq-pill.active {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .reader-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+    .volume-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem 1rem 2.7rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .volume-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px var(--primary-glow);
+    }
+    .volume-card.is-watched {
+      border-color: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 10px 24px rgba(16, 185, 129, 0.12);
+    }
+    .vol-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .vol-title {
+      font-weight: bold;
+      color: var(--text);
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+    }
+    .vol-sub {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .vol-read-state {
+      margin-top: 10px;
+      min-height: 1.1rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--success);
+      letter-spacing: 0.02em;
+    }
+    .vol-read-state.is-empty {
+      visibility: hidden;
+    }
+    .hq-progress-inline {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.08);
+      color: var(--success);
+      font-size: 0.78rem;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .vol-actions-ui {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(10, 18, 34, 0.92);
+      color: var(--text-muted);
+      cursor: pointer;
+      opacity: 0;
+      z-index: 5;
+      font-size: 0.92rem;
+      line-height: 1;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+      transition: opacity 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+    }
+    .volume-card:hover .vol-actions-ui,
+    .volume-card.is-watched .btn-check-vol,
+    .volume-card.has-note .btn-note-vol {
+      opacity: 1;
+    }
+
+    .vol-bookmark-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--bookmark-bg);
+      color: var(--bookmark-text);
+      font-size: 0.75rem;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: var(--bookmark-shadow);
+    }
+    .btn-note-vol {
+      bottom: 10px;
+      left: 10px;
+    }
+    .btn-note-vol:hover,
+    .volume-card.has-note .btn-note-vol {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.1);
+    }
+    .btn-check-vol {
+      bottom: 10px;
+      right: 10px;
+      font-size: 0.95rem;
+    }
+    .btn-check-vol:hover {
+      border-color: var(--success);
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .btn-check-vol.watched {
+      opacity: 1;
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--success);
+    }
+    .btn-edit-vol {
+      top: 10px;
+      right: 48px;
+      border-color: rgba(var(--primary-rgb), 0.45);
+      color: var(--primary);
+    }
+    .btn-edit-vol:hover {
+      border-color: var(--primary);
+      background: rgba(var(--primary-rgb), 0.12);
+      color: var(--primary);
+    }
+    .btn-del-vol {
+      top: 10px;
+      right: 10px;
+      border-color: rgba(239, 68, 68, 0.28);
+      color: var(--danger);
+    }
+    .btn-del-vol:hover {
+      border-color: var(--danger);
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--danger);
+    }
+
+    /* Modal do Leitor */
+    #readerModal .modal {
+      width: 95vw !important;
+      max-width: 1400px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+    }
+    #readerFrame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+    }
+
+    /* MODAL LEITOR TELA CHEIA */
+    body.reading-fullscreen .watermark,
+    body.reading-fullscreen .theme-switcher-wrapper,
+    body.reading-fullscreen .navbar {
+      display: none !important;
+    }
+    body.reading-fullscreen {
+      background: #000;
+      overflow: hidden;
+    }
+
+    .site-fullscreen {
+      position: fixed !important;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      border-radius: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 9999 !important;
+      display: flex;
+      flex-direction: column;
+      background: #000 !important;
+      align-items: stretch;
+      box-shadow: none !important;
+    }
+    .site-fullscreen .modal-header {
+      width: 100%;
+      padding: 15px 30px;
+      background: #0f172a;
+      border-bottom: 2px solid rgba(var(--primary-rgb), 0.4);
+      margin: 0 !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      display: grid !important;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      justify-content: stretch;
+    }
+    .site-fullscreen .modal-header::before {
+      content: "";
+      grid-column: 1;
+    }
+    .site-fullscreen #readerTitle {
+      grid-column: 2;
+      text-align: center;
+      margin: 0 !important;
+      white-space: nowrap;
+    }
+    .site-fullscreen .modal-header > div:last-child {
+      grid-column: 3;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+    .site-fullscreen iframe {
+      flex: 1;
+      width: 100% !important;
+      max-width: none !important;
+      height: 100%;
+      border-radius: 0;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+  </style>
+</head>
+<body class="anime-context">
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+    <span>Anime</span>House
+  </a>
+  <ul class="navbar-links" id="navLinks"></ul>
+  <button class="navbar-burger" id="navBurger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<main class="container">
+  <div class="page-header">
+    <div>
+      <h1>🗯️ Leitor de HQs</h1>
+      <p style="margin:0;">Organize e leia seus quadrinhos e graphic novels direto da página, separados por edições.</p>
+    </div>
+    <div id="statsWidget" class="stats-widget"></div>
+    <div style="display:flex; gap: 10px; align-items:center;">
+      <input id="searchHQ" class="form-control" type="text" placeholder="🔍 Buscar HQ" style="max-width: 180px; padding: 6px 12px; font-size: 0.9rem; border-radius: 8px;" />
+      <button class="btn btn-primary" id="addHQBtn" style="padding: 6px 14px; font-size: 0.9rem; border-radius: 8px;">✚ Novo</button>
+    </div>
+  </div>
+
+  <!-- SELETOR DE HQs -->
+  <div id="hqPills" class="cards-grid" style="margin-top: 1.5rem; margin-bottom: 2rem;"></div>
+
+  <!-- AVISO SE NADA FOI SELECIONADO -->
+  <div id="noHQMsg" class="select-cartoon-prompt" style="display:none;">
+    🦸 Selecione uma HQ acima para abrir a estante de leitura.
+  </div>
+
+  <div id="editionsPanel" style="display:none; animation: fadeInSlide 0.4s forwards;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:1rem;gap:1rem;">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <img id="hqCapaBanner" src="" alt="Capa" style="display:none;width:50px;height:75px;border-radius:6px;object-fit:cover;border:1px solid var(--border);" />
+        <h2 id="hqPanelTitle" style="margin:0;color:var(--primary);font-family:'Bangers';font-size:1.8rem;">Edições</h2>
+      </div>
+      <button class="btn btn-primary" id="addEditionBtn">
+        ✚ Nova Edição (PDF)
+      </button>
+    </div>
+
+    <div id="editionsGrid" class="reader-grid"></div>
+  </div>
+</main>
+
+<!-- MODAL CADASTRAR HQ -->
+<div class="modal-overlay" id="hqModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nova HQ</h2>
+      <button class="modal-close" id="hqClose">✕</button>
+    </div>
+    <form id="hqForm" novalidate>
+      <div class="form-group">
+        <label>Nome da HQ *</label>
+        <input id="hqNome" class="form-control" type="text" placeholder="Ex: Batman — Cavaleiro das Trevas" required />
+      </div>
+      <div class="form-group">
+        <label>Capa (Opcional)</label>
+        <input id="hqCapa" class="form-control" type="file" accept="image/*" />
+        <img id="hqCapaPreview" src="" alt="Preview da capa" />
+      </div>
+      <div class="form-actions" style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" id="btnSalvarHQ" style="width:100%">💾 Salvar HQ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMAR EXCLUSÃO -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h2 style="color:var(--danger)">⚠️ Excluir</h2>
+      <button class="modal-close" id="deleteClose">✕</button>
+    </div>
+    <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteHQName"></strong>? Todas as edições e anotações desta HQ também serão removidas.</p>
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="deleteCancelBtn">Cancelar</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn">🗑️ Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ADD EDIÇÃO (UPLOAD PDF) -->
+<div class="modal-overlay" id="editionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Fazer Upload de Edição</h2>
+      <button class="modal-close" id="editionClose">✕</button>
+    </div>
+    <form id="editionForm">
+      <div class="form-group">
+        <label>Número da Edição *</label>
+        <input id="eNumber" class="form-control" type="number" min="1" value="1" placeholder="Ex: 1" required />
+      </div>
+      <div class="form-group">
+        <label>Título (Opcional)</label>
+        <input id="eTitle" class="form-control" type="text" placeholder="Ex: A Queda do Morcego" />
+      </div>
+      <div class="form-group">
+        <label>Modo de Envio *</label>
+        <select id="eMode" class="form-control" style="border-color:var(--primary);">
+           <option value="url" selected>Link do PDF (Google Drive, Mega, etc)</option>
+           <option value="file">Apenas Fazer Upload (Arquivos Curtos)</option>
+        </select>
+      </div>
+      <div class="form-group" id="grpUrl">
+        <label>Link de Visualização/Leitura *</label>
+        <input id="eUrl" class="form-control" type="url" placeholder="Ex: https://drive.google.com/file/d/..." />
+        <small style="color:var(--primary);display:block;margin-top:5px;font-weight:bold;">Links do Google Drive são automaticamente abertos no leitor de PDF do site.</small>
+      </div>
+      <div class="form-group" id="grpFile" style="display:none;">
+        <label>Arquivo da HQ (Somente PDF) *</label>
+        <input id="eFile" class="form-control" type="file" accept="application/pdf" />
+        <small style="color:var(--text-muted);display:block;margin-top:5px;">Para PDFs com mais de 50MB, use a opção de "Link do Drive".</small>
+      </div>
+      <div class="form-actions" style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary" id="btnSalvarEdition" style="width:100%">📤 Iniciar Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ANOTAÇÕES -->
+<div class="modal-overlay" id="noteModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>Anotações da Edição</h2>
+      <button class="modal-close" id="noteClose">✕</button>
+    </div>
+    <form id="noteForm" novalidate onsubmit="return false">
+      <div class="form-group">
+        <label>Página Atual (Marca-página) 🔖</label>
+        <input id="nPage" class="form-control" type="number" min="1" placeholder="Ex: 42" style="border-color: var(--primary);" />
+      </div>
+      <div class="form-group">
+        <label>Suas Anotações 📝</label>
+        <textarea id="nText" class="form-control" placeholder="Citações, resumos, onde parei de ler..." style="min-height: 120px; resize: vertical; border-color: var(--primary); padding-top: 8px;"></textarea>
+      </div>
+      <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 10px;">
+        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;">🗑️ Limpar</button>
+        <button type="button" class="btn btn-primary" id="btnSalvarNote" style="flex: 2;">💾 Salvar Anotações</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- LEITOR DE HQ (TELA CHEIA) -->
+<div class="modal-overlay" id="readerModal">
+  <div class="modal" id="readerModalContent" style="position:relative;">
+    <div class="modal-header" style="flex-wrap: wrap; gap: 10px;">
+      <h2 id="readerTitle" style="font-family:'Bangers'; color:var(--primary); font-size: 1.6rem; margin:0">Lendo...</h2>
+      <div style="display:flex; align-items:center; gap: 1rem; flex-wrap: wrap;">
+         <button class="btn btn-ghost btn-sm" id="btnFullscreen" style="color:var(--text); border:1px solid var(--border);">
+            🔲 Ativar Tela Cheia
+         </button>
+         <button class="modal-close" id="readerClose" style="position:static;">✕</button>
+      </div>
+    </div>
+    <iframe id="readerFrame" src="" title="Leitor PDF HQ" allowfullscreen></iframe>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/auth.js"></script>
+<script src="js/db.js"></script>
+<script src="js/watched.js"></script>
+<script src="js/hq.js"></script>
+<script src="js/utils-stats.js"></script>
+<div class="watermark">© ViselBrx &amp; DaviMoraes07™</div>
+</body>
+</html>
