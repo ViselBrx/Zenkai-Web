@@ -24,17 +24,22 @@ CREATE POLICY "Usuários podem editar seu próprio perfil"
 ON public.profiles FOR UPDATE 
 USING (auth.uid() = id);
 
--- 6. (OPCIONAL) Automação: Criar perfil vazio automaticamente quando um novo canal/admin se registrar
+-- 6. (OPCIONAL) Automação: Criar perfil vazio automaticamente quando um novo canal/admin se registrar e confirmar o email
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username, avatar_url)
-  VALUES (new.id, split_part(new.email, '@', 1), 'https://cdn-icons-png.flaticon.com/512/149/149071.png');
+  -- Cria o perfil apenas se o e-mail estiver confirmado
+  IF NEW.email_confirmed_at IS NOT NULL THEN
+    INSERT INTO public.profiles (id, username, avatar_url)
+    VALUES (NEW.id, split_part(NEW.email, '@', 1), 'https://cdn-icons-png.flaticon.com/512/149/149071.png')
+    ON CONFLICT (id) DO NOTHING;
+  END IF;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Dispara a função acima sempre que houver um novo registro no Auth
-CREATE OR REPLACE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
+-- Dispara a função acima sempre que houver um novo registro no Auth ou quando ele for atualizado (email confirmado)
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT OR UPDATE ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();

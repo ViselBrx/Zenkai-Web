@@ -19,9 +19,9 @@
 
 ## ✨ O que o projeto oferece
 
-- **Catálogos completos** para animes, desenhos, filmes, YouTube e mangás com busca, filtros e modais de detalhes.
+- **Catálogos completos** para animes, desenhos, filmes, YouTube, mangás e HQs com busca, filtros e modais de detalhes.
 - **Sistema de Episódios** com marcação de assistidos, barra de progresso por temporada e sincronismo de XP.
-- **Sistema de XP e gamificação** calculado automaticamente pelas atividades do usuário (animes, filmes, mangás, YouTube).
+- **Sistema de XP e gamificação** calculado automaticamente pelas atividades do usuário (animes, filmes, mangás, HQs, YouTube).
 - **SenseiMod Store** — loja interna onde XP pode ser convertido em Fichas de Ouro, Diamante e Esmeralda para comprar cosméticos exclusivos.
 - **Cosméticos e customização de perfil**: banners, auras, títulos, coroa, frame dourado, tema cromático e muito mais.
 - **Sistema de Temas Neon** com 10+ temas visuais (Dourado, Ciano, Verde, Vermelho, Roxo, Laranja, Azul, Branco, Verde Escuro, Aqua Verde, Cromático).
@@ -106,6 +106,7 @@ Acesse: `http://localhost:3000`
 | `youtube.html` | Catálogo de playlists do YouTube |
 | `youtube-videos.html` | Player de vídeos do YouTube com progresso |
 | `mangas.html` | Leitor/organizador de mangás por volume com links externos |
+| `hq.html` | Visualizador de quadrinhos/HQs em PDF com suporte a anotações |
 | `open-anime.html` | **Open Anime Agent** — IA com chat, visão e comparação de personagens |
 | `cadastro*.html` | CRUD administrativo para animes, desenhos, filmes e YouTube |
 | `agradecimento.html` | Tela de créditos e agradecimentos |
@@ -121,6 +122,7 @@ O XP é calculado automaticamente pelas atividades do usuário:
 | Episódio de anime assistido | +10 XP |
 | Episódio de desenho assistido | +10 XP |
 | Volume de mangá lido | +15 XP |
+| Edição de HQ lida | +15 XP |
 | Filme assistido | +50 XP |
 | Vídeo do YouTube assistido | +5 XP |
 
