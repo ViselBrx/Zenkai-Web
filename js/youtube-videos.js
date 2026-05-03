@@ -17,6 +17,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const videoForm          = document.getElementById('videoForm');
     const cancelVideoBtn     = document.getElementById('cancelVideoBtn');
 
+    // ── YouTube API State ─────────────────────────────────────────────────────
+    let ytPlayer = null;
+    let timeTrackInterval = null;
+
+    // Carregar API do YouTube
+    if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
+
     // ── Funções ───────────────────────────────────────────────────────────────
     async function loadFavorites() {
         try {
@@ -37,6 +49,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('formActionTitle').textContent = '➕ Adicionar Vídeo';
         document.getElementById('addVideoBtn').textContent = 'Adicionar';
         cancelVideoBtn.style.display = 'none';
+    }
+
+    function _getYoutubeId(str) {
+        if (!str) return null;
+        // Regex para extrair ID de iframe ou URL comum
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = str.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    function _formatTime(seconds) {
+        seconds = parseFloat(seconds || 0);
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function _parseTime(str) {
+        if (!str) return 0;
+        const clean = str.replace(/[^\d:]/g, '');
+        const parts = clean.split(':').map(Number);
+        if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+        if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0);
+        if (parts.length === 1) return (parts[0] || 0);
+        return 0;
     }
 
     function renderVideos() {
@@ -64,15 +103,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         videos.forEach((v) => {
             const isW = Watched.isWatched(v.id);
             const isFav = userFavs.videos.has(v.id);
+            const ytId = _getYoutubeId(v.iframe);
+            const thumbUrl = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : null;
+            
             const card = document.createElement('div');
             card.className = 'episode-card' + (isW ? ' is-watched' : '');
             card.dataset.originIndex = String(v._originIndex);
 
+            // Carregar tempo saved para mostrar no card
+            const uid = window.DB?._store?.profile?.id || 'guest';
+            const savedTime = localStorage.getItem(`animehouse_yt_time_${uid}_${v.id}`);
+            const timeDisplay = savedTime ? `<div style="position:absolute; top:10px; right:10px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; z-index:2; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2);">${!isNaN(savedTime) && savedTime !== '' ? _formatTime(parseFloat(savedTime)) : savedTime}</div>` : '';
+
             card.innerHTML = `
                 <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${v.id}')">
-                    <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
-                        <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
+                    <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:${thumbUrl ? `url(${thumbUrl}) center/cover` : 'var(--bg-surface)'};">
+                        ${!thumbUrl ? '<span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>' : ''}
                     </div>
+                    ${timeDisplay}
                     <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
                     <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
                         VÍDEO
@@ -179,11 +227,78 @@ document.addEventListener('DOMContentLoaded', async () => {
         const v = _findVideo(id);
         if (!v) return;
 
+        const watchFrame = document.getElementById('watchFrame');
         document.getElementById('watchTitle').textContent = v.title;
-        document.getElementById('watchFrame').innerHTML = v.iframe || '<div style="color:#fff;padding:20px;">Iframe não disponível</div>';
+        
+        // Limpar e preparar player
+        watchFrame.innerHTML = '<div id="ytPlayerNode"></div>';
 
         window.currentlyWatchingId = id;
         _updateWatchModalBadge(id);
+
+        const ytId = _getYoutubeId(v.iframe);
+        if (ytId) {
+            // Inicializar Player da API
+            if (window.YT && YT.Player) {
+                const uid = window.DB?._store?.profile?.id || 'guest';
+                const savedTime = parseFloat(localStorage.getItem(`animehouse_yt_time_${uid}_${id}`) || 0);
+
+                ytPlayer = new YT.Player('ytPlayerNode', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: ytId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'modestbranding': 1,
+                        'rel': 0,
+                        'start': Math.floor(savedTime)
+                    },
+                    events: {
+                        'onReady': (event) => {
+                            // Carregado
+                        }
+                    }
+                });
+
+                // O usuário prefere salvamento manual via botão
+                if (timeTrackInterval) clearInterval(timeTrackInterval);
+            } else {
+                watchFrame.innerHTML = v.iframe; // Fallback se a API falhar
+            }
+        } else {
+            watchFrame.innerHTML = v.iframe || '<div style="color:#fff;padding:20px;">Iframe não disponível</div>';
+        }
+
+        // Lógica do input manual de tempo
+        const noteInput = document.getElementById('watchTimeNote');
+        const saveNoteBtn = document.getElementById('saveTimeNoteBtn');
+        if (noteInput && saveNoteBtn) {
+            const uid = window.DB?._store?.profile?.id || 'guest';
+            const rawVal = (localStorage.getItem(`animehouse_yt_time_${uid}_${id}`) || '').slice(0, 20);
+            
+            // Se for número puro (automático), formata. Se for texto/manual, mostra como está.
+            if (!isNaN(rawVal) && rawVal !== '') {
+                noteInput.value = _formatTime(parseFloat(rawVal));
+            } else {
+                noteInput.value = rawVal;
+            }
+
+            saveNoteBtn.onclick = () => {
+                const val = noteInput.value.trim().slice(0, 20);
+                localStorage.setItem(`animehouse_yt_time_${uid}_${id}`, val);
+                
+                // Tenta dar seek apenas se parecer um tempo (contém : ou é número)
+                if (ytPlayer && ytPlayer.seekTo && (val.includes(':') || !isNaN(val))) {
+                    const seconds = _parseTime(val);
+                    if (seconds > 0) {
+                        ytPlayer.seekTo(seconds, true);
+                        ytPlayer.playVideo();
+                    }
+                }
+                showToast('Nota salva!');
+                renderVideos(); // Atualiza o card
+            };
+        }
 
         if (typeof HistoryTracker !== 'undefined' && typeof window.supabaseClient !== 'undefined') {
             try {
@@ -285,9 +400,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     document.getElementById('watchClose').onclick = () => {
+        if (timeTrackInterval) clearInterval(timeTrackInterval);
+        if (ytPlayer) {
+            ytPlayer.destroy();
+            ytPlayer = null;
+        }
         document.getElementById('watchModal').classList.remove('open');
         document.getElementById('watchFrame').innerHTML = '';
         window.currentlyWatchingId = null;
+        renderVideos(); // Atualiza o tempo no card ao fechar
     };
 
     // ── Inicializa playlists ───────────────────────────────────────────────────

@@ -269,6 +269,11 @@ document.addEventListener('DOMContentLoaded', async () => {
           <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
             <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
           </div>
+          ${(() => {
+            const uid = window.DB?._store?.profile?.id || 'guest';
+            const saved = localStorage.getItem(`animehouse_time_${uid}_${m.id}`);
+            return saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
+          })()}
           <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
           <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
             FILME
@@ -283,7 +288,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
       // Botão de marcação
       if (typeof createWatchedBtn !== 'undefined') {
-        const labelDiv = card.querySelector('.episode-label > div');
+        const labelDiv = card.querySelector('.episode-label');
         const wBtn = createWatchedBtn(m.id, (id, nowWatched) => {
           card.classList.toggle('is-watched', nowWatched);
         }, 'desenho_movie');
@@ -363,6 +368,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
               <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
             </div>
+            ${(() => {
+              const uid = window.DB?._store?.profile?.id || 'guest';
+              const saved = localStorage.getItem(`animehouse_time_${uid}_${ep.id}`);
+              return saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
+            })()}
             <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
             <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
               Episódio ${ep.epNumber}
@@ -377,7 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `;
         // Botão de marcação
         if (typeof createWatchedBtn !== 'undefined') {
-          const labelDiv = card.querySelector('.episode-label > div');
+          const labelDiv = card.querySelector('.episode-label');
           const wBtn = createWatchedBtn(ep.id, (id, nowWatched) => {
             card.classList.toggle('is-watched', nowWatched);
             // Atualiza barra de progresso
@@ -624,6 +634,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 100);
 
     updateWatchedBadge(id);
+
+    // Lógica do input de tempo (onde parou)
+    const noteInput = document.getElementById('watchTimeNote');
+    const saveNoteBtn = document.getElementById('saveTimeNoteBtn');
+    if (noteInput && saveNoteBtn) {
+        const userId = window.DB?._store?.profile?.id || 'guest';
+        const key = `animehouse_time_${userId}_${id}`;
+        noteInput.value = (localStorage.getItem(key) || '').slice(0, 20);
+        
+        saveNoteBtn.onclick = () => {
+            const val = noteInput.value.trim().slice(0, 20);
+            localStorage.setItem(key, val);
+            noteInput.value = val;
+            showToast('Nota salva!');
+            renderContent();
+        };
+    }
+
     watchModal.classList.add('open');
   };
 

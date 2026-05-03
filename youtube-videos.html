@@ -116,7 +116,11 @@
     <div id="watchFrame" style="width:100%;aspect-ratio:16/9;background:#000;"></div>
     <div class="form-actions" style="margin-top:1rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
       <button id="watchedModalBadge" class="watched-modal-badge not-watched">○ Marcar como Assistido</button>
-      <button class="btn btn-danger btn-sm" id="watchDeleteBtn">🗑️ Remover Vídeo</button>
+      <div style="display:flex; gap:5px; align-items:center;">
+        <input type="text" id="watchTimeNote" placeholder="12:34" maxlength="20" style="background:var(--bg-body); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); padding:0.4rem 0.8rem; width:100px; font-size:0.9rem;" title="Minuto em que você parou">
+        <button class="btn btn-primary btn-sm" id="saveTimeNoteBtn" style="padding:0.4rem 0.8rem;">Salvar Tempo</button>
+      </div>
+      <button class="btn btn-danger btn-sm" id="watchDeleteBtn" style="margin-left:auto;">🗑️ Remover Vídeo</button>
     </div>
   </div>
 </div>

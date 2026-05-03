@@ -132,6 +132,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.innerHTML = `
         <div style="position:relative; cursor:pointer;" class="card-click-area">
           ${imgHtml}${placeholder}${watchedBadge}
+          ${(() => {
+            const uid = window.DB?._store?.profile?.id || 'guest';
+            const saved = localStorage.getItem(`animehouse_time_${uid}_${f.id}`);
+            return saved ? `<div style="position:absolute; top:45px; left:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:3px 10px; border-radius:20px; font-size:0.7rem; font-weight:700; z-index:5; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
+          })()}
           ${isFav ? '<div class="fav-ribbon">Favorito</div>' : ''}
         </div>
         ${favBtnHtml}
@@ -277,6 +282,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         wBadge.innerHTML = nowWatched ? '✓ Assistido' : '○ Marcar como Assistido';
         render();
       };
+    }
+
+    // Lógica do input de tempo (onde parou)
+    const noteInput = document.getElementById('watchTimeNote');
+    const saveNoteBtn = document.getElementById('saveTimeNoteBtn');
+    if (noteInput && saveNoteBtn) {
+        const userId = window.DB?._store?.profile?.id || 'guest';
+        const key = `animehouse_time_${userId}_${f.id}`;
+        noteInput.value = (localStorage.getItem(key) || '').slice(0, 20);
+        
+        saveNoteBtn.onclick = () => {
+            const val = noteInput.value.trim().slice(0, 20);
+            localStorage.setItem(key, val);
+            noteInput.value = val;
+            showToast('Nota salva!');
+            render(); // Atualiza o card
+        };
     }
   }
 
