@@ -1251,8 +1251,7 @@ const DB = {
         volume_number: volumeData.volume,
         title: volumeData.title || '',
         pdf_url: pdfUrl,
-        created_at: Date.now(),
-        user_id: userId
+        created_at: Date.now()
     };
     
     const { error } = await getSupa().from('manga_volumes').insert([item]);

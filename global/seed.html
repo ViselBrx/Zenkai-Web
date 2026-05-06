@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>AnimeHouse — Seed Global</title>
+  <script>window.ENV = window.ENV || {};</script>
+  <style>
+    body{background:#0a0a0f;color:#e0e0e0;font-family:'Inter',sans-serif;padding:40px}
+    .seed-container{max-width:800px;margin:0 auto}
+    h1{color:#a855f7;text-align:center}
+    .subtitle{text-align:center;color:#888;margin-bottom:30px}
+    #loginSection{background:#1a1a2e;border:1px solid #333;border-radius:12px;padding:24px;margin-bottom:20px;text-align:center}
+    #loginSection input{padding:10px 16px;border-radius:8px;border:1px solid #444;background:#111;color:white;margin:4px;font-size:1rem}
+    .btn{display:inline-block;padding:14px 40px;font-size:1.1rem;font-weight:bold;background:linear-gradient(135deg,#a855f7,#6d28d9);color:white;border:none;border-radius:12px;cursor:pointer;transition:all 0.3s;margin:10px}
+    .btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(168,85,247,0.5)}
+    .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+    .btn-green{background:linear-gradient(135deg,#22c55e,#16a34a)}
+    #seedSection,#phase2Section{display:none;text-align:center}
+    .log{background:#111;border:1px solid #333;border-radius:12px;padding:16px;margin-top:20px;max-height:500px;overflow-y:auto;font-family:monospace;font-size:.85rem;line-height:1.6;text-align:left}
+    .log .ok{color:#22c55e}.log .err{color:#ef4444}.log .info{color:#60a5fa}.log .skip{color:#f59e0b}
+    .progress-bar{width:100%;height:8px;background:#1a1a2e;border-radius:4px;margin-top:20px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#a855f7,#6d28d9);border-radius:4px;transition:width .3s;width:0%}
+    #authStatus{margin:10px 0;font-weight:bold}
+    h2{color:#a855f7;margin-top:30px}
+  </style>
+</head>
+<body>
+<div class="seed-container">
+  <h1>🌱 Seed Global</h1>
+  <p class="subtitle">Cadastra conteúdo global para todos os usuários</p>
+
+  <div id="loginSection">
+    <h3>🔐 Login necessário</h3>
+    <div>
+      <input type="email" id="emailInput" value="davizeravisel@gmail.com" placeholder="Email">
+      <input type="password" id="passInput" placeholder="Senha">
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">🔐 Fazer Login</button>
+    <div id="authStatus"></div>
+  </div>
+
+  <div id="seedSection">
+    <h2>Fase 1 — Conteúdo Base</h2>
+    <p>50 animes, 50 desenhos, 50 filmes, 30 mangás, 30 HQs</p>
+    <button class="btn" id="seedBtn" onclick="startSeed()">🚀 Cadastrar Conteúdo</button>
+  </div>
+
+  <div id="phase2Section">
+    <h2>Fase 2 — Capas + Episódios (TheTVDB)</h2>
+    <p>Busca capas (Desenhos, Filmes, Animes) e episódios (Desenhos, Animes) pelo TheTVDB.</p>
+    <div style="margin-bottom: 15px; display:flex; justify-content:center; gap:10px;">
+      <input type="text" id="tvdbKeyInput" placeholder="Sua TheTVDB API Key" style="width:40%; padding:10px; border-radius:8px; border:1px solid #444; background:#111; color:white;">
+      <input type="text" id="tvdbPinInput" placeholder="Seu TheTVDB PIN" style="width:30%; padding:10px; border-radius:8px; border:1px solid #444; background:#111; color:white;">
+    </div>
+    <button class="btn btn-green" id="phase2Btn" onclick="startPhase2()">🎬 Buscar Capas + Episódios</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="log" id="log"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/db.js"></script>
+<script src="seed-data.js"></script>
+<script>
+const logEl=document.getElementById('log'),progressFill=document.getElementById('progressFill');
+let totalItems=0,doneItems=0;
+function log(m,c='info'){logEl.innerHTML+=`<div class="${c}">${m}</div>`;logEl.scrollTop=logEl.scrollHeight;console.log(m)}
+function prog(){doneItems++;progressFill.style.width=Math.round((doneItems/totalItems)*100)+'%'}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+const SUPA_URL=(window.ENV&&window.ENV.SUPABASE_URL)||'https://bxifddhrbxbmimjkgwzr.supabase.co';
+const SUPA_KEY=(window.ENV&&window.ENV.SUPABASE_ANON_KEY)||'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
+let supaClient;
+try{supaClient=supabase.createClient(SUPA_URL,SUPA_KEY);window.supabaseClient=supaClient}catch(e){log('❌ '+e.message,'err')}
+
+async function fetchRetry(url,retries=3){
+  for(let i=0;i<retries;i++){
+    try{const r=await fetch(url);if(r.status===429){await sleep(3000);continue}if(!r.ok)return null;return await r.json()}
+    catch(e){if(i===retries-1)return null;await sleep(1500)}
+  }return null
+}
+
+async function doLogin(){
+  const email=document.getElementById('emailInput').value.trim();
+  const pass=document.getElementById('passInput').value.trim();
+  const s=document.getElementById('authStatus');
+  if(!email||!pass){s.innerHTML='<span style="color:#ef4444">Preencha email e senha</span>';return}
+  s.innerHTML='<span style="color:#f59e0b">⏳ Fazendo login...</span>';
+  document.getElementById('loginBtn').disabled=true;
+  try{
+    const{data,error}=await supaClient.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    s.innerHTML=`<span style="color:#22c55e">✅ Logado: ${data.user.email}</span>`;
+    log('🔐 Autenticado: '+data.user.email,'ok');
+    await DB.init();
+    log(`📊 Existentes: A=${DB.getAnimes().length} D=${DB.getCartoons().length} F=${DB.getFilmes().length} M=${DB.getMangas().length} H=${DB.getHQs().length}`,'info');
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('seedSection').style.display='block';
+    document.getElementById('phase2Section').style.display='block';
+  }catch(e){
+    s.innerHTML=`<span style="color:#ef4444">❌ ${e.message||JSON.stringify(e)}</span>`;
+    document.getElementById('loginBtn').disabled=false;
+  }
+}
+
+async function seedCat(label,icon,getFn,addFn,items,mapFn){
+  log(`\n${icon} ${label}...`,'info');
+  const names=new Set(getFn().map(e=>(e.nome||'').toLowerCase()));
+  let ins=0;
+  for(const item of items){
+    if(names.has((item.nome||'').toLowerCase())){prog();continue}
+    try{await addFn(mapFn(item));ins++;names.add(item.nome.toLowerCase());log(`   ✅ ${item.nome}`,'ok')}
+    catch(e){log(`   ❌ ${item.nome}: ${e.message}`,'err')}
+    prog();await sleep(120);
+  }
+  log(`   📊 ${ins} cadastrados`,'ok');return ins;
+}
+
+async function startSeed(){
+  const btn=document.getElementById('seedBtn');btn.disabled=true;btn.textContent='⏳ Cadastrando...';
+  doneItems=0;totalItems=SEED_ANIMES.length+SEED_DESENHOS.length+SEED_FILMES.length+SEED_MANGAS.length+SEED_HQS.length;
+  try{
+    const r1=await seedCat('Animes','🌸',()=>DB.getAnimes(),d=>DB.addAnime(d),SEED_ANIMES,a=>({nome:a.nome,estudio:a.estudio||'',genero:a.genero||'',temporadas:a.temporadas||1,capa:a.capa||''}));
+    const r2=await seedCat('Desenhos','🎨',()=>DB.getCartoons(),d=>DB.addCartoon(d),SEED_DESENHOS,d=>({nome:d.nome,produtora:d.produtora||'',temporadas:d.temporadas||1,capa:d.capa||''}));
+    const r3=await seedCat('Filmes','🎬',()=>DB.getFilmes(),d=>DB.addFilme(d),SEED_FILMES,f=>({nome:f.nome,diretor:f.diretor||'',genero:f.genero||'',ano:f.ano||null,iframe:' ',capa:f.capa||''}));
+    const r4=await seedCat('Mangás','📖',()=>DB.getMangas(),d=>DB.addManga(d),SEED_MANGAS,m=>({nome:m.nome,autor:m.autor||'',capitulos:m.capitulos||0,capa:m.capa||'',link_drive:''}));
+    const r5=await seedCat('HQs','🦸',()=>DB.getHQs(),d=>DB.addHQ(d),SEED_HQS,h=>({nome:h.nome,capa:h.capa||''}));
+    btn.textContent=`✅ ${r1+r2+r3+r4+r5} cadastrados!`;
+  }catch(e){log('❌ '+e.message,'err');btn.textContent='❌ Erro';btn.disabled=false}
+}
+
+// ═══════════════════════════════════════
+// FASE 2 — CAPAS + EPISÓDIOS (GRÁTIS SEM CHAVE)
+// ═══════════════════════════════════════
+
+async function startPhase2(){
+  const btn=document.getElementById('phase2Btn');btn.disabled=true;btn.textContent='⏳ Buscando...';
+  log('\n══════════════════════════════════','info');
+  log('🎬 FASE 2 — TVMaze + Jikan (Grátis, Sem Chave)','info');
+  log('══════════════════════════════════','info');
+
+  await DB.init();
+  const cartoons=DB.getCartoons();
+  const animes=DB.getAnimes();
+  totalItems=cartoons.length+animes.length;doneItems=0;
+  progressFill.style.width='0%';
+
+  log('\n🎨 Buscando Desenhos (TVMaze)...','info');
+  let capasOk=0,epsDesenho=0;
+
+  for(const c of cartoons){
+    try{
+      const res=await fetchRetry(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(c.nome)}`);
+      if(!res||!res[0]){log(`   ⏭️ ${c.nome} — não encontrado no TV Maze`,'skip');prog();continue}
+      const show=res[0].show;
+
+      if(!c.capa||c.capa===''){
+        const cover=show.image?.original||show.image?.medium||'';
+        if(cover){ await DB.updateCartoon(c.id,{capa:cover}); capasOk++; log(`   🖼️ Capa: ${c.nome}`,'ok'); }
+      }
+
+      const existEps=Object.keys(DB.getEpisodesFor(c.id)).length>0;
+      if(!existEps&&show.id){
+        const episodes=await fetchRetry(`https://api.tvmaze.com/shows/${show.id}/episodes`);
+        if(episodes&&episodes.length>0){
+          let count=0;
+          for(const ep of episodes){
+            const season=String(ep.season||1);
+            const epNum=ep.number||1;
+            const title=ep.name||`Episódio ${epNum}`;
+            const dummyIframe = 'Teste';
+            try{ await DB.addEpisode(c.id,season,{epNumber:epNum,title:title,iframe:dummyIframe}); count++; }catch(e){ log(`   ❌ Erro ao adicionar episódio: ${e.message}`, 'err'); }
+          }
+          epsDesenho+=count; log(`   📺 ${c.nome}: ${count} episódios`,'ok');
+        }
+      }else if(existEps){ log(`   ⏭️ ${c.nome} — já tem episódios`,'skip'); }
+    }catch(e){ log(`   ❌ ${c.nome}: ${e.message}`,'err'); }
+    prog(); await sleep(500);
+  }
+
+  log('\n🌸 Buscando Animes (Jikan)...','info');
+  let epsAnime=0;
+  for(const a of animes){
+    try{
+      const existDub=DB.getAnimeEpisodesFor(a.id,'dublado');
+      const existLeg=DB.getAnimeEpisodesFor(a.id,'legendado');
+      if(Object.keys(existDub).length>0||Object.keys(existLeg).length>0){
+        log(`   ⏭️ ${a.nome} — já tem episódios`,'skip'); prog();continue;
+      }
+
+      const search=await fetchRetry(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(a.nome)}&limit=1`);
+      await sleep(1000); // Segurança Jikan
+      if(!search?.data?.[0]){log(`   ⏭️ ${a.nome} — não encontrado`,'skip');prog();continue}
+
+      const malId=search.data[0].mal_id;
+      const epData=await fetchRetry(`https://api.jikan.moe/v4/anime/${malId}/episodes`);
+      await sleep(1000);
+      
+      if(epData?.data && epData.data.length>0){
+        let count=0;
+        const allEps = epData.data;
+        const epsPerSeason=Math.ceil(allEps.length/Math.max(a.temporadas||1,1));
+
+        for(const ep of allEps){
+          const epNum=ep.mal_id||count+1;
+          const season=String(Math.ceil(epNum/epsPerSeason)||1);
+          const title=ep.title||ep.title_japanese||`Episódio ${epNum}`;
+          const dummyIframe = 'Teste';
+          try{ await DB.addAnimeEpisode(a.id,'legendado',season,{epNumber:epNum,title:title,iframe:dummyIframe}); count++; }catch(e){ log(`   ❌ Erro ao adicionar anime ep: ${e.message}`, 'err'); }
+        }
+        epsAnime+=count; log(`   📺 ${a.nome}: ${count} episódios`,'ok');
+      }else{ log(`   ⏭️ ${a.nome} — sem episódios`,'skip'); }
+    }catch(e){ log(`   ❌ ${a.nome}: ${e.message}`,'err'); }
+    prog();
+  }
+
+  log('\n📖 Criando Volumes Iniciais para Mangás...','info');
+  const mangas = DB.getMangas();
+  let mangasOk = 0;
+  for(const m of mangas){
+    const existVol = DB.getMangaVolumesFor(m.id).length > 0;
+    if(!existVol){
+      try {
+        await DB.addMangaVolume(m.id, null, 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', { volume: 1, title: 'Volume 1 - O Início' });
+        mangasOk++; log(`   📚 Volume criado: ${m.nome}`,'ok');
+      }catch(e){ log(`   ❌ Erro Mangá ${m.nome}: ${e.message}`,'err'); }
+      prog(); await sleep(200);
+    } else {
+      log(`   ⏭️ ${m.nome} — já possui volumes`,'skip'); prog();
+    }
+  }
+
+  log('\n🦸 Criando Edições Iniciais para HQs...','info');
+  const hqs = DB.getHQs();
+  let hqsOk = 0;
+  for(const h of hqs){
+    const existEd = DB.getHQEditionsFor(h.id).length > 0;
+    if(!existEd){
+      try {
+        await DB.addHQEdition(h.id, null, 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', { edition: 1, title: 'Edição #1' });
+        hqsOk++; log(`   📖 Edição criada: ${h.nome}`,'ok');
+      }catch(e){ log(`   ❌ Erro HQ ${h.nome}: ${e.message}`,'err'); }
+      prog(); await sleep(200);
+    } else {
+      log(`   ⏭️ ${h.nome} — já possui edições`,'skip'); prog();
+    }
+  }
+
+  log(`\n🎉 FASE 2 CONCLUÍDA! Capas: ${capasOk} | Eps Desenhos: ${epsDesenho} | Eps Animes: ${epsAnime} | Vols Mangás: ${mangasOk} | Edições HQs: ${hqsOk}`,'ok');
+  btn.textContent=`✅ Capas: ${capasOk} | Eps: ${epsDesenho+epsAnime} | Extras: ${mangasOk+hqsOk}`;
+}
+</script>
+</body>
+</html>
