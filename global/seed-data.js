@@ -27,14 +27,12 @@ const SEED_ANIMES = [
   {nome:'Tokyo Ghoul',estudio:'Pierrot',genero:'Ação, Terror, Sobrenatural',temporadas:4,capa:'https://cdn.myanimelist.net/images/anime/5/64449l.jpg'},
   {nome:'Parasyte',estudio:'Madhouse',genero:'Ação, Terror, Ficção Científica',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/3/73178l.jpg'},
   {nome:'Mushoku Tensei',estudio:'Studio Bind',genero:'Aventura, Drama, Fantasia',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/1530/117776l.jpg'},
-  {nome:'Bocchi the Rock!',estudio:'CloverWorks',genero:'Comédia, Música',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1448/127956l.jpg'},
   {nome:'Frieren: Beyond Journey\'s End',estudio:'Madhouse',genero:'Aventura, Drama, Fantasia',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1015/138006l.jpg'},
   {nome:'Solo Leveling',estudio:'A-1 Pictures',genero:'Ação, Aventura, Fantasia',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1908/141575l.jpg'},
   {nome:'Oshi no Ko',estudio:'Doga Kobo',genero:'Drama, Sobrenatural',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/1812/134736l.jpg'},
   {nome:'Your Lie in April',estudio:'A-1 Pictures',genero:'Drama, Música, Romance',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/3/67177l.jpg'},
   {nome:'Haikyuu!!',estudio:'Production I.G',genero:'Esportes, Comédia',temporadas:4,capa:'https://cdn.myanimelist.net/images/anime/7/76014l.jpg'},
   {nome:'Toradora!',estudio:'J.C.Staff',genero:'Comédia, Romance',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/5/22894l.jpg'},
-  {nome:'Clannad: After Story',estudio:'Kyoto Animation',genero:'Drama, Romance',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1299/110774l.jpg'},
   {nome:'Erased',estudio:'A-1 Pictures',genero:'Mistério, Suspense',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/10/77957l.jpg'},
   {nome:'The Promised Neverland',estudio:'CloverWorks',genero:'Mistério, Suspense',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/1830/118780l.jpg'},
   {nome:'Samurai Champloo',estudio:'Manglobe',genero:'Ação, Aventura',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1375/121599l.jpg'},
@@ -45,11 +43,13 @@ const SEED_ANIMES = [
   {nome:'Konosuba',estudio:'Studio Deen',genero:'Aventura, Comédia, Fantasia',temporadas:3,capa:'https://cdn.myanimelist.net/images/anime/8/77831l.jpg'},
   {nome:'Assassination Classroom',estudio:'Lerche',genero:'Ação, Comédia',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/5/75639l.jpg'},
   {nome:'Noragami',estudio:'Bones',genero:'Ação, Aventura, Sobrenatural',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/9/67899l.jpg'},
-  {nome:'Dororo',estudio:'MAPPA',genero:'Ação, Aventura',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1879/100467l.jpg'},
   {nome:'Blue Lock',estudio:'8bit',genero:'Esportes',temporadas:2,capa:'https://cdn.myanimelist.net/images/anime/1258/126929l.jpg'},
   {nome:'Kaiju No. 8',estudio:'Production I.G',genero:'Ação, Ficção Científica',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1137/141622l.jpg'},
   {nome:'Dandadan',estudio:'Science SARU',genero:'Ação, Comédia, Sobrenatural',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1032/142083l.jpg'},
   {nome:'Hell\'s Paradise',estudio:'MAPPA',genero:'Ação, Aventura, Sobrenatural',temporadas:1,capa:'https://cdn.myanimelist.net/images/anime/1002/133399l.jpg'},
+  {nome:'Tokyo Revengers',estudio:'LIDENFILMS',genero:'Ação, Drama',temporadas:3,capa:'https://cdn.myanimelist.net/images/anime/1839/122012l.jpg'},
+  {nome:'Bungo Stray Dogs',estudio:'Bones',genero:'Ação, Mistério, Sobrenatural',temporadas:5,capa:'https://cdn.myanimelist.net/images/anime/3/74088l.jpg'},
+  {nome:'Kaguya-sama: Love is War',estudio:'A-1 Pictures',genero:'Comédia, Romance',temporadas:3,capa:'https://cdn.myanimelist.net/images/anime/1295/106551l.jpg'},
 ];
 
 const SEED_DESENHOS = [
@@ -96,13 +96,17 @@ const SEED_DESENHOS = [
   {nome:'Ben 10: Supremacia Alienígena',produtora:'Cartoon Network',temporadas:3},
   {nome:'Ben 10: Omniverse',produtora:'Cartoon Network',temporadas:8},
   {nome:'Clarence',produtora:'Cartoon Network',temporadas:3},
-  {nome:'Jovens Titãs Clássico',produtora:'Cartoon Network',temporadas:5},
   {nome:'Batman: A Série Animada',produtora:'Cartoon Network',temporadas:4},
   {nome:'Liga da Justiça',produtora:'Cartoon Network',temporadas:2},
   {nome:'Liga da Justiça Sem Limites',produtora:'Cartoon Network',temporadas:3},
   {nome:'Super Choque',produtora:'Cartoon Network',temporadas:4},
-  {nome:'Os Padrinhos Mágicos',produtora:'Nickelodeon',temporadas:9},
-  {nome:'Rocko: A Vida Moderna',produtora:'Nickelodeon',temporadas:4},
+  {nome:'Titio Avô',produtora:'Cartoon Network',temporadas:5},
+  {nome:'Rick and Morty',produtora:'Adult Swim',temporadas:7},
+  {nome:'South Park',produtora:'Comedy Central',temporadas:27},
+  {nome:'Phineas e Ferb',produtora:'Disney',temporadas:5},
+  {nome:'Gravity Falls',produtora:'Disney',temporadas:2},
+  {nome:'Kim Possible',produtora:'Disney',temporadas:4},
+  {nome:'Star vs. As Forças do Mal',produtora:'Disney',temporadas:4},
 ];
 
 const SEED_FILMES = [
@@ -156,6 +160,9 @@ const SEED_FILMES = [
   {nome:'Tudo em Todo o Lugar ao Mesmo Tempo',ano:2022,genero:'Ficção Científica',diretor:'Daniel Kwan',capa:'https://image.tmdb.org/t/p/w500/w3LxiVYdWWRvEVdn5RYq6jIqkb1.jpg'},
   {nome:'Super Mario Bros. O Filme',ano:2023,genero:'Animação',diretor:'Aaron Horvath',capa:'https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2B5ggkM.jpg'},
   {nome:'Sonic: O Filme',ano:2020,genero:'Ação',diretor:'Jeff Fowler',capa:'https://image.tmdb.org/t/p/w500/aQvJ5WPzZgYVDrxLX4R6cLJCgaQ.jpg'},
+  {nome:'Pantera Negra',ano:2018,genero:'Ação',diretor:'Ryan Coogler',capa:'https://image.tmdb.org/t/p/w500/uxzzxijgPIY7slzFvMotPv8wjKA.jpg'},
+  {nome:'Guardiões da Galáxia',ano:2014,genero:'Ação',diretor:'James Gunn',capa:'https://image.tmdb.org/t/p/w500/r7vmZjiyZw9rpJMQJdXpjgiCOk9.jpg'},
+  {nome:'Doutor Estranho',ano:2016,genero:'Ação',diretor:'Scott Derrickson',capa:'https://image.tmdb.org/t/p/w500/uGBVj3bEbCoZbDjjl9wTxcygko1.jpg'},
 ];
 
 const SEED_MANGAS = [
@@ -223,3 +230,56 @@ const SEED_HQS = [
   {nome:'Y: O Último Homem',capa:'https://upload.wikimedia.org/wikipedia/en/d/df/Y_The_Last_Man_1.jpg'},
   {nome:'Tartarugas Ninja: O Último Ronin',capa:'https://upload.wikimedia.org/wikipedia/en/f/f5/The_Last_Ronin_1.jpg'},
 ];
+
+// Alias de busca no TMDB para evitar ambiguidade por nome local.
+// Usado pela Fase 2 para encontrar a série correta.
+const SEED_TMDB_SEARCH_ALIASES = {
+  // Desenhos
+  'Apenas um Show': 'Regular Show',
+  'Hora de Aventura': 'Adventure Time',
+  'O Incrível Mundo de Gumball': 'The Amazing World of Gumball',
+  'Jovens Titãs': 'Teen Titans',
+  'Jovens Titãs Clássico': 'Teen Titans',
+  'Ben 10': 'Ben 10 (2005)',
+  'Ben 10: Força Alienígena': 'Ben 10: Alien Force',
+  'Ben 10: Supremacia Alienígena': 'Ben 10: Ultimate Alien',
+  'KND: A Turma do Bairro': 'Codename: Kids Next Door',
+  'Du, Dudu e Edu': 'Ed, Edd n Eddy',
+  'Mutante Rex': 'Generator Rex',
+  'Mansão Foster para Amigos Imaginários': "Foster's Home for Imaginary Friends",
+  'As Terríveis Aventuras de Billy e Mandy': 'The Grim Adventures of Billy & Mandy',
+  'Trem Infinito': 'Infinity Train',
+  'Acampamento de Verão': 'Camp Lazlo',
+  'Lego Ninjago': 'Ninjago: Masters of Spinjitzu',
+  'Batman: A Série Animada': 'Batman: The Animated Series',
+  'Liga da Justiça': 'Justice League',
+  'Liga da Justiça Sem Limites': 'Justice League Unlimited',
+  'Super Choque': 'Static Shock',
+  'Bob Esponja': 'SpongeBob SquarePants',
+  'Avatar: A Lenda de Aang': 'Avatar: The Last Airbender',
+  'A Lenda de Korra': 'The Legend of Korra',
+  'Padrinhos Mágicos': 'The Fairly OddParents',
+  'Os Padrinhos Mágicos': 'The Fairly OddParents',
+  'Invasor Zim': 'Invader ZIM',
+  'A Vida Moderna de Rocko': "Rocko's Modern Life",
+  'Rocko: A Vida Moderna': "Rocko's Modern Life",
+  'Tartarugas Ninja (2012)': 'Teenage Mutant Ninja Turtles',
+  // Animes
+  'Shingeki no Kyojin': 'Attack on Titan',
+  'Demon Slayer': 'Demon Slayer: Kimetsu no Yaiba',
+  'One Punch Man': 'One-Punch Man',
+  'Naruto Shippuden': 'Naruto: Shippuden',
+  'Hunter x Hunter (2011)': 'Hunter x Hunter',
+  'Re:Zero': 'Re:Zero -Starting Life in Another World-',
+  'Code Geass': 'Code Geass: Lelouch of the Rebellion',
+  'Parasyte': 'Parasyte -the maxim-',
+  'Konosuba': "KonoSuba: God's Blessing on This Wonderful World!",
+  'Mushoku Tensei': 'Mushoku Tensei: Jobless Reincarnation'
+  ,
+  // Novos desenhos
+  'Titio Avô': 'Uncle Grandpa',
+  'Phineas e Ferb': 'Phineas and Ferb',
+  'Star vs. As Forças do Mal': 'Star vs. the Forces of Evil',
+  // Novos animes
+  'Kaguya-sama: Love is War': 'Kaguya-sama: Love Is War'
+};

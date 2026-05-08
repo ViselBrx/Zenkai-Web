@@ -288,7 +288,7 @@ const server = http.createServer(async (req, res) => {
           body?.model
           || process.env.GEMINI_MODEL
           || config.geminiModel
-          || 'gemini-2.0-flash'
+          || 'gemini-1.5-flash'
         ).replace(/^models\//i, '').trim();
         apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent`;
         credentialCandidates = buildCredentialCandidates([

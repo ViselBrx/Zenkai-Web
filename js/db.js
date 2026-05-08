@@ -468,42 +468,63 @@ const DB = {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
         const supa = getSupa();
-        const userId = await getCurrentUserId();
-
         // Filtro: Se logado, vê os seus + globais. Se deslogado, vê apenas os globais (nulos).
-        const filters = ['user_id.is.null'];
-        if (userId) filters.push(`user_id.eq.${userId}`);
-        const ownerFilter = filters.join(',');
+        const userId = await getCurrentUserId();
+        
+        const buildQuery = (table) => {
+            let q = supa.from(table).select('*');
+            if (userId) {
+                q = q.or(`user_id.is.null,user_id.eq.${userId}`);
+            } else {
+                q = q.is('user_id', null);
+            }
+            return q;
+        };
 
         const safeFetch = async (query, label) => {
             try {
-                const { data, error } = await query;
-                if (error) {
-                    console.warn(`⚠️ [DB] Erro ao carregar ${label}:`, error.message);
-                    return [];
+                // Supabase pode limitar respostas a 1000 linhas por request.
+                // Fazemos paginação por faixa para carregar o catálogo completo.
+                const pageSize = 1000;
+                const maxPages = 200; // margem ampla de segurança
+                let page = 0;
+                let allRows = [];
+
+                while (page < maxPages) {
+                    const from = page * pageSize;
+                    const to = from + pageSize - 1;
+                    const { data, error } = await query.range(from, to);
+                    if (error) {
+                        console.warn(`⚠️ [DB] Erro ao carregar ${label} (página ${page + 1}):`, error.message);
+                        return allRows;
+                    }
+                    const rows = data || [];
+                    allRows = allRows.concat(rows);
+                    if (rows.length < pageSize) break; // última página
+                    page++;
                 }
-                return data || [];
+                return allRows;
             } catch (err) {
                 console.error(`❌ [DB] Falha crítica na query ${label}:`, err);
                 return [];
             }
         };
 
-        const cartoonQuery = supa.from('cartoons').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const episodesQuery = supa.from('episodes').select('*').or(ownerFilter);
-        const moviesQuery = supa.from('movies').select('*').or(ownerFilter);
-        const animeQuery = supa.from('animes').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const animeEpsQuery = supa.from('anime_episodes').select('*').or(ownerFilter);
-        const mangaQuery = supa.from('mangas').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const mangaVolsQuery = supa.from('manga_volumes').select('*').or(ownerFilter).order('volume_number', { ascending: true });
-        const mangaNotesQuery = supa.from('manga_notes').select('*').or(ownerFilter);
-        const filmesQuery = supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const youtubePlaylistsQuery = supa.from('youtube_playlists').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const youtubeVideosQuery = supa.from('youtube_videos').select('*').or(ownerFilter);
-        const animeMoviesQuery = supa.from('anime_movies').select('*').or(ownerFilter);
-        const hqQuery = supa.from('hqs').select('*').or(ownerFilter).order('created_at', { ascending: true });
-        const hqEditionsQuery = supa.from('hq_editions').select('*').or(ownerFilter).order('edition_number', { ascending: true });
-        const hqNotesQuery = supa.from('hq_notes').select('*').or(ownerFilter);
+        const cartoonQuery = buildQuery('cartoons').order('created_at', { ascending: true });
+        const episodesQuery = buildQuery('episodes');
+        const moviesQuery = buildQuery('movies');
+        const animeQuery = buildQuery('animes').order('created_at', { ascending: true });
+        const animeEpsQuery = buildQuery('anime_episodes');
+        const mangaQuery = buildQuery('mangas').order('created_at', { ascending: true });
+        const mangaVolsQuery = buildQuery('manga_volumes').order('volume_number', { ascending: true });
+        const mangaNotesQuery = buildQuery('manga_notes');
+        const filmesQuery = buildQuery('filmes').order('created_at', { ascending: true });
+        const youtubePlaylistsQuery = buildQuery('youtube_playlists').order('created_at', { ascending: true });
+        const youtubeVideosQuery = buildQuery('youtube_videos');
+        const animeMoviesQuery = buildQuery('anime_movies');
+        const hqQuery = buildQuery('hqs').order('created_at', { ascending: true });
+        const hqEditionsQuery = buildQuery('hq_editions').order('edition_number', { ascending: true });
+        const hqNotesQuery = buildQuery('hq_notes');
 
         const [
             cartoons, episodes, movies,
@@ -526,7 +547,7 @@ const DB = {
             safeFetch(hqQuery, 'HQs'),
             safeFetch(hqEditionsQuery, 'HQEditions'),
             safeFetch(hqNotesQuery, 'HQNotes'),
-            safeFetch(supa.from('settings').select('*'), 'Settings')
+            safeFetch(supa.from('settings').select('*').limit(100), 'Settings')
         ]);
 
         // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
@@ -830,7 +851,7 @@ const DB = {
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
     const userId = await getRequiredUserId();
-    const item = { id: 'c_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'c_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     
     const { error } = await getSupa().from('cartoons').insert([item]);
     if (error) { console.error(error); throw new Error(error.message); }
@@ -873,14 +894,16 @@ const DB = {
   async addEpisode(cId, season, epData) {
     const userId = await getRequiredUserId();
     const item = { 
+        user_id: userId,
+        ...epData,
         id: 'e_' + Date.now(), 
         cartoon_id: cId, 
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: cleanIframe(epData.iframe || ''),
-        user_id: userId
+        iframe: cleanIframe(epData.iframe || '')
     };
+    delete item.epNumber; // Remove key que não existe no banco
 
     const { error } = await getSupa().from('episodes').insert([item]);
     if (error) throw new Error(error.message);
@@ -944,11 +967,12 @@ const DB = {
   async addMovie(cId, movieData) {
     const userId = await getRequiredUserId();
     const item = { 
+        user_id: userId,
+        ...movieData,
         id: 'm_c_' + Date.now(), 
         cartoon_id: cId, 
         title: movieData.title, 
-        iframe: cleanIframe(movieData.iframe),
-        user_id: userId
+        iframe: cleanIframe(movieData.iframe)
     };
     const { error } = await getSupa().from('movies').insert([item]);
     if (error) throw new Error(error.message);
@@ -987,7 +1011,7 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'a_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'a_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     
     const { error } = await getSupa().from('animes').insert([item]);
     if (error) throw new Error(error.message);
@@ -1030,15 +1054,17 @@ const DB = {
   async addAnimeEpisode(aId, audio, season, epData) {
     const userId = await getRequiredUserId();
     const item = {
+        user_id: userId,
+        ...epData,
         id: 'ae_' + Date.now(),
         anime_id: aId,
         idioma: audio,
         temporada: String(season),
         ep_number: epData.epNumber || 1,
         title: epData.title || '',
-        iframe: cleanIframe(epData.iframe || ''),
-        user_id: userId
+        iframe: cleanIframe(epData.iframe || '')
     };
+    delete item.epNumber; // Remove key que não existe no banco
     const { error } = await getSupa().from('anime_episodes').insert([item]);
     if (error) throw new Error(error.message);
 
@@ -1107,11 +1133,12 @@ const DB = {
   async addAnimeMovie(aId, movieData) {
     const userId = await getRequiredUserId();
     const item = { 
+        user_id: userId,
+        ...movieData,
         id: 'm_a_' + Date.now(), 
         anime_id: aId, 
         title: movieData.title, 
-        iframe: cleanIframe(movieData.iframe),
-        user_id: userId
+        iframe: cleanIframe(movieData.iframe)
     };
     const { error } = await getSupa().from('anime_movies').insert([item]);
     if (error) throw new Error(error.message);
@@ -1150,7 +1177,7 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'm_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'm_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     const { error } = await getSupa().from('mangas').insert([item]);
     if (error) throw new Error(error.message);
 
@@ -1189,6 +1216,8 @@ const DB = {
     }
     
     const item = {
+        user_id: userId,
+        ...volumeData,
         id: 'mv_' + Date.now(),
         manga_id: mangaId,
         volume_number: volumeData.volume,
@@ -1196,6 +1225,7 @@ const DB = {
         pdf_url: pdfUrl,
         created_at: Date.now()
     };
+    delete item.volume; // Remove key que não existe no banco
     
     const { error } = await getSupa().from('manga_volumes').insert([item]);
     if (error) throw new Error(error.message);
@@ -1281,7 +1311,7 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'hq_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'hq_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     const { error } = await getSupa().from('hqs').insert([item]);
     if (error) throw new Error(error.message);
     _store.hqs.push({...item, createdAt: item.created_at});
@@ -1315,14 +1345,16 @@ const DB = {
         pdfUrl = urlExterna;
     }
     const item = {
+        user_id: userId,
+        ...editionData,
         id: 'hqe_' + Date.now(),
         hq_id: hqId,
         edition_number: editionData.edition,
         title: editionData.title || '',
         pdf_url: pdfUrl,
-        created_at: Date.now(),
-        user_id: userId
+        created_at: Date.now()
     };
+    delete item.edition; // Remove key que não existe no banco
     const { error } = await getSupa().from('hq_editions').insert([item]);
     if (error) throw new Error(error.message);
     if (!_store.hqEditions[hqId]) _store.hqEditions[hqId] = [];
@@ -1407,7 +1439,7 @@ const DB = {
     delete data.capaBase64;
     // Limpa o iframe/url via cleanIframe se for tag
     if (data.iframe) data.iframe = cleanIframe(data.iframe);
-    const item = { id: 'f_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'f_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     const { error } = await getSupa().from('filmes').insert([item]);
     if (error) throw new Error(error.message);
     _store.filmes.push({...item, createdAt: item.created_at});
@@ -1803,7 +1835,7 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'ytp_' + Date.now(), ...data, created_at: Date.now(), user_id: userId };
+    const item = { id: 'ytp_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
     const { error } = await getSupa().from('youtube_playlists').insert([item]);
     if (error) throw new Error(error.message);
     _store.youtube_playlists.push({...item, createdAt: item.created_at});
@@ -1832,12 +1864,13 @@ const DB = {
   async addYoutubeVideo(plId, data) {
     const userId = await getRequiredUserId();
     const item = {
+      user_id: userId,
+      ...data,
       id: 'ytv_' + Date.now(),
       playlist_id: plId,
       title: data.title,
       iframe: cleanIframe(data.iframe),
-      created_at: Date.now(),
-      user_id: userId
+      created_at: Date.now()
     };
     const { error } = await getSupa().from('youtube_videos').insert([item]);
     if (error) throw new Error(error.message);

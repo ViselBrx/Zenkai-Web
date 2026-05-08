@@ -64,8 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre animações globais: de animes japoneses a cartoons americanos, passando por filmes 3D e clássicos adorados. Posso recomendar títulos com explicações detalhadas, discutir personagens famosos de qualquer estúdio, comparar poderes incríveis ou analisar cenas. Qual universo animado vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+  const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash';
   const DEFAULT_VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
+  const DEFAULT_GEMINI_VISION_MODEL = 'gemini-1.5-flash';
+  const GEMINI_VISION_MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-2.0-flash'];
   const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
   const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
   const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
@@ -1831,61 +1833,88 @@ document.addEventListener('DOMContentLoaded', async () => {
     const base64Image = await readFileAsDataUrl(file);
     const metadataWithPreview = { ...metadata, imageDataUrl: base64Image };
     const requestedModel = options.model || DEFAULT_VISION_MODEL;
-    const visionModelQueue = Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)));
     const maxRetriesPerModel = 2;
+    const visionRequestPlan = [
+      {
+        target: 'cloudflare-vision',
+        models: Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)))
+      },
+      {
+        target: 'gemini',
+        models: Array.from(new Set([
+          ...GEMINI_VISION_MODEL_FALLBACKS,
+          DEFAULT_GEMINI_VISION_MODEL,
+          DEFAULT_GEMINI_MODEL
+        ].filter(Boolean)))
+      }
+    ];
 
     async function requestVisionText(promptText) {
       let lastError = null;
 
-      for (let modelIndex = 0; modelIndex < visionModelQueue.length; modelIndex += 1) {
-        const selectedModel = visionModelQueue[modelIndex];
+      for (let providerIndex = 0; providerIndex < visionRequestPlan.length; providerIndex += 1) {
+        const providerPlan = visionRequestPlan[providerIndex];
+        const { target, models } = providerPlan;
 
-        for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
-          const res = await fetch('/api/ai/proxy', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              target: 'cloudflare-vision',
-              body: {
-                model: selectedModel,
-                prompt: promptText,
-                image: base64Image,
-                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+        for (let modelIndex = 0; modelIndex < models.length; modelIndex += 1) {
+          const selectedModel = models[modelIndex];
+
+          for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
+            const requestBody = target === 'gemini'
+              ? {
+                  model: selectedModel,
+                  messages: [{ role: 'user', content: promptText }],
+                  image: base64Image,
+                  max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+                }
+              : {
+                  model: selectedModel,
+                  prompt: promptText,
+                  image: base64Image,
+                  max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+                };
+
+            const res = await fetch('/api/ai/proxy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                target,
+                body: requestBody
+              })
+            });
+
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+              const text = normalizeBrokenEncoding(extractVisionText(result));
+              if (!text) {
+                lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
+              } else {
+                return text;
               }
-            })
-          });
-
-          const result = await res.json().catch(() => ({}));
-          if (res.ok) {
-            const text = normalizeBrokenEncoding(extractVisionText(result));
-            if (!text) {
-              lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
             } else {
-              return text;
+              const erroMsg = normalizeBrokenEncoding(
+                typeof result.error === 'object'
+                  ? (result.error.message || JSON.stringify(result.error))
+                  : (result.error || '')
+              );
+              lastError = new Error(erroMsg || ('Erro HTTP ' + res.status));
             }
-          } else {
-            const erroMsg = normalizeBrokenEncoding(
-              typeof result.error === 'object'
-                ? (result.error.message || JSON.stringify(result.error))
-                : (result.error || '')
-            );
-            lastError = new Error(erroMsg || ('Erro HTTP ' + res.status));
-          }
 
-          if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
-            break;
-          }
+            if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
+              break;
+            }
 
-          const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
-          if (hasRetryInCurrentModel) {
-            await sleep(700 * (attempt + 1));
-            continue;
-          }
+            const hasRetryInCurrentModel = attempt < (maxRetriesPerModel - 1);
+            if (hasRetryInCurrentModel) {
+              await sleep(700 * (attempt + 1));
+              continue;
+            }
 
-          const hasFallbackModel = modelIndex < (visionModelQueue.length - 1);
-          if (hasFallbackModel) {
-            await sleep(450);
-            break;
+            const hasFallbackModel = modelIndex < (models.length - 1);
+            if (hasFallbackModel) {
+              await sleep(450);
+              break;
+            }
           }
         }
       }

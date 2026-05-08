@@ -1326,8 +1326,33 @@ document.addEventListener("DOMContentLoaded", () => {
   window.checkAuthStatus();
 });
 
+async function ensureOAuthClientReady() {
+  if (!supaClient && !tryInit()) {
+    throw new Error("Supabase ainda não inicializou. Recarregue a página e tente novamente.");
+  }
+  return supaClient;
+}
+
+function showOAuthError(providerName, error) {
+  const providerLabel = providerName || "provedor social";
+  const message = error?.message || "Falha ao autenticar.";
+  console.error(`Erro ${providerLabel}:`, message);
+  if (typeof showToast === "function") {
+    showToast(`❌ Erro ao entrar com ${providerLabel}: ${message}`, "danger");
+  } else {
+    alert(`Erro ao entrar com ${providerLabel}: ${message}`);
+  }
+}
+
 // --- LOGIN COM GITHUB ---
 async function signInWithGithub() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("GitHub", error);
+    return;
+  }
+
   const { data, error } = await supaClient.auth.signInWithOAuth({
     provider: 'github',
     options: {
@@ -1335,14 +1360,18 @@ async function signInWithGithub() {
     }
   });
 
-  if (error) {
-    console.error("Erro GitHub:", error.message);
-    if (typeof showToast === "function") showToast("❌ Erro ao entrar com GitHub", "danger");
-  }
+  if (error) showOAuthError("GitHub", error);
 }
 
 // --- LOGIN COM GOOGLE ---
 async function signInWithGoogle() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Google", error);
+    return;
+  }
+
   const { data, error } = await supaClient.auth.signInWithOAuth({
     provider: 'google',
     options: {
@@ -1353,15 +1382,32 @@ async function signInWithGoogle() {
     }
   });
 
-  if (error) {
-    console.error("Erro Google:", error.message);
-    if (typeof showToast === "function") showToast("❌ Erro ao entrar com Google", "danger");
+  if (error) showOAuthError("Google", error);
+}
+
+// --- LOGIN COM DISCORD ---
+async function signInWithDiscord() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Discord", error);
+    return;
   }
+
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+
+  if (error) showOAuthError("Discord", error);
 }
 
 // Expor para o HTML
 window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
+window.signInWithDiscord = signInWithDiscord;
 
 // Adicionar listeners para os botões social se existirem
 document.addEventListener("click", (e) => {
@@ -1370,6 +1416,9 @@ document.addEventListener("click", (e) => {
   }
   if (e.target.closest("#googleLoginBtn") || e.target.closest("#googleRegBtn")) {
     signInWithGoogle();
+  }
+  if (e.target.closest("#discordLoginBtn") || e.target.closest("#discordRegBtn")) {
+    signInWithDiscord();
   }
 });
 
