@@ -19,7 +19,7 @@
 /*
  * PERFORMANCE (perfil.html): Os cards de inventário e compras acumulam múltiplas animações CSS
  * simultaneamente (border-glow, gradient-shift, rotate, chromatic-shine) + a transition global
- * de background-color/border-color que re-dooispara em cada frame do --chromatic-hue.
+ * de background-color/border-color que re-dooispara em cada frame do --ckkhromatic-hue.
  * Suprimir transitions de layout nesses cards específicos garante FPS sem afetar mais nada.
  */
 .theme-cromatico,
