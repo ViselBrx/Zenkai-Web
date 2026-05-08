@@ -470,23 +470,11 @@ const DB = {
         const supa = getSupa();
         const userId = await getCurrentUserId();
 
-        // Nunca carregar catÃ¡logo com sessÃ£o indefinida.
-        // Isso evita consultar user_id = null e misturar dados sem dono.
-        if (!userId) {
-            return;
-        }
+        // Filtro: Se logado, vê os seus + globais. Se deslogado, vê apenas os globais (nulos).
+        const filters = ['user_id.is.null'];
+        if (userId) filters.push(`user_id.eq.${userId}`);
+        const ownerFilter = filters.join(',');
 
-        const { data: { user } } = await supa.auth.getUser();
-        const isMainAccount = user?.email?.toLowerCase() === MAIN_ACCOUNT_EMAIL;
-        if (isMainAccount) {
-            await claimLegacyCatalogForMainAccount(userId);
-        }
-
-        const ownerFilter = `user_id.eq.${userId},user_id.is.null`;
-
-        // Cada conta enxerga apenas os prÃ³prios registros.
-        // ExceÃ§Ã£o controlada: conta principal tambÃ©m enxerga legados sem user_id.
-        // Lógica de Busca Resiliente: Se uma tabela falhar, não derruba o sistema todo
         const safeFetch = async (query, label) => {
             try {
                 const { data, error } = await query;
@@ -501,66 +489,21 @@ const DB = {
             }
         };
 
-        // Definição das queries
-        const cartoonQuery = isMainAccount
-          ? supa.from('cartoons').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('cartoons').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const episodesQuery = isMainAccount
-          ? supa.from('episodes').select('*').or(ownerFilter)
-          : supa.from('episodes').select('*').eq('user_id', userId);
-
-        const moviesQuery = isMainAccount
-          ? supa.from('movies').select('*').or(ownerFilter)
-          : supa.from('movies').select('*').eq('user_id', userId);
-
-        const animeQuery = isMainAccount
-          ? supa.from('animes').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('animes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const animeEpsQuery = isMainAccount
-          ? supa.from('anime_episodes').select('*').or(ownerFilter)
-          : supa.from('anime_episodes').select('*').eq('user_id', userId);
-
-        const mangaQuery = isMainAccount
-          ? supa.from('mangas').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('mangas').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const mangaVolsQuery = isMainAccount
-          ? supa.from('manga_volumes').select('*').or(ownerFilter).order('volume_number', { ascending: true })
-          : supa.from('manga_volumes').select('*').eq('user_id', userId).order('volume_number', { ascending: true });
-
-        const mangaNotesQuery = isMainAccount
-          ? supa.from('manga_notes').select('*').or(ownerFilter)
-          : supa.from('manga_notes').select('*').eq('user_id', userId);
-
-        const filmesQuery = isMainAccount
-          ? supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('filmes').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const youtubePlaylistsQuery = isMainAccount
-          ? supa.from('youtube_playlists').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('youtube_playlists').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const youtubeVideosQuery = isMainAccount
-          ? supa.from('youtube_videos').select('*').or(ownerFilter)
-          : supa.from('youtube_videos').select('*').eq('user_id', userId);
-
-        const animeMoviesQuery = isMainAccount
-          ? supa.from('anime_movies').select('*').or(ownerFilter)
-          : supa.from('anime_movies').select('*').eq('user_id', userId);
-
-        const hqQuery = isMainAccount
-          ? supa.from('hqs').select('*').or(ownerFilter).order('created_at', { ascending: true })
-          : supa.from('hqs').select('*').eq('user_id', userId).order('created_at', { ascending: true });
-
-        const hqEditionsQuery = isMainAccount
-          ? supa.from('hq_editions').select('*').or(ownerFilter).order('edition_number', { ascending: true })
-          : supa.from('hq_editions').select('*').eq('user_id', userId).order('edition_number', { ascending: true });
-
-        const hqNotesQuery = isMainAccount
-          ? supa.from('hq_notes').select('*').or(ownerFilter)
-          : supa.from('hq_notes').select('*').eq('user_id', userId);
+        const cartoonQuery = supa.from('cartoons').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const episodesQuery = supa.from('episodes').select('*').or(ownerFilter);
+        const moviesQuery = supa.from('movies').select('*').or(ownerFilter);
+        const animeQuery = supa.from('animes').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const animeEpsQuery = supa.from('anime_episodes').select('*').or(ownerFilter);
+        const mangaQuery = supa.from('mangas').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const mangaVolsQuery = supa.from('manga_volumes').select('*').or(ownerFilter).order('volume_number', { ascending: true });
+        const mangaNotesQuery = supa.from('manga_notes').select('*').or(ownerFilter);
+        const filmesQuery = supa.from('filmes').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const youtubePlaylistsQuery = supa.from('youtube_playlists').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const youtubeVideosQuery = supa.from('youtube_videos').select('*').or(ownerFilter);
+        const animeMoviesQuery = supa.from('anime_movies').select('*').or(ownerFilter);
+        const hqQuery = supa.from('hqs').select('*').or(ownerFilter).order('created_at', { ascending: true });
+        const hqEditionsQuery = supa.from('hq_editions').select('*').or(ownerFilter).order('edition_number', { ascending: true });
+        const hqNotesQuery = supa.from('hq_notes').select('*').or(ownerFilter);
 
         const [
             cartoons, episodes, movies,

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+ocument.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
   const tbody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   filmeForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSalvar = document.getElementById('saveBtn');
-    
+
     // Se já estiver salvando, não faz nada
     if (btnSalvar.disabled) return;
 
@@ -158,12 +158,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const iframeVal = document.getElementById('iframe').value.trim();
 
     if (!nome) {
-        showToast('Nome é obrigatório', 'error');
-        return;
+      showToast('Nome é obrigatório', 'error');
+      return;
     }
     if (!iframeVal) {
-        showToast('O link/iframe é obrigatório', 'error');
-        return;
+      showToast('O link/iframe é obrigatório', 'error');
+      return;
     }
 
     btnSalvar.disabled = true;
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         );
       }
-    } catch(err) {
+    } catch (err) {
       showToast('Erro ao salvar: ' + err.message, 'error');
     } finally {
       btnSalvar.disabled = false;
