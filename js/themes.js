@@ -283,11 +283,11 @@
 
     const pages = [
       { href: "index.html", label: "🏠 Inicio", icon: "🏠" },
-      { href: "catalogo-desenhos.html", label: "🎬 Desenhos", icon: "🎬" },
+      { href: "desenhos.html", label: "🎬 Desenhos", icon: "🎬" },
       { href: "animes.html", label: "⛩️ Animes", icon: "⛩️" },
       { href: "youtube.html", label: "▶️ YouTube", icon: "▶️" },
       { href: "filmes.html", label: "🎬 Filmes", icon: "🎬" },
-      { href: "desenhos.html", label: "▶️ Eps. Desenhos", icon: "▶️" },
+      { href: "episodios-desenhos.html", label: "▶️ Eps. Desenhos", icon: "▶️" },
       { href: "anime-episodios.html", label: "▶️ Eps. Animes", icon: "▶️" },
       { href: "youtube-videos.html", label: "▶️ Eps. YouTube", icon: "▶️" },
       { href: "painel-cadastros.html", label: "📝 Painel de Cadastros", icon: "📝" },

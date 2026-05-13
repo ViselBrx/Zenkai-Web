@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       pendingHistoryResume = null;
       return;
     }
-    pendingHistoryResume = HistoryTracker.consumeResumeFromUrl('desenhos.html');
+    pendingHistoryResume = HistoryTracker.consumeResumeFromUrl('episodios-desenhos.html');
   }
 
   function clearPendingHistoryResume() {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? (item.title || 'Filme sem titulo')
         : (item.title || `Episodio ${epNumber || 1}`),
       coverUrl: cartoon?.capa || '',
-      route: 'desenhos.html',
+      route: 'episodios-desenhos.html',
       payload: {
         cartoonId: activeCartoonId,
         season,
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function tryResumeWatchFromHistory() {
     if (!pendingHistoryResume || !activeCartoonId) return;
-    if (pendingHistoryResume.route !== 'desenhos.html') return;
+    if (pendingHistoryResume.route !== 'episodios-desenhos.html') return;
     if (pendingHistoryResume.cartoonId !== activeCartoonId) return;
 
     const targetId = pendingHistoryResume.contentId;

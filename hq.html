@@ -336,9 +336,15 @@
         <input id="hqNome" class="form-control" type="text" placeholder="Ex: Batman — Cavaleiro das Trevas" required />
       </div>
       <div class="form-group">
-        <label>Capa (Opcional)</label>
-        <input id="hqCapa" class="form-control" type="file" accept="image/*" />
-        <img id="hqCapaPreview" src="" alt="Preview da capa" />
+        <label>Capa (Upload de Arquivo local ou URL)</label>
+        <div class="form-row">
+          <input id="hqCapaFile" class="form-control" type="file" accept="image/*" />
+          <span style="font-size:0.8rem;color:var(--text-muted)">ou</span>
+          <input id="hqCapa" class="form-control" type="url" placeholder="https://..." />
+        </div>
+        <div id="hqCapaPreview" style="margin-top:10px;display:none;">
+          <img id="hqCapaImg" src="" alt="Preview" style="width:80px;height:106px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
+        </div>
       </div>
       <div class="form-actions" style="margin-top: 2rem;">
         <button type="submit" class="btn btn-primary" id="btnSalvarHQ" style="width:100%">💾 Salvar HQ</button>

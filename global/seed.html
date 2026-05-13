@@ -210,7 +210,7 @@ async function seedCat(label, icon, getFn, addFn, items, mapFn) {
       continue; 
     }
     try {
-      const mapped = mapFn(item);
+      const mapped = await mapFn(item);
       // Forçar user_id null para ser global
       await addFn({ ...mapped, user_id: null });
       ins++;
@@ -248,10 +248,27 @@ async function startSeed() {
       f => ({ nome: f.nome, diretor: f.diretor || '', genero: f.genero || '', ano: f.ano || null, iframe: ' ', capa: f.capa || '' }));
     
     const r4 = await seedCat('Mangás', '📖', () => DB.getMangas(), d => DB.addManga(d), SEED_MANGAS,
-      m => ({ nome: m.nome, autor: m.autor || '', capitulos: m.capitulos || 0, capa: m.capa || '', link_drive: '' }));
+      async m => {
+        let capa = m.capa;
+        try {
+          const webCapa = await jikanSearchManga(m.nome);
+          if (webCapa) capa = webCapa;
+        } catch(e) {}
+        
+        if (capa && !capa.includes('weserv.nl')) {
+          capa = `https://images.weserv.nl/?url=${encodeURIComponent(capa)}`;
+        }
+        return { nome: m.nome, autor: m.autor || '', volumes: m.volumes || 0, capa: capa, link_drive: '' };
+      });
     
     const r5 = await seedCat('HQs', '🦸', () => DB.getHQs(), d => DB.addHQ(d), SEED_HQS,
-      h => ({ nome: h.nome, capa: h.capa || '' }));
+      h => {
+        let capa = h.capa || HQ_COVERS[h.nome];
+        if (capa && !capa.includes('weserv.nl')) {
+          capa = `https://images.weserv.nl/?url=${encodeURIComponent(capa)}`;
+        }
+        return { nome: h.nome, capa: capa || '' };
+      });
     
     btn.textContent = `✅ ${r1 + r2 + r3 + r4 + r5} novos itens!`;
     log(`\n🎉 Fase 1 completa! Total novos: ${r1+r2+r3+r4+r5}`, 'ok');
@@ -311,8 +328,11 @@ async function cleanEpisodes(tipo) {
 
 // Atualiza capa DIRETO no Supabase (contorna checkItemOwnership do seed)
 async function seedUpdateCover(table, id, capa) {
-  const { error } = await supaClient.from(table).update({ capa }).eq('id', id);
+  const { data, error, count } = await supaClient.from(table).update({ capa }).eq('id', id).select();
   if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    throw new Error('Permissão negada (RLS): O banco de dados impediu a atualização deste item global. Verifique as políticas de UPDATE no Supabase.');
+  }
 }
 
 async function seedUpdateName(table, id, nome) {
@@ -547,7 +567,50 @@ async function startPhase2() {
       await sleep(60);
     }
 
-    if (addedCartoons || addedAnimes) {
+    for (const m of SEED_MANGAS) {
+      const found = findByNameLoose(mangas, m.nome);
+      if (found) continue;
+      
+      let capa = m.capa;
+      try {
+        const webCapa = await jikanSearchManga(m.nome);
+        if (webCapa) capa = webCapa;
+      } catch(e) {}
+
+      if (capa && !capa.includes('weserv.nl')) {
+        capa = `https://images.weserv.nl/?url=${encodeURIComponent(capa)}`;
+      }
+
+      const row = {
+        id: uniqueId('m'),
+        nome: m.nome,
+        autor: m.autor || '',
+        volumes: m.volumes || 0,
+        capa: capa || '',
+        user_id: null
+      };
+      await supaClient.from('mangas').insert([row]);
+      await sleep(500); // Rate limit Jikan
+    }
+
+    for (const h of SEED_HQS) {
+      const found = findByNameLoose(hqs, h.nome);
+      if (found) continue;
+      
+      let capa = h.capa || HQ_COVERS[h.nome];
+      if (capa && !capa.includes('weserv.nl')) {
+        capa = `https://images.weserv.nl/?url=${encodeURIComponent(capa)}`;
+      }
+
+      const row = {
+        id: uniqueId('h'),
+        nome: h.nome,
+        capa: capa || '',
+        user_id: null
+      };
+      await supaClient.from('hqs').insert([row]);
+      await sleep(60);
+    }
       log(`✅ Seed base sincronizado: +${addedCartoons} desenhos | +${addedAnimes} animes`, 'ok');
       await DB.init();
       cartoonsAll = DB.getCartoons();
@@ -555,7 +618,6 @@ async function startPhase2() {
       filmes = DB.getFilmes();
       mangas = DB.getMangas();
       hqs = DB.getHQs();
-    }
   }
 
   await ensureSeedCatalogExists();
@@ -595,6 +657,20 @@ async function startPhase2() {
   totalItems = cartoons.length + animes.length + filmes.length + mangas.length + hqs.length;
   doneItems = 0;
   progressFill.style.width = '0%';
+
+  // Busca capa de mangá via Jikan (MyAnimeList)
+  async function jikanSearchManga(name) {
+    try {
+      const url = `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(name)}&limit=1`;
+      const res = await fetchRetry(url);
+      if (res && res.data && res.data[0]) {
+        return res.data[0].images?.jpg?.large_image_url || res.data[0].images?.jpg?.image_url;
+      }
+    } catch (e) {
+      dlog('JIKAN', `Error searching ${name}`, e);
+    }
+    return null;
+  }
 
   function pickBestTMDBResult(seedName, results) {
     if (!Array.isArray(results) || results.length === 0) return null;
@@ -887,8 +963,8 @@ async function startPhase2() {
         }
       }
 
-      // Capa via TMDB
-      for (const c of targets) if (!c.capa || c.capa === '') {
+      // Capa via TMDB (sempre atualiza)
+      for (const c of targets) {
         const cover = tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : '';
         if (cover) {
           try { await seedUpdateCover('cartoons', c.id, cover); capasDesenho++; }
@@ -1012,8 +1088,8 @@ async function startPhase2() {
         }
       }
 
-      // Capa via TMDB
-      for (const a of targets) if (!a.capa || a.capa === '') {
+      // Capa via TMDB (sempre atualiza)
+      for (const a of targets) {
         const cover = tmdbAnime.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbAnime.poster_path}` : '';
         if (cover) {
           try { await seedUpdateCover('animes', a.id, cover); capasAnime++; }
@@ -1101,61 +1177,136 @@ async function startPhase2() {
   }
 
   // ──────────────────────────────────
-  // 4. MANGÁS — Volume inicial
+  // 4. MANGÁS — Capas + Volumes Originais
   // ──────────────────────────────────
-  log('\n📖 Criando Volumes Iniciais para Mangás...', 'info');
-  let mangasOk = 0;
+  log('\n📖 Sincronizando Capas + Volumes para Mangás...', 'info');
+  let mangasOk = 0, capasManga = 0;
 
-  for (const m of mangas) {
-    const existVol = DB.getMangaVolumesFor(m.id).length > 0;
-    if (!existVol) {
+  for (const mData of SEED_MANGAS) {
+    const targets = getTargetsBySeedName(mangas, mData.nome);
+    for (const m of targets) {
+      // 1. Atualiza capa (Busca na Web via Jikan se falhar ou sempre para garantir a melhor)
       try {
-        await DB.addMangaVolume(m.id, null, 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', { volume: 1, title: 'Volume 1 - O Início', user_id: null });
-        mangasOk++;
-        log(`   📚 Volume criado: ${m.nome}`, 'ok');
-      } catch (e) { log(`   ❌ Mangá ${m.nome}: ${e.message}`, 'err'); }
-      await sleep(200);
-    } else {
-      log(`   ⏭️ ${m.nome} — já possui volumes`, 'skip');
+        let webCover = await jikanSearchManga(mData.nome);
+        let finalCover = webCover || mData.capa;
+        
+        // Aplica proxy para evitar 403 Forbidden
+        if (finalCover && !finalCover.includes('weserv.nl')) {
+          finalCover = `https://images.weserv.nl/?url=${encodeURIComponent(finalCover)}`;
+        }
+
+        await seedUpdateCover('mangas', m.id, finalCover);
+        capasManga++;
+        log(`   🖼️ Capa Mangá (Jikan): ${m.nome}`, 'ok');
+      } catch (e) { log(`   ⚠️ Erro Capa ${m.nome}: ${e.message}`, 'err'); }
+      await sleep(500); // Rate limit da Jikan (1 req por segundo seguro)
+
+      // 2. Volumes Originais (Bulk Insert)
+      const existVol = DB.getMangaVolumesFor(m.id).length > 0;
+      if (!existVol) {
+        try {
+          const totalVols = mData.volumes || 1;
+          const volumesToInsert = [];
+          const now = Date.now();
+          
+          for (let v = 1; v <= totalVols; v++) {
+            volumesToInsert.push({
+              id: `mv_${now}_${v}_${Math.floor(Math.random()*1000)}`,
+              user_id: null,
+              manga_id: m.id,
+              volume_number: v,
+              title: `Volume ${v}`,
+              pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+              created_at: now
+            });
+          }
+
+          // Inserção em lotes
+          for (let i = 0; i < volumesToInsert.length; i += 100) {
+            const chunk = volumesToInsert.slice(i, i + 100);
+            const { error } = await supaClient.from('manga_volumes').insert(chunk);
+            if (error) throw error;
+          }
+
+          mangasOk++;
+          log(`   📚 ${totalVols} Volumes criados: ${m.nome}`, 'ok');
+        } catch (e) { log(`   ❌ Mangá ${m.nome}: ${e.message}`, 'err'); }
+        await sleep(100);
+      } else {
+        log(`   ⏭️ ${m.nome} — já possui volumes`, 'skip');
+      }
     }
     prog();
   }
 
   // ──────────────────────────────────
-  // 5. HQs — Capas estáticas + Edição inicial
+  // 5. HQs — Capas + Edições Originais
   // ──────────────────────────────────
-  log('\n🦸 Criando Capas + Edições para HQs...', 'info');
+  log('\n🦸 Sincronizando Capas + Edições para HQs...', 'info');
   let hqsOk = 0, capasHQ = 0;
 
-  for (const h of hqs) {
-    // Capa estática mapeada
-    if ((!h.capa || h.capa === '') && HQ_COVERS[h.nome]) {
-      try {
-        await seedUpdateCover('hqs', h.id, HQ_COVERS[h.nome]);
-        capasHQ++;
-        log(`   🖼️ Capa: ${h.nome}`, 'ok');
-      } catch (e) { log(`   ⚠️ Capa HQ ${h.nome}: ${e.message}`, 'err'); }
-    }
+  for (const hData of SEED_HQS) {
+    const targets = getTargetsBySeedName(hqs, hData.nome);
+    for (const h of targets) {
+      // 1. Capa (Sempre força o link oficial)
+      let coverSource = hData.capa || HQ_COVERS[h.nome] || HQ_COVERS[hData.nome];
+      if (coverSource) {
+        try {
+          // Aplica proxy para HQs também
+          if (!coverSource.includes('weserv.nl')) {
+            coverSource = `https://images.weserv.nl/?url=${encodeURIComponent(coverSource)}`;
+          }
+          await seedUpdateCover('hqs', h.id, coverSource);
+          capasHQ++;
+          log(`   🖼️ Capa HQ: ${h.nome}`, 'ok');
+        } catch (e) { log(`   ⚠️ Erro Capa ${h.nome}: ${e.message}`, 'err'); }
+      }
 
-    // Edição inicial
-    const existEd = DB.getHQEditionsFor(h.id).length > 0;
-    if (!existEd) {
-      try {
-        await DB.addHQEdition(h.id, null, 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', { edition: 1, title: 'Edição #1', user_id: null });
-        hqsOk++;
-        log(`   📖 Edição criada: ${h.nome}`, 'ok');
-      } catch (e) { log(`   ❌ HQ ${h.nome}: ${e.message}`, 'err'); }
-      await sleep(200);
-    } else {
-      log(`   ⏭️ ${h.nome} — já possui edições`, 'skip');
+      // 2. Edições Originais (Bulk Insert)
+      const existEd = DB.getHQEditionsFor(h.id).length > 0;
+      if (!existEd) {
+        try {
+          const totalEds = hData.edicoes || 1;
+          const editionsToInsert = [];
+          const now = Date.now();
+
+          for (let ed = 1; ed <= totalEds; ed++) {
+            editionsToInsert.push({
+              id: `hqe_${now}_${ed}_${Math.floor(Math.random()*1000)}`,
+              user_id: null,
+              hq_id: h.id,
+              edition_number: ed,
+              title: totalEds === 1 ? 'Edição Única' : `Edição #${ed}`,
+              pdf_url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+              created_at: now
+            });
+          }
+
+          // Inserção em lotes de 100
+          for (let i = 0; i < editionsToInsert.length; i += 100) {
+            const chunk = editionsToInsert.slice(i, i + 100);
+            const { error } = await supaClient.from('hq_editions').insert(chunk);
+            if (error) throw error;
+          }
+
+          hqsOk++;
+          log(`   📖 ${totalEds} Edições criadas: ${h.nome}`, 'ok');
+        } catch (e) { log(`   ❌ HQ ${h.nome}: ${e.message}`, 'err'); }
+        await sleep(100);
+      } else {
+        log(`   ⏭️ ${h.nome} — já possui edições`, 'skip');
+      }
     }
     prog();
   }
 
+  // Sincroniza memória local antes de finalizar
+  await DB.init();
+
   log(`\n🎉 FASE 2 CONCLUÍDA!`, 'ok');
-  log(`   🖼️  Capas: Desenhos=${capasDesenho} | Animes=${capasAnime} | Filmes=${capasFilme} | HQs=${capasHQ}`, 'ok');
+  log(`   🖼️  Capas: Desenhos=${capasDesenho} | Animes=${capasAnime} | Filmes=${capasFilme} | Mangás=${capasManga} | HQs=${capasHQ}`, 'ok');
   log(`   📺 Episódios: Desenhos=${epsDesenho} | Animes=${epsAnime}`, 'ok');
-  log(`   📚 Volumes Mangás=${mangasOk} | Edições HQs=${hqsOk}`, 'ok');
+  log(`   📚 Volumes Mangás=${mangasOk} | Edições HQs=${hqsOk}`, 'info');
   btn.textContent = `✅ Capas: ${capasDesenho + capasAnime + capasFilme + capasHQ} | Eps: ${epsDesenho + epsAnime}`;
   dlog('PHASE2', 'Completed phase 2', {
     capasDesenho, capasAnime, capasFilme, capasHQ,

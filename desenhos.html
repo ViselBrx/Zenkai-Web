@@ -3,49 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Episódios de Desenhos</title>
-  <meta name="description" content="Assista aos episódios dos seus desenhos favoritos por temporada." />
+  <title>Anime House — Início</title>
+  <meta name="description" content="Catálogo pessoal de desenhos e animes com visualização por temporadas e episódios." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
-  <style>
-    .cartoon-selector {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .7rem;
-      margin-bottom: 2rem;
-    }
-    .cartoon-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border-radius: 40px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-weight: 700;
-      font-size: .88rem;
-      color: var(--text-muted);
-      transition: background var(--transition), border-color var(--transition), color var(--transition);
-    }
-    .cartoon-pill img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
-    .cartoon-pill:hover, .cartoon-pill.active {
-      background: rgba(var(--primary-rgb), 0.12);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-    
-    @keyframes fadeInSlide {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .content-animate {
-      animation: fadeInSlide 0.5s ease-out forwards;
-    }
-  </style>
 </head>
-<body class="anime-context">
+<body>
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -60,94 +24,60 @@
   </button>
 </nav>
 
-<main class="container">
-  <div class="page-header">
-    <div class="header-main">
-      <h1>🎬 Episódios de Desenhos</h1>
-      <p>Selecione um desenho e adicione/assista aos episódios por temporada</p>
+<!-- CONTEÚDO PRINCIPAL -->
+<main class="main-content">
+  <div class="page-header" style="flex-direction: column; justify-content: center; align-items: center;">
+    <div class="header-main" style="text-align: center;">
+      <h1>🎌 Catálogo de Desenhos</h1>
+      <p>Explore sua coleção de animes e desenhos favoritos</p>
     </div>
-    <div id="statsWidget" class="stats-widget"></div>
   </div>
 
-  <!-- SELETOR -->
-  <div id="cartoonPills" class="cartoon-selector"></div>
-
-  <div id="noCartoonMsg" class="select-cartoon-prompt" style="display:none;">
-    🎬 Selecione um desenho acima para gerenciar e assistir episódios.
+  <!-- BUSCA E FILTROS -->
+  <div class="search-bar">
+    <input id="searchInput" type="text" placeholder="🔍  Pesquisar desenho..." />
+    <select id="filterProdutora">
+      <option value="">Todas as produtoras</option>
+    </select>
+    <select id="filterTemporadas">
+      <option value="">Qtd. de temporadas</option>
+      <option value="1">1 temporada</option>
+      <option value="2">2 temporadas</option>
+      <option value="3">3 temporadas</option>
+      <option value="4">4+</option>
+    </select>
   </div>
-  <div id="noCartoonRegistered" class="select-cartoon-prompt" style="display:none;">
-    📭 Nenhum desenho cadastrado. <a href="cadastro.html" style="color:var(--accent2)">Cadastre um agora.</a>
-  </div>
 
-  <div id="episodePanel" style="display:none;">
-    <!-- ADICIONAR EPISÓDIO -->
-    <form id="epForm" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.8rem;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h3 id="formActionTitle" style="font-family:'Bangers',cursive;font-size:1.4rem;color:var(--primary);letter-spacing:1px;margin:0;">➕ Adicionar Episódio</h3>
-        <div style="display:flex;gap:10px;">
-          <select id="entryType" class="form-control" style="width:auto;min-width:140px;height:35px;padding:2px 10px;border-color:var(--accent2);">
-            <option value="episode">Episódio</option>
-            <option value="movie">Filme</option>
-          </select>
-        </div>
-      </div>
-      <div class="ep-form-row">
-        <div class="form-group" id="groupSeason">
-          <label>Temporada *</label>
-          <input id="epSeason" class="form-control" type="number" min="1" value="1" placeholder="1" />
-        </div>
-        <div class="form-group" id="groupNumber">
-          <label>Nº Episódio *</label>
-          <input id="epNumber" class="form-control" type="number" min="1" value="1" placeholder="1" />
-        </div>
-        <div class="form-group" style="flex:2;min-width:200px;">
-          <label id="labelTitle">Título (opcional)</label>
-          <input id="epTitle" class="form-control" type="text" placeholder="Ex: O Começo de Tudo" />
-        </div>
-        <div class="form-group" style="flex:3;min-width:260px;">
-          <label>Código de Incorporação (iframe) ou URL *</label>
-          <input id="epIframe" class="form-control" type="text" placeholder='&lt;iframe src="..."&gt;&lt;/iframe&gt; ou https://...' />
-        </div>
-        <div class="form-group" style="min-width:fit-content;">
-          <label>&nbsp;</label>
-          <button type="submit" class="btn btn-primary" id="addEpBtn">Adicionar</button>
-        </div>
-      </div>
-    </form>
-
-    <!-- FILMES -->
-    <div id="moviesContainer" style="margin-bottom:2rem;"></div>
-
-    <!-- TEMPORADAS -->
-    <div id="seasonsContainer"></div>
+  <!-- GRID DE CARDS -->
+  <div id="cardsGrid" class="cards-grid"></div>
+  <div id="emptyState" class="empty-state" style="display:none;">
+    <div class="empty-icon">📭</div>
+    <p>Nenhum desenho encontrado.<br>Acesse <a href="cadastro.html" style="color:var(--primary)">Cadastro</a> para adicionar.</p>
   </div>
 </main>
 
-<!-- MODAL VER EPISÓDIO -->
-<div class="modal-overlay" id="watchModal">
-  <div class="modal" style="max-width:860px;">
+<!-- MODAL DETALHES -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
     <div class="modal-header">
-      <h2 id="watchTitle">—</h2>
-      <button class="modal-close" id="watchClose">✕</button>
+      <h2 id="detailTitle">—</h2>
+      <button class="modal-close" id="detailClose">✕</button>
     </div>
-    <div id="watchFrame" style="width:100%;aspect-ratio:16/9;background:#000;"></div>
-    <div class="form-actions" style="margin-top:1rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-      <button id="watchedModalBadge" class="watched-modal-badge not-watched">○ Marcar como Assistido</button>
-      <div style="display:flex; gap:5px; align-items:center;">
-        <input type="text" id="watchTimeNote" placeholder="12:34" maxlength="20" style="background:var(--bg-body); color:var(--text); border:1px solid var(--border); border-radius:var(--radius); padding:0.4rem 0.8rem; width:100px; font-size:0.9rem;" title="Minuto em que você parou">
-        <button class="btn btn-primary btn-sm" id="saveTimeNoteBtn" style="padding:0.4rem 0.8rem;">Salvar Tempo</button>
-      </div>
-      <button class="btn btn-danger btn-sm" id="watchDeleteBtn" style="margin-left:auto;">🗑️ Remover Episódio</button>
+    <img id="detailCover" src="" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-bottom:1rem;" />
+    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;display:none;">🎬</div>
+    <p><strong>Produtora:</strong> <span id="detailProdutora">—</span></p>
+    <p style="margin-top:6px"><strong>Temporadas:</strong> <span id="detailTemporadas">—</span></p>
+    <div style="display:flex;gap:.8rem;margin-top:1.5rem;">
+      <a id="detailWatchBtn" href="episodios-desenhos.html" class="btn btn-primary" style="flex:1;justify-content:center;">▶️ Assistir Episódios</a>
+      <a href="cadastro.html" class="btn btn-ghost" style="flex:1;justify-content:center;">✏️ Editar</a>
     </div>
   </div>
 </div>
 
 <div id="toast"></div>
 <script src="js/db.js"></script>
-<script src="js/watched.js"></script>
-<script src="js/history.js"></script>
-<script src="js/desenhos.js"></script>
-<script src="js/utils-stats.js"></script>
+<script src="js/home.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <div class="watermark">© ViselBrx & DaviMoraes07™</div>

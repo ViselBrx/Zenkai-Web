@@ -781,6 +781,33 @@ const DB = {
                 });
             });
         }
+
+        // Agrupar HQ Editions (CORREÇÃO: estava faltando!)
+        if (hqEditions) {
+            hqEditions.forEach(ed => {
+                if (!_store.hqEditions[ed.hq_id]) _store.hqEditions[ed.hq_id] = [];
+                _store.hqEditions[ed.hq_id].push({
+                    id: ed.id, edition_number: ed.edition_number, title: ed.title, pdf_url: ed.pdf_url
+                });
+            });
+            // Ordenar por número
+            for(let hqid in _store.hqEditions) {
+                _store.hqEditions[hqid].sort((a,b) => a.edition_number - b.edition_number);
+            }
+        }
+
+        // Agrupar HQ Notes (CORREÇÃO: estava faltando!)
+        if (hqNotes) {
+            hqNotes.forEach(n => {
+                _store.hqNotes[n.edition_id] = {
+                    id: n.id,
+                    hq_id: n.hq_id,
+                    note_text: n.note_text,
+                    page_bookmark: n.page_bookmark
+                };
+            });
+        }
+
         console.log("Banco de dados sincronizado com o Supabase!");
 
     } catch (e) {
@@ -1177,7 +1204,12 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'm_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
+    const item = { 
+      id: 'm_' + Date.now(), 
+      user_id: data.user_id !== undefined ? data.user_id : userId, 
+      ...data, 
+      created_at: Date.now() 
+    };
     const { error } = await getSupa().from('mangas').insert([item]);
     if (error) throw new Error(error.message);
 
@@ -1216,7 +1248,7 @@ const DB = {
     }
     
     const item = {
-        user_id: userId,
+        user_id: volumeData.user_id !== undefined ? volumeData.user_id : userId,
         ...volumeData,
         id: 'mv_' + Date.now(),
         manga_id: mangaId,
@@ -1311,7 +1343,12 @@ const DB = {
     const userId = await getRequiredUserId();
     if (data.capaBase64) data.capa = await DB.uploadCapa(data.capaBase64);
     delete data.capaBase64;
-    const item = { id: 'hq_' + Date.now(), user_id: userId, ...data, created_at: Date.now() };
+    const item = { 
+      id: 'hq_' + Date.now(), 
+      user_id: data.user_id !== undefined ? data.user_id : userId, 
+      ...data, 
+      created_at: Date.now() 
+    };
     const { error } = await getSupa().from('hqs').insert([item]);
     if (error) throw new Error(error.message);
     _store.hqs.push({...item, createdAt: item.created_at});
@@ -1345,7 +1382,7 @@ const DB = {
         pdfUrl = urlExterna;
     }
     const item = {
-        user_id: userId,
+        user_id: editionData.user_id !== undefined ? editionData.user_id : userId,
         ...editionData,
         id: 'hqe_' + Date.now(),
         hq_id: hqId,

@@ -1298,7 +1298,7 @@ function populateNavbarLinks() {
   const links = [
     { name: "🏠 Início", url: "index.html" },
     { name: "⛩️ Animes", url: "animes.html" },
-    { name: "📺 Desenhos", url: "catalogo-desenhos.html" },
+    { name: "📺 Desenhos", url: "desenhos.html" },
     { name: "🎬 Filmes", url: "filmes.html" },
     { name: "📝 Painel de Cadastros", url: "painel-cadastros.html" },
     { name: "📚 Mangás", url: "mangas.html" },
