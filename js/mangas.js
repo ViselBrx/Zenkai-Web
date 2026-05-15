@@ -30,7 +30,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Elementos de capa do modal
   const mCapaInput = document.getElementById('mCapa');
+  const mCapaFile = document.getElementById('mCapaFile');
   const mCapaPreview = document.getElementById('mCapaPreview');
+  const mCapaImg = document.getElementById('mCapaImg');
 
   function askDeleteManga(id, nome) {
     deletingMangaId = id;
@@ -62,8 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function renderMangaPills() {
     const term = searchManga.value.toLowerCase();
     const mangas = DB.getMangas().map((m, index) => ({ ...m, _originIndex: index })).filter(m => {
-        if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return false;
-        return m.nome.toLowerCase().includes(term);
+      if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(m.id)) return false;
+      return m.nome && m.nome.toLowerCase().includes(term);
     });
 
     // Auto-selecionar o primeiro mangá (se existir algum e não houver pesquisa)
@@ -98,9 +100,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.dataset.contentId = m.id;
       
       const isFav = userFavs.has(m.id);
-      const initial = m.nome.charAt(0).toUpperCase();
+      const initial = (m.nome || '?').charAt(0).toUpperCase();
       const coverHtml = m.capa
-        ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" />`
+        ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\'card-cover-placeholder\'>${initial}</div>';" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
       const starClass = '';
@@ -179,9 +181,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.stopPropagation();
         editingMangaId = m.id;
         document.getElementById('mNome').value = m.nome;
-        mCapaPreview.src = m.capa || '';
+        mCapaInput.value = m.capa || '';
+        mCapaImg.src = m.capa || '';
         mCapaPreview.style.display = m.capa ? 'block' : 'none';
-        mCapaInput.value = '';
+        mCapaFile.value = '';
         document.querySelector('#mangaModal .modal-header h2').textContent = 'Editar Mangá';
         mangaModal.classList.add('open');
       });
@@ -204,8 +207,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const mgr = DB.getMangaById(activeMangaId) || DB.getMangas().find(x => x.id === activeMangaId);
     const volumes = DB.getMangaVolumesFor(activeMangaId).filter(v => {
-        if (window.pendingDeletions && window.pendingDeletions.has(v.id)) return false;
-        return true;
+      if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(v.id)) return false;
+      return true;
     });
     const watchedCount = typeof Watched !== 'undefined'
       ? Watched.countWatched(volumes.map(v => v.id))
@@ -335,17 +338,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   /* MANGA MODAL (CRIAR PASTA DO MANGÁ) */
 
   // Preview ao selecionar imagem
-  mCapaInput.addEventListener('change', () => {
-    const file = mCapaInput.files[0];
+  mCapaFile.addEventListener('change', () => {
+    const file = mCapaFile.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = e => {
-        mCapaPreview.src = e.target.result;
+        mCapaImg.src = e.target.result;
         mCapaPreview.style.display = 'block';
+        mCapaInput.value = ''; // Limpa URL se selecionou arquivo
       };
       reader.readAsDataURL(file);
+    }
+  });
+
+  mCapaInput.addEventListener('input', () => {
+    const url = mCapaInput.value.trim();
+    if (url) {
+      mCapaImg.src = url;
+      mCapaPreview.style.display = 'block';
+      mCapaFile.value = ''; // Limpa arquivo se digitou URL
     } else {
-      mCapaPreview.src = '';
       mCapaPreview.style.display = 'none';
     }
   });
@@ -354,7 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     editingMangaId = null;
     mangaModal.classList.add('open');
     mangaForm.reset();
-    mCapaPreview.src = '';
+    mCapaImg.src = '';
     mCapaPreview.style.display = 'none';
     document.querySelector('#mangaModal .modal-header h2').textContent = 'Novo Mangá';
   });
@@ -386,14 +398,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.textContent = 'Salvando...';
 
     try {
-        // Converter capa para base64 se selecionou
+        // Converter capa para base64 se selecionou arquivo
         let capaBase64 = null;
-        if (mCapaInput.files.length) {
-            capaBase64 = await fileToBase64(mCapaInput.files[0]);
+        if (mCapaFile.files.length) {
+            capaBase64 = await fileToBase64(mCapaFile.files[0]);
         }
-
+        
         const payload = { nome };
-        if (capaBase64) payload.capaBase64 = capaBase64;
+        if (capaBase64) {
+            payload.capaBase64 = capaBase64;
+        } else {
+            payload.capa = mCapaInput.value.trim();
+        }
 
         if (editingMangaId) {
             await DB.updateManga(editingMangaId, payload);

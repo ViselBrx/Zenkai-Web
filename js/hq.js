@@ -29,7 +29,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let deletingHQId   = null;
 
   const hqCapaInput   = document.getElementById('hqCapa');
+  const hqCapaFile    = document.getElementById('hqCapaFile');
   const hqCapaPreview = document.getElementById('hqCapaPreview');
+  const hqCapaImg     = document.getElementById('hqCapaImg');
 
   // ── Helpers ──────────────────────────────────────────────
   function askDeleteHQ(id, nome) {
@@ -57,8 +59,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function renderHQPills() {
     const term = searchHQ.value.toLowerCase();
     const hqs = DB.getHQs().map((h, index) => ({ ...h, _originIndex: index })).filter(h => {
-      if (window.pendingDeletions && window.pendingDeletions.has(h.id)) return false;
-      return h.nome.toLowerCase().includes(term);
+      if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(h.id)) return false;
+      return h.nome && h.nome.toLowerCase().includes(term);
     });
 
     if (!activeHQId && hqs.length > 0 && !term) {
@@ -90,9 +92,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       card.dataset.contentId = h.id;
 
       const isFav = userFavs.has(h.id);
-      const initial = h.nome.charAt(0).toUpperCase();
+      const initial = (h.nome || '?').charAt(0).toUpperCase();
       const coverHtml = h.capa
-        ? `<img src="${h.capa}" class="card-cover" alt="capa" loading="lazy" />`
+        ? `<img src="${h.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\'card-cover-placeholder\'>${initial}</div>';" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
       const favBtnHtml = `
@@ -162,9 +164,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.stopPropagation();
         editingHQId = h.id;
         document.getElementById('hqNome').value = h.nome;
-        hqCapaPreview.src = h.capa || '';
+        hqCapaInput.value = h.capa || '';
+        hqCapaImg.src = h.capa || '';
         hqCapaPreview.style.display = h.capa ? 'block' : 'none';
-        hqCapaInput.value = '';
+        hqCapaFile.value = '';
         document.querySelector('#hqModal .modal-header h2').textContent = 'Editar HQ';
         hqModal.classList.add('open');
       });
@@ -187,7 +190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const hqr = DB.getHQById(activeHQId);
     const editions = DB.getHQEditionsFor(activeHQId).filter(v => {
-      if (window.pendingDeletions && window.pendingDeletions.has(v.id)) return false;
+      if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(v.id)) return false;
       return true;
     });
     const watchedCount = typeof Watched !== 'undefined'
@@ -302,17 +305,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   searchHQ.addEventListener('input', renderHQPills);
 
   // ── Modal HQ (criar/editar) ────────────────────────────
-  hqCapaInput.addEventListener('change', () => {
-    const file = hqCapaInput.files[0];
+  hqCapaFile.addEventListener('change', () => {
+    const file = hqCapaFile.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = e => {
-        hqCapaPreview.src = e.target.result;
+        hqCapaImg.src = e.target.result;
         hqCapaPreview.style.display = 'block';
+        hqCapaInput.value = ''; // Limpa URL se selecionou arquivo
       };
       reader.readAsDataURL(file);
+    }
+  });
+
+  hqCapaInput.addEventListener('input', () => {
+    const url = hqCapaInput.value.trim();
+    if (url) {
+      hqCapaImg.src = url;
+      hqCapaPreview.style.display = 'block';
+      hqCapaFile.value = ''; // Limpa arquivo se digitou URL
     } else {
-      hqCapaPreview.src = '';
       hqCapaPreview.style.display = 'none';
     }
   });
@@ -321,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     editingHQId = null;
     hqModal.classList.add('open');
     hqForm.reset();
-    hqCapaPreview.src = '';
+    hqCapaImg.src = '';
     hqCapaPreview.style.display = 'none';
     document.querySelector('#hqModal .modal-header h2').textContent = 'Nova HQ';
   });
@@ -353,12 +365,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       let capaBase64 = null;
-      if (hqCapaInput.files.length) {
-        capaBase64 = await fileToBase64(hqCapaInput.files[0]);
+      if (hqCapaFile.files.length) {
+        capaBase64 = await fileToBase64(hqCapaFile.files[0]);
       }
 
       const payload = { nome };
-      if (capaBase64) payload.capaBase64 = capaBase64;
+      if (capaBase64) {
+        payload.capaBase64 = capaBase64;
+      } else {
+        payload.capa = hqCapaInput.value.trim();
+      }
 
       if (editingHQId) {
         await DB.updateHQ(editingHQId, payload);
@@ -587,8 +603,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderHQPills();
   renderEditions();
 
-  window.addEventListener('profileUpdated', () => { renderHQPills(); });
+  window.addEventListener('profileUpdated', () => { 
+    renderHQPills(); 
+  });
+  
   window.addEventListener('storage', (e) => {
-    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) renderHQPills();
+    if (e.key === 'animehouse_store' || (e.key && e.key.startsWith('equipped_'))) {
+      renderHQPills();
+    }
   });
 });

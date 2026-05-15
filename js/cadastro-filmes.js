@@ -1,4 +1,4 @@
-ocument.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   await DB.init();
   const tbody = document.getElementById('tableBody');
   const emptyState = document.getElementById('emptyState');

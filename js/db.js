@@ -352,7 +352,9 @@ async function checkItemOwnership(itemId, table) {
             throw new Error('Item não encontrado.');
         }
         
-        if (data.user_id !== userId) {
+        // Se o item for global (user_id é null), permitimos que a requisição siga.
+        // O Supabase (RLS) vai barrar se o usuário não for o admin no backend.
+        if (data.user_id !== null && data.user_id !== userId) {
             throw new Error('Você não tem permissão para modificar este item.');
         }
         

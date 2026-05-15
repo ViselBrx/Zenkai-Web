@@ -66,6 +66,12 @@
     <button class="btn btn-green" id="phase2Btn" onclick="startPhase2()">🎬 Buscar Capas + Episódios (pt-BR)</button>
   </div>
 
+  <div id="phase3Section" style="display:none;text-align:center">
+    <h2>🖼️ Corrigir Capas de HQs &amp; Mangás</h2>
+    <p style="color:#f59e0b;font-size:.9rem">Use se as capas estiverem faltando após a Fase 1. Atualiza HQs e Mangás já no banco.</p>
+    <button class="btn" id="fixCoversBtn" onclick="fixCovers()" style="background:linear-gradient(135deg,#f59e0b,#b45309)">🔧 Corrigir Capas Agora</button>
+  </div>
+
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
   <div class="log" id="log"></div>
 </div>
@@ -86,7 +92,8 @@ function setSeedUiLocked(locked) {
     'phase2Btn',
     'cleanDesenhoBtn',
     'cleanAnimeBtn',
-    'cleanAllBtn'
+    'cleanAllBtn',
+    'fixCoversBtn'
   ];
   ids.forEach(id => {
     const el = document.getElementById(id);
@@ -117,6 +124,20 @@ function dlog(scope, msg, data) {
 let _idCounter = 0;
 function uniqueId(prefix) {
   return `${prefix}_${Date.now()}_${++_idCounter}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+// ─── Busca capa de mangá via Jikan (MyAnimeList) — disponível globalmente ───
+async function jikanSearchManga(name) {
+  try {
+    const url = `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(name)}&limit=1`;
+    const res = await fetchRetry(url);
+    if (res && res.data && res.data[0]) {
+      return res.data[0].images?.jpg?.large_image_url || res.data[0].images?.jpg?.image_url;
+    }
+  } catch (e) {
+    dlog('JIKAN', `Error searching ${name}`, e);
+  }
+  return null;
 }
 
 const SUPA_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://bxifddhrbxbmimjkgwzr.supabase.co';
@@ -180,6 +201,7 @@ async function doLogin() {
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('seedSection').style.display = 'block';
     document.getElementById('phase2Section').style.display = 'block';
+    document.getElementById('phase3Section').style.display = 'block';
   } catch (e) {
     console.error('Login error:', e);
     const msg = e.message || JSON.stringify(e);
@@ -658,19 +680,7 @@ async function startPhase2() {
   doneItems = 0;
   progressFill.style.width = '0%';
 
-  // Busca capa de mangá via Jikan (MyAnimeList)
-  async function jikanSearchManga(name) {
-    try {
-      const url = `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(name)}&limit=1`;
-      const res = await fetchRetry(url);
-      if (res && res.data && res.data[0]) {
-        return res.data[0].images?.jpg?.large_image_url || res.data[0].images?.jpg?.image_url;
-      }
-    } catch (e) {
-      dlog('JIKAN', `Error searching ${name}`, e);
-    }
-    return null;
-  }
+  // jikanSearchManga está definida globalmente (acima de startSeed)
 
   function pickBestTMDBResult(seedName, results) {
     if (!Array.isArray(results) || results.length === 0) return null;
@@ -1325,6 +1335,162 @@ async function startPhase2() {
     if (!btn.textContent || btn.textContent === '⏳ Buscando...') {
       btn.textContent = originalLabel || '🎬 Buscar Capas + Episódios (pt-BR)';
     }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// FASE 3 — CORREÇÃO DE CAPAS (HQs + Mangás já no banco)
+// ══════════════════════════════════════════════════════════════════
+async function fixCovers() {
+  if (isPhase1Running || isPhase2Running) {
+    log('⏳ Aguarde terminar a fase atual antes de corrigir capas.', 'skip');
+    return;
+  }
+
+  const btn = document.getElementById('fixCoversBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Corrigindo...';
+  setSeedUiLocked(true);
+
+  log('\n══════════════════════════════════', 'info');
+  log('🔧 FASE 3 — Corrigindo Capas de HQs & Mangás', 'info');
+  log('══════════════════════════════════', 'info');
+
+  try {
+    await DB.init();
+    const mangas = DB.getMangas();
+    const hqs    = DB.getHQs();
+
+    // Normaliza nome para comparação
+    const norm = s => (s || '').trim().toLowerCase();
+
+    // ── MANGÁS ──────────────────────────────────────────────
+    log('\n📖 Atualizando capas de Mangás via Jikan...', 'info');
+    let mangaFixed = 0, mangaSkipped = 0, mangaErr = 0;
+    doneItems = 0;
+    totalItems = SEED_MANGAS.length + SEED_HQS.length;
+    progressFill.style.width = '0%';
+
+    for (const mData of SEED_MANGAS) {
+      // Encontra o registro no banco pelo nome (normalizado)
+      const dbItem = mangas.find(m => norm(m.nome) === norm(mData.nome));
+
+      if (!dbItem) {
+        log(`   ⏭️ ${mData.nome} — não encontrado no banco`, 'skip');
+        mangaSkipped++;
+        prog();
+        continue;
+      }
+
+      try {
+        // Tenta buscar capa atualizada via Jikan
+        let cover = await jikanSearchManga(mData.nome);
+        await sleep(500); // rate-limit Jikan
+
+        // Fallback: usa URL estática do seed-data.js
+        if (!cover) cover = mData.capa;
+
+        if (!cover) {
+          log(`   ⏭️ ${dbItem.nome} — nenhuma capa encontrada`, 'skip');
+          mangaSkipped++;
+          prog();
+          continue;
+        }
+
+        // Proxy removido: usamos referrerpolicy="no-referrer" no frontend agora
+        // if (!cover.includes('weserv.nl')) {
+        //   cover = `https://images.weserv.nl/?url=${encodeURIComponent(cover)}`;
+        // }
+
+        const { data, error } = await supaClient
+          .from('mangas')
+          .update({ capa: cover })
+          .eq('id', dbItem.id)
+          .select();
+
+        if (error) throw new Error(error.message);
+        if (!data || data.length === 0) {
+          log(`   ⚠️ ${dbItem.nome} — RLS bloqueou update (item global sem permissão)`, 'err');
+          mangaErr++;
+        } else {
+          log(`   🖼️ ${dbItem.nome}`, 'ok');
+          mangaFixed++;
+        }
+      } catch (e) {
+        log(`   ❌ ${mData.nome}: ${e.message}`, 'err');
+        mangaErr++;
+      }
+      prog();
+      await sleep(100);
+    }
+
+    // ── HQs ──────────────────────────────────────────────────
+    log('\n🦸 Atualizando capas de HQs...', 'info');
+    let hqFixed = 0, hqSkipped = 0, hqErr = 0;
+
+    for (const hData of SEED_HQS) {
+      const dbItem = hqs.find(h => norm(h.nome) === norm(hData.nome));
+
+      if (!dbItem) {
+        log(`   ⏭️ ${hData.nome} — não encontrado no banco`, 'skip');
+        hqSkipped++;
+        prog();
+        continue;
+      }
+
+      // Fonte da capa: seed-data.js
+      let cover = hData.capa;
+
+      if (!cover) {
+        log(`   ⏭️ ${dbItem.nome} — nenhuma capa disponível`, 'skip');
+        hqSkipped++;
+        prog();
+        continue;
+      }
+
+      try {
+        // Proxy removido: usamos referrerpolicy="no-referrer" no frontend agora
+        // if (!cover.includes('weserv.nl')) {
+        //   cover = `https://images.weserv.nl/?url=${encodeURIComponent(cover)}`;
+        // }
+
+        const { data, error } = await supaClient
+          .from('hqs')
+          .update({ capa: cover })
+          .eq('id', dbItem.id)
+          .select();
+
+        if (error) throw new Error(error.message);
+        if (!data || data.length === 0) {
+          log(`   ⚠️ ${dbItem.nome} — RLS bloqueou update (verifique se executou o SQL de Admin)`, 'err');
+          hqErr++;
+        } else {
+          log(`   🖼️ ${dbItem.nome}`, 'ok');
+          hqFixed++;
+        }
+      } catch (e) {
+        log(`   ❌ ${hData.nome}: ${e.message}`, 'err');
+        hqErr++;
+      }
+      prog();
+      await sleep(80);
+    }
+
+    log(`\n✅ Fase 3 concluída!`, 'ok');
+    log(`   📖 Mangás — ✅ ${mangaFixed} atualizados | ⏭️ ${mangaSkipped} pulados | ❌ ${mangaErr} erros`, 'ok');
+    log(`   🦸 HQs    — ✅ ${hqFixed} atualizadas | ⏭️ ${hqSkipped} puladas | ❌ ${hqErr} erros`, 'ok');
+
+    if (mangaErr > 0 || hqErr > 0) {
+      log(`\n💡 Erros de RLS: execute a política de UPDATE no Supabase para itens globais (user_id IS NULL).`, 'skip');
+    }
+
+    btn.textContent = `✅ Mangás:${mangaFixed} | HQs:${hqFixed}`;
+  } catch (e) {
+    log(`❌ Fase 3 falhou: ${e.message}`, 'err');
+    btn.textContent = '❌ Erro';
+  } finally {
+    btn.disabled = false;
+    setSeedUiLocked(false);
   }
 }
 </script>
