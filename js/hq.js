@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init(['hqs', 'hqEditions', 'hqNotes']);
   if (typeof StatsManager !== 'undefined') StatsManager.render('hqs');
 
   const hqPills     = document.getElementById('hqPills');
@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let editingEdId    = null;
   let deletingHQId   = null;
 
+  // Guard contra renders concorrentes (pesquisa em tempo real)
+  let _hqRenderToken = 0;
+
   const hqCapaInput   = document.getElementById('hqCapa');
   const hqCapaFile    = document.getElementById('hqCapaFile');
   const hqCapaPreview = document.getElementById('hqCapaPreview');
@@ -55,19 +58,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   }
 
-  // ── Renderizar cards de HQ ──────────────────────────────
   async function renderHQPills() {
+    const myToken = ++_hqRenderToken;
     const term = searchHQ.value.toLowerCase();
     const hqs = DB.getHQs().map((h, index) => ({ ...h, _originIndex: index })).filter(h => {
       if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(h.id)) return false;
       return h.nome && h.nome.toLowerCase().includes(term);
     });
-
-    if (!activeHQId && hqs.length > 0 && !term) {
-      activeHQId = hqs[0].id;
-    }
-
-    hqPills.innerHTML = '';
 
     let userFavs = new Set();
     try {
@@ -77,12 +74,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.warn('Erro ao carregar favoritos de HQs.');
     }
 
+    // Se um render mais recente foi disparado enquanto aguardávamos, abortamos
+    if (myToken !== _hqRenderToken) return;
+
+    hqPills.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
     hqs.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
       const bFav = userFavs.has(b.id) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
       return a._originIndex - b._originIndex;
     });
+
+    // Ajusta a HQ ativa baseada nos resultados
+    const isActivedHQVisible = hqs.some(h => h.id === activeHQId);
+    if (!isActivedHQVisible || !activeHQId) {
+        activeHQId = hqs.length > 0 ? hqs[0].id : null;
+        renderEditions();
+    }
 
     hqs.forEach(h => {
       const card = document.createElement('div');
@@ -94,7 +104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isFav = userFavs.has(h.id);
       const initial = (h.nome || '?').charAt(0).toUpperCase();
       const coverHtml = h.capa
-        ? `<img src="${h.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\'card-cover-placeholder\'>${initial}</div>';" />`
+        ? `<img src="${h.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;var d=document.createElement('div');d.className='card-cover-placeholder';d.textContent='${initial}';this.parentNode.replaceChild(d,this);" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
       const favBtnHtml = `
@@ -177,8 +187,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         askDeleteHQ(h.id, h.nome);
       });
 
-      hqPills.appendChild(card);
+      frag.appendChild(card);
     });
+
+    hqPills.appendChild(frag);
   }
 
   // ── Renderizar estante de edições ───────────────────────
@@ -301,8 +313,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // ── Pesquisa ────────────────────────────────────────────
-  searchHQ.addEventListener('input', renderHQPills);
+  // ── Pesquisa (tempo real, sem duplicatas) ───────────────
+  let _hqSearchDebounce = null;
+  searchHQ.addEventListener('input', () => {
+    clearTimeout(_hqSearchDebounce);
+    _hqSearchDebounce = setTimeout(renderHQPills, 120);
+  });
 
   // ── Modal HQ (criar/editar) ────────────────────────────
   hqCapaFile.addEventListener('change', () => {

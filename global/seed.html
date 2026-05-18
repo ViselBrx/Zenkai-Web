@@ -151,7 +151,17 @@ async function fetchRetry(url, retries = 3) {
     try {
       const r = await fetch(url);
       if (r.status === 429) { await sleep(3000); continue; }
-      if (!r.ok) return null;
+      if (!r.ok) {
+        if (i === retries - 1) {
+          const text = await r.text();
+          dlog('FETCH', `HTTP Error ${r.status}`, { url, text });
+          if (r.status === 401) {
+             log(`❌ Erro 401: Sua TMDB API Key parece estar inválida ou você usou o Token JWT ao invés da API Key v3.`, 'err');
+          }
+        }
+        if (r.status === 401) return null; // 401 não adianta tentar de novo
+        throw new Error(`HTTP ${r.status}`);
+      }
       return await r.json();
     } catch (e) {
       if (i === retries - 1) return null;
@@ -385,24 +395,27 @@ async function seedInsertEpisodesBatch(table, payloads) {
   return prepared;
 }
 
-// Mapa de capas estáticas para HQs (Wikipedia / fontes livres)
+// Mapa de capas estáticas para HQs (Open Library — CORS aberto)
 const HQ_COVERS = {
-  'Watchmen': 'https://upload.wikimedia.org/wikipedia/en/a/a2/Watchmen%2C_issue_1.jpg',
-  'Sandman': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Sandman_1_-_comics.jpg',
-  'V de Vingança': 'https://upload.wikimedia.org/wikipedia/en/b/b9/V-for-vendetta.jpg',
-  'Saga': 'https://upload.wikimedia.org/wikipedia/en/4/4e/Saga_1.jpg',
-  'Hellboy': 'https://upload.wikimedia.org/wikipedia/en/b/b9/Hellboy01.jpg',
-  'Sin City': 'https://upload.wikimedia.org/wikipedia/en/4/46/Sin_City_v1_tpb.jpg',
-  'Invencível': 'https://upload.wikimedia.org/wikipedia/en/3/3b/InvincibleComic1.jpg',
-  'Batman: O Cavaleiro das Trevas': 'https://upload.wikimedia.org/wikipedia/en/8/8c/Dark_knight_returns.jpg',
-  'Batman: A Piada Mortal': 'https://upload.wikimedia.org/wikipedia/en/a/a6/The_Killing_Joke.jpg',
-  'Batman: Ano Um': 'https://upload.wikimedia.org/wikipedia/en/4/43/Batman_Year_One_1.jpg',
-  'Crise nas Infinitas Terras': 'https://upload.wikimedia.org/wikipedia/en/9/9e/Crisis_on_Infinite_Earths_1.jpg',
-  'Guerra Civil': 'https://upload.wikimedia.org/wikipedia/en/f/f8/CivilWar1.jpg',
-  'Desafio Infinito': 'https://upload.wikimedia.org/wikipedia/en/9/99/InfinityGauntlet1.jpg',
-  'A Morte do Superman': 'https://upload.wikimedia.org/wikipedia/en/8/8d/Death_of_Superman_TPB.jpg',
-  'Scott Pilgrim': 'https://upload.wikimedia.org/wikipedia/en/7/77/Scott_Pilgrim_vol1_cover.jpg',
-  'Preacher': 'https://upload.wikimedia.org/wikipedia/en/5/51/Preacher_Vol_1_1.jpg',
+  'Batman: O Cavaleiro das Trevas': 'https://covers.openlibrary.org/b/isbn/9781563893421-L.jpg',
+  'Watchmen':                        'https://covers.openlibrary.org/b/isbn/9781401245252-L.jpg',
+  'Sandman':                         'https://covers.openlibrary.org/b/isbn/9781401284770-L.jpg',
+  'Batman: A Piada Mortal':          'https://covers.openlibrary.org/b/isbn/9781401216672-L.jpg',
+  'Batman: Ano Um':                  'https://covers.openlibrary.org/b/isbn/9781401251581-L.jpg',
+  'All-Star Superman':               'https://covers.openlibrary.org/b/isbn/9781401232054-L.jpg',
+  'Superman: Entre a Foice e o Martelo': 'https://covers.openlibrary.org/b/isbn/9781401247034-L.jpg',
+  'O Reino do Amanhã':               'https://covers.openlibrary.org/b/isbn/9781401220341-L.jpg',
+  'Crise nas Infinitas Terras':      'https://covers.openlibrary.org/b/isbn/9781401230616-L.jpg',
+  'Guerra Civil':                    'https://covers.openlibrary.org/b/isbn/9780785121794-L.jpg',
+  'Desafio Infinito':                'https://covers.openlibrary.org/b/isbn/9780785168133-L.jpg',
+  'A Morte do Superman':             'https://covers.openlibrary.org/b/isbn/9781401258276-L.jpg',
+  'V de Vingança':                   'https://covers.openlibrary.org/b/isbn/9781401208417-L.jpg',
+  'Invencível':                      'https://covers.openlibrary.org/b/isbn/9781582403588-L.jpg',
+  'Saga':                            'https://covers.openlibrary.org/b/isbn/9781607066019-L.jpg',
+  'Hellboy':                         'https://covers.openlibrary.org/b/isbn/9781593070946-L.jpg',
+  'Sin City':                        'https://covers.openlibrary.org/b/isbn/9781569714287-L.jpg',
+  'Scott Pilgrim':                   'https://covers.openlibrary.org/b/isbn/9781932664089-L.jpg',
+  'Preacher':                        'https://covers.openlibrary.org/b/isbn/9781563892226-L.jpg',
 };
 
 async function startPhase2() {
@@ -445,7 +458,7 @@ async function startPhase2() {
   const TMDB = `https://api.themoviedb.org/3`;
   const LANG = `language=pt-BR`;
 
-  const TMDB_MAP = window.SEED_TMDB_SEARCH_ALIASES || {};
+  const TMDB_MAP = (typeof SEED_TMDB_SEARCH_ALIASES !== 'undefined') ? SEED_TMDB_SEARCH_ALIASES : {};
 
   function normalizeTitle(v) {
     return (v || '')
@@ -1168,7 +1181,8 @@ async function startPhase2() {
   log('\n🎬 Buscando Capas de Filmes (TMDB)...', 'info');
   let capasFilme = 0;
 
-  for (const f of filmes) {
+  const filmesPlan = filmes.filter(f => SEED_FILMES.some(sf => normalizeTitle(sf.nome) === normalizeTitle(f.nome)));
+  for (const f of filmesPlan) {
     if (f.capa && f.capa !== '') { prog(); log(`   ⏭️ ${f.nome} — já tem capa`, 'skip'); continue; }
     try {
       const res = await fetchRetry(`${TMDB}/search/movie?api_key=${tmdbKey}&${LANG}&query=${encodeURIComponent(f.nome)}&include_adult=false`);
@@ -1397,11 +1411,6 @@ async function fixCovers() {
           continue;
         }
 
-        // Proxy removido: usamos referrerpolicy="no-referrer" no frontend agora
-        // if (!cover.includes('weserv.nl')) {
-        //   cover = `https://images.weserv.nl/?url=${encodeURIComponent(cover)}`;
-        // }
-
         const { data, error } = await supaClient
           .from('mangas')
           .update({ capa: cover })
@@ -1449,11 +1458,6 @@ async function fixCovers() {
       }
 
       try {
-        // Proxy removido: usamos referrerpolicy="no-referrer" no frontend agora
-        // if (!cover.includes('weserv.nl')) {
-        //   cover = `https://images.weserv.nl/?url=${encodeURIComponent(cover)}`;
-        // }
-
         const { data, error } = await supaClient
           .from('hqs')
           .update({ capa: cover })

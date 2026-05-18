@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init(['filmes']);
   if (typeof StatsManager !== 'undefined') StatsManager.render('filmes');
   const grid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
@@ -91,6 +91,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
+    const frag = document.createDocumentFragment();
+
     // Buscar favoritos
     let userFavs = new Set();
     try {
@@ -165,8 +167,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
       }
 
-      grid.appendChild(card);
+      frag.appendChild(card);
     });
+
+    grid.appendChild(frag);
   }
 
   async function toggleFavorite(item, btn) {

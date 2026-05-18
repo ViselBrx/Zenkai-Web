@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    await DB.init();
+    await DB.init(['youtubePlaylists', 'youtubeVideos']);
     if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
 
     // ── Estado ────────────────────────────────────────────────────────────────
@@ -92,6 +92,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        const frag = document.createDocumentFragment();
+
         // Ordenar vídeos: favoritos no topo
         videos.sort((a, b) => {
             const aFav = userFavs.videos.has(a.id) ? 1 : 0;
@@ -182,8 +184,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }, 'youtube_video');
                 btnsDiv.prepend(wBtn);
             }
-            videosContainer.appendChild(card);
+            frag.appendChild(card);
         });
+
+        videosContainer.appendChild(frag);
     }
 
     function _findVideo(id) {
@@ -427,6 +431,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return a._originIndex - b._originIndex;
             });
 
+            const fragPills = document.createDocumentFragment();
+
             playlists.forEach(pl => {
                 const isFav = userFavs.playlists.has(pl.id);
                 const container = document.createElement('div');
@@ -471,8 +477,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 };
                 container.appendChild(favBtn);
-                playlistPills.appendChild(container);
+                fragPills.appendChild(container);
             });
+
+            playlistPills.appendChild(fragPills);
 
             const urlParams = new URLSearchParams(window.location.search);
             const startId = localStorage.getItem('selectedYoutubePlaylist') || urlParams.get('id');

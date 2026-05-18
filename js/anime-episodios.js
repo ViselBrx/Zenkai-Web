@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init(['animes', 'animeEpisodes', 'animeMovies']);
   if (typeof StatsManager !== 'undefined') StatsManager.render('animes');
   const pillsContainer = document.getElementById('animePills');
   const seasonsContainer = document.getElementById('seasonsContainer');
@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeAudio = 'dublado';
 
   let activeAnimeId = null;
+  let collapsedSeasons = new Set();
   const epForm = document.getElementById('epForm');
   let activeEpisodeId = null;
   let activeSeasonForWatch = null;
@@ -128,6 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function loadAnimes() {
     const list = DB.getAnimes().map((a, index) => ({ ...a, _originIndex: index }));
     pillsContainer.innerHTML = '';
+    const frag = document.createDocumentFragment();
     
     if (list.length === 0) {
       noRegisteredMsg.style.display = 'block';
@@ -199,8 +201,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       };
       
       container.appendChild(favBtn);
-      pillsContainer.appendChild(container);
+      frag.appendChild(container);
     });
+    
+    pillsContainer.appendChild(frag);
 
     loadPendingHistoryResume();
     const pendingFromHistory = pendingHistoryResume?.animeId || null;
@@ -258,6 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnElement) btnElement.classList.add('active');
     
     activeAnimeId = id;
+    collapsedSeasons.clear();
     noAnimeMsg.style.display = 'none';
     noRegisteredMsg.style.display = 'none';
     panel.style.display = 'block';
@@ -272,8 +277,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function renderContent() {
+    const scrollY = window.scrollY;
+    
+    // Evita encolhimento para não dar pulo de scroll
+    const moviesHeight = moviesContainer ? moviesContainer.offsetHeight : 0;
+    if (moviesHeight && moviesContainer) moviesContainer.style.minHeight = `${moviesHeight}px`;
+
+    const seasonsHeight = seasonsContainer ? seasonsContainer.offsetHeight : 0;
+    if (seasonsHeight && seasonsContainer) seasonsContainer.style.minHeight = `${seasonsHeight}px`;
+
     renderMovies();
     renderSeasons();
+    
+    if (moviesContainer) moviesContainer.style.minHeight = '';
+    if (seasonsContainer) seasonsContainer.style.minHeight = '';
+    
+    // Restaura o scroll na mesma posição
+    window.scrollTo(0, scrollY);
   }
 
   function renderMovies() {
@@ -298,43 +318,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.createElement('div');
     grid.className = 'episodes-grid open';
     
+    const uid = window.DB?._store?.profile?.id || 'guest';
+    let gridHtml = '';
+
     movies.forEach(m => {
       if (window.pendingDeletions && window.pendingDeletions.has(m.id)) return;
-      const card = document.createElement('div');
       const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(m.id);
-      card.className = 'episode-card' + (isWatched ? ' is-watched' : '');
-      card.innerHTML = `
-        <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${m.id}', 'movie')">
-          <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
-            <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
+      const saved = localStorage.getItem(`animehouse_time_${uid}_${m.id}`);
+      const savedBadge = saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
+
+      gridHtml += `
+        <div class="episode-card${isWatched ? ' is-watched' : ''}" data-itemid="${m.id}">
+          <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${m.id}', 'movie')">
+            <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
+              <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">🎬</span>
+            </div>
+            ${savedBadge}
+            <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
+              FILME
+            </div>
           </div>
-          ${(() => {
-            const uid = window.DB?._store?.profile?.id || 'guest';
-            const saved = localStorage.getItem(`animehouse_time_${uid}_${m.id}`);
-            return saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
-          })()}
-          <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(124,58,237,0.7));color:#fff;font-weight:700;">
-            FILME
-          </div>
-        </div>
-        <div class="episode-label" style="justify-content:space-between">
-          <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${m.title}">${m.title}</span>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <button class="btn btn-ghost btn-sm" onclick="editMovie(event, '${m.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+          <div class="episode-label" style="justify-content:space-between">
+            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${m.title}">${m.title}</span>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <button class="btn btn-ghost btn-sm" onclick="editMovie(event, '${m.id}')" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            </div>
           </div>
         </div>
       `;
-      // Botão de marcação
-      if (typeof createWatchedBtn !== 'undefined') {
+    });
+
+    grid.innerHTML = gridHtml;
+
+    if (typeof createWatchedBtn !== 'undefined') {
+      grid.querySelectorAll('.episode-card').forEach(card => {
+        const mId = card.dataset.itemid;
         const labelDiv = card.querySelector('.episode-label');
-        const wBtn = createWatchedBtn(m.id, (id, nowWatched) => {
+        if (!labelDiv || !mId) return;
+        const wBtn = createWatchedBtn(mId, (id, nowWatched) => {
           card.classList.toggle('is-watched', nowWatched);
         }, 'anime_movie');
         labelDiv.prepend(wBtn);
-      }
-      grid.appendChild(card);
-    });
+      });
+    }
 
     sec.appendChild(grid);
     moviesContainer.appendChild(sec);
@@ -378,14 +405,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
 
+      const isCollapsed = collapsedSeasons.has(seasonNum);
       const grid = document.createElement('div');
-      grid.className = 'episodes-grid open';
-      head.classList.add('open');
+      grid.className = 'episodes-grid' + (isCollapsed ? '' : ' open');
+      if (!isCollapsed) head.classList.add('open');
       
       head.onclick = (e) => {
         if (e.target.tagName === 'BUTTON') return;
-        grid.classList.toggle('open');
-        head.classList.toggle('open');
+        const willBeOpen = grid.classList.toggle('open');
+        head.classList.toggle('open', willBeOpen);
+        if (willBeOpen) {
+          collapsedSeasons.delete(seasonNum);
+        } else {
+          collapsedSeasons.add(seasonNum);
+        }
       };
 
       const epIds = eps.map(ep => ep.id);
@@ -397,37 +430,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (headInnerLeft) headInnerLeft.appendChild(progressEl);
       }
 
+      const uid = window.DB?._store?.profile?.id || 'guest';
+      let gridHtml = '';
+
       eps.forEach(ep => {
         if (window.pendingDeletions && window.pendingDeletions.has(ep.id)) return;
-        const card = document.createElement('div');
         const isWatched = typeof Watched !== 'undefined' && Watched.isWatched(ep.id);
-        card.className = 'episode-card' + (isWatched ? ' is-watched' : '');
-        card.innerHTML = `
-          <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${ep.id}', ${seasonNum})">
-            <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
-              <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
+        const saved = localStorage.getItem(`animehouse_time_${uid}_${ep.id}`);
+        const savedBadge = saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
+
+        gridHtml += `
+          <div class="episode-card${isWatched ? ' is-watched' : ''}" data-itemid="${ep.id}">
+            <div style="position:relative;background:#000;cursor:pointer;" onclick="openWatchModal('${ep.id}', ${seasonNum})">
+              <div class="episode-thumb-inner" style="aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;background:var(--bg-surface);">
+                <span style="font-size:3rem;text-shadow:0 0 10px rgba(0,0,0,0.5);">▶️</span>
+              </div>
+              ${savedBadge}
+              <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
+              <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
+                Episódio ${ep.epNumber}
+              </div>
             </div>
-            ${(() => {
-              const uid = window.DB?._store?.profile?.id || 'guest';
-              const saved = localStorage.getItem(`animehouse_time_${uid}_${ep.id}`);
-              return saved ? `<div style="position:absolute; top:8px; right:8px; background:rgba(var(--primary-rgb), 0.9); color:#fff; padding:2px 8px; border-radius:15px; font-size:0.65rem; font-weight:700; z-index:2; border:1px solid rgba(255,255,255,0.2);">${saved}</div>` : '';
-            })()}
-            <div class="watched-overlay"><div class="watched-badge-icon">✓</div></div>
-            <div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(transparent, rgba(0,0,0,0.9));color:#fff;font-weight:700;">
-              Episódio ${ep.epNumber}
-            </div>
-          </div>
-          <div class="episode-label" style="justify-content:space-between">
-            <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
-            <div style="display:flex;gap:5px;align-items:center;">
-              <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+            <div class="episode-label" style="justify-content:space-between">
+              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${ep.title || ''}">${ep.title || 'Sem título'}</span>
+              <div style="display:flex;gap:5px;align-items:center;">
+                <button class="btn btn-ghost btn-sm" onclick="editEpisode(event, '${ep.id}', ${seasonNum})" style="padding:2px 5px;font-size:0.8rem">✏️</button>
+              </div>
             </div>
           </div>
         `;
-        // Botão de marcação
-        if (typeof createWatchedBtn !== 'undefined') {
+      });
+
+      grid.innerHTML = gridHtml;
+
+      if (typeof createWatchedBtn !== 'undefined') {
+        grid.querySelectorAll('.episode-card').forEach(card => {
+          const epId = card.dataset.itemid;
           const labelDiv = card.querySelector('.episode-label');
-          const wBtn = createWatchedBtn(ep.id, (id, nowWatched) => {
+          if (!labelDiv || !epId) return;
+          const wBtn = createWatchedBtn(epId, (id, nowWatched) => {
             card.classList.toggle('is-watched', nowWatched);
             // Atualiza barra de progresso
             const progressEl = head.querySelector('.season-progress');
@@ -445,9 +486,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
           }, 'anime_episode');
           labelDiv.prepend(wBtn);
-        }
-        grid.appendChild(card);
-      });
+        });
+      }
 
       sec.appendChild(head);
       sec.appendChild(grid);
@@ -482,7 +522,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     addEpBtn.style.background = 'var(--primary)';
     if (formActionTitle) formActionTitle.textContent = '✏️ Editar Episódio';
     
-    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    if (epForm) epForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
     showCancelBtn();
   };
 
@@ -503,7 +543,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     addEpBtn.style.background = 'var(--primary)';
     if (formActionTitle) formActionTitle.textContent = '✏️ Editar Filme';
 
-    document.querySelector('.page-header').scrollIntoView({ behavior: 'smooth' });
+    if (epForm) epForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
     showCancelBtn();
   };
 

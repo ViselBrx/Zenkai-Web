@@ -466,7 +466,7 @@ async function claimLegacyCatalogForMainAccount(userId) {
 const DB = {
   get _store() { return _store; },
   // Inicializa o banco (Baixa tudo do Supabase para a memória local)
-  async init() {
+  async init(modules = 'all') {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
         const supa = getSupa();
@@ -512,45 +512,56 @@ const DB = {
             }
         };
 
-        const cartoonQuery = buildQuery('cartoons').order('created_at', { ascending: true });
-        const episodesQuery = buildQuery('episodes');
-        const moviesQuery = buildQuery('movies');
-        const animeQuery = buildQuery('animes').order('created_at', { ascending: true });
-        const animeEpsQuery = buildQuery('anime_episodes');
-        const mangaQuery = buildQuery('mangas').order('created_at', { ascending: true });
-        const mangaVolsQuery = buildQuery('manga_volumes').order('volume_number', { ascending: true });
-        const mangaNotesQuery = buildQuery('manga_notes');
-        const filmesQuery = buildQuery('filmes').order('created_at', { ascending: true });
-        const youtubePlaylistsQuery = buildQuery('youtube_playlists').order('created_at', { ascending: true });
-        const youtubeVideosQuery = buildQuery('youtube_videos');
-        const animeMoviesQuery = buildQuery('anime_movies');
-        const hqQuery = buildQuery('hqs').order('created_at', { ascending: true });
-        const hqEditionsQuery = buildQuery('hq_editions').order('edition_number', { ascending: true });
-        const hqNotesQuery = buildQuery('hq_notes');
+        const fetchTasks = [];
+        const results = {};
 
-        const [
-            cartoons, episodes, movies,
-            animes, animeEps, mangas, mangaVols,
-            mangaNotes, filmesData, ytPlaylists, ytVideos, animeMovies,
-            hqs, hqEditions, hqNotes, settings
-        ] = await Promise.all([
-            safeFetch(cartoonQuery, 'Cartoons'),
-            safeFetch(episodesQuery, 'Episodes'),
-            safeFetch(moviesQuery, 'Movies'),
-            safeFetch(animeQuery, 'Animes'),
-            safeFetch(animeEpsQuery, 'AnimeEpisodes'),
-            safeFetch(mangaQuery, 'Mangas'),
-            safeFetch(mangaVolsQuery, 'MangaVolumes'),
-            safeFetch(mangaNotesQuery, 'MangaNotes'),
-            safeFetch(filmesQuery, 'Filmes'),
-            safeFetch(youtubePlaylistsQuery, 'YoutubePlaylists'),
-            safeFetch(youtubeVideosQuery, 'YoutubeVideos'),
-            safeFetch(animeMoviesQuery, 'AnimeMovies'),
-            safeFetch(hqQuery, 'HQs'),
-            safeFetch(hqEditionsQuery, 'HQEditions'),
-            safeFetch(hqNotesQuery, 'HQNotes'),
-            safeFetch(supa.from('settings').select('*').limit(100), 'Settings')
-        ]);
+        const addFetch = (key, query, label) => {
+            if (modules === 'all' || modules.includes(key)) {
+                fetchTasks.push(
+                    safeFetch(query, label).then(data => { results[key] = data; })
+                );
+            } else {
+                results[key] = []; // vazio se não for requisitado
+            }
+        };
+
+        addFetch('cartoons', buildQuery('cartoons').order('created_at', { ascending: true }), 'Cartoons');
+        addFetch('episodes', buildQuery('episodes'), 'Episodes');
+        addFetch('movies', buildQuery('movies'), 'Movies');
+        addFetch('animes', buildQuery('animes').order('created_at', { ascending: true }), 'Animes');
+        addFetch('animeEpisodes', buildQuery('anime_episodes'), 'AnimeEpisodes');
+        addFetch('mangas', buildQuery('mangas').order('created_at', { ascending: true }), 'Mangas');
+        addFetch('mangaVolumes', buildQuery('manga_volumes').order('volume_number', { ascending: true }), 'MangaVolumes');
+        addFetch('mangaNotes', buildQuery('manga_notes'), 'MangaNotes');
+        addFetch('filmes', buildQuery('filmes').order('created_at', { ascending: true }), 'Filmes');
+        addFetch('youtubePlaylists', buildQuery('youtube_playlists').order('created_at', { ascending: true }), 'YoutubePlaylists');
+        addFetch('youtubeVideos', buildQuery('youtube_videos'), 'YoutubeVideos');
+        addFetch('animeMovies', buildQuery('anime_movies'), 'AnimeMovies');
+        addFetch('hqs', buildQuery('hqs').order('created_at', { ascending: true }), 'HQs');
+        addFetch('hqEditions', buildQuery('hq_editions').order('edition_number', { ascending: true }), 'HQEditions');
+        addFetch('hqNotes', buildQuery('hq_notes'), 'HQNotes');
+        
+        // Settings sempre carregado
+        fetchTasks.push(safeFetch(supa.from('settings').select('*').limit(100), 'Settings').then(data => { results['settings'] = data; }));
+
+        await Promise.all(fetchTasks);
+
+        const cartoons = results.cartoons;
+        const episodes = results.episodes;
+        const movies = results.movies;
+        const animes = results.animes;
+        const animeEps = results.animeEpisodes;
+        const mangas = results.mangas;
+        const mangaVols = results.mangaVolumes;
+        const mangaNotes = results.mangaNotes;
+        const filmesData = results.filmes;
+        const ytPlaylists = results.youtubePlaylists;
+        const ytVideos = results.youtubeVideos;
+        const animeMovies = results.animeMovies;
+        const hqs = results.hqs;
+        const hqEditions = results.hqEditions;
+        const hqNotes = results.hqNotes;
+        const settings = results.settings;
 
         // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
         // Chave de localStorage isolada por usuário para garantir que cada conta tenha seus próprios dados
@@ -714,12 +725,16 @@ const DB = {
             episodes.forEach(ep => {
                 if (!_store.episodes[ep.cartoon_id]) _store.episodes[ep.cartoon_id] = {};
                 if (!_store.episodes[ep.cartoon_id][ep.temporada]) _store.episodes[ep.cartoon_id][ep.temporada] = [];
-                _store.episodes[ep.cartoon_id][ep.temporada].push({ 
-                  id: ep.id, 
-                  epNumber: ep.ep_number, 
-                  title: ep.title, 
-                  iframe: cleanIframe(ep.iframe) 
-                });
+                
+                const targetArr = _store.episodes[ep.cartoon_id][ep.temporada];
+                if (!targetArr.find(existing => existing.epNumber === ep.ep_number)) {
+                    targetArr.push({ 
+                      id: ep.id, 
+                      epNumber: ep.ep_number, 
+                      title: ep.title, 
+                      iframe: cleanIframe(ep.iframe) 
+                    });
+                }
             });
             // Opcional: ordenar episÃ³dios
             for(let cid in _store.episodes) {
@@ -748,9 +763,12 @@ const DB = {
                 if (!_store.animeEpisodes[ep.anime_id][ep.idioma]) _store.animeEpisodes[ep.anime_id][ep.idioma] = {};
                 if (!_store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada]) _store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada] = [];
                 
-                _store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada].push({
-                    id: ep.id, epNumber: ep.ep_number, title: ep.title, iframe: cleanIframe(ep.iframe)
-                });
+                const targetArr = _store.animeEpisodes[ep.anime_id][ep.idioma][ep.temporada];
+                if (!targetArr.find(existing => existing.epNumber === ep.ep_number)) {
+                    targetArr.push({
+                        id: ep.id, epNumber: ep.ep_number, title: ep.title, iframe: cleanIframe(ep.iframe)
+                    });
+                }
             });
              for(let aid in _store.animeEpisodes) {
                 for(let lang in _store.animeEpisodes[aid]) {

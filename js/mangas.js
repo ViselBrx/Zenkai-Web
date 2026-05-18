@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init(['mangas', 'mangaVolumes', 'mangaNotes']);
   if (typeof StatsManager !== 'undefined') StatsManager.render('mangas');
 
   const mangaPills = document.getElementById('mangaPills');
@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let editingMangaId = null;
   let editingVolId = null;
   let deletingMangaId = null;
+
+  // Guard contra renders concorrentes (pesquisa em tempo real)
+  let _mangaRenderToken = 0;
 
   // Elementos de capa do modal
   const mCapaInput = document.getElementById('mCapa');
@@ -62,18 +65,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Renderizar a lista de mangás em formato de pílulas (seletor)
   async function renderMangaPills() {
+    const myToken = ++_mangaRenderToken;
     const term = searchManga.value.toLowerCase();
     const mangas = DB.getMangas().map((m, index) => ({ ...m, _originIndex: index })).filter(m => {
       if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(m.id)) return false;
       return m.nome && m.nome.toLowerCase().includes(term);
     });
-
-    // Auto-selecionar o primeiro mangá (se existir algum e não houver pesquisa)
-    if (!activeMangaId && mangas.length > 0 && !term) {
-        activeMangaId = mangas[0].id;
-    }
-
-    mangaPills.innerHTML = '';
 
     // Buscar favoritos
     let userFavs = new Set();
@@ -84,6 +81,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Erro ao carregar favoritos de mangás.");
     }
 
+    // Se um render mais recente foi disparado enquanto aguardávamos, abortamos
+    if (myToken !== _mangaRenderToken) return;
+
+    mangaPills.innerHTML = '';
+    const frag = document.createDocumentFragment();
+
     // Favoritos no topo, demais itens na ordem original
     mangas.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
@@ -91,6 +94,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (aFav !== bFav) return bFav - aFav;
       return a._originIndex - b._originIndex;
     });
+
+    // Ajusta o mangá ativo baseado nos resultados visíveis
+    const isActivedMangaVisible = mangas.some(m => m.id === activeMangaId);
+    if (!isActivedMangaVisible || !activeMangaId) {
+        activeMangaId = mangas.length > 0 ? mangas[0].id : null;
+        renderVolumes();
+    }
     
     mangas.forEach(m => {
       const card = document.createElement('div');
@@ -102,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const isFav = userFavs.has(m.id);
       const initial = (m.nome || '?').charAt(0).toUpperCase();
       const coverHtml = m.capa
-        ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\'card-cover-placeholder\'>${initial}</div>';" />`
+        ? `<img src="${m.capa}" class="card-cover" alt="capa" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;var d=document.createElement('div');d.className='card-cover-placeholder';d.textContent='${initial}';this.parentNode.replaceChild(d,this);" />`
         : `<div class="card-cover-placeholder">${initial}</div>`;
 
       const starClass = '';
@@ -194,8 +204,10 @@ document.addEventListener('DOMContentLoaded', async () => {
          askDeleteManga(m.id, m.nome);
       });
 
-      mangaPills.appendChild(card);
+      frag.appendChild(card);
     });
+    
+    mangaPills.appendChild(frag);
   }
 
   // Renderizar a estante de volumes (PDFs do mangá selecionado)
@@ -332,8 +344,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  /* PESQUISA */
-  searchManga.addEventListener('input', renderMangaPills);
+  /* PESQUISA (tempo real, sem duplicatas) */
+  let _mangaSearchDebounce = null;
+  searchManga.addEventListener('input', () => {
+    clearTimeout(_mangaSearchDebounce);
+    _mangaSearchDebounce = setTimeout(renderMangaPills, 120);
+  });
 
   /* MANGA MODAL (CRIAR PASTA DO MANGÁ) */
 
