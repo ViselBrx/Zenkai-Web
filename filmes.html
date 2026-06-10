@@ -8,6 +8,7 @@
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
 
@@ -27,7 +28,7 @@
 <main class="main-content">
   <div class="page-header" style="flex-direction: column; justify-content: center; align-items: center;">
     <div class="header-main" style="text-align: center;">
-      <h1>🎬 Catálogo de Filmes</h1>
+      <h1><i class='fa-solid fa-clapperboard'></i> Catálogo de Filmes</h1>
       <p>Explore sua coleção de filmes favoritos</p>
     </div>
     <div id="statsWidget" class="stats-widget" style="margin-top: 15px;"></div>
@@ -35,7 +36,7 @@
 
   <!-- BUSCA E FILTROS -->
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍  Pesquisar filme..." />
+    <input id="searchInput" type="text" placeholder="🔍 Pesquisar filme..." />
     <select id="filterGenero">
       <option value="">Todos os gêneros</option>
     </select>
@@ -47,7 +48,7 @@
   <!-- GRID DE CARDS -->
   <div id="cardsGrid" class="cards-grid"></div>
   <div id="emptyState" class="empty-state" style="display:none;">
-    <div class="empty-icon">📭</div>
+    <div class="empty-icon"><i class='fa-solid fa-envelope'></i></div>
     <p>Nenhum filme encontrado.<br>Acesse <a href="cadastro-filmes.html" style="color:var(--primary)">Cadastro de Filmes</a> para adicionar.</p>
   </div>
 </main>
@@ -62,14 +63,14 @@
       </div>
     </div>
     <img id="detailCover" src="" alt="" style="width:100%;max-height:220px;object-fit:cover;object-position:top center;border-radius:10px;margin-bottom:1rem;" />
-    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;max-height:220px;display:none;">🎬</div>
+    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;max-height:220px;display:none;"><i class='fa-solid fa-clapperboard'></i></div>
     <p><strong>Diretor:</strong> <span id="detailDiretor">—</span></p>
     <p style="margin-top:6px"><strong>Ano:</strong> <span id="detailAno">—</span></p>
     <p style="margin-top:6px"><strong>Gênero:</strong> <span id="detailGenero">—</span></p>
     <div style="display:flex;gap:.8rem;margin-top:1.5rem;flex-wrap:wrap;align-items:center;">
       <button id="watchedDetailBtn" class="watched-modal-badge not-watched">○ Marcar como Assistido</button>
-      <button id="detailWatchBtn" class="btn btn-primary" style="flex:1;justify-content:center;">▶️ Assistir Agora</button>
-      <a href="cadastro-filmes.html" class="btn btn-ghost" style="flex:1;justify-content:center;">✏️ Gerenciar</a>
+      <button id="detailWatchBtn" class="btn btn-primary" style="flex:1;justify-content:center;"><i class='fa-solid fa-play'></i>️ Assistir Agora</button>
+      <a href="cadastro-filmes.html" class="btn btn-ghost" style="flex:1;justify-content:center;"><i class='fa-solid fa-pencil'></i>️ Gerenciar</a>
     </div>
   </div>
 </div>
@@ -100,6 +101,6 @@
 <script src="js/history.js"></script>
 <script src="js/filmes.js"></script>
 <script src="js/utils-stats.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+<div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
 </html>

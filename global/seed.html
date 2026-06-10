@@ -23,53 +23,54 @@
     #authStatus{margin:10px 0;font-weight:bold}
     h2{color:#a855f7;margin-top:30px}
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
 <div class="seed-container">
-  <h1>🌱 Seed Global</h1>
+  <h1><i class='fa-solid fa-seedling'></i> Seed Global</h1>
   <p class="subtitle">Cadastra conteúdo global para todos os usuários</p>
 
   <div id="loginSection">
-    <h3>🔐 Login necessário</h3>
+    <h3><i class='fa-solid fa-lock'></i> Login necessário</h3>
     <div>
       <input type="email" id="emailInput" value="davizeravisel@gmail.com" placeholder="Email">
       <input type="password" id="passInput" placeholder="Senha">
     </div>
-    <button class="btn" id="loginBtn" onclick="doLogin()">🔐 Fazer Login</button>
+    <button class="btn" id="loginBtn" onclick="doLogin()"><i class='fa-solid fa-lock'></i> Fazer Login</button>
     <div id="authStatus"></div>
   </div>
 
   <div id="seedSection">
     <h2>Fase 1 — Conteúdo Base</h2>
     <p>50 animes, 50 desenhos, 50 filmes, 30 mangás, 30 HQs</p>
-    <button class="btn" id="seedBtn" onclick="startSeed()">🚀 Cadastrar Conteúdo</button>
+    <button class="btn" id="seedBtn" onclick="startSeed()"><i class='fa-solid fa-rocket'></i> Cadastrar Conteúdo</button>
   </div>
 
   <div id="phase2Section">
     <h2>Fase 2 — Capas + Episódios (TMDB pt-BR)</h2>
 
     <div style="background:#1a1a2e;border:1px solid #a855f755;border-radius:10px;padding:16px;margin-bottom:16px;">
-      <p style="margin:0 0 8px;color:#60a5fa;font-size:.9rem">🔑 <strong>TMDB API Key</strong> — grátis em <a href="https://www.themoviedb.org/settings/api" target="_blank" style="color:#a855f7">themoviedb.org/settings/api</a></p>
+      <p style="margin:0 0 8px;color:#60a5fa;font-size:.9rem"><i class='fa-solid fa-key'></i> <strong>TMDB API Key</strong> — grátis em <a href="https://www.themoviedb.org/settings/api" target="_blank" style="color:#a855f7">themoviedb.org/settings/api</a></p>
       <input type="text" id="tmdbKeyInput" placeholder="Cole sua TMDB API Key aqui" style="width:90%;padding:10px;border-radius:8px;border:1px solid #444;background:#111;color:white;font-size:.95rem;margin-bottom:8px">
     </div>
 
     <div style="background:#1a1a2e;border:1px solid #ef444455;border-radius:10px;padding:12px;margin-bottom:16px;">
-      <p style="margin:0 0 8px;color:#f59e0b;font-size:.85rem">⚠️ <strong>Se já rodou antes com eps errados</strong>, limpe primeiro:</p>
+      <p style="margin:0 0 8px;color:#f59e0b;font-size:.85rem"><i class='fa-solid fa-triangle-exclamation'></i>️ <strong>Se já rodou antes com eps errados</strong>, limpe primeiro:</p>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn" id="cleanDesenhoBtn" onclick="cleanEpisodes('desenhos')" style="background:linear-gradient(135deg,#ef4444,#b91c1c);padding:8px 16px;font-size:.85rem">🗑️ Limpar Eps Desenhos</button>
-        <button class="btn" id="cleanAnimeBtn" onclick="cleanEpisodes('animes')" style="background:linear-gradient(135deg,#ef4444,#b91c1c);padding:8px 16px;font-size:.85rem">🗑️ Limpar Eps Animes</button>
-        <button class="btn" id="cleanAllBtn" onclick="cleanEpisodes('todos')" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);padding:8px 16px;font-size:.85rem">🗑️ Limpar TUDO</button>
+        <button class="btn" id="cleanDesenhoBtn" onclick="cleanEpisodes('desenhos')" style="background:linear-gradient(135deg,#ef4444,#b91c1c);padding:8px 16px;font-size:.85rem"><i class='fa-solid fa-trash'></i>️ Limpar Eps Desenhos</button>
+        <button class="btn" id="cleanAnimeBtn" onclick="cleanEpisodes('animes')" style="background:linear-gradient(135deg,#ef4444,#b91c1c);padding:8px 16px;font-size:.85rem"><i class='fa-solid fa-trash'></i>️ Limpar Eps Animes</button>
+        <button class="btn" id="cleanAllBtn" onclick="cleanEpisodes('todos')" style="background:linear-gradient(135deg,#7f1d1d,#450a0a);padding:8px 16px;font-size:.85rem"><i class='fa-solid fa-trash'></i>️ Limpar TUDO</button>
       </div>
     </div>
 
-    <p style="color:#22c55e;font-size:.9rem">✅ Nomes em <strong>Português (pt-BR)</strong> via TMDB | Episódios completos | Animes como Dublado</p>
-    <button class="btn btn-green" id="phase2Btn" onclick="startPhase2()">🎬 Buscar Capas + Episódios (pt-BR)</button>
+    <p style="color:#22c55e;font-size:.9rem"><i class='fa-solid fa-check'></i> Nomes em <strong>Português (pt-BR)</strong> via TMDB | Episódios completos | Animes como Dublado</p>
+    <button class="btn btn-green" id="phase2Btn" onclick="startPhase2()"><i class='fa-solid fa-clapperboard'></i> Buscar Capas + Episódios (pt-BR)</button>
   </div>
 
   <div id="phase3Section" style="display:none;text-align:center">
-    <h2>🖼️ Corrigir Capas de HQs &amp; Mangás</h2>
+    <h2><i class='fa-solid fa-image'></i>️ Corrigir Capas de HQs &amp; Mangás</h2>
     <p style="color:#f59e0b;font-size:.9rem">Use se as capas estiverem faltando após a Fase 1. Atualiza HQs e Mangás já no banco.</p>
-    <button class="btn" id="fixCoversBtn" onclick="fixCovers()" style="background:linear-gradient(135deg,#f59e0b,#b45309)">🔧 Corrigir Capas Agora</button>
+    <button class="btn" id="fixCoversBtn" onclick="fixCovers()" style="background:linear-gradient(135deg,#f59e0b,#b45309)"><i class='fa-solid fa-wrench'></i> Corrigir Capas Agora</button>
   </div>
 
   <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -144,7 +145,7 @@ const SUPA_URL = (window.ENV && window.ENV.SUPABASE_URL) || 'https://bxifddhrbxb
 const SUPA_KEY = (window.ENV && window.ENV.SUPABASE_ANON_KEY) || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol';
 let supaClient;
 try { supaClient = supabase.createClient(SUPA_URL, SUPA_KEY); window.supabaseClient = supaClient; }
-catch (e) { log('❌ ' + e.message, 'err'); }
+catch (e) { log('<i class='fa-solid fa-xmark'></i> ' + e.message, 'err'); }
 
 async function fetchRetry(url, retries = 3) {
   for (let i = 0; i < retries; i++) {
@@ -156,7 +157,7 @@ async function fetchRetry(url, retries = 3) {
           const text = await r.text();
           dlog('FETCH', `HTTP Error ${r.status}`, { url, text });
           if (r.status === 401) {
-             log(`❌ Erro 401: Sua TMDB API Key parece estar inválida ou você usou o Token JWT ao invés da API Key v3.`, 'err');
+             log(`<i class='fa-solid fa-xmark'></i> Erro 401: Sua TMDB API Key parece estar inválida ou você usou o Token JWT ao invés da API Key v3.`, 'err');
           }
         }
         if (r.status === 401) return null; // 401 não adianta tentar de novo
@@ -176,10 +177,10 @@ async function doLogout() {
     localStorage.clear();
     sessionStorage.clear();
     await supaClient.auth.signOut().catch(() => {});
-    log('🚪 Sessão encerrada e storage limpo', 'info');
+    log('<i class='fa-solid fa-door-open'></i> Sessão encerrada e storage limpo', 'info');
     location.reload();
   } catch (e) {
-    log('❌ Erro ao sair: ' + e.message, 'err');
+    log('<i class='fa-solid fa-xmark'></i> Erro ao sair: ' + e.message, 'err');
     localStorage.clear();
     location.reload();
   }
@@ -190,7 +191,7 @@ async function doLogin() {
   const pass = document.getElementById('passInput').value.trim();
   const s = document.getElementById('authStatus');
   if (!email || !pass) { s.innerHTML = '<span style="color:#ef4444">Preencha email e senha</span>'; return; }
-  s.innerHTML = '<span style="color:#f59e0b">⏳ Fazendo login...</span>';
+  s.innerHTML = '<span style="color:#f59e0b"><i class='fa-solid fa-hourglass-half'></i> Fazendo login...</span>';
   document.getElementById('loginBtn').disabled = true;
   try {
     // Tenta limpar sessão anterior de forma silenciosa
@@ -199,13 +200,13 @@ async function doLogin() {
     const { data, error } = await supaClient.auth.signInWithPassword({ email, password: pass });
     if (error) throw error;
 
-    s.innerHTML = `<span style="color:#22c55e">✅ Logado: ${data.user.email}</span>`;
-    log('🔐 Autenticado: ' + data.user.email, 'ok');
+    s.innerHTML = `<span style="color:#22c55e"><i class='fa-solid fa-check'></i> Logado: ${data.user.email}</span>`;
+    log('<i class='fa-solid fa-lock'></i> Autenticado: ' + data.user.email, 'ok');
     
     window.supabaseClient = supaClient;
     
     await DB.init();
-    const stats = `📊 No Banco: A=${DB.getAnimes().length} D=${DB.getCartoons().length} F=${DB.getFilmes().length} M=${DB.getMangas().length} H=${DB.getHQs().length}`;
+    const stats = `<i class='fa-solid fa-chart-simple'></i> No Banco: A=${DB.getAnimes().length} D=${DB.getCartoons().length} F=${DB.getFilmes().length} M=${DB.getMangas().length} H=${DB.getHQs().length}`;
     log(stats, 'info');
     
     document.getElementById('loginSection').style.display = 'none';
@@ -215,13 +216,13 @@ async function doLogin() {
   } catch (e) {
     console.error('Login error:', e);
     const msg = e.message || JSON.stringify(e);
-    s.innerHTML = `<span style="color:#ef4444">❌ ${msg}</span>`;
+    s.innerHTML = `<span style="color:#ef4444"><i class='fa-solid fa-xmark'></i> ${msg}</span>`;
     document.getElementById('loginBtn').disabled = false;
-    log('❌ Erro no login: ' + msg, 'err');
+    log('<i class='fa-solid fa-xmark'></i> Erro no login: ' + msg, 'err');
     
     if (msg.includes('refresh_token_not_found') || msg.includes('Invalid Refresh Token')) {
-      log('💡 Erro de sessão detectado. Clique em "LIMPAR TUDO" abaixo.', 'err');
-      s.innerHTML += `<br><button class="btn" style="background:#444;font-size:0.8rem;padding:8px" onclick="doLogout()">🧹 LIMPAR TUDO E RECARREGAR</button>`;
+      log('<i class='fa-solid fa-lightbulb'></i> Erro de sessão detectado. Clique em "LIMPAR TUDO" abaixo.', 'err');
+      s.innerHTML += `<br><button class="btn" style="background:#444;font-size:0.8rem;padding:8px" onclick="doLogout()"><i class='fa-solid fa-broom'></i> LIMPAR TUDO E RECARREGAR</button>`;
     }
   }
 }
@@ -232,7 +233,7 @@ async function seedCat(label, icon, getFn, addFn, items, mapFn) {
   const existingItems = getFn();
   const names = new Set(existingItems.map(e => (e.nome || '').toLowerCase()));
   
-  log(`   🔍 Já existem ${existingItems.length} no banco.`, 'info');
+  log(`   <i class='fa-solid fa-magnifying-glass'></i> Já existem ${existingItems.length} no banco.`, 'info');
   
   let ins = 0;
   for (const item of items) {
@@ -247,39 +248,39 @@ async function seedCat(label, icon, getFn, addFn, items, mapFn) {
       await addFn({ ...mapped, user_id: null });
       ins++;
       names.add(nomeLower);
-      log(`   ✅ ${item.nome}`, 'ok');
+      log(`   <i class='fa-solid fa-check'></i> ${item.nome}`, 'ok');
     } catch (e) {
-      log(`   ❌ ${item.nome}: ${e.message}`, 'err');
+      log(`   <i class='fa-solid fa-xmark'></i> ${item.nome}: ${e.message}`, 'err');
     }
     prog();
     await sleep(100);
   }
-  log(`   📊 ${ins} novos cadastrados`, 'ok');
+  log(`   <i class='fa-solid fa-chart-simple'></i> ${ins} novos cadastrados`, 'ok');
   return ins;
 }
 
 async function startSeed() {
   if (isPhase2Running || isPhase1Running) {
-    log('⏳ Aguarde: já existe uma operação de seed em andamento.', 'skip');
+    log('<i class='fa-solid fa-hourglass-half'></i> Aguarde: já existe uma operação de seed em andamento.', 'skip');
     return;
   }
   isPhase1Running = true;
   setSeedUiLocked(true);
   const btn = document.getElementById('seedBtn');
-  btn.textContent = '⏳ Cadastrando...';
+  btn.textContent = '<i class='fa-solid fa-hourglass-half'></i> Cadastrando...';
   doneItems = 0;
   totalItems = SEED_ANIMES.length + SEED_DESENHOS.length + SEED_FILMES.length + SEED_MANGAS.length + SEED_HQS.length;
   try {
-    const r1 = await seedCat('Animes', '🌸', () => DB.getAnimes(), d => DB.addAnime(d), SEED_ANIMES,
+    const r1 = await seedCat('Animes', '<i class='fa-solid fa-fan'></i>', () => DB.getAnimes(), d => DB.addAnime(d), SEED_ANIMES,
       a => ({ nome: a.nome, estudio: a.estudio || '', genero: a.genero || '', temporadas: a.temporadas || 1, capa: a.capa || '' }));
     
-    const r2 = await seedCat('Desenhos', '🎨', () => DB.getCartoons(), d => DB.addCartoon(d), SEED_DESENHOS,
+    const r2 = await seedCat('Desenhos', '<i class='fa-solid fa-palette'></i>', () => DB.getCartoons(), d => DB.addCartoon(d), SEED_DESENHOS,
       d => ({ nome: d.nome, produtora: d.produtora || '', temporadas: d.temporadas || 1, capa: d.capa || '' }));
     
-    const r3 = await seedCat('Filmes', '🎬', () => DB.getFilmes(), d => DB.addFilme(d), SEED_FILMES,
+    const r3 = await seedCat('Filmes', '<i class='fa-solid fa-clapperboard'></i>', () => DB.getFilmes(), d => DB.addFilme(d), SEED_FILMES,
       f => ({ nome: f.nome, diretor: f.diretor || '', genero: f.genero || '', ano: f.ano || null, iframe: ' ', capa: f.capa || '' }));
     
-    const r4 = await seedCat('Mangás', '📖', () => DB.getMangas(), d => DB.addManga(d), SEED_MANGAS,
+    const r4 = await seedCat('Mangás', '<i class='fa-solid fa-book-open'></i>', () => DB.getMangas(), d => DB.addManga(d), SEED_MANGAS,
       async m => {
         let capa = m.capa;
         try {
@@ -293,7 +294,7 @@ async function startSeed() {
         return { nome: m.nome, autor: m.autor || '', volumes: m.volumes || 0, capa: capa, link_drive: '' };
       });
     
-    const r5 = await seedCat('HQs', '🦸', () => DB.getHQs(), d => DB.addHQ(d), SEED_HQS,
+    const r5 = await seedCat('HQs', '<i class='fa-solid fa-mask'></i>', () => DB.getHQs(), d => DB.addHQ(d), SEED_HQS,
       h => {
         let capa = h.capa || HQ_COVERS[h.nome];
         if (capa && !capa.includes('weserv.nl')) {
@@ -302,15 +303,15 @@ async function startSeed() {
         return { nome: h.nome, capa: capa || '' };
       });
     
-    btn.textContent = `✅ ${r1 + r2 + r3 + r4 + r5} novos itens!`;
-    log(`\n🎉 Fase 1 completa! Total novos: ${r1+r2+r3+r4+r5}`, 'ok');
+    btn.textContent = `<i class='fa-solid fa-check'></i> ${r1 + r2 + r3 + r4 + r5} novos itens!`;
+    log(`\n<i class='fa-solid fa-champagne-glasses'></i> Fase 1 completa! Total novos: ${r1+r2+r3+r4+r5}`, 'ok');
   } catch (e) {
-    log('❌ Erro crítico: ' + e.message, 'err');
-    btn.textContent = '❌ Erro';
+    log('<i class='fa-solid fa-xmark'></i> Erro crítico: ' + e.message, 'err');
+    btn.textContent = '<i class='fa-solid fa-xmark'></i> Erro';
   } finally {
     isPhase1Running = false;
     setSeedUiLocked(false);
-    if (btn.textContent === '⏳ Cadastrando...') btn.textContent = '🚀 Cadastrar Conteúdo';
+    if (btn.textContent === '<i class='fa-solid fa-hourglass-half'></i> Cadastrando...') btn.textContent = '<i class='fa-solid fa-rocket'></i> Cadastrar Conteúdo';
   }
 }
 
@@ -321,7 +322,7 @@ async function startSeed() {
 // Limpeza de episódios para re-run limpo
 async function cleanEpisodes(tipo) {
   if (isPhase1Running || isPhase2Running) {
-    log('⏳ Aguarde terminar a fase atual antes de limpar episódios.', 'skip');
+    log('<i class='fa-solid fa-hourglass-half'></i> Aguarde terminar a fase atual antes de limpar episódios.', 'skip');
     return;
   }
   const labels = { desenhos: 'Desenhos', animes: 'Animes', todos: 'TUDO' };
@@ -330,31 +331,31 @@ async function cleanEpisodes(tipo) {
   const btnMap = { desenhos: 'cleanDesenhoBtn', animes: 'cleanAnimeBtn', todos: 'cleanAllBtn' };
   const btn = document.getElementById(btnMap[tipo]);
   btn.disabled = true;
-  btn.textContent = '⏳ Limpando...';
+  btn.textContent = '<i class='fa-solid fa-hourglass-half'></i> Limpando...';
 
   await DB.init();
   const { data: { session } } = await supaClient.auth.getSession();
   const userId = session?.user?.id;
-  if (!userId) { log('❌ Não autenticado', 'err'); btn.disabled = false; return; }
+  if (!userId) { log('<i class='fa-solid fa-xmark'></i> Não autenticado', 'err'); btn.disabled = false; return; }
 
   try {
     if (tipo === 'desenhos' || tipo === 'todos') {
       // Deleta episódios do usuário E episódios globais (user_id is null)
       const { error } = await supaClient.from('episodes').delete().or(`user_id.is.null,user_id.eq.${userId}`);
       if (error) throw new Error(error.message);
-      log('🗑️ Episódios de Desenhos apagados (User + Global)!', 'ok');
+      log('<i class='fa-solid fa-trash'></i>️ Episódios de Desenhos apagados (User + Global)!', 'ok');
     }
     if (tipo === 'animes' || tipo === 'todos') {
       const { error } = await supaClient.from('anime_episodes').delete().or(`user_id.is.null,user_id.eq.${userId}`);
       if (error) throw new Error(error.message);
-      log('🗑️ Episódios de Animes apagados (User + Global)!', 'ok');
+      log('<i class='fa-solid fa-trash'></i>️ Episódios de Animes apagados (User + Global)!', 'ok');
     }
-    btn.textContent = '✅ Limpo!';
-    log('✅ Pronto! Agora rode a Fase 2.', 'ok');
+    btn.textContent = '<i class='fa-solid fa-check'></i> Limpo!';
+    log('<i class='fa-solid fa-check'></i> Pronto! Agora rode a Fase 2.', 'ok');
   } catch (e) {
-    log('❌ Erro ao limpar: ' + e.message, 'err');
+    log('<i class='fa-solid fa-xmark'></i> Erro ao limpar: ' + e.message, 'err');
     btn.disabled = false;
-    btn.textContent = '❌ Erro';
+    btn.textContent = '<i class='fa-solid fa-xmark'></i> Erro';
   }
 }
 
@@ -420,7 +421,7 @@ const HQ_COVERS = {
 
 async function startPhase2() {
   if (isPhase1Running || isPhase2Running) {
-    log('⏳ Aguarde: já existe uma operação de seed em andamento.', 'skip');
+    log('<i class='fa-solid fa-hourglass-half'></i> Aguarde: já existe uma operação de seed em andamento.', 'skip');
     return;
   }
   isPhase2Running = true;
@@ -431,10 +432,10 @@ async function startPhase2() {
 
   const originalLabel = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ Buscando...';
+  btn.textContent = '<i class='fa-solid fa-hourglass-half'></i> Buscando...';
   try {
   log('\n══════════════════════════════════', 'info');
-  log('🎬 FASE 2 — TMDB pt-BR | Eps completos', 'info');
+  log('<i class='fa-solid fa-clapperboard'></i> FASE 2 — TMDB pt-BR | Eps completos', 'info');
   log('══════════════════════════════════', 'info');
   dlog('PHASE2', 'Start phase 2');
 
@@ -646,7 +647,7 @@ async function startPhase2() {
       await supaClient.from('hqs').insert([row]);
       await sleep(60);
     }
-      log(`✅ Seed base sincronizado: +${addedCartoons} desenhos | +${addedAnimes} animes`, 'ok');
+      log(`<i class='fa-solid fa-check'></i> Seed base sincronizado: +${addedCartoons} desenhos | +${addedAnimes} animes`, 'ok');
       await DB.init();
       cartoonsAll = DB.getCartoons();
       animesAll = DB.getAnimes();
@@ -666,8 +667,8 @@ async function startPhase2() {
 
   const missingCartoons = cartoonsPlan.filter(p => p.targets.length === 0).map(p => p.seed.nome);
   const missingAnimes = animesPlan.filter(p => p.targets.length === 0).map(p => p.seed.nome);
-  if (missingCartoons.length) log(`⚠️ Desenhos faltando no banco (${missingCartoons.length}): ${missingCartoons.join(', ')}`, 'skip');
-  if (missingAnimes.length) log(`⚠️ Animes faltando no banco (${missingAnimes.length}): ${missingAnimes.join(', ')}`, 'skip');
+  if (missingCartoons.length) log(`<i class='fa-solid fa-triangle-exclamation'></i>️ Desenhos faltando no banco (${missingCartoons.length}): ${missingCartoons.join(', ')}`, 'skip');
+  if (missingAnimes.length) log(`<i class='fa-solid fa-triangle-exclamation'></i>️ Animes faltando no banco (${missingAnimes.length}): ${missingAnimes.join(', ')}`, 'skip');
   dlog('PHASE2', 'Seed coverage check', {
     cartoonsFromSeed: cartoons.length,
     animesFromSeed: animes.length,
@@ -675,14 +676,14 @@ async function startPhase2() {
     missingAnimes
   });
   if (cartoons.length !== SEED_DESENHOS.length) {
-    log(`⚠️ Desenhos mapeados: ${cartoons.length}/${SEED_DESENHOS.length}`, 'skip');
+    log(`<i class='fa-solid fa-triangle-exclamation'></i>️ Desenhos mapeados: ${cartoons.length}/${SEED_DESENHOS.length}`, 'skip');
     dlog('PHASE2', 'Cartoon mapping mismatch', {
       mapped: cartoons.length,
       expected: SEED_DESENHOS.length
     });
   }
   if (animes.length !== SEED_ANIMES.length) {
-    log(`⚠️ Animes mapeados: ${animes.length}/${SEED_ANIMES.length}`, 'skip');
+    log(`<i class='fa-solid fa-triangle-exclamation'></i>️ Animes mapeados: ${animes.length}/${SEED_ANIMES.length}`, 'skip');
     dlog('PHASE2', 'Anime mapping mismatch', {
       mapped: animes.length,
       expected: SEED_ANIMES.length
@@ -884,7 +885,7 @@ async function startPhase2() {
           try {
             await replaceEpisodesForCartoon(target.id, payloads, tOwner);
             fixed++;
-            log(`   🔁 Reconciliado: ${target.nome} recebeu ${payloads.length} eps`, 'ok');
+            log(`   <i class='fa-solid fa-repeat'></i> Reconciliado: ${target.nome} recebeu ${payloads.length} eps`, 'ok');
             dlog('RECONCILE', 'Cartoon episodes copied to duplicate target', {
               name: target.nome,
               donorId: donor.id,
@@ -896,7 +897,7 @@ async function startPhase2() {
           }
         }
       }
-      if (fixed > 0) log(`✅ Reconciliação de desenhos finalizada: ${fixed} duplicado(s) corrigido(s)`, 'ok');
+      if (fixed > 0) log(`<i class='fa-solid fa-check'></i> Reconciliação de desenhos finalizada: ${fixed} duplicado(s) corrigido(s)`, 'ok');
     } catch (e) {
       dlog('RECONCILE', 'Unhandled reconcile error', e?.message || e);
     }
@@ -930,14 +931,14 @@ async function startPhase2() {
   // ──────────────────────────────────────────────────────
   // 1. DESENHOS — TMDB pt-BR (capas + episódios completos)
   // ──────────────────────────────────────────────────────
-  log('\n🎨 Desenhos via TMDB (pt-BR)...', 'info');
+  log('\n<i class='fa-solid fa-palette'></i> Desenhos via TMDB (pt-BR)...', 'info');
   let capasDesenho = 0, epsDesenho = 0;
   const processedCartoonTmdbIds = new Set();
 
   for (const plan of cartoonsPlan) {
     try {
       if (!plan.targets.length) {
-        log(`   ⏭️ ${plan.seed.nome} — não encontrado no banco`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — não encontrado no banco`, 'skip');
         prog();
         continue;
       }
@@ -949,9 +950,9 @@ async function startPhase2() {
       });
       const tmdbShow = await tmdbSearchTV(plan.seed.nome, expectedSeasons);
       await sleep(260);
-      if (!tmdbShow) { log(`   ⏭️ ${plan.seed.nome} — não encontrado no TMDB`, 'skip'); prog(); continue; }
+      if (!tmdbShow) { log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — não encontrado no TMDB`, 'skip'); prog(); continue; }
       if (processedCartoonTmdbIds.has(tmdbShow.id)) {
-        log(`   ⏭️ ${plan.seed.nome} — alias já processado para o mesmo título TMDB`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — alias já processado para o mesmo título TMDB`, 'skip');
         dlog('CARTOON', `Skipped duplicate TMDB work`, {
           seedName: plan.seed.nome,
           tmdbId: tmdbShow.id,
@@ -981,7 +982,7 @@ async function startPhase2() {
             dlog('CARTOON', `Canonical name updated`, { id: c.id, old: c.nome, new: canonicalName });
             c.nome = canonicalName;
           } catch (e) {
-            log(`   ⚠️ Falha ao padronizar nome ${c.nome}: ${e.message}`, 'err');
+            log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Falha ao padronizar nome ${c.nome}: ${e.message}`, 'err');
           }
         }
       }
@@ -991,7 +992,7 @@ async function startPhase2() {
         const cover = tmdbShow.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbShow.poster_path}` : '';
         if (cover) {
           try { await seedUpdateCover('cartoons', c.id, cover); capasDesenho++; }
-          catch (e) { log(`   ⚠️ Capa falhou ${c.nome}: ${e.message}`, 'err'); }
+          catch (e) { log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Capa falhou ${c.nome}: ${e.message}`, 'err'); }
         }
       }
 
@@ -1001,11 +1002,11 @@ async function startPhase2() {
         try {
           await seedUpdateSeasons('cartoons', c.id, totalSeasons);
         } catch (e) {
-          log(`   ⚠️ Falha ao atualizar temporadas de ${c.nome}: ${e.message}`, 'err');
+          log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Falha ao atualizar temporadas de ${c.nome}: ${e.message}`, 'err');
         }
       }
 
-      log(`   🎬 Regerando eps para ${plan.seed.nome}...`, 'info');
+      log(`   <i class='fa-solid fa-clapperboard'></i> Regerando eps para ${plan.seed.nome}...`, 'info');
       const seasonList = seasons.length ? seasons : Array.from({length: (tmdbShow.number_of_seasons || 1)}, (_, i) => ({season_number: i+1}));
       const allEpsRaw = await tmdbGetAllEpisodes(tmdbShow.id, seasonList);
       const allEps = splitEpisodesByExpectedSeasons(allEpsRaw, expectedSeasons);
@@ -1016,7 +1017,7 @@ async function startPhase2() {
         expectedSeasons
       });
       if (allEps.length === 0) {
-        log(`   ⚠️ ${plan.seed.nome}: TMDB não retornou episódios; mantendo episódios já existentes`, 'skip');
+        log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ ${plan.seed.nome}: TMDB não retornou episódios; mantendo episódios já existentes`, 'skip');
         dlog('CARTOON', `Payload empty "${plan.seed.nome}"`);
       } else {
         for (const c of targets) {
@@ -1032,14 +1033,14 @@ async function startPhase2() {
           try {
             const inserted = await replaceEpisodesForCartoon(c.id, payloads, cOwner);
             epsDesenho += inserted.length;
-            log(`   📺 ${c.nome}: ${inserted.length} eps em ${totalSeasons} temporada(s)`, 'ok');
+            log(`   <i class='fa-solid fa-tv'></i> ${c.nome}: ${inserted.length} eps em ${totalSeasons} temporada(s)`, 'ok');
           } catch (e) {
-            log(`   ❌ Erro ao salvar episódios de ${c.nome}: ${e.message}`, 'err');
+            log(`   <i class='fa-solid fa-xmark'></i> Erro ao salvar episódios de ${c.nome}: ${e.message}`, 'err');
           }
         }
       }
     } catch (e) {
-      log(`   ❌ ${plan.seed.nome}: ${e.message}`, 'err');
+      log(`   <i class='fa-solid fa-xmark'></i> ${plan.seed.nome}: ${e.message}`, 'err');
       dlog('CARTOON', `Unhandled error "${plan.seed.nome}"`, e?.message || e);
     }
     prog();
@@ -1051,14 +1052,14 @@ async function startPhase2() {
   // ──────────────────────────────────────────────────────
   // 2. ANIMES — TMDB pt-BR (capas + eps)
   // ──────────────────────────────────────────────────────
-  log('\n🌸 Animes via TMDB pt-BR...', 'info');
+  log('\n<i class='fa-solid fa-fan'></i> Animes via TMDB pt-BR...', 'info');
   let capasAnime = 0, epsAnime = 0;
   const processedAnimeTmdbIds = new Set();
 
   for (const plan of animesPlan) {
     try {
       if (!plan.targets.length) {
-        log(`   ⏭️ ${plan.seed.nome} — não encontrado no banco`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — não encontrado no banco`, 'skip');
         prog();
         continue;
       }
@@ -1071,12 +1072,12 @@ async function startPhase2() {
       const tmdbAnime = await tmdbSearchTV(plan.seed.nome, expectedSeasons);
       await sleep(260);
       if (!tmdbAnime) {
-        log(`   ⏭️ ${plan.seed.nome} — não encontrado no TMDB`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — não encontrado no TMDB`, 'skip');
         prog();
         continue;
       }
       if (processedAnimeTmdbIds.has(tmdbAnime.id)) {
-        log(`   ⏭️ ${plan.seed.nome} — alias já processado para o mesmo título TMDB`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${plan.seed.nome} — alias já processado para o mesmo título TMDB`, 'skip');
         dlog('ANIME', `Skipped duplicate TMDB work`, {
           seedName: plan.seed.nome,
           tmdbId: tmdbAnime.id,
@@ -1106,7 +1107,7 @@ async function startPhase2() {
             dlog('ANIME', `Canonical name updated`, { id: a.id, old: a.nome, new: canonicalName });
             a.nome = canonicalName;
           } catch (e) {
-            log(`   ⚠️ Falha ao padronizar nome ${a.nome}: ${e.message}`, 'err');
+            log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Falha ao padronizar nome ${a.nome}: ${e.message}`, 'err');
           }
         }
       }
@@ -1116,7 +1117,7 @@ async function startPhase2() {
         const cover = tmdbAnime.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbAnime.poster_path}` : '';
         if (cover) {
           try { await seedUpdateCover('animes', a.id, cover); capasAnime++; }
-          catch (e) { log(`   ⚠️ Capa ${a.nome}: ${e.message}`, 'err'); }
+          catch (e) { log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Capa ${a.nome}: ${e.message}`, 'err'); }
         }
       }
 
@@ -1126,7 +1127,7 @@ async function startPhase2() {
         try {
           await seedUpdateSeasons('animes', a.id, totalSeasons);
         } catch (e) {
-          log(`   ⚠️ Falha ao atualizar temporadas de ${a.nome}: ${e.message}`, 'err');
+          log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Falha ao atualizar temporadas de ${a.nome}: ${e.message}`, 'err');
         }
       }
 
@@ -1140,7 +1141,7 @@ async function startPhase2() {
         expectedSeasons
       });
       if (allEps.length === 0) {
-        log(`   ⚠️ ${plan.seed.nome}: TMDB não retornou episódios; mantendo episódios já existentes`, 'skip');
+        log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ ${plan.seed.nome}: TMDB não retornou episódios; mantendo episódios já existentes`, 'skip');
         dlog('ANIME', `Payload empty "${plan.seed.nome}"`);
       } else {
         for (const a of targets) {
@@ -1148,7 +1149,7 @@ async function startPhase2() {
           let delLegQuery = supaClient.from('anime_episodes').delete().eq('anime_id', a.id).eq('idioma', 'legendado');
           delLegQuery = aOwner == null ? delLegQuery.is('user_id', null) : delLegQuery.eq('user_id', aOwner);
           const { error: delLegErr } = await delLegQuery;
-          if (delLegErr) log(`   ⚠️ Falha ao limpar legendado ${a.nome}: ${delLegErr.message}`, 'err');
+          if (delLegErr) log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Falha ao limpar legendado ${a.nome}: ${delLegErr.message}`, 'err');
 
           const payloads = allEps.map(ep => ({
             anime_id: a.id,
@@ -1162,14 +1163,14 @@ async function startPhase2() {
           try {
             const inserted = await replaceEpisodesForAnime(a.id, payloads, aOwner);
             epsAnime += inserted.length;
-            log(`   📺 ${a.nome}: ${inserted.length} eps em ${totalSeasons} temporada(s)`, 'ok');
+            log(`   <i class='fa-solid fa-tv'></i> ${a.nome}: ${inserted.length} eps em ${totalSeasons} temporada(s)`, 'ok');
           } catch (e) {
-            log(`   ❌ Erro ao salvar episódios de ${a.nome}: ${e.message}`, 'err');
+            log(`   <i class='fa-solid fa-xmark'></i> Erro ao salvar episódios de ${a.nome}: ${e.message}`, 'err');
           }
         }
       }
     } catch (e) {
-      log(`   ❌ ${plan.seed.nome}: ${e.message}`, 'err');
+      log(`   <i class='fa-solid fa-xmark'></i> ${plan.seed.nome}: ${e.message}`, 'err');
       dlog('ANIME', `Unhandled error "${plan.seed.nome}"`, e?.message || e);
     }
     prog();
@@ -1178,12 +1179,12 @@ async function startPhase2() {
   // ──────────────────────────────────
   // 3. FILMES — Capas via TMDB
   // ──────────────────────────────────
-  log('\n🎬 Buscando Capas de Filmes (TMDB)...', 'info');
+  log('\n<i class='fa-solid fa-clapperboard'></i> Buscando Capas de Filmes (TMDB)...', 'info');
   let capasFilme = 0;
 
   const filmesPlan = filmes.filter(f => SEED_FILMES.some(sf => normalizeTitle(sf.nome) === normalizeTitle(f.nome)));
   for (const f of filmesPlan) {
-    if (f.capa && f.capa !== '') { prog(); log(`   ⏭️ ${f.nome} — já tem capa`, 'skip'); continue; }
+    if (f.capa && f.capa !== '') { prog(); log(`   <i class='fa-solid fa-forward-step'></i>️ ${f.nome} — já tem capa`, 'skip'); continue; }
     try {
       const res = await fetchRetry(`${TMDB}/search/movie?api_key=${tmdbKey}&${LANG}&query=${encodeURIComponent(f.nome)}&include_adult=false`);
       const movie = (res?.results || [])[0];
@@ -1191,11 +1192,11 @@ async function startPhase2() {
       if (cover) {
         await seedUpdateCover('filmes', f.id, cover);
         capasFilme++;
-        log(`   🖼️ ${f.nome}`, 'ok');
+        log(`   <i class='fa-solid fa-image'></i>️ ${f.nome}`, 'ok');
       } else {
-        log(`   ⏭️ ${f.nome} — capa não encontrada`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${f.nome} — capa não encontrada`, 'skip');
       }
-    } catch (e) { log(`   ❌ ${f.nome}: ${e.message}`, 'err'); }
+    } catch (e) { log(`   <i class='fa-solid fa-xmark'></i> ${f.nome}: ${e.message}`, 'err'); }
     prog();
     await sleep(300);
   }
@@ -1203,7 +1204,7 @@ async function startPhase2() {
   // ──────────────────────────────────
   // 4. MANGÁS — Capas + Volumes Originais
   // ──────────────────────────────────
-  log('\n📖 Sincronizando Capas + Volumes para Mangás...', 'info');
+  log('\n<i class='fa-solid fa-book-open'></i> Sincronizando Capas + Volumes para Mangás...', 'info');
   let mangasOk = 0, capasManga = 0;
 
   for (const mData of SEED_MANGAS) {
@@ -1221,8 +1222,8 @@ async function startPhase2() {
 
         await seedUpdateCover('mangas', m.id, finalCover);
         capasManga++;
-        log(`   🖼️ Capa Mangá (Jikan): ${m.nome}`, 'ok');
-      } catch (e) { log(`   ⚠️ Erro Capa ${m.nome}: ${e.message}`, 'err'); }
+        log(`   <i class='fa-solid fa-image'></i>️ Capa Mangá (Jikan): ${m.nome}`, 'ok');
+      } catch (e) { log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Erro Capa ${m.nome}: ${e.message}`, 'err'); }
       await sleep(500); // Rate limit da Jikan (1 req por segundo seguro)
 
       // 2. Volumes Originais (Bulk Insert)
@@ -1253,11 +1254,11 @@ async function startPhase2() {
           }
 
           mangasOk++;
-          log(`   📚 ${totalVols} Volumes criados: ${m.nome}`, 'ok');
-        } catch (e) { log(`   ❌ Mangá ${m.nome}: ${e.message}`, 'err'); }
+          log(`   <i class='fa-solid fa-book'></i> ${totalVols} Volumes criados: ${m.nome}`, 'ok');
+        } catch (e) { log(`   <i class='fa-solid fa-xmark'></i> Mangá ${m.nome}: ${e.message}`, 'err'); }
         await sleep(100);
       } else {
-        log(`   ⏭️ ${m.nome} — já possui volumes`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${m.nome} — já possui volumes`, 'skip');
       }
     }
     prog();
@@ -1266,7 +1267,7 @@ async function startPhase2() {
   // ──────────────────────────────────
   // 5. HQs — Capas + Edições Originais
   // ──────────────────────────────────
-  log('\n🦸 Sincronizando Capas + Edições para HQs...', 'info');
+  log('\n<i class='fa-solid fa-mask'></i> Sincronizando Capas + Edições para HQs...', 'info');
   let hqsOk = 0, capasHQ = 0;
 
   for (const hData of SEED_HQS) {
@@ -1282,8 +1283,8 @@ async function startPhase2() {
           }
           await seedUpdateCover('hqs', h.id, coverSource);
           capasHQ++;
-          log(`   🖼️ Capa HQ: ${h.nome}`, 'ok');
-        } catch (e) { log(`   ⚠️ Erro Capa ${h.nome}: ${e.message}`, 'err'); }
+          log(`   <i class='fa-solid fa-image'></i>️ Capa HQ: ${h.nome}`, 'ok');
+        } catch (e) { log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ Erro Capa ${h.nome}: ${e.message}`, 'err'); }
       }
 
       // 2. Edições Originais (Bulk Insert)
@@ -1314,11 +1315,11 @@ async function startPhase2() {
           }
 
           hqsOk++;
-          log(`   📖 ${totalEds} Edições criadas: ${h.nome}`, 'ok');
-        } catch (e) { log(`   ❌ HQ ${h.nome}: ${e.message}`, 'err'); }
+          log(`   <i class='fa-solid fa-book-open'></i> ${totalEds} Edições criadas: ${h.nome}`, 'ok');
+        } catch (e) { log(`   <i class='fa-solid fa-xmark'></i> HQ ${h.nome}: ${e.message}`, 'err'); }
         await sleep(100);
       } else {
-        log(`   ⏭️ ${h.nome} — já possui edições`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${h.nome} — já possui edições`, 'skip');
       }
     }
     prog();
@@ -1327,11 +1328,11 @@ async function startPhase2() {
   // Sincroniza memória local antes de finalizar
   await DB.init();
 
-  log(`\n🎉 FASE 2 CONCLUÍDA!`, 'ok');
-  log(`   🖼️  Capas: Desenhos=${capasDesenho} | Animes=${capasAnime} | Filmes=${capasFilme} | Mangás=${capasManga} | HQs=${capasHQ}`, 'ok');
-  log(`   📺 Episódios: Desenhos=${epsDesenho} | Animes=${epsAnime}`, 'ok');
-  log(`   📚 Volumes Mangás=${mangasOk} | Edições HQs=${hqsOk}`, 'info');
-  btn.textContent = `✅ Capas: ${capasDesenho + capasAnime + capasFilme + capasHQ} | Eps: ${epsDesenho + epsAnime}`;
+  log(`\n<i class='fa-solid fa-champagne-glasses'></i> FASE 2 CONCLUÍDA!`, 'ok');
+  log(`   <i class='fa-solid fa-image'></i>️  Capas: Desenhos=${capasDesenho} | Animes=${capasAnime} | Filmes=${capasFilme} | Mangás=${capasManga} | HQs=${capasHQ}`, 'ok');
+  log(`   <i class='fa-solid fa-tv'></i> Episódios: Desenhos=${epsDesenho} | Animes=${epsAnime}`, 'ok');
+  log(`   <i class='fa-solid fa-book'></i> Volumes Mangás=${mangasOk} | Edições HQs=${hqsOk}`, 'info');
+  btn.textContent = `<i class='fa-solid fa-check'></i> Capas: ${capasDesenho + capasAnime + capasFilme + capasHQ} | Eps: ${epsDesenho + epsAnime}`;
   dlog('PHASE2', 'Completed phase 2', {
     capasDesenho, capasAnime, capasFilme, capasHQ,
     epsDesenho, epsAnime,
@@ -1339,15 +1340,15 @@ async function startPhase2() {
   });
   } catch (e) {
     const msg = e?.message || String(e);
-    log(`❌ Fase 2 falhou: ${msg}`, 'err');
+    log(`<i class='fa-solid fa-xmark'></i> Fase 2 falhou: ${msg}`, 'err');
     dlog('PHASE2', 'Fatal error', e);
-    btn.textContent = '❌ Erro na Fase 2';
+    btn.textContent = '<i class='fa-solid fa-xmark'></i> Erro na Fase 2';
   } finally {
     isPhase2Running = false;
     setSeedUiLocked(false);
     btn.disabled = false;
-    if (!btn.textContent || btn.textContent === '⏳ Buscando...') {
-      btn.textContent = originalLabel || '🎬 Buscar Capas + Episódios (pt-BR)';
+    if (!btn.textContent || btn.textContent === '<i class='fa-solid fa-hourglass-half'></i> Buscando...') {
+      btn.textContent = originalLabel || '<i class='fa-solid fa-clapperboard'></i> Buscar Capas + Episódios (pt-BR)';
     }
   }
 }
@@ -1357,17 +1358,17 @@ async function startPhase2() {
 // ══════════════════════════════════════════════════════════════════
 async function fixCovers() {
   if (isPhase1Running || isPhase2Running) {
-    log('⏳ Aguarde terminar a fase atual antes de corrigir capas.', 'skip');
+    log('<i class='fa-solid fa-hourglass-half'></i> Aguarde terminar a fase atual antes de corrigir capas.', 'skip');
     return;
   }
 
   const btn = document.getElementById('fixCoversBtn');
   btn.disabled = true;
-  btn.textContent = '⏳ Corrigindo...';
+  btn.textContent = '<i class='fa-solid fa-hourglass-half'></i> Corrigindo...';
   setSeedUiLocked(true);
 
   log('\n══════════════════════════════════', 'info');
-  log('🔧 FASE 3 — Corrigindo Capas de HQs & Mangás', 'info');
+  log('<i class='fa-solid fa-wrench'></i> FASE 3 — Corrigindo Capas de HQs & Mangás', 'info');
   log('══════════════════════════════════', 'info');
 
   try {
@@ -1379,7 +1380,7 @@ async function fixCovers() {
     const norm = s => (s || '').trim().toLowerCase();
 
     // ── MANGÁS ──────────────────────────────────────────────
-    log('\n📖 Atualizando capas de Mangás via Jikan...', 'info');
+    log('\n<i class='fa-solid fa-book-open'></i> Atualizando capas de Mangás via Jikan...', 'info');
     let mangaFixed = 0, mangaSkipped = 0, mangaErr = 0;
     doneItems = 0;
     totalItems = SEED_MANGAS.length + SEED_HQS.length;
@@ -1390,7 +1391,7 @@ async function fixCovers() {
       const dbItem = mangas.find(m => norm(m.nome) === norm(mData.nome));
 
       if (!dbItem) {
-        log(`   ⏭️ ${mData.nome} — não encontrado no banco`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${mData.nome} — não encontrado no banco`, 'skip');
         mangaSkipped++;
         prog();
         continue;
@@ -1405,7 +1406,7 @@ async function fixCovers() {
         if (!cover) cover = mData.capa;
 
         if (!cover) {
-          log(`   ⏭️ ${dbItem.nome} — nenhuma capa encontrada`, 'skip');
+          log(`   <i class='fa-solid fa-forward-step'></i>️ ${dbItem.nome} — nenhuma capa encontrada`, 'skip');
           mangaSkipped++;
           prog();
           continue;
@@ -1419,14 +1420,14 @@ async function fixCovers() {
 
         if (error) throw new Error(error.message);
         if (!data || data.length === 0) {
-          log(`   ⚠️ ${dbItem.nome} — RLS bloqueou update (item global sem permissão)`, 'err');
+          log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ ${dbItem.nome} — RLS bloqueou update (item global sem permissão)`, 'err');
           mangaErr++;
         } else {
-          log(`   🖼️ ${dbItem.nome}`, 'ok');
+          log(`   <i class='fa-solid fa-image'></i>️ ${dbItem.nome}`, 'ok');
           mangaFixed++;
         }
       } catch (e) {
-        log(`   ❌ ${mData.nome}: ${e.message}`, 'err');
+        log(`   <i class='fa-solid fa-xmark'></i> ${mData.nome}: ${e.message}`, 'err');
         mangaErr++;
       }
       prog();
@@ -1434,14 +1435,14 @@ async function fixCovers() {
     }
 
     // ── HQs ──────────────────────────────────────────────────
-    log('\n🦸 Atualizando capas de HQs...', 'info');
+    log('\n<i class='fa-solid fa-mask'></i> Atualizando capas de HQs...', 'info');
     let hqFixed = 0, hqSkipped = 0, hqErr = 0;
 
     for (const hData of SEED_HQS) {
       const dbItem = hqs.find(h => norm(h.nome) === norm(hData.nome));
 
       if (!dbItem) {
-        log(`   ⏭️ ${hData.nome} — não encontrado no banco`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${hData.nome} — não encontrado no banco`, 'skip');
         hqSkipped++;
         prog();
         continue;
@@ -1451,7 +1452,7 @@ async function fixCovers() {
       let cover = hData.capa;
 
       if (!cover) {
-        log(`   ⏭️ ${dbItem.nome} — nenhuma capa disponível`, 'skip');
+        log(`   <i class='fa-solid fa-forward-step'></i>️ ${dbItem.nome} — nenhuma capa disponível`, 'skip');
         hqSkipped++;
         prog();
         continue;
@@ -1466,32 +1467,32 @@ async function fixCovers() {
 
         if (error) throw new Error(error.message);
         if (!data || data.length === 0) {
-          log(`   ⚠️ ${dbItem.nome} — RLS bloqueou update (verifique se executou o SQL de Admin)`, 'err');
+          log(`   <i class='fa-solid fa-triangle-exclamation'></i>️ ${dbItem.nome} — RLS bloqueou update (verifique se executou o SQL de Admin)`, 'err');
           hqErr++;
         } else {
-          log(`   🖼️ ${dbItem.nome}`, 'ok');
+          log(`   <i class='fa-solid fa-image'></i>️ ${dbItem.nome}`, 'ok');
           hqFixed++;
         }
       } catch (e) {
-        log(`   ❌ ${hData.nome}: ${e.message}`, 'err');
+        log(`   <i class='fa-solid fa-xmark'></i> ${hData.nome}: ${e.message}`, 'err');
         hqErr++;
       }
       prog();
       await sleep(80);
     }
 
-    log(`\n✅ Fase 3 concluída!`, 'ok');
-    log(`   📖 Mangás — ✅ ${mangaFixed} atualizados | ⏭️ ${mangaSkipped} pulados | ❌ ${mangaErr} erros`, 'ok');
-    log(`   🦸 HQs    — ✅ ${hqFixed} atualizadas | ⏭️ ${hqSkipped} puladas | ❌ ${hqErr} erros`, 'ok');
+    log(`\n<i class='fa-solid fa-check'></i> Fase 3 concluída!`, 'ok');
+    log(`   <i class='fa-solid fa-book-open'></i> Mangás — <i class='fa-solid fa-check'></i> ${mangaFixed} atualizados | <i class='fa-solid fa-forward-step'></i>️ ${mangaSkipped} pulados | <i class='fa-solid fa-xmark'></i> ${mangaErr} erros`, 'ok');
+    log(`   <i class='fa-solid fa-mask'></i> HQs    — <i class='fa-solid fa-check'></i> ${hqFixed} atualizadas | <i class='fa-solid fa-forward-step'></i>️ ${hqSkipped} puladas | <i class='fa-solid fa-xmark'></i> ${hqErr} erros`, 'ok');
 
     if (mangaErr > 0 || hqErr > 0) {
-      log(`\n💡 Erros de RLS: execute a política de UPDATE no Supabase para itens globais (user_id IS NULL).`, 'skip');
+      log(`\n<i class='fa-solid fa-lightbulb'></i> Erros de RLS: execute a política de UPDATE no Supabase para itens globais (user_id IS NULL).`, 'skip');
     }
 
-    btn.textContent = `✅ Mangás:${mangaFixed} | HQs:${hqFixed}`;
+    btn.textContent = `<i class='fa-solid fa-check'></i> Mangás:${mangaFixed} | HQs:${hqFixed}`;
   } catch (e) {
-    log(`❌ Fase 3 falhou: ${e.message}`, 'err');
-    btn.textContent = '❌ Erro';
+    log(`<i class='fa-solid fa-xmark'></i> Fase 3 falhou: ${e.message}`, 'err');
+    btn.textContent = '<i class='fa-solid fa-xmark'></i> Erro';
   } finally {
     btn.disabled = false;
     setSeedUiLocked(false);

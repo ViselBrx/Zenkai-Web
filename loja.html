@@ -388,7 +388,7 @@
                 font-size: 2.8rem;
                 position: relative;
                 z-index: 1;
-                animation: fichaFloat 4s ease-in-out infinite;
+                /* animation: fichaFloat removed */
             }
             @keyframes fichaFloat {
                 0%,
@@ -1223,7 +1223,7 @@
                 position: relative;
             }
             .catalog-item.owned::after {
-                content: "✅ Adquirido";
+                content: "<i class='fa-solid fa-check'></i> Adquirido";
                 position: absolute;
                 top: 8px;
                 left: 8px;
@@ -1282,7 +1282,8 @@
                 }
             }
         </style>
-    </head>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
     <body>
         <!-- NAVBAR -->
         <nav class="navbar">
@@ -1307,7 +1308,7 @@
                 <div class="hero-particles" id="heroParticles"></div>
 
                 <div class="loja-hero-text">
-                    <div class="loja-hero-eyebrow">🎌 SenseiMod Store</div>
+                    <div class="loja-hero-eyebrow"><i class='fa-solid fa-flag'></i> SenseiMod Store</div>
                     <h1 class="loja-hero-title">
                         Converta XP em<br /><span>Itens Lendários</span>
                     </h1>
@@ -1319,7 +1320,7 @@
                 </div>
 
                 <div class="hero-xp-card">
-                    <div class="xp-orb">⚡</div>
+                    <div class="xp-orb"><i class='fa-solid fa-bolt'></i></div>
                     <div class="xp-label">Saldo Disponível</div>
                     <div
                         style="
@@ -1361,7 +1362,7 @@
                                 this.style.color = '#ef4444';
                             "
                         >
-                            🔄
+                            <i class='fa-solid fa-rotate'></i>
                         </button>
                         <div
                             class="xp-value"
@@ -1392,7 +1393,7 @@
                                 width: 100%;
                             "
                         >
-                            📦 Ver Meu Inventário
+                            <i class='fa-solid fa-box'></i> Ver Meu Inventário
                         </a>
                     </div>
                     <div
@@ -1468,7 +1469,7 @@
             </div>
 
             <!-- POLÍTICA DE TROCA -->
-            <div class="section-title">📜 Política de Troca</div>
+            <div class="section-title"><i class='fa-solid fa-scroll'></i> Política de Troca</div>
             <p class="section-sub">
                 Cada ficha exige um patamar mínimo para ser adquirida. Alcance o
                 nível necessário e desbloqueie acesso.
@@ -1477,7 +1478,7 @@
             <div class="policy-section">
                 <div class="policy-card policy-ouro">
                     <div class="policy-header">
-                        <div class="policy-icon">🥇</div>
+                        <div class="policy-icon"><i class='fa-solid fa-medal'></i></div>
                         <div>
                             <div class="policy-title">Ficha de Ouro</div>
                             <div
@@ -1501,7 +1502,7 @@
                 </div>
                 <div class="policy-card policy-diamante">
                     <div class="policy-header">
-                        <div class="policy-icon">💎</div>
+                        <div class="policy-icon"><i class='fa-solid fa-gem'></i></div>
                         <div>
                             <div class="policy-title">Ficha de Diamante</div>
                             <div
@@ -1523,7 +1524,7 @@
                 </div>
                 <div class="policy-card policy-esmeralda">
                     <div class="policy-header">
-                        <div class="policy-icon">💚</div>
+                        <div class="policy-icon"><i class='fa-solid fa-heart'></i></div>
                         <div>
                             <div class="policy-title">Ficha de Esmeralda</div>
                             <div
@@ -1548,7 +1549,7 @@
             </div>
 
             <!-- FICHAS DE TROCA -->
-            <div class="section-title">🔄 Comprar ou Estornar Fichas</div>
+            <div class="section-title"><i class='fa-solid fa-rotate'></i> Comprar ou Estornar Fichas</div>
             <p class="section-sub">
                 Troque seu XP por recursos valiosos ou converta de volta em XP
                 (botão vermelho) caso mude de ideia.
@@ -1557,10 +1558,10 @@
             <div class="fichas-grid">
                 <!-- OURO -->
                 <div class="ficha-card ficha-ouro" id="fichaOuroCard">
-                    <div class="ficha-icon">🥇</div>
+                    <div class="ficha-icon"><i class='fa-solid fa-medal'></i></div>
                     <div class="ficha-name">FICHA DE OURO</div>
                     <div class="ficha-taxa"><strong>100 XP</strong> por unidade</div>
-                    <div class="ficha-req">⚔️ Patamar Prata</div>
+                    <div class="ficha-req"><i class='fa-solid fa-khanda'></i>️ Patamar Prata</div>
                     <div class="ficha-status locked" id="fichaOuroStatus">
                         <div class="status-dot"></div>
                         <span>Verificando patamar…</span>
@@ -1609,13 +1610,13 @@
 
                 <!-- DIAMANTE -->
                 <div class="ficha-card ficha-diamante" id="fichaDiamanteCard">
-                    <div class="ficha-icon">💎</div>
+                    <div class="ficha-icon"><i class='fa-solid fa-gem'></i></div>
                     <div class="ficha-name">FICHA DE DIAMANTE</div>
                     <div class="ficha-taxa">
-                        <strong>250 XP → 1 💎</strong>
+                        <strong>250 XP → 1 <i class='fa-solid fa-gem'></i></strong>
                         Patamar mínimo: <em>Mestre</em>
                     </div>
-                    <div class="ficha-req">🔱 Patamar Mestre</div>
+                    <div class="ficha-req"><i class='fa-solid fa-trident'></i> Patamar Mestre</div>
                     <div class="ficha-status locked" id="fichaDiamanteStatus">
                         <div class="status-dot"></div>
                         <span>Verificando patamar…</span>
@@ -1664,13 +1665,13 @@
 
                 <!-- ESMERALDA -->
                 <div class="ficha-card ficha-esmeralda" id="fichaEsmeraldaCard">
-                    <div class="ficha-icon">💚</div>
+                    <div class="ficha-icon"><i class='fa-solid fa-heart'></i></div>
                     <div class="ficha-name">FICHA DE ESMERALDA</div>
                     <div class="ficha-taxa">
-                        <strong>500 XP → 1 💚</strong>
+                        <strong>500 XP → 1 <i class='fa-solid fa-heart'></i></strong>
                         Patamar mínimo: <em>Guardião</em>
                     </div>
-                    <div class="ficha-req">🛡️ Patamar Guardião</div>
+                    <div class="ficha-req"><i class='fa-solid fa-shield'></i>️ Patamar Guardião</div>
                     <div class="ficha-status locked" id="fichaEsmeraldaStatus">
                         <div class="status-dot"></div>
                         <span>Verificando patamar…</span>
@@ -1719,7 +1720,7 @@
             </div>
 
             <!-- CATÁLOGO DE ITENS -->
-            <div class="section-title">🎌 Catálogo SenseiMod</div>
+            <div class="section-title"><i class='fa-solid fa-flag'></i> Catálogo SenseiMod</div>
             <p class="section-sub">
                 Explore todos os itens disponíveis. Filtre por categoria ou tipo
                 de ficha.
@@ -1727,39 +1728,39 @@
 
             <div class="catalog-filters" id="catalogFilters">
                 <button class="filter-tab active" data-category="all">
-                    ✨ Todos
+                    <i class='fa-solid fa-wand-magic-sparkles'></i> Todos
                 </button>
                 <button class="filter-tab" data-category="banner">
-                    🖼️ Banners
+                    <i class='fa-solid fa-image'></i>️ Banners
                 </button>
                 <button class="filter-tab" data-category="aura">
-                    🌀 Auras
+                    <i class='fa-solid fa-hurricane'></i> Auras
                 </button>
                 <button class="filter-tab" data-category="titulo">
-                    🏷️ Títulos
+                    <i class='fa-solid fa-tag'></i>️ Títulos
                 </button>
                 <button class="filter-tab" data-category="experiencia">
-                    ✨ Especiais
+                    <i class='fa-solid fa-wand-magic-sparkles'></i> Especiais
                 </button>
                 <button class="filter-tab" data-category="exclusivo">
-                    👑 Exclusivos
+                    <i class='fa-solid fa-crown'></i> Exclusivos
                 </button>
                 <button class="filter-tab" data-category="tema">
-                    🌈 Temas
+                    <i class='fa-solid fa-rainbow'></i> Temas
                 </button>
 
                 <div class="filter-currency">
                     <button class="currency-tab active" data-currency="all">
-                        Todos 💰
+                        Todos <i class='fa-solid fa-sack-dollar'></i>
                     </button>
                     <button class="currency-tab" data-currency="ouro">
-                        🥇 Ouro
+                        <i class='fa-solid fa-medal'></i> Ouro
                     </button>
                     <button class="currency-tab" data-currency="diamante">
-                        💎 Diamante
+                        <i class='fa-solid fa-gem'></i> Diamante
                     </button>
                     <button class="currency-tab" data-currency="esmeralda">
-                        💚 Esmeralda
+                        <i class='fa-solid fa-heart'></i> Esmeralda
                     </button>
                 </div>
             </div>
@@ -1771,7 +1772,7 @@
         <!-- MODAL DE COMPRA -->
         <div class="buy-modal-overlay" id="buyModalOverlay">
             <div class="buy-modal">
-                <div class="modal-item-icon" id="modalIcon">🎁</div>
+                <div class="modal-item-icon" id="modalIcon"><i class='fa-solid fa-gift'></i></div>
                 <div class="modal-item-name" id="modalName">Item</div>
                 <p class="modal-item-desc" id="modalDesc">Descrição do item.</p>
                 <div class="modal-price-line">
@@ -1796,7 +1797,7 @@
         <div id="lojaToast"></div>
 
         <!-- WATERMARK -->
-        <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">© ViselBrx & DaviMoraes07™</a></div>
+        <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">&copy; ViselBrx & DaviMoraes07&trade;</a></div>
 
         <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
         <script src="js/db.js"></script>
@@ -1809,36 +1810,36 @@
             // ── DADOS DO CATÁLOGO ─────────────────────────────────
             const CATALOG_ITEMS = [
                 // ── OURO ─────────────────────────────────────────────
-                { id: "banner_claro", name: "Banner Aurora Simples", desc: "Um banner suave de cores pastel.", icon: "🌅", category: "banner", currency: "ouro", price: 3, req: "prata" },
-                { id: "titulo_explorador", name: "Título: Explorador", desc: "Exibe o título abaixo do avatar.", icon: "🗺️", category: "titulo", currency: "ouro", price: 5, req: "prata" },
-                { id: "aura_chama", name: "Aura Chama Simples", desc: "Chamas sutis ao redor do avatar.", icon: "🔥", category: "aura", currency: "ouro", price: 8, req: "prata" },
-                { id: "banner_cosmica", name: "Banner Noite Cósmica", desc: "Fundo estrelado escuro.", icon: "🌌", category: "banner", currency: "ouro", price: 10, req: "prata" },
-                { id: "titulo_caçador", name: "Título: Caçador de Episódios", desc: "Para quem maratona séries.", icon: "🎯", category: "titulo", currency: "ouro", price: 6, req: "prata" },
-                { id: "banner_berserk", name: "Banner: Eclipse de Guts", desc: "Inspirado em Berserk.", icon: "⚔️", category: "banner", currency: "ouro", price: 4, req: "prata" },
-                { id: "titulo_espadachim", name: "Título: Espadachim Solitário", desc: "Espírito indomável de Guts.", icon: "🗡️", category: "titulo", currency: "ouro", price: 5, req: "prata" },
-                { id: "aura_chama_naruto", name: "Aura Modo Sábio", desc: "Chamas do modo sábio.", icon: "🔥", category: "aura", currency: "ouro", price: 7, req: "prata" },
-                { id: "aura_ceifador", name: "Aura: Olhar do Ceifador", desc: "Inspirado em Death Note.", icon: "📓", category: "aura", currency: "ouro", price: 15, req: "prata" },
+                { id: "banner_claro", name: "Banner Aurora Simples", desc: "Um banner suave de cores pastel.", icon: "<i class='fa-solid fa-sun'></i>", category: "banner", currency: "ouro", price: 3, req: "prata" },
+                { id: "titulo_explorador", name: "Título: Explorador", desc: "Exibe o título abaixo do avatar.", icon: "<i class='fa-solid fa-map'></i>️", category: "titulo", currency: "ouro", price: 5, req: "prata" },
+                { id: "aura_chama", name: "Aura Chama Simples", desc: "Chamas sutis ao redor do avatar.", icon: "<i class='fa-solid fa-fire'></i>", category: "aura", currency: "ouro", price: 8, req: "prata" },
+                { id: "banner_cosmica", name: "Banner Noite Cósmica", desc: "Fundo estrelado escuro.", icon: "<i class='fa-solid fa-meteor'></i>", category: "banner", currency: "ouro", price: 10, req: "prata" },
+                { id: "titulo_caçador", name: "Título: Caçador de Episódios", desc: "Para quem maratona séries.", icon: "<i class='fa-solid fa-bullseye'></i>", category: "titulo", currency: "ouro", price: 6, req: "prata" },
+                { id: "banner_berserk", name: "Banner: Eclipse de Guts", desc: "Inspirado em Berserk.", icon: "<i class='fa-solid fa-khanda'></i>️", category: "banner", currency: "ouro", price: 4, req: "prata" },
+                { id: "titulo_espadachim", name: "Título: Espadachim Solitário", desc: "Espírito indomável de Guts.", icon: "<i class='fa-solid fa-khanda'></i>️", category: "titulo", currency: "ouro", price: 5, req: "prata" },
+                { id: "aura_chama_naruto", name: "Aura Modo Sábio", desc: "Chamas do modo sábio.", icon: "<i class='fa-solid fa-fire'></i>", category: "aura", currency: "ouro", price: 7, req: "prata" },
+                { id: "aura_ceifador", name: "Aura: Olhar do Ceifador", desc: "Inspirado em Death Note.", icon: "<i class='fa-solid fa-book'></i>", category: "aura", currency: "ouro", price: 15, req: "prata" },
                 // ── DIAMANTE ──────────────────────────────────────────
-                { id: "banner_oni", name: "Banner Oni Samurai", desc: "Estilo arte japonesa épica.", icon: "🎭", category: "banner", currency: "diamante", price: 5, req: "mestre" },
-                { id: "aura_thunder", name: "Aura Relâmpago Elétrico", desc: "Raios elétricos animados.", icon: "⚡", category: "aura", currency: "diamante", price: 8, req: "mestre" },
-                { id: "banner_shinobi", name: "Banner Shinobi Dark", desc: "Arte ninja sombria.", icon: "🥷", category: "banner", currency: "diamante", price: 7, req: "mestre" },
-                { id: "titulo_mestre_das_listas", name: "Título: Mestre das Listas", desc: "Mais de 100 itens cadastrados.", icon: "📋", category: "titulo", currency: "diamante", price: 10, req: "mestre" },
-                { id: "aura_sakura", name: "Aura Pétala de Sakura", desc: "Pétalas flutuantes.", icon: "🌸", category: "aura", currency: "diamante", price: 9, req: "mestre" },
-                { id: "aura_gelo", name: "Aura Cristal de Gelo", desc: "Cristais brilhantes.", icon: "❄️", category: "aura", currency: "diamante", price: 11, req: "mestre" },
-                { id: "banner_aot", name: "Banner: Muralha de Shiganshina", desc: "Sinta o terror do Titã Colossal.", icon: "🧱", category: "banner", currency: "diamante", price: 6, req: "mestre" },
-                { id: "aura_susanoo", name: "Aura Susanoo Perfeito", desc: "Energia de chakra absoluta.", icon: "⚡", category: "aura", currency: "diamante", price: 9, req: "mestre" },
-                { id: "banner_ragnarok", name: "Banner: Arena Ragnarok", desc: "Palco dos Deuses.", icon: "🏛️", category: "banner", currency: "diamante", price: 10, req: "mestre" },
-                { id: "aura_stands", name: "Aura Stand: Star Platinum", desc: "ORA ORA ORA visual.", icon: "🟣", category: "aura", currency: "diamante", price: 12, req: "mestre" },
+                { id: "banner_oni", name: "Banner Oni Samurai", desc: "Estilo arte japonesa épica.", icon: "<i class='fa-solid fa-masks-theater'></i>", category: "banner", currency: "diamante", price: 5, req: "mestre" },
+                { id: "aura_thunder", name: "Aura Relâmpago Elétrico", desc: "Raios elétricos animados.", icon: "<i class='fa-solid fa-bolt'></i>", category: "aura", currency: "diamante", price: 8, req: "mestre" },
+                { id: "banner_shinobi", name: "Banner Shinobi Dark", desc: "Arte ninja sombria.", icon: "<i class='fa-solid fa-user-ninja'></i>", category: "banner", currency: "diamante", price: 7, req: "mestre" },
+                { id: "titulo_mestre_das_listas", name: "Título: Mestre das Listas", desc: "Mais de 100 itens cadastrados.", icon: "<i class='fa-solid fa-clipboard'></i>", category: "titulo", currency: "diamante", price: 10, req: "mestre" },
+                { id: "aura_sakura", name: "Aura Pétala de Sakura", desc: "Pétalas flutuantes.", icon: "<i class='fa-solid fa-fan'></i>", category: "aura", currency: "diamante", price: 9, req: "mestre" },
+                { id: "aura_gelo", name: "Aura Cristal de Gelo", desc: "Cristais brilhantes.", icon: "<i class='fa-solid fa-snowflake'></i>️", category: "aura", currency: "diamante", price: 11, req: "mestre" },
+                { id: "banner_aot", name: "Banner: Muralha de Shiganshina", desc: "Sinta o terror do Titã Colossal.", icon: "<i class='fa-solid fa-cubes'></i>", category: "banner", currency: "diamante", price: 6, req: "mestre" },
+                { id: "aura_susanoo", name: "Aura Susanoo Perfeito", desc: "Energia de chakra absoluta.", icon: "<i class='fa-solid fa-bolt'></i>", category: "aura", currency: "diamante", price: 9, req: "mestre" },
+                { id: "banner_ragnarok", name: "Banner: Arena Ragnarok", desc: "Palco dos Deuses.", icon: "<i class='fa-solid fa-building-columns'></i>️", category: "banner", currency: "diamante", price: 10, req: "mestre" },
+                { id: "aura_stands", name: "Aura Stand: Star Platinum", desc: "ORA ORA ORA visual.", icon: "<i class='fa-solid fa-circle'></i>", category: "aura", currency: "diamante", price: 12, req: "mestre" },
                 // ── ESMERALDA ─────────────────────────────────────────
-                { id: "coroa_lendaria", name: "Coroa Rei dos Animes", desc: "Símbolo máximo de status.", icon: "👑", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
-                { id: "aura_dragon", name: "Aura Dragão Arcano", desc: "Aura mais rara da plataforma.", icon: "🐉", category: "aura", currency: "esmeralda", price: 5, req: "guardiao" },
-                { id: "banner_cosmos", name: "Banner Cosmos", desc: "Efeitos de dobra espacial.", icon: "🌀", category: "banner", currency: "esmeralda", price: 4, req: "guardiao" },
-                { id: "titulo_guardiao", name: "Título: Guardião Lenda", desc: "Reservado aos mestres.", icon: "🛡️", category: "titulo", currency: "esmeralda", price: 2, req: "guardiao" },
-                { id: "coroa_tryhard", name: "Caveira do Carrasco", desc: "Caveira animada exclusiva.", icon: "💀", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
-                { id: "titulo_sensei_mod", name: "Título: SenseiMod", desc: "O verdadeiro dono da razão.", icon: "🎓", category: "titulo", currency: "esmeralda", price: 5, req: "guardiao" },
-                { id: "banner_vinland", name: "Banner: Vinland Saga", desc: "Eu não tenho inimigos.", icon: "🛡️", category: "banner", currency: "esmeralda", price: 6, req: "guardiao" },
-                { id: "aura_void_saitama", name: "Aura ONE PUNCH", desc: "Simplesmente devastador.", icon: "👊", category: "aura", currency: "esmeralda", price: 4, req: "guardiao" },
-                { id: "tema_cromatico", name: "Tema Cromático", desc: "Transforma toda a interface em um espectro radiante de cores.", icon: "🌈", category: "tema", currency: "esmeralda", price: 8, req: "guardiao" },
+                { id: "coroa_lendaria", name: "Coroa Rei dos Animes", desc: "Símbolo máximo de status.", icon: "<i class='fa-solid fa-crown'></i>", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
+                { id: "aura_dragon", name: "Aura Dragão Arcano", desc: "Aura mais rara da plataforma.", icon: "<i class='fa-solid fa-dragon'></i>", category: "aura", currency: "esmeralda", price: 5, req: "guardiao" },
+                { id: "banner_cosmos", name: "Banner Cosmos", desc: "Efeitos de dobra espacial.", icon: "<i class='fa-solid fa-hurricane'></i>", category: "banner", currency: "esmeralda", price: 4, req: "guardiao" },
+                { id: "titulo_guardiao", name: "Título: Guardião Lenda", desc: "Reservado aos mestres.", icon: "<i class='fa-solid fa-shield'></i>️", category: "titulo", currency: "esmeralda", price: 2, req: "guardiao" },
+                { id: "coroa_tryhard", name: "Caveira do Carrasco", desc: "Caveira animada exclusiva.", icon: "<i class='fa-solid fa-skull'></i>", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
+                { id: "titulo_sensei_mod", name: "Título: SenseiMod", desc: "O verdadeiro dono da razão.", icon: "<i class='fa-solid fa-graduation-cap'></i>", category: "titulo", currency: "esmeralda", price: 5, req: "guardiao" },
+                { id: "banner_vinland", name: "Banner: Vinland Saga", desc: "Eu não tenho inimigos.", icon: "<i class='fa-solid fa-shield'></i>️", category: "banner", currency: "esmeralda", price: 6, req: "guardiao" },
+                { id: "aura_void_saitama", name: "Aura ONE PUNCH", desc: "Simplesmente devastador.", icon: "<i class='fa-solid fa-hand-fist'></i>", category: "aura", currency: "esmeralda", price: 4, req: "guardiao" },
+                { id: "tema_cromatico", name: "Tema Cromático", desc: "Transforma toda a interface em um espectro radiante de cores.", icon: "<i class='fa-solid fa-rainbow'></i>", category: "tema", currency: "esmeralda", price: 8, req: "guardiao" },
             ];
 
             // ── HIERARQUIA DE PATAMARES ───────────────────────────
@@ -2039,7 +2040,7 @@
                         );
                         // NÃO salvar na chave genérica se houver userId para evitar vazamento
                         console.log(
-                            "💾 [Loja] Store salvo na chave isolada do usuário.",
+                            "<i class='fa-solid fa-floppy-disk'></i> [Loja] Store salvo na chave isolada do usuário.",
                         );
                     } else {
                         console.warn(
@@ -2048,7 +2049,7 @@
                     }
                 } catch (err) {
                     console.error(
-                        "❌ [Loja] Falha ao salvar no localStorage:",
+                        "<i class='fa-solid fa-xmark'></i> [Loja] Falha ao salvar no localStorage:",
                         err,
                     );
                 }
@@ -2117,7 +2118,7 @@
 
                 // Mostramos o SALDO para gastar, mas o RANK real do perfil
                 if (xpEl) xpEl.textContent = store.xp.toLocaleString("pt-BR");
-                if (rankEl) rankEl.textContent = `⚔️ ${cachedRank}`;
+                if (rankEl) rankEl.innerHTML = `<i class='fa-solid fa-khanda'></i>️ ${cachedRank}`;
                 if (levelEl) levelEl.textContent = `LVL ${cachedLevel}`;
                 if (ouroEl) ouroEl.textContent = store.ouro;
                 if (diaEl) diaEl.textContent = store.diamante;
@@ -2173,16 +2174,16 @@
 
                     const icon =
                         ficha === "ouro"
-                            ? "🥇"
+                            ? "<i class='fa-solid fa-medal'></i>"
                             : ficha === "diamante"
-                              ? "💎"
-                              : "💚";
+                              ? "<i class='fa-solid fa-gem'></i>"
+                              : "<i class='fa-solid fa-heart'></i>";
 
                     function updateResult() {
                         const qtd = parseInt(input.value) || 0;
                         const total = qtd * cost;
                         if (result)
-                            result.textContent = `Custo: ${total} XP → ${qtd} ${icon}`;
+                            result.innerHTML = `Custo: ${total} XP → ${qtd} ${icon}`;
                     }
 
                     if (input) input.addEventListener("input", updateResult);
@@ -2192,7 +2193,7 @@
                         btn.addEventListener("click", () => {
                             if (!canUse(ficha)) {
                                 showToast(
-                                    `❌ Patamar insuficiente! Requer ${FICHA_REQ_RANK[ficha]}.`,
+                                    `<i class='fa-solid fa-xmark'></i> Patamar insuficiente! Requer ${FICHA_REQ_RANK[ficha]}.`,
                                     "error",
                                 );
                                 return;
@@ -2200,7 +2201,7 @@
                             const qtd = parseInt(input.value) || 0;
                             if (qtd < 1) {
                                 showToast(
-                                    "⚠️ Digite uma quantidade válida.",
+                                    "<i class='fa-solid fa-triangle-exclamation'></i>️ Digite uma quantidade válida.",
                                     "error",
                                 );
                                 return;
@@ -2208,7 +2209,7 @@
                             const total = qtd * cost;
                             if (store.xp < total) {
                                 showToast(
-                                    `❌ XP insuficiente! Você tem ${store.xp} XP e precisa de ${total} XP.`,
+                                    `<i class='fa-solid fa-xmark'></i> XP insuficiente! Você tem ${store.xp} XP e precisa de ${total} XP.`,
                                     "error",
                                 );
                                 return;
@@ -2223,7 +2224,7 @@
                             saveStore(store);
                             updateHeroUI();
                             showToast(
-                                `✅ Troca realizada! +${qtd} ${icon} (${ficha}) — Saldo: ${store.xp} XP`,
+                                `<i class='fa-solid fa-check'></i> Troca realizada! +${qtd} ${icon} (${ficha}) — Saldo: ${store.xp} XP`,
                                 "success",
                             );
                         });
@@ -2237,14 +2238,14 @@
                             const qtd = parseInt(input.value) || 0;
                             if (qtd < 1) {
                                 showToast(
-                                    "⚠️ Digite uma quantidade válida.",
+                                    "<i class='fa-solid fa-triangle-exclamation'></i>️ Digite uma quantidade válida.",
                                     "error",
                                 );
                                 return;
                             }
                             if (store[ficha] < qtd) {
                                 showToast(
-                                    `❌ Fichas insuficientes! Você tem ${store[ficha]} ${icon} e quer devolver ${qtd}.`,
+                                    `<i class='fa-solid fa-xmark'></i> Fichas insuficientes! Você tem ${store[ficha]} ${icon} e quer devolver ${qtd}.`,
                                     "error",
                                 );
                                 return;
@@ -2260,7 +2261,7 @@
                             saveStore(store);
                             updateHeroUI();
                             showToast(
-                                `✅ Devolução realizada! -${qtd} ${icon} (${ficha}) +${total} XP recuperados.`,
+                                `<i class='fa-solid fa-check'></i> Devolução realizada! -${qtd} ${icon} (${ficha}) +${total} XP recuperados.`,
                                 "success",
                             );
                         });
@@ -2289,16 +2290,16 @@
                 if (filtered.length === 0) {
                     grid.innerHTML = `
       <div class="empty-catalog">
-        <div class="empty-icon">🔍</div>
+        <div class="empty-icon"><i class='fa-solid fa-magnifying-glass'></i></div>
         <p>Nenhum item encontrado para esse filtro.</p>
       </div>`;
                     return;
                 }
 
                 const currencyLabel = {
-                    ouro: "🥇 Ouro",
-                    diamante: "💎 Diamante",
-                    esmeralda: "💚 Esmeralda",
+                    ouro: "<i class='fa-solid fa-medal'></i> Ouro",
+                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
+                    esmeralda: "<i class='fa-solid fa-heart'></i> Esmeralda",
                 };
                 const reqLabel = {
                     prata: "Patamar Prata",
@@ -2325,10 +2326,10 @@
                         const canBuy = fichaOk && suficiente && !alreadyBought;
 
                         let lockMsg = "";
-                        if (alreadyBought) lockMsg = "✅ Já adquirido";
-                        else if (!fichaOk) lockMsg = `🔒 ${reqLabel[item.req]}`;
+                        if (alreadyBought) lockMsg = "<i class='fa-solid fa-check'></i> Já adquirido";
+                        else if (!fichaOk) lockMsg = `<i class='fa-solid fa-lock'></i> ${reqLabel[item.req]}`;
                         else if (!suficiente)
-                            lockMsg = `❌ Requer ${item.price} ${currencyLabel[item.currency]}`;
+                            lockMsg = `<i class='fa-solid fa-xmark'></i> Requer ${item.price} ${currencyLabel[item.currency]}`;
 
                         const isLocked = !fichaOk || !suficiente;
                         const cardClasses = [
@@ -2356,7 +2357,7 @@
         <div class="item-name">${item.name}</div>
         <p class="item-desc">${item.desc}</p>
         <div class="item-footer">
-          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "🥇" : item.currency === "diamante" ? "💎" : "💚"}</span></div>
+          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fa-solid fa-gem'></i>" : "<i class='fa-solid fa-heart'></i>"}</span></div>
           ${
               canBuy
                   ? `<button class="buy-btn">Comprar</button>`
@@ -2402,9 +2403,9 @@
                 pendingItemId = id;
 
                 const currencyLabel = {
-                    ouro: "🥇 Ouro",
-                    diamante: "💎 Diamante",
-                    esmeralda: "💚 Esmeralda",
+                    ouro: "<i class='fa-solid fa-medal'></i> Ouro",
+                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
+                    esmeralda: "<i class='fa-solid fa-heart'></i> Esmeralda",
                 };
                 const currencyColors = {
                     ouro: "#d4af37",
@@ -2417,7 +2418,7 @@
                     esmeralda: "#001a0f",
                 };
 
-                document.getElementById("modalIcon").textContent = item.icon;
+                document.getElementById("modalIcon").innerHTML = item.icon;
                 document.getElementById("modalName").textContent = item.name;
                 document.getElementById("modalName").style.color =
                     currencyColors[item.currency];
@@ -2426,11 +2427,11 @@
                     `${item.price}`;
                 document.getElementById("modalPrice").style.color =
                     currencyColors[item.currency];
-                document.getElementById("modalCurrencyLabel").textContent =
+                document.getElementById("modalCurrencyLabel").innerHTML =
                     currencyLabel[item.currency];
 
                 const confirmBtn = document.getElementById("modalConfirm");
-                confirmBtn.textContent = `Confirmar — ${item.price} ${item.currency === "ouro" ? "🥇" : item.currency === "diamante" ? "💎" : "💚"}`;
+                confirmBtn.innerHTML = `Confirmar — ${item.price} ${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fa-solid fa-gem'></i>" : "<i class='fa-solid fa-heart'></i>"}`;
                 confirmBtn.style.background = currencyColors[item.currency];
                 confirmBtn.style.color = currencyBg[item.currency];
 
@@ -2452,17 +2453,17 @@
                 if (!item) return;
 
                 if (!canUse(item.currency)) {
-                    showToast(`❌ Patamar insuficiente!`, "error");
+                    showToast(`<i class='fa-solid fa-xmark'></i> Patamar insuficiente!`, "error");
                     closeBuyModal();
                     return;
                 }
                 if (store[item.currency] < item.price) {
-                    showToast(`❌ Fichas insuficientes!`, "error");
+                    showToast(`<i class='fa-solid fa-xmark'></i> Fichas insuficientes!`, "error");
                     closeBuyModal();
                     return;
                 }
                 if (store.purchased.includes(item.id)) {
-                    showToast(`⚠️ Você já possui esse item!`, "info");
+                    showToast(`<i class='fa-solid fa-triangle-exclamation'></i>️ Você já possui esse item!`, "info");
                     closeBuyModal();
                     return;
                 }
@@ -2510,7 +2511,7 @@
                     renderCatalog();
                     closeBuyModal();
                     showToast(
-                        `✅ "${item.name}" adquirido e salvo na sua conta!`,
+                        `<i class='fa-solid fa-check'></i> "${item.name}" adquirido e salvo na sua conta!`,
                         "success",
                     );
                     try {
@@ -2525,7 +2526,7 @@
                 } catch (err) {
                     console.error("[Loja] Erro ao salvar compra:", err);
                     showToast(
-                        `❌ Erro ao salvar no servidor. Verifique a conexão e tente de novo.`,
+                        `<i class='fa-solid fa-xmark'></i> Erro ao salvar no servidor. Verifique a conexão e tente de novo.`,
                         "error",
                     );
                 }
@@ -2608,7 +2609,7 @@
                         : [];
                     store.purchased = [...new Set([...dbP, ...localPurchased])];
                     
-                    // 🛡️ MERGE INTELIGENTE DE EQUIPAMENTOS
+                    // <i class='fa-solid fa-shield'></i>️ MERGE INTELIGENTE DE EQUIPAMENTOS
                     // Preserva o que já está no localStorage (fallback local) se o banco vier vazio
                     const dbEquipped = normalizedDbStore.equipped || {};
                     store.equipped = {

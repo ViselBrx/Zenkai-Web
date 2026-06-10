@@ -40,6 +40,7 @@
       box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.4), inset 0 0 8px rgba(var(--primary-rgb), 0.15);
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
 
@@ -59,20 +60,20 @@
 <main class="container form-page">
   <div class="page-header" style="flex-direction: column; justify-content: center; align-items: center; margin-bottom: 2rem;">
     <div class="header-main" style="text-align:center;">
-      <h1>📺 Gerenciar Desenhos</h1>
+      <h1><i class='fa-solid fa-tv'></i> Gerenciar Desenhos</h1>
       <p>Gerencie seus desenhos e cartoons na plataforma</p>
     </div>
   </div>
 
   <div class="crud-nav">
-    <a href="cadastro.html" class="crud-pill active">📺 Desenhos</a>
-    <a href="cadastro-animes.html" class="crud-pill">⛩️ Animes</a>
-    <a href="cadastro-filmes.html" class="crud-pill">🎬 Filmes</a>
-    <a href="cadastro-youtube.html" class="crud-pill">▶️ YouTube</a>
+    <a href="cadastro.html" class="crud-pill active"><i class='fa-solid fa-tv'></i> Desenhos</a>
+    <a href="cadastro-animes.html" class="crud-pill"><i class='fa-solid fa-torii-gate'></i>️ Animes</a>
+    <a href="cadastro-filmes.html" class="crud-pill"><i class='fa-solid fa-clapperboard'></i> Filmes</a>
+    <a href="cadastro-youtube.html" class="crud-pill"><i class='fa-solid fa-play'></i>️ YouTube</a>
   </div>
 
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍  Pesquisar..." />
+    <input id="searchInput" type="text" placeholder="🔍 Pesquisar..." />
     <select id="filterProdutora">
       <option value="">Todas as produtoras</option>
     </select>
@@ -94,7 +95,7 @@
     </table>
   </div>
   <div id="emptyState" class="empty-state" style="display:none;">
-    <div class="empty-icon">📭</div>
+    <div class="empty-icon"><i class='fa-solid fa-envelope'></i></div>
     <p>Nenhum desenho cadastrado ainda. Clique em <strong>Novo Desenho</strong>.</p>
   </div>
 </main>
@@ -133,7 +134,7 @@
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" id="cancelBtn">Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="saveBtn">💾 Salvar</button>
+        <button type="submit" class="btn btn-primary" id="saveBtn"><i class='fa-solid fa-floppy-disk'></i> Salvar</button>
       </div>
     </form>
   </div>
@@ -143,13 +144,13 @@
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <h2 style="color:var(--danger)">⚠️ Excluir</h2>
+      <h2 style="color:var(--danger)"><i class='fa-solid fa-triangle-exclamation'></i>️ Excluir</h2>
       <button class="modal-close" id="deleteClose">✕</button>
     </div>
     <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteCartoonName"></strong>? Todos os episódios cadastrados também serão removidos.</p>
     <div class="form-actions">
       <button class="btn btn-ghost" id="deleteCancelBtn">Cancelar</button>
-      <button class="btn btn-danger" id="deleteConfirmBtn">🗑️ Excluir</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn"><i class='fa-solid fa-trash'></i>️ Excluir</button>
     </div>
   </div>
 </div>
@@ -159,6 +160,6 @@
 <script src="js/auth.js"></script>
 <script src="js/db.js"></script>
 <script src="js/cadastro.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+<div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
 </html>

@@ -8,6 +8,7 @@
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
 
@@ -28,20 +29,20 @@
 <main class="main-content">
   <div class="page-header" style="flex-direction: column; justify-content: center; align-items: center;">
     <div class="header-main" style="text-align: center;">
-      <h1>▶️ Catálogo do YouTube</h1>
+      <h1><i class='fa-solid fa-play'></i>️ Catálogo do YouTube</h1>
       <p>Explore sua coleção de vídeos organizados em playlists</p>
     </div>
   </div>
 
   <!-- BUSCA E FILTROS -->
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍  Pesquisar playlist..." />
+    <input id="searchInput" type="text" placeholder="🔍 Pesquisar playlist..." />
   </div>
 
   <!-- GRID DE CARDS -->
   <div id="cardsGrid" class="cards-grid"></div>
   <div id="emptyState" class="empty-state" style="display:none;">
-    <div class="empty-icon">📭</div>
+    <div class="empty-icon"><i class='fa-solid fa-envelope'></i></div>
     <p>Nenhuma playlist encontrada.<br>Acesse <a href="cadastro-youtube.html" style="color:var(--primary)">Cadastro de YouTube</a> para adicionar.</p>
   </div>
 </main>
@@ -54,10 +55,10 @@
       <button class="modal-close" id="detailClose">✕</button>
     </div>
     <img id="detailCover" src="" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:10px;margin-bottom:1rem;" />
-    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;display:none;">▶️</div>
+    <div id="detailCoverPlaceholder" class="card-cover-placeholder" style="border-radius:10px;margin-bottom:1rem;display:none;"><i class='fa-solid fa-play'></i>️</div>
     <div style="display:flex;gap:.8rem;margin-top:1.5rem;">
-      <a id="detailWatchBtn" href="youtube-videos.html" class="btn btn-primary" style="flex:1;justify-content:center;">▶️ Assistir Vídeos</a>
-      <a href="cadastro-youtube.html" class="btn btn-ghost" style="flex:1;justify-content:center;">✏️ Editar Playlist</a>
+      <a id="detailWatchBtn" href="youtube-videos.html" class="btn btn-primary" style="flex:1;justify-content:center;"><i class='fa-solid fa-play'></i>️ Assistir Vídeos</a>
+      <a href="cadastro-youtube.html" class="btn btn-ghost" style="flex:1;justify-content:center;"><i class='fa-solid fa-pencil'></i>️ Editar Playlist</a>
     </div>
   </div>
 </div>
@@ -67,6 +68,6 @@
 <script src="js/youtube.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+<div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
 </html>

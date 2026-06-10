@@ -188,6 +188,7 @@
       text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.8);
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
 
@@ -210,7 +211,7 @@
     <!-- Lado Esquerdo: Ferramentas & Config -->
     <aside class="ai-panel-tools">
       <div class="ai-card ai-info-card" id="infoCard" style="display:none;">
-        <h3><span class="nav-icon">📖</span> Saiba mais</h3>
+        <h3><span class="nav-icon"><i class='fa-solid fa-book-open'></i></span> Saiba mais</h3>
         <div class="provider-config ai-config-summary">
           <div class="ai-config-item">
             <span class="ai-config-label">Assistente</span>
@@ -248,19 +249,19 @@
       <div class="ai-tool-box">
         <div class="ai-tabs-vertical">
           <div class="ai-tab-v" data-tab="vision">Imagem IA</div>
-          <div class="ai-tab-v active" data-tab="chat">💬 Chat Cérebro</div>
-          <div class="ai-tab-v" data-tab="compare">⚖️ Comparar</div>
+          <div class="ai-tab-v active" data-tab="chat"><i class='fa-solid fa-comment'></i> Chat Cérebro</div>
+          <div class="ai-tab-v" data-tab="compare"><i class='fa-solid fa-scale-balanced'></i>️ Comparar</div>
         </div>
       </div>
 
       <div class="ai-card" style="margin-top: auto;">
-        <h3><span class="nav-icon">ℹ️</span> Open AnIme</h3>
+        <h3><span class="nav-icon"><i class='fa-solid fa-circle-info'></i>️</span> Open AnIme</h3>
         <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
           Pressione <strong>Enter</strong> para enviar no chat. Explore as abas acima para usar as ferramentas.
         </p>
         <!-- Botão discreto para config -->
         <button id="toggleInfoCard" title="Saiba mais" style="margin-top:10px;background:none;border:none;cursor:pointer;opacity:0.4;font-size:0.85rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='0.4'">
-          <span>📖</span> Saiba mais
+          <span><i class='fa-solid fa-book-open'></i></span> Saiba mais
         </button>
       </div>
     </aside>
@@ -326,7 +327,7 @@
       <div id="tab-compare" class="tool-panel">
         <div class="ai-card full-card">
           <div class="tool-header">
-            <h2>⚖️ Duelo de Titãs</h2>
+            <h2><i class='fa-solid fa-scale-balanced'></i>️ Duelo de Titãs</h2>
             <p>Compare estatísticas e decida quem vence o combate.</p>
             <p class="ai-disclaimer">A IA pode cometer erros. Confira informações importantes antes de confiar totalmente na resposta.</p>
           </div>
@@ -1180,7 +1181,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+<div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
 </html>
 

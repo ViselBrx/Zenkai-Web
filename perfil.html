@@ -1587,7 +1587,8 @@
         to { transform: rotate(360deg); }
       }
     </style>
-  </head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
   <body>
     <!-- Overlay de Boas-vindas -->
     <div id="welcomeOverlay">
@@ -1683,7 +1684,7 @@
                   display: none;
                 "
               >
-                👑
+                <i class='fa-solid fa-crown'></i>
               </div>
               <img
                 id="displayAvatar"
@@ -1820,13 +1821,13 @@
                   font-size: 1.8rem;
                 "
               >
-                ✨ Meus Especiais
+                <i class='fa-solid fa-wand-magic-sparkles'></i> Meus Especiais
               </h2>
               <p>Seus itens comprados e equipados da loja.</p>
             </div>
 
             <div class="stat-card full-width">
-              <div class="stat-header"><span>🎒</span> Inventário de Itens</div>
+              <div class="stat-header"><span><i class='fa-solid fa-suitcase'></i></span> Inventário de Itens</div>
               <div
                 id="inventoryDisplay"
                 style="
@@ -1847,7 +1848,7 @@
                   display: none;
                 "
               >
-                <p style="font-size: 1.2rem; margin-bottom: 10px">📦</p>
+                <p style="font-size: 1.2rem; margin-bottom: 10px"><i class='fa-solid fa-box'></i></p>
                 <p>Seu inventário está vazio...</p>
                 <p style="font-size: 0.8rem; margin-top: 5px">
                   Visite a
@@ -1860,7 +1861,7 @@
             <!-- Itens Equipados -->
             <div class="stat-card full-width" style="margin-top: 20px">
               <div class="stat-header">
-                <span>⚡</span> Itens Atualmente Equipados
+                <span><i class='fa-solid fa-bolt'></i></span> Itens Atualmente Equipados
               </div>
               <div
                 id="equippedItemsDisplay"
@@ -1886,13 +1887,13 @@
                   font-size: 1.8rem;
                 "
               >
-                📊 Patamar do Usuário
+                <i class='fa-solid fa-chart-simple'></i> Patamar do Usuário
               </h2>
               <p>Seu progresso, conquistas e atividades no site.</p>
             </div>
 
             <div class="stat-card">
-              <div class="stat-header"><span>🔥</span> Nível do Usuário</div>
+              <div class="stat-header"><span><i class='fa-solid fa-fire'></i></span> Nível do Usuário</div>
               <div class="level-container">
                 <div class="level-info">
                   <span id="rankTitle">Novato</span>
@@ -1937,7 +1938,7 @@
                       padding: 4px;
                     "
                   >
-                    ℹ️ Entenda como pontuar XP
+                    <i class='fa-solid fa-circle-info'></i>️ Entenda como pontuar XP
                   </summary>
                   <table
                     style="
@@ -1967,7 +1968,7 @@
                         border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
                       "
                     >
-                      <td style="padding: 4px">📺 Ep. Anime / 🎨 Desenho</td>
+                      <td style="padding: 4px"><i class='fa-solid fa-tv'></i> Ep. Anime / <i class='fa-solid fa-palette'></i> Desenho</td>
                       <td
                         style="
                           padding: 4px;
@@ -1983,7 +1984,7 @@
                         border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
                       "
                     >
-                      <td style="padding: 4px">📺 Vídeo YouTube</td>
+                      <td style="padding: 4px"><i class='fa-solid fa-tv'></i> Vídeo YouTube</td>
                       <td
                         style="
                           padding: 4px;
@@ -1999,7 +2000,7 @@
                         border-bottom: 1px solid rgba(var(--primary-rgb), 0.1);
                       "
                     >
-                      <td style="padding: 4px">📚 Vol. Mangá</td>
+                      <td style="padding: 4px"><i class='fa-solid fa-book'></i> Vol. Mangá</td>
                       <td
                         style="
                           padding: 4px;
@@ -2011,7 +2012,7 @@
                       </td>
                     </tr>
                     <tr>
-                      <td style="padding: 4px">🎬 Filme completo</td>
+                      <td style="padding: 4px"><i class='fa-solid fa-clapperboard'></i> Filme completo</td>
                       <td
                         style="
                           padding: 4px;
@@ -2032,63 +2033,63 @@
             <div class="dashboard-grid">
               <!-- Patentes -->
               <div class="stat-card">
-                <div class="stat-header"><span>🏅</span> Patentes de Uso</div>
+                <div class="stat-header"><span><i class='fa-solid fa-medal'></i></span> Patentes de Uso</div>
                 <div class="patents-list" id="patentsList">
                   <div
                     class="patent-badge"
                     data-label="Bronze"
                     data-desc="Alcançou o Nível 1."
                   >
-                    🥉
+                    <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Prata"
                     data-desc="Alcançou o Nível 5."
                   >
-                    🥈
+                    <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Ouro"
                     data-desc="Alcançou o Nível 10."
                   >
-                    🥇
+                    <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Mestre"
                     data-desc="Alcançou o Nível 20."
                   >
-                    🥋
+                    <i class='fa-solid fa-user-ninja'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Lenda"
                     data-desc="Alcançou o Nível 30."
                   >
-                    💎
+                    <i class='fa-solid fa-gem'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Hokage"
                     data-desc="Alcançou o Nível 50. Um verdadeiro líder."
                   >
-                    🔥
+                    <i class='fa-solid fa-fire'></i>
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Guardião"
                     data-desc="Alcançou o Nível 75. O protetor do portal."
                   >
-                    🛡️
+                    <i class='fa-solid fa-shield'></i>️
                   </div>
                   <div
                     class="patent-badge"
                     data-label="Imortal"
                     data-desc="Alcançou o Nível 100. Sua lenda nunca morrerá."
                   >
-                    ⚡
+                    <i class='fa-solid fa-bolt'></i>
                   </div>
                 </div>
               </div>
@@ -2096,7 +2097,7 @@
               <!-- Gráfico de Pizza Circular -->
               <div class="stat-card">
                 <div class="stat-header">
-                  <span>📈</span> Balanço de Assistidos
+                  <span><i class='fa-solid fa-chart-line'></i></span> Balanço de Assistidos
                 </div>
                 <div class="chart-box">
                   <canvas id="balanceChart"></canvas>
@@ -2106,12 +2107,12 @@
               <!-- Análise Detalhada -->
               <div class="stat-card full-width">
                 <div class="stat-header">
-                  <span>📊</span> Análise Detalhada de Progresso
+                  <span><i class='fa-solid fa-chart-simple'></i></span> Análise Detalhada de Progresso
                 </div>
                 <div class="analysis-section">
                   <div class="analysis-item">
                     <div class="analysis-label">
-                      <span style="color: var(--primary)">⛩️ Animes</span>
+                      <span style="color: var(--primary)"><i class='fa-solid fa-torii-gate'></i>️ Animes</span>
                       <span id="animeLabel">0/0</span>
                     </div>
                     <div
@@ -2131,7 +2132,7 @@
                   <!-- Desenhos -->
                   <div class="analysis-item">
                     <div class="analysis-label">
-                      <span style="color: var(--accent2)">🎨 Desenhos</span>
+                      <span style="color: var(--accent2)"><i class='fa-solid fa-palette'></i> Desenhos</span>
                       <span id="cartoonLabel">0/0</span>
                     </div>
                     <div
@@ -2156,7 +2157,7 @@
                   <!-- Mangás -->
                   <div class="analysis-item">
                     <div class="analysis-label">
-                      <span style="color: var(--accent)">📚 Mangás</span>
+                      <span style="color: var(--accent)"><i class='fa-solid fa-book'></i> Mangás</span>
                       <span id="mangaLabel">0/0</span>
                     </div>
                     <div
@@ -2181,7 +2182,7 @@
                   <!-- HQs -->
                   <div class="analysis-item">
                     <div class="analysis-label">
-                      <span style="color: var(--secondary, #3b82f6)">🗯️ HQs</span>
+                      <span style="color: var(--secondary, #3b82f6)"><i class='fa-regular fa-comment-dots'></i>️ HQs</span>
                       <span id="hqLabel">0/0</span>
                     </div>
                     <div
@@ -2201,7 +2202,7 @@
                       class="analysis-label"
                     >
                       <span style="color: var(--primary)"
-                        >🎬 Filmes</span
+                        ><i class='fa-solid fa-clapperboard'></i> Filmes</span
                       >
                       <span id="movieLabel">0/0</span>
                     </div>
@@ -2222,7 +2223,7 @@
                   <!-- YouTube -->
                   <div class="analysis-item">
                     <div class="analysis-label">
-                      <span style="color: #ff0000">🎥 YouTube</span>
+                      <span style="color: #ff0000"><i class='fa-solid fa-video'></i> YouTube</span>
                       <span id="youtubeLabel">0/0</span>
                     </div>
                     <div
@@ -2262,7 +2263,7 @@
                   );
                 "
               >
-                <div class="stat-header"><span>🌟</span> Top Categoria</div>
+                <div class="stat-header"><span><i class='fa-solid fa-star'></i></span> Top Categoria</div>
                 <div style="text-align: center; padding: 10px 0">
                   <h3
                     id="favCategory"
@@ -2292,7 +2293,7 @@
                 "
               >
                 <div class="stat-header">
-                  <span>⏱️</span> Tempo de Tela (Est.)
+                  <span><i class='fa-solid fa-stopwatch'></i>️</span> Tempo de Tela (Est.)
                 </div>
                 <div style="text-align: center; padding: 10px 0">
                   <h3
@@ -2322,7 +2323,7 @@
                   );
                 "
               >
-                <div class="stat-header"><span>🤖</span> Consultas I.A.</div>
+                <div class="stat-header"><span><i class='fa-solid fa-robot'></i></span> Consultas I.A.</div>
                 <div style="text-align: center; padding: 10px 0">
                   <h3
                     id="iaCount"
@@ -2351,7 +2352,7 @@
                   );
                 "
               >
-                <div class="stat-header"><span>🕒</span> Última Atividade</div>
+                <div class="stat-header"><span><i class='fa-regular fa-clock'></i></span> Última Atividade</div>
                 <div style="padding: 5px 10px">
                   <p
                     id="lastActivityTitle"
@@ -2388,7 +2389,7 @@
         </div>
         <div style="padding: 20px">
           <div id="patentIcon" style="font-size: 5rem; margin-bottom: 20px">
-            🥉
+            <i class='fa-solid fa-medal'></i>
           </div>
           <p
             id="patentDesc"
@@ -2575,7 +2576,7 @@
         {
           id: "banner_claro",
           name: "Banner Aurora Simples",
-          icon: "🌅",
+          icon: "<i class='fa-solid fa-sun'></i>",
           category: "banner",
           currency: "ouro",
           price: 3,
@@ -2583,7 +2584,7 @@
         {
           id: "titulo_explorador",
           name: "Título: Explorador",
-          icon: "🗺️",
+          icon: "<i class='fa-solid fa-map'></i>️",
           category: "titulo",
           currency: "ouro",
           price: 5,
@@ -2591,7 +2592,7 @@
         {
           id: "aura_chama",
           name: "Aura Chama Simples",
-          icon: "🔥",
+          icon: "<i class='fa-solid fa-fire'></i>",
           category: "aura",
           currency: "ouro",
           price: 8,
@@ -2599,7 +2600,7 @@
         {
           id: "banner_cosmica",
           name: "Banner Noite Cósmica",
-          icon: "🌌",
+          icon: "<i class='fa-solid fa-meteor'></i>",
           category: "banner",
           currency: "ouro",
           price: 10,
@@ -2607,7 +2608,7 @@
         {
           id: "titulo_caçador",
           name: "Título: Caçador de Episódios",
-          icon: "🎯",
+          icon: "<i class='fa-solid fa-bullseye'></i>",
           category: "titulo",
           currency: "ouro",
           price: 6,
@@ -2615,7 +2616,7 @@
         {
           id: "banner_berserk",
           name: "Banner: Eclipse de Guts",
-          icon: "⚔️",
+          icon: "<i class='fa-solid fa-khanda'></i>️",
           category: "banner",
           currency: "ouro",
           price: 4,
@@ -2623,7 +2624,7 @@
         {
           id: "titulo_espadachim",
           name: "Título: Espadachim Solitário",
-          icon: "🗡️",
+          icon: "<i class='fa-solid fa-khanda'></i>️",
           category: "titulo",
           currency: "ouro",
           price: 5,
@@ -2631,7 +2632,7 @@
         {
           id: "aura_chama_naruto",
           name: "Aura Modo Sábio",
-          icon: "🔥",
+          icon: "<i class='fa-solid fa-fire'></i>",
           category: "aura",
           currency: "ouro",
           price: 7,
@@ -2639,7 +2640,7 @@
         {
           id: "aura_ceifador",
           name: "Aura: Olhar do Ceifador",
-          icon: "📓",
+          icon: "<i class='fa-solid fa-book'></i>",
           category: "aura",
           currency: "ouro",
           price: 15,
@@ -2647,7 +2648,7 @@
         {
           id: "banner_oni",
           name: "Banner Oni Samurai",
-          icon: "🎭",
+          icon: "<i class='fa-solid fa-masks-theater'></i>",
           category: "banner",
           currency: "diamante",
           price: 5,
@@ -2655,7 +2656,7 @@
         {
           id: "aura_thunder",
           name: "Aura Relâmpago Elétrico",
-          icon: "⚡",
+          icon: "<i class='fa-solid fa-bolt'></i>",
           category: "aura",
           currency: "diamante",
           price: 8,
@@ -2663,7 +2664,7 @@
         {
           id: "banner_shinobi",
           name: "Banner Shinobi Dark",
-          icon: "🥷",
+          icon: "<i class='fa-solid fa-user-ninja'></i>",
           category: "banner",
           currency: "diamante",
           price: 7,
@@ -2671,7 +2672,7 @@
         {
           id: "titulo_mestre_das_listas",
           name: "Título: Mestre das Listas",
-          icon: "📋",
+          icon: "<i class='fa-solid fa-clipboard'></i>",
           category: "titulo",
           currency: "diamante",
           price: 10,
@@ -2679,7 +2680,7 @@
         {
           id: "aura_sakura",
           name: "Aura Pétala de Sakura",
-          icon: "🌸",
+          icon: "<i class='fa-solid fa-fan'></i>",
           category: "aura",
           currency: "diamante",
           price: 9,
@@ -2688,7 +2689,7 @@
         {
           id: "aura_gelo",
           name: "Aura Cristal de Gelo",
-          icon: "❄️",
+          icon: "<i class='fa-solid fa-snowflake'></i>️",
           category: "aura",
           currency: "diamante",
           price: 11,
@@ -2697,7 +2698,7 @@
         {
           id: "banner_aot",
           name: "Banner: Attack on Titan",
-          icon: "🧱",
+          icon: "<i class='fa-solid fa-cubes'></i>",
           category: "banner",
           currency: "diamante",
           price: 6,
@@ -2705,7 +2706,7 @@
         {
           id: "aura_susanoo",
           name: "Aura Susanoo Perfeito",
-          icon: "⚡",
+          icon: "<i class='fa-solid fa-bolt'></i>",
           category: "aura",
           currency: "diamante",
           price: 9,
@@ -2713,7 +2714,7 @@
         {
           id: "banner_ragnarok",
           name: "Banner: Arena Ragnarok",
-          icon: "🏛️",
+          icon: "<i class='fa-solid fa-building-columns'></i>️",
           category: "banner",
           currency: "diamante",
           price: 10,
@@ -2721,7 +2722,7 @@
         {
           id: "aura_stands",
           name: "Aura Stand: Star Platinum",
-          icon: "🟣",
+          icon: "<i class='fa-solid fa-circle'></i>",
           category: "aura",
           currency: "diamante",
           price: 12,
@@ -2729,7 +2730,7 @@
         {
           id: "coroa_lendaria",
           name: "Coroa Rei dos Animes",
-          icon: "👑",
+          icon: "<i class='fa-solid fa-crown'></i>",
           category: "exclusivo",
           currency: "esmeralda",
           price: 3,
@@ -2737,7 +2738,7 @@
         {
           id: "aura_dragon",
           name: "Aura Dragão Arcano",
-          icon: "🐉",
+          icon: "<i class='fa-solid fa-dragon'></i>",
           category: "aura",
           currency: "esmeralda",
           price: 5,
@@ -2745,7 +2746,7 @@
         {
           id: "banner_cosmos",
           name: "Banner Cosmos",
-          icon: "🌀",
+          icon: "<i class='fa-solid fa-hurricane'></i>",
           category: "banner",
           currency: "esmeralda",
           price: 4,
@@ -2753,7 +2754,7 @@
         {
           id: "titulo_guardiao",
           name: "Título: Guardião Lenda",
-          icon: "🛡️",
+          icon: "<i class='fa-solid fa-shield'></i>️",
           category: "titulo",
           currency: "esmeralda",
           price: 2,
@@ -2762,7 +2763,7 @@
         {
           id: "coroa_tryhard",
           name: "Caveira do Carrasco",
-          icon: "💀",
+          icon: "<i class='fa-solid fa-skull'></i>",
           category: "exclusivo",
           currency: "esmeralda",
           price: 3,
@@ -2770,7 +2771,7 @@
         {
           id: "titulo_sensei_mod",
           name: "Título: SenseiMod",
-          icon: "🎓",
+          icon: "<i class='fa-solid fa-graduation-cap'></i>",
           category: "titulo",
           currency: "esmeralda",
           price: 5,
@@ -2778,7 +2779,7 @@
         {
           id: "banner_vinland",
           name: "Banner: Vinland Saga",
-          icon: "🛡️",
+          icon: "<i class='fa-solid fa-shield'></i>️",
           category: "banner",
           currency: "esmeralda",
           price: 6,
@@ -2786,7 +2787,7 @@
         {
           id: "aura_void_saitama",
           name: "Aura ONE PUNCH",
-          icon: "👊",
+          icon: "<i class='fa-solid fa-hand-fist'></i>",
           category: "aura",
           currency: "esmeralda",
           price: 4,
@@ -3242,7 +3243,7 @@
               <button type="button" class="history-open" data-open-id="${itemId}">
                 <div class="history-title-row">
                   <strong>${title}</strong>
-                  ${favorite ? '<span class="history-favorite-badge"><span aria-hidden="true">★</span> Favorito</span>' : ""}
+                  ${favorite ? '<span class="history-favorite-badge"><span aria-hidden="true"><i class="fa-solid fa-star"></i></span> Favorito</span>' : ""}
                 </div>
                 <span class="history-preview">${subtitle}</span>
                 <div class="history-meta">${escapeHtml(meta)}</div>
@@ -3257,7 +3258,7 @@
                     aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
                     title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
                   >
-                    <span class="history-action-symbol" aria-hidden="true">★</span>
+                    <span class="history-action-symbol" aria-hidden="true"><i class='fa-solid fa-star'></i></span>
                   </button>
                   <button
                     type="button"
@@ -4006,12 +4007,12 @@
           // Evitar múltiplas chamadas simultâneas
           if (meusEspeciaisInitialized) {
             console.log(
-              "⏳ Meus Especiais já está sendo renderizado, pulando...",
+              "<i class='fa-solid fa-hourglass-half'></i> Meus Especiais já está sendo renderizado, pulando...",
             );
             return;
           }
 
-          console.log("🎒 Renderizando Meus Especiais...");
+          console.log("<i class='fa-solid fa-suitcase'></i> Renderizando Meus Especiais...");
 
           const inventoryDisplay = document.getElementById("inventoryDisplay");
           const emptyInventoryMsg =
@@ -4021,7 +4022,7 @@
           );
 
           if (!inventoryDisplay || !equippedItemsDisplay) {
-            console.log("❌ Elementos de inventário não encontrados");
+            console.log("<i class='fa-solid fa-xmark'></i> Elementos de inventário não encontrados");
             return;
           }
 
@@ -4043,7 +4044,7 @@
             meusEspeciaisInitialized = true;
             renderMeusEspeciais();
           } else {
-            console.log("⚠️ renderMeusEspeciais não disponível ainda");
+            console.log("<i class='fa-solid fa-triangle-exclamation'></i>️ renderMeusEspeciais não disponível ainda");
             // Fallback: carregar do localStorage diretamente
             const STORE_KEY = "animehouse_store";
             let store;
@@ -4077,7 +4078,7 @@
             if (store.purchased && store.purchased.length > 0) {
               emptyInventoryMsg.style.display = "none";
               inventoryDisplay.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted);">
-            📦 ${store.purchased.length} item(s) no inventário<br>
+            <i class='fa-solid fa-box'></i> ${store.purchased.length} item(s) no inventário<br>
             <small>Carregando detalhes...</small>
           </div>`;
             }
@@ -4341,7 +4342,7 @@
               if (result?.success) {
                 closeDeleteModal();
                 showToast(
-                  "✅ Conta excluída com sucesso. Até mais!",
+                  "<i class='fa-solid fa-check'></i> Conta excluída com sucesso. Até mais!",
                   "success",
                   4000,
                 );
@@ -4351,7 +4352,7 @@
               } else {
                 const msg = result?.error?.message || "Erro ao excluir conta.";
                 if (deleteAccountError) {
-                  deleteAccountError.textContent = "❌ " + msg;
+                  deleteAccountError.innerHTML = "<i class='fa-solid fa-xmark'></i> " + msg;
                   deleteAccountError.style.display = "block";
                 }
                 confirmDeleteAccountBtn.disabled = false;
@@ -4747,22 +4748,22 @@
               optFire.disabled = level < 50;
               optFire.textContent =
                 level < 50
-                  ? "🔥 Chamas do Hokage (Exige LVL 50)"
-                  : "🔥 Chamas do Hokage";
+                  ? "<i class='fa-solid fa-fire'></i> Chamas do Hokage (Exige LVL 50)"
+                  : "<i class='fa-solid fa-fire'></i> Chamas do Hokage";
             }
             if (optGuardian) {
               optGuardian.disabled = level < 75;
               optGuardian.textContent =
                 level < 75
-                  ? "🛡️ Escudo de Guardião (Exige LVL 75)"
-                  : "🛡️ Escudo de Guardião (Azul)";
+                  ? "<i class='fa-solid fa-shield'></i>️ Escudo de Guardião (Exige LVL 75)"
+                  : "<i class='fa-solid fa-shield'></i>️ Escudo de Guardião (Azul)";
             }
             if (optImmortal) {
               optImmortal.disabled = level < 100;
               optImmortal.textContent =
                 level < 100
-                  ? "⚡ Poder Imortal (Exige LVL 100)"
-                  : "⚡ Poder Imortal (Roxo)";
+                  ? "<i class='fa-solid fa-bolt'></i> Poder Imortal (Exige LVL 100)"
+                  : "<i class='fa-solid fa-bolt'></i> Poder Imortal (Roxo)";
             }
 
 
@@ -4812,7 +4813,7 @@
               if (allRanksUnlocked && !badge.querySelector(".owner-badge")) {
                 const ownerBadge = document.createElement("span");
                 ownerBadge.className = "owner-badge";
-                ownerBadge.textContent = "👑";
+                ownerBadge.innerHTML = "<i class='fa-solid fa-crown'></i>";
                 ownerBadge.style.cssText =
                   "position: absolute; top: -5px; right: -5px; font-size: 0.8rem; filter: drop-shadow(0 0 3px gold);";
                 badge.style.position = "relative";
@@ -4824,14 +4825,14 @@
                   const modal = document.getElementById("patentModal");
                   document.getElementById("patentTitle").textContent =
                     `Patente: ${label}`;
-                  document.getElementById("patentIcon").textContent =
+                  document.getElementById("patentIcon").innerHTML =
                     badge.textContent;
                   document.getElementById("patentDesc").textContent =
                     badge.getAttribute("data-desc");
                   const status = document.getElementById("patentStatus");
                   status.textContent = unlocked
-                    ? "✅ CONQUISTADO"
-                    : "🔒 BLOQUEADO";
+                    ? "<i class='fa-solid fa-check'></i> CONQUISTADO"
+                    : "<i class='fa-solid fa-lock'></i> BLOQUEADO";
                   status.style.color = unlocked
                     ? "var(--success)"
                     : "var(--danger)";
@@ -4918,10 +4919,10 @@
               toast.innerHTML = `
             <div id="levelUpCard">
               <div class="particles" id="toastParticles"></div>
-              <div class="lvl-label">⚡ LEVEL UP ⚡</div>
+              <div class="lvl-label"><i class='fa-solid fa-bolt'></i> LEVEL UP <i class='fa-solid fa-bolt'></i></div>
               <div class="lvl-badge" id="toastLevelNum">LVL ${newLevel}</div>
               <div style="font-size:0.9rem; color: var(--text-muted); margin-top:10px;">Você subiu de nível!</div>
-              ${newRank ? `<div class="rank-badge">🏅 Nova Patente: ${newRank}</div>` : ""}
+              ${newRank ? `<div class="rank-badge"><i class='fa-solid fa-medal'></i> Nova Patente: ${newRank}</div>` : ""}
               <button onclick="closeLevelUpToast()" style="margin-top:24px; padding:8px 28px; border-radius:50px; border:1px solid rgba(var(--primary-rgb),0.5); background: rgba(var(--primary-rgb),0.15); color:var(--primary); font-family:'Bangers'; font-size:1rem; letter-spacing:1px; cursor:pointer;">CONTINUAR</button>
             </div>
           `;
@@ -4934,12 +4935,12 @@
               const rankBadge = card?.querySelector(".rank-badge");
               if (newRank) {
                 if (rankBadge) {
-                  rankBadge.textContent = `🏅 Nova Patente: ${newRank}`;
+                  rankBadge.innerHTML = `<i class='fa-solid fa-medal'></i> Nova Patente: ${newRank}`;
                   rankBadge.style.display = "inline-block";
                 } else {
                   const rb = document.createElement("div");
                   rb.className = "rank-badge";
-                  rb.textContent = `🏅 Nova Patente: ${newRank}`;
+                  rb.innerHTML = `<i class='fa-solid fa-medal'></i> Nova Patente: ${newRank}`;
                   card.querySelector("button").before(rb);
                 }
               } else if (rankBadge) {
@@ -4998,7 +4999,7 @@
           const STORE_KEY = "animehouse_store";
 
           async function renderMeusEspeciais() {
-            console.log("🎯 renderMeusEspeciais() chamada");
+            console.log("<i class='fa-solid fa-bullseye'></i> renderMeusEspeciais() chamada");
 
             let store = null;
             // Tentar carregar store com retry para aguardar o Supabase
@@ -5009,7 +5010,7 @@
               while (attempts < 20) {
                 if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
                   store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
-                  console.log("✅ Store carregado do DB (Supabase)");
+                  console.log("<i class='fa-solid fa-check'></i> Store carregado do DB (Supabase)");
                   break;
                 }
                 
@@ -5023,7 +5024,7 @@
                   const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
                   if (userRaw) {
                     store = JSON.parse(userRaw);
-                    console.log("📦 Store carregado do localStorage isolado");
+                    console.log("<i class='fa-solid fa-box'></i> Store carregado do localStorage isolado");
                     break;
                   }
                 }
@@ -5039,14 +5040,14 @@
             if (!store) {
               try {
                 store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
-                console.log("📦 Fallback: Store carregado do localStorage genérico");
+                console.log("<i class='fa-solid fa-box'></i> Fallback: Store carregado do localStorage genérico");
               } catch(e) {
                 store = { purchased: [], equipped: {} };
               }
             }
 
-            console.log("📊 Store:", store);
-            console.log("🛒 Itens comprados:", store.purchased);
+            console.log("<i class='fa-solid fa-chart-simple'></i> Store:", store);
+            console.log("<i class='fa-solid fa-cart-shopping'></i> Itens comprados:", store.purchased);
 
             const inventoryDisplay =
               document.getElementById("inventoryDisplay");
@@ -5057,7 +5058,7 @@
             );
 
             if (!inventoryDisplay || !equippedItemsDisplay) {
-              console.log("❌ Elementos DOM não encontrados");
+              console.log("<i class='fa-solid fa-xmark'></i> Elementos DOM não encontrados");
               return;
             }
 
@@ -5066,10 +5067,10 @@
             equippedItemsDisplay.innerHTML = "";
 
             const purchased = store.purchased || [];
-            console.log(`🎯 ${purchased.length} itens para renderizar`);
+            console.log(`<i class='fa-solid fa-bullseye'></i> ${purchased.length} itens para renderizar`);
 
             if (purchased.length === 0) {
-              console.log("ℹ️ Nenhum item comprado - mostrando mensagem vazia");
+              console.log("<i class='fa-solid fa-circle-info'></i>️ Nenhum item comprado - mostrando mensagem vazia");
               emptyInventoryMsg.style.display = "block";
               equippedItemsDisplay.innerHTML =
                 '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado</span>';
@@ -5141,29 +5142,29 @@
             // Renderizar itens comprados
             let renderedCount = 0;
             purchased.forEach((itemId) => {
-              console.log(`🔍 Buscando item: ${itemId}`);
+              console.log(`<i class='fa-solid fa-magnifying-glass'></i> Buscando item: ${itemId}`);
               const item = ALL_ITEMS.find((i) => i.id === itemId);
               if (!item) {
-                console.log(`❌ Item não encontrado na lista: ${itemId}`);
+                console.log(`<i class='fa-solid fa-xmark'></i> Item não encontrado na lista: ${itemId}`);
                 return;
               }
-              console.log(`✅ Renderizando: ${item.name}`);
+              console.log(`<i class='fa-solid fa-check'></i> Renderizando: ${item.name}`);
               renderedCount++;
 
               const isEquipped = checkEquipped(item);
               const isEmerald = item.currency === "esmeralda";
               const currencyIcon =
                 item.currency === "ouro"
-                  ? "🥇"
+                  ? "<i class='fa-solid fa-medal'></i>"
                   : item.currency === "diamante"
-                    ? "💎"
-                    : "👑";
+                    ? "<i class='fa-solid fa-gem'></i>"
+                    : "<i class='fa-solid fa-crown'></i>";
 
               const itemCard = document.createElement("div");
               itemCard.className = `inventory-item-card ${item.currency} ${isEquipped ? "equipped" : ""} ${isEmerald ? "item-card-emerald" : ""}`;
 
               const btnClass = isEquipped ? "equipped" : item.currency;
-              const btnText = isEquipped ? "✓ Equipado" : "⚡ Equipar";
+              const btnText = isEquipped ? "✓ Equipado" : "<i class='fa-solid fa-bolt'></i> Equipar";
               const btnStyle =
                 isEmerald && !isEquipped ? "btn-equip-chromatic" : "";
 
@@ -5193,14 +5194,14 @@
               inventoryDisplay.appendChild(itemCard);
             });
 
-            console.log(`✨ Total de itens renderizados: ${renderedCount}`);
+            console.log(`<i class='fa-solid fa-wand-magic-sparkles'></i> Total de itens renderizados: ${renderedCount}`);
 
             // Renderizar itens equipados usando a função centralizada e isolada
             await updateEquippedPanel();
 
-            // 🔄 Sincronizar navbar com os itens equipados atualizados
+            // <i class='fa-solid fa-rotate'></i> Sincronizar navbar com os itens equipados atualizados
             if (window.updateNavbarCosmetics) {
-              console.log("🔄 Sincronizando navbar com items equipados...");
+              console.log("<i class='fa-solid fa-rotate'></i> Sincronizando navbar com items equipados...");
               window.updateNavbarCosmetics();
             }
           }
@@ -5209,7 +5210,7 @@
           window.toggleEquipItem = async function (id, type, rawName) {
             const STORE_KEY = "animehouse_store";
 
-            // 🎬 Feedback visual IMEDIATO
+            // <i class='fa-solid fa-clapperboard'></i> Feedback visual IMEDIATO
             const clickedBtn = document.activeElement;
             if (clickedBtn && clickedBtn.classList.contains("btn-equip")) {
               clickedBtn.style.transform = "scale(0.95)";
@@ -5294,7 +5295,7 @@
                 localStorage.setItem(userKey("animehouse_showCrown"), "true");
                 localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
                 const item = ALL_ITEMS.find(i => i.id === id);
-                const icon = item ? item.icon : "👑";
+                const icon = item ? item.icon : "<i class='fa-solid fa-crown'></i>";
                 localStorage.setItem(userKey("animehouse_equippedCrownIcon"), icon);
                 store.equipped.crown = true;
                 store.equipped.crownId = id;
@@ -5335,7 +5336,7 @@
                   card.classList.add("equipped");
                   btn.classList.add("equipped");
                   btn.classList.remove("ouro", "diamante", "esmeralda");
-                  btn.textContent = "✓ Equipado";
+                  btn.innerHTML = "✓ Equipado";
 
                   // Adicionar indicador visual se não existir
                   if (!card.querySelector(".equipped-indicator")) {
@@ -5358,7 +5359,7 @@
                       ? "diamante"
                       : "ouro";
                   btn.classList.add(currencyClass);
-                  btn.textContent = "⚡ Equipar";
+                  btn.innerHTML = "<i class='fa-solid fa-bolt'></i> Equipar";
 
                   // Remover indicador
                   const indicator = card.querySelector(".equipped-indicator");
@@ -5383,7 +5384,7 @@
                       ? "diamante"
                       : "ouro";
                   btn.classList.add(currencyClass);
-                  btn.textContent = "⚡ Equipar";
+                  btn.innerHTML = "<i class='fa-solid fa-bolt'></i> Equipar";
                   const indicator = card.querySelector(".equipped-indicator");
                   if (indicator) indicator.remove();
                 }
@@ -5443,10 +5444,10 @@
                 const isEmerald = item.currency === "esmeralda";
                 const currencyIcon =
                   item.currency === "ouro"
-                    ? "🥇"
+                    ? "<i class='fa-solid fa-medal'></i>"
                     : item.currency === "diamante"
-                      ? "💎"
-                      : "👑";
+                      ? "<i class='fa-solid fa-gem'></i>"
+                      : "<i class='fa-solid fa-crown'></i>";
                 const badge = document.createElement("div");
                 badge.className = isEmerald ? "item-card-emerald" : "";
                 badge.style.cssText = `
@@ -5477,7 +5478,7 @@
         }
       });
     </script>
-    <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">© ViselBrx & DaviMoraes07™</a></div>
+    <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">&copy; ViselBrx & DaviMoraes07&trade;</a></div>
     <script>
       // Lógica do Overlay de Boas-vindas (Apenas no Primeiro Acesso/Login)
       window.addEventListener('DOMContentLoaded', () => {

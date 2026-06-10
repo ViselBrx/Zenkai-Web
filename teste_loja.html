@@ -9,9 +9,10 @@
         .ok { color: #22c55e; } .err { color: #ef4444; } .warn { color: #f59e0b; }
         .card { border: 1px solid #333; border-radius: 8px; padding: 10px; margin: 5px; display: inline-block; }
     </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
-    <h2>🧪 Teste de Diagnóstico da Loja</h2>
+    <h2><i class='fa-solid fa-flask'></i> Teste de Diagnóstico da Loja</h2>
     <div id="result">Carregando...</div>
     <div id="catalog" style="margin-top:20px;"></div>
 
@@ -30,47 +31,47 @@
 
         // Teste 1: ALL_ITEMS do db.js
         if (typeof ALL_ITEMS !== 'undefined') {
-            log(`✅ ALL_ITEMS carregado: ${ALL_ITEMS.length} itens`, 'ok');
+            log(`<i class='fa-solid fa-check'></i> ALL_ITEMS carregado: ${ALL_ITEMS.length} itens`, 'ok');
         } else {
-            log('❌ ALL_ITEMS NÃO definido — db.js falhou!', 'err');
+            log('<i class='fa-solid fa-xmark'></i> ALL_ITEMS NÃO definido — db.js falhou!', 'err');
         }
 
         // Teste 2: CATALOG_ITEMS local
         const CATALOG_ITEMS = [
-            { id: "banner_claro", name: "Banner Aurora", icon: "🌅", currency: "ouro", price: 3 },
-            { id: "aura_chama", name: "Aura Chama", icon: "🔥", currency: "ouro", price: 8 },
-            { id: "coroa_lendaria", name: "Coroa Rei", icon: "👑", currency: "esmeralda", price: 3 },
+            { id: "banner_claro", name: "Banner Aurora", icon: "<i class='fa-solid fa-sun'></i>", currency: "ouro", price: 3 },
+            { id: "aura_chama", name: "Aura Chama", icon: "<i class='fa-solid fa-fire'></i>", currency: "ouro", price: 8 },
+            { id: "coroa_lendaria", name: "Coroa Rei", icon: "<i class='fa-solid fa-crown'></i>", currency: "esmeralda", price: 3 },
         ];
-        log(`✅ CATALOG_ITEMS local: ${CATALOG_ITEMS.length} itens de teste`, 'ok');
+        log(`<i class='fa-solid fa-check'></i> CATALOG_ITEMS local: ${CATALOG_ITEMS.length} itens de teste`, 'ok');
 
         // Teste 3: supabaseClient
         if (window.supabaseClient) {
-            log('✅ window.supabaseClient disponível', 'ok');
+            log('<i class='fa-solid fa-check'></i> window.supabaseClient disponível', 'ok');
         } else {
-            log('⚠️ window.supabaseClient ainda não disponível (auth.js pode estar inicializando)', 'warn');
+            log('<i class='fa-solid fa-triangle-exclamation'></i>️ window.supabaseClient ainda não disponível (auth.js pode estar inicializando)', 'warn');
         }
 
         // Teste 4: DB
         if (window.DB) {
-            log('✅ window.DB disponível', 'ok');
+            log('<i class='fa-solid fa-check'></i> window.DB disponível', 'ok');
         } else {
-            log('❌ window.DB não disponível', 'err');
+            log('<i class='fa-solid fa-xmark'></i> window.DB não disponível', 'err');
         }
 
         // Teste 5: DOMContentLoaded
         document.addEventListener('DOMContentLoaded', () => {
-            log('✅ DOMContentLoaded disparou', 'ok');
+            log('<i class='fa-solid fa-check'></i> DOMContentLoaded disparou', 'ok');
         });
 
         // Teste 6: readyState
-        log(`ℹ️ document.readyState = "${document.readyState}"`, '');
+        log(`<i class='fa-solid fa-circle-info'></i>️ document.readyState = "${document.readyState}"`, '');
 
         // Renderizar catálogo de teste
-        catalog.innerHTML = '<h3>📦 Catálogo de Teste (deve aparecer 3 cards abaixo):</h3>';
+        catalog.innerHTML = '<h3><i class='fa-solid fa-box'></i> Catálogo de Teste (deve aparecer 3 cards abaixo):</h3>';
         CATALOG_ITEMS.forEach(item => {
             catalog.innerHTML += `<div class="card">${item.icon} ${item.name} — ${item.currency} ${item.price}</div>`;
         });
-        log('✅ Renderização direta funcionou!', 'ok');
+        log('<i class='fa-solid fa-check'></i> Renderização direta funcionou!', 'ok');
 
         // Teste async após 2s
         setTimeout(async () => {
@@ -80,15 +81,15 @@
                 attempts++;
             }
             if (window.supabaseClient) {
-                log('✅ supabaseClient disponível após espera', 'ok');
+                log('<i class='fa-solid fa-check'></i> supabaseClient disponível após espera', 'ok');
                 try {
                     const { data: { user } } = await window.supabaseClient.auth.getUser();
-                    log(user ? `✅ Usuário logado: ${user.email}` : '⚠️ Sem usuário logado (anônimo)', user ? 'ok' : 'warn');
+                    log(user ? `<i class='fa-solid fa-check'></i> Usuário logado: ${user.email}` : '<i class='fa-solid fa-triangle-exclamation'></i>️ Sem usuário logado (anônimo)', user ? 'ok' : 'warn');
                 } catch(e) {
-                    log(`❌ Erro ao obter usuário: ${e.message}`, 'err');
+                    log(`<i class='fa-solid fa-xmark'></i> Erro ao obter usuário: ${e.message}`, 'err');
                 }
             } else {
-                log('❌ supabaseClient NUNCA ficou disponível — CDN falhou ou auth.js tem erro', 'err');
+                log('<i class='fa-solid fa-xmark'></i> supabaseClient NUNCA ficou disponível — CDN falhou ou auth.js tem erro', 'err');
             }
         }, 500);
     </script>

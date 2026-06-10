@@ -273,6 +273,7 @@
       box-shadow: 0 0 30px rgba(0,0,0,0.8);
     }
   </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body class="anime-context">
 
@@ -291,7 +292,7 @@
 <main class="container">
   <div class="page-header">
     <div>
-      <h1>📚 Leitor de Mangás</h1>
+      <h1><i class='fa-solid fa-book'></i> Leitor de Mangás</h1>
       <p style="margin:0;">Organize e leia seus mangás direto da página, separados por volumes.</p>
     </div>
     <div id="statsWidget" class="stats-widget"></div>
@@ -306,7 +307,7 @@
 
   <!-- AVISO SE NADA FOI SELECIONADO -->
   <div id="noMangaMsg" class="select-cartoon-prompt" style="display:none;">
-    📚 Selecione um mangá acima para abrir a estante de leitura.
+    <i class='fa-solid fa-book'></i> Selecione um mangá acima para abrir a estante de leitura.
   </div>
 
   <div id="volumesPanel" style="display:none; animation: fadeInSlide 0.4s forwards;">
@@ -348,7 +349,7 @@
         </div>
       </div>
       <div class="form-actions" style="margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary" id="btnSalvarManga" style="width:100%">💾 Salvar Mangá</button>
+        <button type="submit" class="btn btn-primary" id="btnSalvarManga" style="width:100%"><i class='fa-solid fa-floppy-disk'></i> Salvar Mangá</button>
       </div>
     </form>
   </div>
@@ -357,13 +358,13 @@
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <h2 style="color:var(--danger)">⚠️ Excluir</h2>
+      <h2 style="color:var(--danger)"><i class='fa-solid fa-triangle-exclamation'></i>️ Excluir</h2>
       <button class="modal-close" id="deleteClose">✕</button>
     </div>
     <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteMangaName"></strong>? Todos os volumes e anotações desse mangá também serão removidos.</p>
     <div class="form-actions">
       <button class="btn btn-ghost" id="deleteCancelBtn">Cancelar</button>
-      <button class="btn btn-danger" id="deleteConfirmBtn">🗑️ Excluir</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn"><i class='fa-solid fa-trash'></i>️ Excluir</button>
     </div>
   </div>
 </div>
@@ -402,7 +403,7 @@
         <small style="color:var(--text-muted);display:block;margin-top:5px;">Para PDFs com mais de 50MB, use a opção de "Link do Drive".</small>
       </div>
       <div class="form-actions" style="margin-top: 2rem;">
-        <button type="submit" class="btn btn-primary" id="btnSalvarVolume" style="width:100%">📤 Iniciar Upload</button>
+        <button type="submit" class="btn btn-primary" id="btnSalvarVolume" style="width:100%"><i class='fa-solid fa-upload'></i> Iniciar Upload</button>
       </div>
     </form>
   </div>
@@ -417,16 +418,16 @@
     </div>
     <form id="noteForm" novalidate onsubmit="return false">
       <div class="form-group">
-        <label>Página Atual (Marca-página) 🔖</label>
+        <label>Página Atual (Marca-página) <i class='fa-solid fa-bookmark'></i></label>
         <input id="nPage" class="form-control" type="number" min="1" placeholder="Ex: 42" style="border-color: var(--primary);" />
       </div>
       <div class="form-group">
-        <label>Suas Anotações 📝</label>
+        <label>Suas Anotações <i class='fa-solid fa-pen-to-square'></i></label>
         <textarea id="nText" class="form-control" placeholder="Citações, resumos, onde parei de ler..." style="min-height: 120px; resize: vertical; border-color: var(--primary); padding-top: 8px;"></textarea>
       </div>
       <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 10px;">
-        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;">🗑️ Limpar</button>
-        <button type="button" class="btn btn-primary" id="btnSalvarNote" style="flex: 2;">💾 Salvar Anotações</button>
+        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;"><i class='fa-solid fa-trash'></i>️ Limpar</button>
+        <button type="button" class="btn btn-primary" id="btnSalvarNote" style="flex: 2;"><i class='fa-solid fa-floppy-disk'></i> Salvar Anotações</button>
       </div>
     </form>
   </div>
@@ -439,7 +440,7 @@
       <h2 id="readerTitle" style="font-family:'Bangers'; color:var(--primary); font-size: 1.6rem; margin:0">Lendo...</h2>
       <div style="display:flex; align-items:center; gap: 1rem; flex-wrap: wrap;">
          <button class="btn btn-ghost btn-sm" id="btnFullscreen" style="color:var(--text); border:1px solid var(--border);">
-            🔲 Ativar Tela Cheia
+            <i class='fa-regular fa-square'></i> Ativar Tela Cheia
          </button>
          <button class="modal-close" id="readerClose" style="position:static;">✕</button>
       </div>
@@ -455,6 +456,6 @@
 <script src="js/watched.js"></script>
 <script src="js/mangas.js"></script>
 <script src="js/utils-stats.js"></script>
-<div class="watermark">© ViselBrx & DaviMoraes07™</div>
+<div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
 </html>
