@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const filterGenero = document.getElementById('filterGenero');
   const filterAno = document.getElementById('filterAno');
+  const filterFavoritos = document.getElementById('filterFavoritos');
 
   let filmes = DB.getFilmes();
   let pendingHistoryResume = null;
@@ -103,14 +104,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Favoritos no topo, demais itens na ordem original
-    filtered.sort((a, b) => {
+    const favFilter = filterFavoritos ? filterFavoritos.value : '';
+    const finalFiltered = (typeof favFilter !== 'undefined' && favFilter === 'favoritos') ? filtered.filter(f => userFavs.has(f.id)) : filtered;
+    finalFiltered.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
       const bFav = userFavs.has(b.id) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
       return a._originIndex - b._originIndex;
     });
 
-    filtered.forEach(f => {
+    finalFiltered.forEach(f => {
       const isFav = userFavs.has(f.id);
       const card = document.createElement('div');
       card.className = 'card';
@@ -318,9 +321,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   filterGenero.addEventListener('change', render);
   filterAno.addEventListener('change', render);
+  if (filterFavoritos) filterFavoritos.addEventListener('change', render);
 
   loadPendingHistoryResume();
   initFilters();
+  if (window.initCustomSelects) window.initCustomSelects();
   render();
   tryResumeFilmPlayback();
 

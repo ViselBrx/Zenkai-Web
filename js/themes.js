@@ -282,20 +282,20 @@
       window.location.pathname.split("/").pop() || "index.html";
 
     const pages = [
-      { href: "index.html", label: "🏠 Inicio", icon: "🏠" },
-      { href: "desenhos.html", label: "🎬 Desenhos", icon: "🎬" },
-      { href: "animes.html", label: "⛩️ Animes", icon: "⛩️" },
-      { href: "youtube.html", label: "▶️ YouTube", icon: "▶️" },
-      { href: "filmes.html", label: "🎬 Filmes", icon: "🎬" },
-      { href: "episodios-desenhos.html", label: "▶️ Eps. Desenhos", icon: "▶️" },
-      { href: "anime-episodios.html", label: "▶️ Eps. Animes", icon: "▶️" },
-      { href: "youtube-videos.html", label: "▶️ Eps. YouTube", icon: "▶️" },
-      { href: "painel-cadastros.html", label: "📝 Painel de Cadastros", icon: "📝" },
-      { href: "mangas.html", label: "📚 Mangas", icon: "📚" },
-      { href: "hq.html", label: "🗯️ HQs", icon: "🗯️" },
-      { href: "loja.html", label: "🎌 SenseiMod Store", icon: "🎌" },
-      { href: "open-anime.html", label: "🤖 Open AnIme", icon: "🤖" },
-      { href: "agradecimento.html", label: "💖 Agradecimento", icon: "💖" },
+      { href: "index.html", label: " Inicio", icon: "<i class='fa-solid fa-house'></i>" },
+      { href: "desenhos.html", label: " Desenhos", icon: "<i class='fa-solid fa-tv'></i>" },
+      { href: "animes.html", label: " Animes", icon: "<i class='fa-solid fa-torii-gate'></i>" },
+      { href: "youtube.html", label: " YouTube", icon: "<i class='fa-solid fa-play'></i>" },
+      { href: "filmes.html", label: " Filmes", icon: "<i class='fa-solid fa-clapperboard'></i>" },
+      { href: "episodios-desenhos.html", label: " Eps. Desenhos", icon: "<i class='fa-solid fa-play'></i>" },
+      { href: "anime-episodios.html", label: " Eps. Animes", icon: "<i class='fa-solid fa-play'></i>" },
+      { href: "youtube-videos.html", label: " Eps. YouTube", icon: "<i class='fa-solid fa-play'></i>" },
+      { href: "painel-cadastros.html", label: " Painel de Cadastros", icon: "<i class='fa-solid fa-pen-to-square'></i>" },
+      { href: "mangas.html", label: " Mangas", icon: "<i class='fa-solid fa-book'></i>" },
+      { href: "hq.html", label: " HQs", icon: "<i class='fa-regular fa-comment-dots'></i>" },
+      { href: "loja.html", label: " SenseiMod Store", icon: "<i class='fa-solid fa-flag'></i>" },
+      { href: "open-anime.html", label: " Open AnIme", icon: "<i class='fa-solid fa-robot'></i>" },
+      { href: "agradecimento.html", label: " Agradecimento", icon: "<i class='fa-solid fa-heart'></i>" },
     ];
 
     const existingLinks = links.querySelectorAll("li");
@@ -305,7 +305,7 @@
       const li = document.createElement("li");
       const link = document.createElement("a");
       link.href = page.href;
-      link.innerHTML = `<span class="nav-icon">${page.icon}</span> ${page.label.split(" ").slice(1).join(" ")}`;
+      link.innerHTML = `<span class="nav-icon">${page.icon}</span> ${page.label.trim()}`;
 
       if (
         currentPage === page.href ||

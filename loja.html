@@ -684,8 +684,8 @@
             }
             @media (min-width: 1050px) {
                 .filter-currency {
-                   padding-left: 12px;
-                   border-left: 1px solid rgba(255, 255, 255, 0.1);
+                   padding-left: 0;
+                   border-left: none;
                 }
             }
             @media (max-width: 1049px) {
@@ -713,12 +713,7 @@
                 color: #fff;
                 transform: translateY(-2px);
             }
-            .currency-tab[data-currency="all"].active {
-                background: var(--primary);
-                color: #000;
-                border-color: var(--primary);
-                box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.4);
-            }
+            .currency-tab[data-currency="all"].active { background: rgba(255, 255, 255, 0.15); color: #fff; border-color: #fff; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
             .currency-tab[data-currency="ouro"] {
                 color: #d4af37;
             }
@@ -1281,6 +1276,7 @@
                     align-items: flex-start;
                 }
             }
+        .esmeralda-icon { width: 1.2em; height: 1.2em; vertical-align: text-bottom; object-fit: contain; display: inline-block; }
         </style>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -1502,7 +1498,7 @@
                 </div>
                 <div class="policy-card policy-diamante">
                     <div class="policy-header">
-                        <div class="policy-icon"><i class='fa-solid fa-gem'></i></div>
+                        <div class="policy-icon"><i class="fi fi-rs-diamond"></i></div>
                         <div>
                             <div class="policy-title">Ficha de Diamante</div>
                             <div
@@ -1524,7 +1520,7 @@
                 </div>
                 <div class="policy-card policy-esmeralda">
                     <div class="policy-header">
-                        <div class="policy-icon"><i class='fa-solid fa-heart'></i></div>
+                        <div class="policy-icon"><img src="assets/emerald.png" class="esmeralda-icon"></div>
                         <div>
                             <div class="policy-title">Ficha de Esmeralda</div>
                             <div
@@ -1610,10 +1606,10 @@
 
                 <!-- DIAMANTE -->
                 <div class="ficha-card ficha-diamante" id="fichaDiamanteCard">
-                    <div class="ficha-icon"><i class='fa-solid fa-gem'></i></div>
+                    <div class="ficha-icon"><i class="fi fi-rs-diamond"></i></div>
                     <div class="ficha-name">FICHA DE DIAMANTE</div>
                     <div class="ficha-taxa">
-                        <strong>250 XP → 1 <i class='fa-solid fa-gem'></i></strong>
+                        <strong>250 XP → 1 <i class="fi fi-rs-diamond"></i></strong>
                         Patamar mínimo: <em>Mestre</em>
                     </div>
                     <div class="ficha-req"><i class='fa-solid fa-trident'></i> Patamar Mestre</div>
@@ -1665,10 +1661,10 @@
 
                 <!-- ESMERALDA -->
                 <div class="ficha-card ficha-esmeralda" id="fichaEsmeraldaCard">
-                    <div class="ficha-icon"><i class='fa-solid fa-heart'></i></div>
+                    <div class="ficha-icon"><img src="assets/emerald.png" class="esmeralda-icon"></div>
                     <div class="ficha-name">FICHA DE ESMERALDA</div>
                     <div class="ficha-taxa">
-                        <strong>500 XP → 1 <i class='fa-solid fa-heart'></i></strong>
+                        <strong>500 XP → 1 <img src="assets/emerald.png" class="esmeralda-icon"></strong>
                         Patamar mínimo: <em>Guardião</em>
                     </div>
                     <div class="ficha-req"><i class='fa-solid fa-shield'></i>️ Patamar Guardião</div>
@@ -1734,7 +1730,7 @@
                     <i class='fa-solid fa-image'></i>️ Banners
                 </button>
                 <button class="filter-tab" data-category="aura">
-                    <i class='fa-solid fa-hurricane'></i> Auras
+                    <i class='fa-solid fa-bolt'></i> Auras
                 </button>
                 <button class="filter-tab" data-category="titulo">
                     <i class='fa-solid fa-tag'></i>️ Títulos
@@ -1757,10 +1753,10 @@
                         <i class='fa-solid fa-medal'></i> Ouro
                     </button>
                     <button class="currency-tab" data-currency="diamante">
-                        <i class='fa-solid fa-gem'></i> Diamante
+                        <i class="fi fi-rs-diamond"></i> Diamante
                     </button>
                     <button class="currency-tab" data-currency="esmeralda">
-                        <i class='fa-solid fa-heart'></i> Esmeralda
+                        <img src="assets/emerald.png" class="esmeralda-icon"> Esmeralda
                     </button>
                 </div>
             </div>
@@ -1833,7 +1829,7 @@
                 // ── ESMERALDA ─────────────────────────────────────────
                 { id: "coroa_lendaria", name: "Coroa Rei dos Animes", desc: "Símbolo máximo de status.", icon: "<i class='fa-solid fa-crown'></i>", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
                 { id: "aura_dragon", name: "Aura Dragão Arcano", desc: "Aura mais rara da plataforma.", icon: "<i class='fa-solid fa-dragon'></i>", category: "aura", currency: "esmeralda", price: 5, req: "guardiao" },
-                { id: "banner_cosmos", name: "Banner Cosmos", desc: "Efeitos de dobra espacial.", icon: "<i class='fa-solid fa-hurricane'></i>", category: "banner", currency: "esmeralda", price: 4, req: "guardiao" },
+                { id: "banner_cosmos", name: "Banner Cosmos", desc: "Efeitos de dobra espacial.", icon: "<i class='fa-solid fa-bolt'></i>", category: "banner", currency: "esmeralda", price: 4, req: "guardiao" },
                 { id: "titulo_guardiao", name: "Título: Guardião Lenda", desc: "Reservado aos mestres.", icon: "<i class='fa-solid fa-shield'></i>️", category: "titulo", currency: "esmeralda", price: 2, req: "guardiao" },
                 { id: "coroa_tryhard", name: "Caveira do Carrasco", desc: "Caveira animada exclusiva.", icon: "<i class='fa-solid fa-skull'></i>", category: "exclusivo", currency: "esmeralda", price: 3, req: "guardiao" },
                 { id: "titulo_sensei_mod", name: "Título: SenseiMod", desc: "O verdadeiro dono da razão.", icon: "<i class='fa-solid fa-graduation-cap'></i>", category: "titulo", currency: "esmeralda", price: 5, req: "guardiao" },
@@ -2176,8 +2172,8 @@
                         ficha === "ouro"
                             ? "<i class='fa-solid fa-medal'></i>"
                             : ficha === "diamante"
-                              ? "<i class='fa-solid fa-gem'></i>"
-                              : "<i class='fa-solid fa-heart'></i>";
+                              ? "<i class='fi fi-rs-diamond'></i>"
+                              : "<img src='assets/emerald.png' class='esmeralda-icon'>";
 
                     function updateResult() {
                         const qtd = parseInt(input.value) || 0;
@@ -2298,8 +2294,8 @@
 
                 const currencyLabel = {
                     ouro: "<i class='fa-solid fa-medal'></i> Ouro",
-                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
-                    esmeralda: "<i class='fa-solid fa-heart'></i> Esmeralda",
+                    diamante: "<i class='fi fi-rs-diamond'></i> Diamante",
+                    esmeralda: "<img src='assets/emerald.png' class='esmeralda-icon'> Esmeralda",
                 };
                 const reqLabel = {
                     prata: "Patamar Prata",
@@ -2357,7 +2353,7 @@
         <div class="item-name">${item.name}</div>
         <p class="item-desc">${item.desc}</p>
         <div class="item-footer">
-          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fa-solid fa-gem'></i>" : "<i class='fa-solid fa-heart'></i>"}</span></div>
+          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fi fi-rs-diamond'></i>" : "<img src='assets/emerald.png' class='esmeralda-icon'>"}</span></div>
           ${
               canBuy
                   ? `<button class="buy-btn">Comprar</button>`
@@ -2404,8 +2400,8 @@
 
                 const currencyLabel = {
                     ouro: "<i class='fa-solid fa-medal'></i> Ouro",
-                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
-                    esmeralda: "<i class='fa-solid fa-heart'></i> Esmeralda",
+                    diamante: "<i class='fi fi-rs-diamond'></i> Diamante",
+                    esmeralda: "<img src='assets/emerald.png' class='esmeralda-icon'> Esmeralda",
                 };
                 const currencyColors = {
                     ouro: "#d4af37",
@@ -2431,7 +2427,7 @@
                     currencyLabel[item.currency];
 
                 const confirmBtn = document.getElementById("modalConfirm");
-                confirmBtn.innerHTML = `Confirmar — ${item.price} ${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fa-solid fa-gem'></i>" : "<i class='fa-solid fa-heart'></i>"}`;
+                confirmBtn.innerHTML = `Confirmar — ${item.price} ${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fi fi-rs-diamond'></i>" : "<img src='assets/emerald.png' class='esmeralda-icon'>"}`;
                 confirmBtn.style.background = currencyColors[item.currency];
                 confirmBtn.style.color = currencyBg[item.currency];
 

@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function renderMangaPills() {
     const myToken = ++_mangaRenderToken;
     const term = searchManga.value.toLowerCase();
-    const mangas = DB.getMangas().map((m, index) => ({ ...m, _originIndex: index })).filter(m => {
+    let mangas = DB.getMangas().map((m, index) => ({ ...m, _originIndex: index })).filter(m => {
       if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(m.id)) return false;
       return m.nome && m.nome.toLowerCase().includes(term);
     });
@@ -83,6 +83,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Se um render mais recente foi disparado enquanto aguardávamos, abortamos
     if (myToken !== _mangaRenderToken) return;
+    const filterStatus = document.getElementById('filterMangaStatus') ? document.getElementById('filterMangaStatus').value : '';
+    if (filterStatus === 'favoritos') {
+       mangas = mangas.filter(m => userFavs.has(m.id));
+    }
 
     mangaPills.innerHTML = '';
     const frag = document.createDocumentFragment();
@@ -345,11 +349,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /* PESQUISA (tempo real, sem duplicatas) */
-  let _mangaSearchDebounce = null;
-  searchManga.addEventListener('input', () => {
-    clearTimeout(_mangaSearchDebounce);
-    _mangaSearchDebounce = setTimeout(renderMangaPills, 120);
-  });
+  const filterMangaStatus = document.getElementById('filterMangaStatus');
+  if (filterMangaStatus) filterMangaStatus.addEventListener('change', renderMangaPills);
+  searchManga.addEventListener('input', renderMangaPills);
 
   /* MANGA MODAL (CRIAR PASTA DO MANGÁ) */
 

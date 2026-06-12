@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const filterEstudio = document.getElementById('filterEstudio');
   const filterTemp = document.getElementById('filterTemporadas');
+  const filterFavoritos = document.getElementById('filterFavoritos');
 
   let animes = DB.getAnimes();
   let activeAnimeId = null;
@@ -51,15 +52,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn("Usuário deslogado ou erro ao carregar favoritos.");
     }
 
+    // Filtra somente favoritos se selecionado
+    const favFilter = filterFavoritos ? filterFavoritos.value : '';
+    const finalFiltered = favFilter === 'favoritos' ? filtered.filter(a => userFavs.has(a.id)) : filtered;
+
     // Favoritos no topo, demais itens na ordem original
-    filtered.sort((a, b) => {
+    finalFiltered.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
       const bFav = userFavs.has(b.id) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
       return a._originIndex - b._originIndex;
     });
 
-    filtered.forEach(a => {
+    finalFiltered.forEach(a => {
       const isFav = userFavs.has(a.id);
       const card = document.createElement('div');
       card.className = 'card';
@@ -181,21 +186,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     detailCover.src = '';
   });
 
-  let debounceTimer;
-  searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(render, 300);
-  });
+  searchInput.addEventListener('input', render);
   searchInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      searchInput.blur();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); searchInput.blur(); }
   });
   filterEstudio.addEventListener('change', render);
   filterTemp.addEventListener('change', render);
+  if (filterFavoritos) filterFavoritos.addEventListener('change', render);
 
   initFilters();
+  if (window.initCustomSelects) window.initCustomSelects();
   render();
 
   window.addEventListener('profileUpdated', () => { render(); });

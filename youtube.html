@@ -36,7 +36,11 @@
 
   <!-- BUSCA E FILTROS -->
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍 Pesquisar playlist..." />
+    <input id="searchInput" type="text" placeholder="Pesquisar playlist..." />
+    <select id="filterFavoritos">
+      <option value="">Todos os itens</option>
+      <option value="favoritos">Meus Favoritos</option>
+    </select>
   </div>
 
   <!-- GRID DE CARDS -->
@@ -69,5 +73,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
+<script src="js/custom-select.js"></script>
 </body>
 </html>

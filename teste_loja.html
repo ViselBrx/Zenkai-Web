@@ -48,7 +48,7 @@
         if (window.supabaseClient) {
             log('<i class='fa-solid fa-check'></i> window.supabaseClient disponível', 'ok');
         } else {
-            log('<i class='fa-solid fa-triangle-exclamation'></i>️ window.supabaseClient ainda não disponível (auth.js pode estar inicializando)', 'warn');
+            log('<i class='fa-solid fa-triangle-exclamation'></i> window.supabaseClient ainda não disponível (auth.js pode estar inicializando)', 'warn');
         }
 
         // Teste 4: DB
@@ -64,7 +64,7 @@
         });
 
         // Teste 6: readyState
-        log(`<i class='fa-solid fa-circle-info'></i>️ document.readyState = "${document.readyState}"`, '');
+        log(`<i class='fa-solid fa-circle-info'></i> document.readyState = "${document.readyState}"`, '');
 
         // Renderizar catálogo de teste
         catalog.innerHTML = '<h3><i class='fa-solid fa-box'></i> Catálogo de Teste (deve aparecer 3 cards abaixo):</h3>';
@@ -84,7 +84,7 @@
                 log('<i class='fa-solid fa-check'></i> supabaseClient disponível após espera', 'ok');
                 try {
                     const { data: { user } } = await window.supabaseClient.auth.getUser();
-                    log(user ? `<i class='fa-solid fa-check'></i> Usuário logado: ${user.email}` : '<i class='fa-solid fa-triangle-exclamation'></i>️ Sem usuário logado (anônimo)', user ? 'ok' : 'warn');
+                    log(user ? `<i class='fa-solid fa-check'></i> Usuário logado: ${user.email}` : '<i class='fa-solid fa-triangle-exclamation'></i> Sem usuário logado (anônimo)', user ? 'ok' : 'warn');
                 } catch(e) {
                     log(`<i class='fa-solid fa-xmark'></i> Erro ao obter usuário: ${e.message}`, 'err');
                 }
@@ -95,3 +95,4 @@
     </script>
 </body>
 </html>
+

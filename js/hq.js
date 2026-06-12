@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function renderHQPills() {
     const myToken = ++_hqRenderToken;
     const term = searchHQ.value.toLowerCase();
-    const hqs = DB.getHQs().map((h, index) => ({ ...h, _originIndex: index })).filter(h => {
+    let hqs = DB.getHQs().map((h, index) => ({ ...h, _originIndex: index })).filter(h => {
       if (window.pendingDeletions && typeof window.pendingDeletions.has === 'function' && window.pendingDeletions.has(h.id)) return false;
       return h.nome && h.nome.toLowerCase().includes(term);
     });
@@ -76,6 +76,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Se um render mais recente foi disparado enquanto aguardávamos, abortamos
     if (myToken !== _hqRenderToken) return;
+    const filterStatus = document.getElementById('filterHQStatus') ? document.getElementById('filterHQStatus').value : '';
+    if (filterStatus === 'favoritos') {
+       hqs = hqs.filter(h => userFavs.has(h.id));
+    }
 
     hqPills.innerHTML = '';
     const frag = document.createDocumentFragment();
@@ -314,11 +318,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── Pesquisa (tempo real, sem duplicatas) ───────────────
-  let _hqSearchDebounce = null;
-  searchHQ.addEventListener('input', () => {
-    clearTimeout(_hqSearchDebounce);
-    _hqSearchDebounce = setTimeout(renderHQPills, 120);
-  });
+  const filterHQStatus = document.getElementById('filterHQStatus');
+  if (filterHQStatus) filterHQStatus.addEventListener('change', renderHQPills);
+  searchHQ.addEventListener('input', renderHQPills);
 
   // ── Modal HQ (criar/editar) ────────────────────────────
   hqCapaFile.addEventListener('change', () => {

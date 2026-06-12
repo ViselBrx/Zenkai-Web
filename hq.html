@@ -291,14 +291,18 @@
 <main class="container">
   <div class="page-header">
     <div>
-      <h1><i class='fa-regular fa-comment-dots'></i>️ Leitor de HQs</h1>
+      <h1><i class='fa-regular fa-comment-dots'></i> Leitor de HQs</h1>
       <p style="margin:0;">Organize e leia seus quadrinhos e graphic novels direto da página, separados por edições.</p>
     </div>
     <div id="statsWidget" class="stats-widget"></div>
-    <div style="display:flex; gap: 10px; align-items:center;">
-      <input id="searchHQ" class="form-control" type="text" placeholder="🔍 Buscar HQ" style="max-width: 180px; padding: 6px 12px; font-size: 0.9rem; border-radius: 8px;" />
-      <button class="btn btn-primary" id="addHQBtn" style="padding: 6px 14px; font-size: 0.9rem; border-radius: 8px;">✚ Novo</button>
-    </div>
+    <div class="search-bar" style="margin-top: 15px;">
+    <input id="searchHQ" type="text" placeholder="Buscar HQ..." />
+    <select id="filterHQStatus">
+      <option value="">Todas as HQs</option>
+      <option value="favoritos">Meus Favoritos</option>
+    </select>
+    <button class="btn btn-primary" id="addHQBtn"><i class="fa-solid fa-plus"></i> Novo</button>
+  </div>
   </div>
 
   <!-- SELETOR DE HQs -->
@@ -358,13 +362,13 @@
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <h2 style="color:var(--danger)"><i class='fa-solid fa-triangle-exclamation'></i>️ Excluir</h2>
+      <h2 style="color:var(--danger)"><i class='fa-solid fa-triangle-exclamation'></i> Excluir</h2>
       <button class="modal-close" id="deleteClose">✕</button>
     </div>
     <p style="color:var(--text-muted);line-height:1.6;">Tem certeza que deseja excluir <strong id="deleteHQName"></strong>? Todas as edições e anotações desta HQ também serão removidas.</p>
     <div class="form-actions">
       <button class="btn btn-ghost" id="deleteCancelBtn">Cancelar</button>
-      <button class="btn btn-danger" id="deleteConfirmBtn"><i class='fa-solid fa-trash'></i>️ Excluir</button>
+      <button class="btn btn-danger" id="deleteConfirmBtn"><i class='fa-solid fa-trash'></i> Excluir</button>
     </div>
   </div>
 </div>
@@ -426,7 +430,7 @@
         <textarea id="nText" class="form-control" placeholder="Citações, resumos, onde parei de ler..." style="min-height: 120px; resize: vertical; border-color: var(--primary); padding-top: 8px;"></textarea>
       </div>
       <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 10px;">
-        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;"><i class='fa-solid fa-trash'></i>️ Limpar</button>
+        <button type="button" class="btn btn-ghost" id="btnExcluirNote" style="color: var(--danger); border-color: rgba(255,0,0,0.3); flex: 1;"><i class='fa-solid fa-trash'></i> Limpar</button>
         <button type="button" class="btn btn-primary" id="btnSalvarNote" style="flex: 2;"><i class='fa-solid fa-floppy-disk'></i> Salvar Anotações</button>
       </div>
     </form>
@@ -457,5 +461,7 @@
 <script src="js/hq.js"></script>
 <script src="js/utils-stats.js"></script>
 <div class="watermark">&copy; ViselBrx &amp; DaviMoraes07&trade;</div>
+<script src="js/custom-select.js"></script>
 </body>
 </html>
+

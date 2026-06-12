@@ -296,10 +296,14 @@
       <p style="margin:0;">Organize e leia seus mangás direto da página, separados por volumes.</p>
     </div>
     <div id="statsWidget" class="stats-widget"></div>
-    <div style="display:flex; gap: 10px; align-items:center;">
-      <input id="searchManga" class="form-control" type="text" placeholder="🔍 Buscar Mangá" style="max-width: 180px; padding: 6px 12px; font-size: 0.9rem; border-radius: 8px;" />
-      <button class="btn btn-primary" id="addMangaBtn" style="padding: 6px 14px; font-size: 0.9rem; border-radius: 8px;">✚ Novo</button>
-    </div>
+    <div class="search-bar" style="margin-top: 15px;">
+    <input id="searchManga" type="text" placeholder="Buscar Mangá..." />
+    <select id="filterMangaStatus">
+      <option value="">Todos os Mangás</option>
+      <option value="favoritos">Meus Favoritos</option>
+    </select>
+    <button class="btn btn-primary" id="addMangaBtn"><i class="fa-solid fa-plus"></i> Novo</button>
+  </div>
   </div>
 
   <!-- SELETOR DE MANGÁS -->
@@ -457,5 +461,6 @@
 <script src="js/mangas.js"></script>
 <script src="js/utils-stats.js"></script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
+<script src="js/custom-select.js"></script>
 </body>
 </html>

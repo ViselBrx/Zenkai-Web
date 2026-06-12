@@ -458,7 +458,7 @@
         <!-- MODAL DE VENDA CUSTOMIZADO -->
         <div class="modal-overlay" id="sellModalOverlay">
             <div class="sell-modal">
-                <div class="m-icon" id="mIcon"><i class='fa-solid fa-trash'></i>️</div>
+                <div class="m-icon" id="mIcon"><i class='fa-solid fa-trash'></i></div>
                 <div class="m-title">Vender Item?</div>
                 <p class="m-desc" id="mDesc">
                     Você está prestes a vender este item. O valor de compra será
@@ -507,7 +507,7 @@
                 {
                     id: "titulo_explorador",
                     name: "Título: Explorador",
-                    icon: "<i class='fa-solid fa-map'></i>️",
+                    icon: "<i class='fa-solid fa-map'></i>",
                     category: "titulo",
                     currency: "ouro",
                     price: 5,
@@ -539,7 +539,7 @@
                 {
                     id: "banner_berserk",
                     name: "Banner: Eclipse de Guts",
-                    icon: "<i class='fa-solid fa-khanda'></i>️",
+                    icon: "<i class='fa-solid fa-khanda'></i>",
                     category: "banner",
                     currency: "ouro",
                     price: 4,
@@ -547,7 +547,7 @@
                 {
                     id: "titulo_espadachim",
                     name: "Título: Espadachim Solitário",
-                    icon: "<i class='fa-solid fa-khanda'></i>️",
+                    icon: "<i class='fa-solid fa-khanda'></i>",
                     category: "titulo",
                     currency: "ouro",
                     price: 5,
@@ -611,7 +611,7 @@
                 {
                     id: "aura_gelo",
                     name: "Aura Cristal de Gelo",
-                    icon: "<i class='fa-solid fa-snowflake'></i>️",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
                     category: "aura",
                     currency: "diamante",
                     price: 11,
@@ -635,7 +635,7 @@
                 {
                     id: "banner_ragnarok",
                     name: "Banner: Arena Ragnarok",
-                    icon: "<i class='fa-solid fa-building-columns'></i>️",
+                    icon: "<i class='fa-solid fa-building-columns'></i>",
                     category: "banner",
                     currency: "diamante",
                     price: 10,
@@ -675,7 +675,7 @@
                 {
                     id: "titulo_guardiao",
                     name: "Título: Guardião Lenda",
-                    icon: "<i class='fa-solid fa-shield'></i>️",
+                    icon: "<i class='fa-solid fa-shield'></i>",
                     category: "titulo",
                     currency: "esmeralda",
                     price: 2,
@@ -699,7 +699,7 @@
                 {
                     id: "banner_vinland",
                     name: "Banner: Vinland Saga",
-                    icon: "<i class='fa-solid fa-shield'></i>️",
+                    icon: "<i class='fa-solid fa-shield'></i>",
                     category: "banner",
                     currency: "esmeralda",
                     price: 6,
@@ -827,7 +827,7 @@
           <div class="item-preview-circle">
             ${
                 item.category === "banner"
-                    ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='<i class='fa-solid fa-image'></i>️'">`
+                    ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='<i class='fa-solid fa-image'></i>'">`
                     : item.icon
             }
           </div>
@@ -1138,3 +1138,4 @@
         </script>
     </body>
 </html>
+

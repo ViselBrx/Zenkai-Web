@@ -1798,7 +1798,7 @@ button {
 }
 
 /* ===== SCROLLBARS GLOBAIS VIBRANTES (UNIFICADAS POR TEMA) ===== */
-::-webkit-scrollbar {
+html::-webkit-scrollbar, body::-webkit-scrollbar, div::-webkit-scrollbar, ul::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
@@ -1807,12 +1807,12 @@ button {
   cursor: pointer;
 }
 
-::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track, body::-webkit-scrollbar-track, div::-webkit-scrollbar-track, ul::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.2) !important;
   border-radius: 10px;
 }
 
-::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, div::-webkit-scrollbar-thumb, ul::-webkit-scrollbar-thumb {
   background: var(--primary) !important;
   border-radius: 50px;
   border: 2px solid var(--bg-dark) !important;
@@ -2235,8 +2235,8 @@ body {
   justify-content: center;
   gap: 1rem;
   margin: 0 auto 2.5rem auto;
-  max-width: 900px;
-  background: transparent;
+  max-width: 1050px;
+  background: var(--bg-dark);
   padding: 1.2rem;
   border-radius: var(--radius);
   border: 2px solid rgba(var(--primary-rgb), 0.3);
@@ -2244,6 +2244,9 @@ body {
     var(--shadow-neon),
     inset 0 0 15px rgba(var(--primary-rgb), 0.08);
   animation: float 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  position: sticky;
+  top: 72px;
+  z-index: 100;
 }
 
 @keyframes float {
@@ -2340,6 +2343,8 @@ body {
 
 .search-bar input,
 .search-bar select {
+  flex: 1;
+  min-width: 140px;
   padding: 12px 18px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -2351,8 +2356,8 @@ body {
 }
 
 .search-bar input {
-  flex: 1;
-  min-width: 200px;
+  flex: 2;
+  min-width: 150px;
 }
 
 .search-bar input:focus,
@@ -3649,14 +3654,10 @@ body:has(.modal-overlay.open) {
 }
 
 .home-icon {
-  font-size: 3.5rem;
-  width: 80px;
-  height: 80px;
+  font-size: 2.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-surface);
-  border-radius: 50%;
   margin-bottom: 0.5rem;
 }
 
@@ -5714,4 +5715,179 @@ body.modo-cinema .history-sidebar {
 .fav-star-container {
   position: relative;
   display: inline-block;
+}
+
+/* ===== SEARCH BAR: lupa + texto minúsculo ===== */
+/* Texto do placeholder em minúsculo e fonte normal */
+.search-bar input::placeholder {
+  text-transform: none !important;
+  font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
+  font-weight: 400 !important;
+}
+
+/* Ícone de lupa via SVG inline no background */
+.search-bar input {
+  padding-left: 42px !important;
+}
+
+.search-bar input,
+.theme-cromatico .search-bar input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23888888' d='M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 16px 16px !important;
+}
+/* Mesma sobrescrita para tema cromático (que usa background shorthand com !important) */
+.theme-cromatico .search-bar input {
+  background-color: hsla(var(--chromatic-hue), 88%, 58%, 0.06) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  text-transform: none !important;
+}
+
+
+
+/* ===== CUSTOM SELECT (search-bar) ===== */
+.cs-wrapper {
+  flex: 1;
+  min-width: 140px;
+  position: relative;
+  font-size: 0.95rem;
+}
+
+.cs-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 12px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-trigger-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.cs-arrow {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.cs-arrow svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.cs-wrapper.open .cs-trigger {
+  border-color: var(--primary);
+  box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.5), 0 0 10px rgba(var(--primary-rgb), 0.3);
+}
+
+.cs-wrapper.open .cs-arrow {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.cs-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: var(--bg-surface);
+  border: 1px solid rgba(var(--primary-rgb), 0.4);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(var(--primary-rgb), 0.15);
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
+}
+
+.cs-dropdown::-webkit-scrollbar { width: 5px; }
+.cs-dropdown::-webkit-scrollbar-track { background: transparent; }
+.cs-dropdown::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+.cs-dropdown.open {
+  display: block;
+  animation: cs-fade-in 0.15s ease;
+}
+
+@keyframes cs-fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cs-option {
+  padding: 10px 18px;
+  cursor: pointer;
+  color: var(--text-main);
+  font-size: 0.93rem;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-option:hover {
+  background: rgba(var(--primary-rgb), 0.18);
+  color: var(--primary);
+}
+
+.cs-option.selected {
+  background: rgba(var(--primary-rgb), 0.28);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Tema crom�tico */
+.theme-cromatico .cs-trigger {
+  background: hsla(var(--chromatic-hue), 88%, 58%, 0.06);
+  border-color: hsla(var(--chromatic-hue), 88%, 58%, 0.3);
+}
+
+.theme-cromatico .cs-wrapper.open .cs-trigger {
+  border-color: hsla(var(--chromatic-hue), 88%, 62%, 0.8);
+  box-shadow: 0 0 18px hsla(var(--chromatic-hue), 88%, 58%, 0.4);
+}
+
+.theme-cromatico .cs-dropdown {
+  background: hsla(var(--chromatic-hue), 20%, 10%, 0.97);
+  border-color: hsla(var(--chromatic-hue), 88%, 58%, 0.4);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px hsla(var(--chromatic-hue), 88%, 58%, 0.15);
+}
+
+.theme-cromatico .cs-dropdown::-webkit-scrollbar-thumb {
+  background: hsla(var(--chromatic-hue), 88%, 62%, 1);
+}
+
+.theme-cromatico .cs-option:hover {
+  background: hsla(var(--chromatic-hue), 88%, 58%, 0.18);
+  color: hsla(var(--chromatic-hue), 88%, 75%, 1);
+}
+
+.theme-cromatico .cs-option.selected {
+  background: hsla(var(--chromatic-hue), 88%, 58%, 0.28);
+  color: hsla(var(--chromatic-hue), 88%, 75%, 1);
 }

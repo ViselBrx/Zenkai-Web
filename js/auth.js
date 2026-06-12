@@ -1296,18 +1296,18 @@ function populateNavbarLinks() {
 
   // Define os links padrão do site
   const links = [
-    { name: "🏠 Início", url: "index.html" },
-    { name: "⛩️ Animes", url: "animes.html" },
-    { name: "📺 Desenhos", url: "desenhos.html" },
-    { name: "🎬 Filmes", url: "filmes.html" },
-    { name: "📝 Painel de Cadastros", url: "painel-cadastros.html" },
-    { name: "📚 Mangás", url: "mangas.html" },
-    { name: "🗯️ HQs", url: "hq.html" },
-    { name: "▶️ YouTube", url: "youtube.html" },
-    { name: "🎌 SenseiMod Store", url: "loja.html" },
-    { name: "🤖 Open AnIme", url: "open-anime.html" },
-    { name: "👥 Equipe", url: "sobre.html" },
-    { name: "💖 Agradecimento", url: "agradecimento.html" }
+    { name: "<i class='fa-solid fa-house'></i> Início", url: "index.html" },
+    { name: "<i class='fa-solid fa-torii-gate'></i> Animes", url: "animes.html" },
+    { name: "<i class='fa-solid fa-tv'></i> Desenhos", url: "desenhos.html" },
+    { name: "<i class='fa-solid fa-clapperboard'></i> Filmes", url: "filmes.html" },
+    { name: "<i class='fa-solid fa-pen-to-square'></i> Painel de Cadastros", url: "painel-cadastros.html" },
+    { name: "<i class='fa-solid fa-book'></i> Mangás", url: "mangas.html" },
+    { name: "<i class='fa-regular fa-comment-dots'></i> HQs", url: "hq.html" },
+    { name: "<i class='fa-solid fa-play'></i> YouTube", url: "youtube.html" },
+    { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
+    { name: "<i class='fa-solid fa-robot'></i> Open AnIme", url: "open-anime.html" },
+    { name: "<i class='fa-solid fa-users'></i> Equipe", url: "sobre.html" },
+    { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradecimento.html" }
   ];
 
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
@@ -1567,7 +1567,7 @@ function createNotificationCenterUI() {
   // Seção de Admin (Apenas se for admin)
   const adminPanel = notificationState.isAdmin ? `
     <div class="notification-admin-panel" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-      <h4 style="color: var(--primary); margin: 0 0 10px 0; font-size: 0.8rem; text-transform: uppercase;">📢 Painel de Alerta Global</h4>
+      <h4 style="color: var(--primary); margin: 0 0 10px 0; font-size: 0.8rem; text-transform: uppercase;"><i class="fa-solid fa-bullhorn"></i> Painel de Alerta Global</h4>
       <input type="text" id="adminNotifTitle" placeholder="Título do Alerta" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
       <textarea id="adminNotifMsg" placeholder="Mensagem para todos os usuários..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem; height:60px; resize:none;"></textarea>
       <button id="sendGlobalNotifBtn" class="btn btn-primary btn-sm" style="width:100%;">Enviar Alerta Site-Wide</button>
@@ -1577,7 +1577,7 @@ function createNotificationCenterUI() {
   center.innerHTML = `
     <div class="notification-center__header">
       <div class="notification-center__eyebrow">
-        <span>🔔 Notificações</span>
+        <span><i class="fa-solid fa-bell"></i> Notificações</span>
       </div>
       <button class="notification-center__close" id="closeNotifCenter">✕</button>
     </div>
@@ -1592,7 +1592,7 @@ function createNotificationCenterUI() {
 
     <div class="notification-center__content" id="notifCenterContent">
       <div class="notif-empty-state">
-        <div class="notif-empty-icon">📭</div>
+        <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
         <p>Buscando notificações...</p>
       </div>
     </div>
@@ -1783,7 +1783,7 @@ function renderNotificationListFromState() {
   if (!notifications.length) {
     content.innerHTML = `
       <div class="notif-empty-state">
-        <div class="notif-empty-icon">📭</div>
+        <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
         <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
       </div>
     `;
@@ -2043,7 +2043,7 @@ function renderNotificationListFromState() {
   if (!notifications.length) {
     content.innerHTML = `
       <div class="notif-empty-state">
-        <div class="notif-empty-icon">📭</div>
+        <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
         <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
       </div>
     `;

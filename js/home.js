@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const searchInput = document.getElementById('searchInput');
   const filterProd = document.getElementById('filterProdutora');
   const filterTemp = document.getElementById('filterTemporadas');
+  const filterFavoritos = document.getElementById('filterFavoritos');
 
   let cartoons = DB.getCartoons();
   let openCartoonDetailId = null;
@@ -44,7 +45,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Favoritos no topo, demais itens na ordem original
-    filtered.sort((a, b) => {
+    const favFilter = filterFavoritos ? filterFavoritos.value : '';
+    const finalFiltered = (typeof favFilter !== 'undefined' && favFilter === 'favoritos') ? filtered.filter(c => userFavs.has(c.id)) : filtered;
+    finalFiltered.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
       const bFav = userFavs.has(b.id) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
@@ -58,7 +61,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     emptyState.style.display = 'none';
 
-    filtered.forEach(c => {
+    finalFiltered.forEach(c => {
       const isFav = userFavs.has(c.id);
       const card = document.createElement('div');
       card.className = 'card';
@@ -180,8 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let debounceTimer;
   searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(render, 300);
+    render();
   });
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
@@ -190,9 +192,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
   filterProd.addEventListener('change', render);
+  if (filterFavoritos) filterFavoritos.addEventListener('change', render);
   filterTemp.addEventListener('change', render);
+  if (filterFavoritos) filterFavoritos.addEventListener('change', render);
 
   initFilters();
+  if (window.initCustomSelects) window.initCustomSelects();
   render();
 
   window.addEventListener('profileUpdated', () => { render(); });

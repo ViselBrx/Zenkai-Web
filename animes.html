@@ -36,7 +36,7 @@
 
   <!-- BUSCA E FILTROS -->
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍 Pesquisar anime..." />
+    <input id="searchInput" type="text" placeholder="Pesquisar anime..." />
     <select id="filterEstudio">
       <option value="">Todos os estúdios</option>
     </select>
@@ -46,6 +46,10 @@
       <option value="2">2 temporadas</option>
       <option value="3">3 temporadas</option>
       <option value="4">4+</option>
+    </select>
+    <select id="filterFavoritos">
+      <option value="">Todos os itens</option>
+      <option value="favoritos">Meus Favoritos</option>
     </select>
   </div>
 
@@ -81,5 +85,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
+<script src="js/custom-select.js"></script>
 </body>
 </html>

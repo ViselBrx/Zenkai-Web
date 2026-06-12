@@ -36,12 +36,16 @@
 
   <!-- BUSCA E FILTROS -->
   <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="🔍 Pesquisar filme..." />
+    <input id="searchInput" type="text" placeholder="Pesquisar filme..." />
     <select id="filterGenero">
       <option value="">Todos os gêneros</option>
     </select>
     <select id="filterAno">
       <option value="">Todos os anos</option>
+    </select>
+    <select id="filterFavoritos">
+      <option value="">Todos os itens</option>
+      <option value="favoritos">Meus Favoritos</option>
     </select>
   </div>
 
@@ -102,5 +106,6 @@
 <script src="js/filmes.js"></script>
 <script src="js/utils-stats.js"></script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
+<script src="js/custom-select.js"></script>
 </body>
 </html>

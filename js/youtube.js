@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const grid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');
+  const filterFavoritos = document.getElementById('filterFavoritos');
 
   let playlists = DB.getYoutubePlaylists();
   let activePlaylistId = null;
@@ -32,14 +33,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Favoritos no topo, demais itens na ordem original
-    filtered.sort((a, b) => {
+    const favFilter = filterFavoritos ? filterFavoritos.value : '';
+    const finalFiltered = (typeof favFilter !== 'undefined' && favFilter === 'favoritos') ? filtered.filter(a => userFavs.has(a.id)) : filtered;
+    finalFiltered.sort((a, b) => {
       const aFav = userFavs.has(a.id) ? 1 : 0;
       const bFav = userFavs.has(b.id) ? 1 : 0;
       if (aFav !== bFav) return bFav - aFav;
       return a._originIndex - b._originIndex;
     });
 
-    filtered.forEach(a => {
+    finalFiltered.forEach(a => {
       const isFav = userFavs.has(a.id);
       const card = document.createElement('div');
       card.className = 'card';
@@ -148,9 +151,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   let debounceTimer;
+  if (filterFavoritos) filterFavoritos.addEventListener('change', render);
   searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(render, 300);
+    render();
   });
   searchInput.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
