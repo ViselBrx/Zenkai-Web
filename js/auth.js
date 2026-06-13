@@ -1019,8 +1019,15 @@ window.updateNavbarCosmetics = function () {
       if (oldOverlay) oldOverlay.remove();
 
       if (bannerUrl) {
+        // Garantir que o pseudo-elemento ::before não sobreponha a imagem nativa
+        if (!document.getElementById("hide-history-before")) {
+          const style = document.createElement("style");
+          style.id = "hide-history-before";
+          style.innerHTML = ".history-sidebar::before { display: none !important; content: none !important; }";
+          document.head.appendChild(style);
+        }
+
         // Aplicar banner DIRETAMENTE como background da sidebar (gradiente + imagem)
-        // Isso evita o problema de z-index onde o overlay ficava atrás do fundo da página
         sidebar.style.backgroundImage = `linear-gradient(
           rgba(10, 25, 47, 0.72) 0%,
           rgba(10, 25, 47, 0.85) 60%,
@@ -1030,10 +1037,12 @@ window.updateNavbarCosmetics = function () {
         sidebar.style.backgroundPosition = "center top";
         sidebar.style.backgroundRepeat = "no-repeat";
         
-        // Também define a variável CSS como fallback para navegadores antigos ou para o pseudo-elemento ::before
+        // Também define a variável CSS como fallback
         sidebar.style.setProperty("--history-sidebar-banner", `url('${bannerUrl}')`);
       } else {
         // Sem banner: restaurar background padrão do CSS
+        const hideStyle = document.getElementById("hide-history-before");
+        if (hideStyle) hideStyle.remove();
         sidebar.style.backgroundImage = "";
         sidebar.style.backgroundSize = "";
         sidebar.style.backgroundPosition = "";
