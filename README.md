@@ -108,7 +108,7 @@ Acesse: `http://localhost:3000`
 | `mangas.html` | Leitor/organizador de mangás por volume com links externos |
 | `hq.html` | Visualizador de quadrinhos/HQs em PDF com suporte a anotações |
 | `open-anime.html` | **Open Anime Agent** — IA com chat, visão e comparação de personagens |
-| `cadastro*.html` | CRUD administrativo para animes, desenhos, filmes e YouTube |
+| `cadastro.html` | CRUD administrativo para animes, desenhos, filmes e YouTube |
 | `agradecimento.html` | Tela de créditos e agradecimentos |
 
 ---
