@@ -1006,7 +1006,8 @@ window.updateNavbarCosmetics = function () {
   }
 
   // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
-  if (window.location.href.includes("perfil.html")) {
+  const isProfilePage = window.location.href.includes("perfil.html") || window.location.pathname.endsWith("/perfil") || window.location.pathname === "/perfil/";
+  if (isProfilePage) {
     const sidebar =
       document.querySelector(".history-sidebar") ||
       document.querySelector(".profile-sidebar");
