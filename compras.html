@@ -732,45 +732,41 @@
                 }, 3000);
             }
 
-            function getComprasStore() {
-                // 1. Tentar pegar do banco de dados sincronizado (DB.js)
-                if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
+            // getComprasStore: usado como fallback síncrono pelo fluxo de venda/equipar
+            // O carregamento principal (DOMContentLoaded) usa fetch direto ao Supabase
+            function getComprasStore(userId) {
+                // 1. DB._store se estiver populado
+                if (window.DB?._store?.profile?.store_data) {
                     try {
                         return JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
                     } catch (e) {}
                 }
-
-                // 2. Tentar pegar do localStorage (detectando usuário se possível)
-                let userId = null;
-                try {
-                   // Nota: Como getComprasStore é síncrona, tentamos pegar o usuário do localStorage do supabase se existir
-                   const supaKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-                   if (supaKey) {
-                       const session = JSON.parse(localStorage.getItem(supaKey));
-                       userId = session?.user?.id;
-                   }
-                } catch(e) {}
-
+                // 2. localStorage isolado por userId
                 try {
                     const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
-                    const s = JSON.parse(localStorage.getItem(key) || "null");
-                    if (s && typeof s === "object") return s;
+                    const s = JSON.parse(localStorage.getItem(key) || 'null');
+                    if (s && typeof s === 'object') return s;
                 } catch (e) {}
-
+                // 3. Detecta userId do token supabase
+                try {
+                    const supaKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+                    const session = supaKey ? JSON.parse(localStorage.getItem(supaKey)) : null;
+                    const uid = session?.user?.id;
+                    if (uid) {
+                        const s = JSON.parse(localStorage.getItem(`animehouse_store_${uid}`) || 'null');
+                        if (s && typeof s === 'object') return s;
+                    }
+                } catch (e) {}
                 return { purchased: [], equipped: {} };
             }
 
-            async function renderInventory() {
-                const store = getComprasStore();
+            // renderInventory recebe (userId, store) diretamente do DOMContentLoaded
+            // eliminando dependência de window.DB._store que pode ser resetado por DB.init()
+            async function renderInventory(userId, store) {
+                // Se store não foi passado, busca como fallback
+                if (!store) store = getComprasStore(userId);
                 const container = document.getElementById("inventoryContainer");
 
-                let userId = null;
-                try {
-                    if (window.supabaseClient) {
-                        const { data: { user } } = await window.supabaseClient.auth.getUser();
-                        userId = user?.id;
-                    }
-                } catch (e) {}
                 const userKey = (base) => userId ? `${base}_${userId}` : base;
 
                 // Limpa sempre para evitar fantasmas de itens vendidos
@@ -962,7 +958,9 @@
                         if (window.checkAuthStatus) window.checkAuthStatus();
 
                         closeSellModal();
-                        renderInventory();
+                        // Relê o store do localStorage após a venda (sincrônico e confiável)
+                        const updatedStore = getComprasStore(userId);
+                        renderInventory(userId, updatedStore);
                         if (typeof showToast === "function")
                             showToast(`<i class='fa-solid fa-check'></i> "${item.name}" vendido!`, "success");
                     } catch (err) {
@@ -1100,7 +1098,7 @@
                                 card.appendChild(ribbon);
                             }
                         } else {
-                            btn.innerHTML = '<span><i class='fa-solid fa-bolt'></i></span> Marcar';
+                            btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
                             const ribbon = card.querySelector('.equipped-ribbon');
                             if (ribbon) ribbon.remove();
                         }
@@ -1111,7 +1109,7 @@
                             if (otherTypeMatch) {
                                 card.classList.remove('is-equipped');
                                 btn.classList.remove('equipped');
-                                btn.innerHTML = '<span><i class='fa-solid fa-bolt'></i></span> Marcar';
+                                btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
                                 const ribbon = card.querySelector('.equipped-ribbon');
                                 if (ribbon) ribbon.remove();
                             }
@@ -1121,19 +1119,93 @@
             }
 
             document.addEventListener("DOMContentLoaded", async () => {
-                if (window.DB && window.DB.init) {
-                    await window.DB.init();
-                    if (window.DB._store.profile?.store_data) {
-                        const storeData = window.DB._store.profile.store_data;
-                        const userId = storeData._userId;
-                        const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
-                        localStorage.setItem(
-                            key,
-                            JSON.stringify(storeData),
-                        );
-                    }
+                // Spinner enquanto busca
+                const container = document.getElementById("inventoryContainer");
+                container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);font-size:1.1rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:16px;display:block;"></i>
+                    Carregando seu inventário...
+                </div>`;
+
+                // Aguarda supabaseClient (injetado pelo auth.js)
+                let attempts = 0;
+                while (!window.supabaseClient && attempts < 80) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
                 }
-                renderInventory();
+
+                // Sem supabaseClient: tenta localStorage
+                if (!window.supabaseClient) {
+                    console.warn("[Compras] supabaseClient não disponível — usando localStorage.");
+                    renderInventory(null, null);
+                    return;
+                }
+
+                // Resolve o usuário logado
+                let currentUserId = null;
+                try {
+                    const { data: { user } } = await window.supabaseClient.auth.getUser();
+                    currentUserId = user?.id || null;
+                } catch (e) {
+                    console.warn("[Compras] Erro ao obter usuário:", e);
+                }
+
+                if (!currentUserId) {
+                    console.warn("[Compras] Usuário não logado.");
+                    renderInventory(null, null);
+                    return;
+                }
+
+                // ─── Busca LEVE: só store_data, sem DB.init() pesado ───
+                let finalStore = null;
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from("profiles")
+                        .select("store_data")
+                        .eq("id", currentUserId)
+                        .maybeSingle();
+
+                    if (error) {
+                        console.warn("[Compras] Erro ao buscar store_data:", error.message);
+                    } else if (data?.store_data) {
+                        const remoteStore = data.store_data;
+
+                        // Mescla com localStorage (preserva compras feitas offline)
+                        const localKey = `animehouse_store_${currentUserId}`;
+                        let localStore = {};
+                        try {
+                            const raw = localStorage.getItem(localKey);
+                            if (raw) localStore = JSON.parse(raw) || {};
+                        } catch (e) {}
+
+                        const dbP = Array.isArray(remoteStore.purchased) ? remoteStore.purchased : [];
+                        const lcP = Array.isArray(localStore.purchased) ? localStore.purchased : [];
+                        const merged = [...new Set([...dbP, ...lcP])];
+
+                        finalStore = {
+                            ...remoteStore,
+                            purchased: merged,
+                            equipped: { ...(localStore.equipped || {}), ...(remoteStore.equipped || {}) },
+                            _userId: currentUserId
+                        };
+
+                        // Persiste localmente para uso offline futuro
+                        localStorage.setItem(localKey, JSON.stringify(finalStore));
+                        console.log(`[Compras] ✅ ${merged.length} itens carregados do Supabase.`);
+                    } else {
+                        console.log("[Compras] store_data vazio ou perfil sem compras.");
+                    }
+                } catch (err) {
+                    console.warn("[Compras] Falha na query ao Supabase:", err);
+                }
+
+                // ─── Se Supabase não retornou nada, usa localStorage como fallback ───
+                if (!finalStore) {
+                    finalStore = getComprasStore(currentUserId);
+                    console.log(`[Compras] ⚠️ Usando localStorage como fallback: ${finalStore?.purchased?.length || 0} itens.`);
+                }
+
+                // Renderiza passando store diretamente (sem depender de window.DB._store)
+                renderInventory(currentUserId, finalStore);
             });
         </script>
     </body>

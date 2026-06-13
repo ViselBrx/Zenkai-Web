@@ -1029,25 +1029,15 @@ window.updateNavbarCosmetics = function () {
         sidebar.style.backgroundSize = "cover";
         sidebar.style.backgroundPosition = "center top";
         sidebar.style.backgroundRepeat = "no-repeat";
+        
+        // Também define a variável CSS como fallback para navegadores antigos ou para o pseudo-elemento ::before
+        sidebar.style.setProperty("--history-sidebar-banner", `url('${bannerUrl}')`);
       } else {
         // Sem banner: restaurar background padrão do CSS
         sidebar.style.backgroundImage = "";
         sidebar.style.backgroundSize = "";
         sidebar.style.backgroundPosition = "";
         sidebar.style.backgroundRepeat = "";
-      }
-
-      sidebar.style.backgroundImage = "";
-      sidebar.style.backgroundSize = "";
-      sidebar.style.backgroundPosition = "";
-      sidebar.style.backgroundRepeat = "";
-
-      if (bannerUrl) {
-        sidebar.style.setProperty(
-          "--history-sidebar-banner",
-          `url('${bannerUrl}')`,
-        );
-      } else {
         sidebar.style.removeProperty("--history-sidebar-banner");
       }
     }

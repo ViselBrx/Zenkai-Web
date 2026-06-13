@@ -1217,8 +1217,7 @@
                 opacity: 0.75;
                 position: relative;
             }
-            .catalog-item.owned::after {
-                content: "<i class='fa-solid fa-check'></i> Adquirido";
+            .owned-badge {
                 position: absolute;
                 top: 8px;
                 left: 8px;
@@ -1230,6 +1229,9 @@
                 padding: 3px 10px;
                 border-radius: 20px;
                 z-index: 10;
+                display: flex;
+                align-items: center;
+                gap: 5px;
             }
 
             /* ===== SECAO VAZIA ===== */
@@ -1498,7 +1500,7 @@
                 </div>
                 <div class="policy-card policy-diamante">
                     <div class="policy-header">
-                        <div class="policy-icon"><i class="fi fi-rs-diamond"></i></div>
+                        <div class="policy-icon"><i class="fa-solid fa-gem" style="color:#64c8ff;"></i></div>
                         <div>
                             <div class="policy-title">Ficha de Diamante</div>
                             <div
@@ -1520,7 +1522,7 @@
                 </div>
                 <div class="policy-card policy-esmeralda">
                     <div class="policy-header">
-                        <div class="policy-icon"><img src="assets/emerald.png" class="esmeralda-icon"></div>
+                        <div class="policy-icon"><i class="fa-solid fa-gem" style="color:#10b981;"></i></div>
                         <div>
                             <div class="policy-title">Ficha de Esmeralda</div>
                             <div
@@ -1606,10 +1608,10 @@
 
                 <!-- DIAMANTE -->
                 <div class="ficha-card ficha-diamante" id="fichaDiamanteCard">
-                    <div class="ficha-icon"><i class="fi fi-rs-diamond"></i></div>
+                    <div class="ficha-icon"><i class="fa-solid fa-gem"></i></div>
                     <div class="ficha-name">FICHA DE DIAMANTE</div>
                     <div class="ficha-taxa">
-                        <strong>250 XP → 1 <i class="fi fi-rs-diamond"></i></strong>
+                        <strong>250 XP → 1 <i class="fa-solid fa-gem"></i></strong>
                         Patamar mínimo: <em>Mestre</em>
                     </div>
                     <div class="ficha-req"><i class='fa-solid fa-trident'></i> Patamar Mestre</div>
@@ -1661,10 +1663,10 @@
 
                 <!-- ESMERALDA -->
                 <div class="ficha-card ficha-esmeralda" id="fichaEsmeraldaCard">
-                    <div class="ficha-icon"><img src="assets/emerald.png" class="esmeralda-icon"></div>
+                    <div class="ficha-icon"><i class="fa-solid fa-gem" style="color:#10b981;"></i></div>
                     <div class="ficha-name">FICHA DE ESMERALDA</div>
                     <div class="ficha-taxa">
-                        <strong>500 XP → 1 <img src="assets/emerald.png" class="esmeralda-icon"></strong>
+                        <strong>500 XP → 1 <i class="fa-solid fa-gem" style="color:#10b981;"></i></strong>
                         Patamar mínimo: <em>Guardião</em>
                     </div>
                     <div class="ficha-req"><i class='fa-solid fa-shield'></i>️ Patamar Guardião</div>
@@ -1753,10 +1755,10 @@
                         <i class='fa-solid fa-medal'></i> Ouro
                     </button>
                     <button class="currency-tab" data-currency="diamante">
-                        <i class="fi fi-rs-diamond"></i> Diamante
+                        <i class="fa-solid fa-gem"></i> Diamante
                     </button>
                     <button class="currency-tab" data-currency="esmeralda">
-                        <img src="assets/emerald.png" class="esmeralda-icon"> Esmeralda
+                        <i class="fa-solid fa-gem" style="color:#10b981;"></i> Esmeralda
                     </button>
                 </div>
             </div>
@@ -2172,8 +2174,8 @@
                         ficha === "ouro"
                             ? "<i class='fa-solid fa-medal'></i>"
                             : ficha === "diamante"
-                              ? "<i class='fi fi-rs-diamond'></i>"
-                              : "<img src='assets/emerald.png' class='esmeralda-icon'>";
+                              ? "<i class='fa-solid fa-gem'></i>"
+                              : "<i class='fa-solid fa-gem' style='color:#10b981;'></i>";
 
                     function updateResult() {
                         const qtd = parseInt(input.value) || 0;
@@ -2294,8 +2296,8 @@
 
                 const currencyLabel = {
                     ouro: "<i class='fa-solid fa-medal'></i> Ouro",
-                    diamante: "<i class='fi fi-rs-diamond'></i> Diamante",
-                    esmeralda: "<img src='assets/emerald.png' class='esmeralda-icon'> Esmeralda",
+                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
+                    esmeralda: "<i class='fa-solid fa-gem' style='color:#10b981;'></i> Esmeralda",
                 };
                 const reqLabel = {
                     prata: "Patamar Prata",
@@ -2322,8 +2324,7 @@
                         const canBuy = fichaOk && suficiente && !alreadyBought;
 
                         let lockMsg = "";
-                        if (alreadyBought) lockMsg = "<i class='fa-solid fa-check'></i> Já adquirido";
-                        else if (!fichaOk) lockMsg = `<i class='fa-solid fa-lock'></i> ${reqLabel[item.req]}`;
+                        if (!fichaOk) lockMsg = `<i class='fa-solid fa-lock'></i> ${reqLabel[item.req]}`;
                         else if (!suficiente)
                             lockMsg = `<i class='fa-solid fa-xmark'></i> Requer ${item.price} ${currencyLabel[item.currency]}`;
 
@@ -2337,6 +2338,16 @@
 
                         const cardClick = canBuy ? `onclick="openBuyModal('${item.id}')"` : "";
 
+                        const ownedBadge = alreadyBought
+                            ? `<div class="owned-badge"><i class="fa-solid fa-check"></i> Adquirido</div>`
+                            : "";
+
+                        const priceIcon = item.currency === "ouro"
+                            ? "<i class='fa-solid fa-medal'></i>"
+                            : item.currency === "diamante"
+                              ? "<i class='fa-solid fa-gem'></i>"
+                              : "<i class='fa-solid fa-gem' style='color:#10b981;'></i>";
+
                         return `
     <div class="${cardClasses}" data-id="${item.id}" ${cardClick}>
       <div class="item-preview" style="position:relative; overflow:hidden; background: #000; display: flex; align-items: center; justify-content: center;">
@@ -2346,6 +2357,7 @@
              <span style="display:none; font-size:2rem;">${item.icon}</span>`
                 : `<span>${item.icon}</span>`
         }
+        ${ownedBadge}
         <span class="item-currency-badge">${currencyLabel[item.currency]}</span>
       </div>
       <div class="item-body">
@@ -2353,11 +2365,13 @@
         <div class="item-name">${item.name}</div>
         <p class="item-desc">${item.desc}</p>
         <div class="item-footer">
-          <div class="item-price">${item.price} <span style="font-size:1rem">${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fi fi-rs-diamond'></i>" : "<img src='assets/emerald.png' class='esmeralda-icon'>"}</span></div>
+          <div class="item-price">${item.price} <span style="font-size:1rem">${priceIcon}</span></div>
           ${
-              canBuy
-                  ? `<button class="buy-btn">Comprar</button>`
-                  : `<div class="item-locked">${lockMsg}</div>`
+              alreadyBought
+                  ? `<div class="item-locked"><i class='fa-solid fa-check'></i> Já adquirido</div>`
+                  : canBuy
+                    ? `<button class="buy-btn">Comprar</button>`
+                    : `<div class="item-locked">${lockMsg}</div>`
           }
         </div>
       </div>
@@ -2400,8 +2414,8 @@
 
                 const currencyLabel = {
                     ouro: "<i class='fa-solid fa-medal'></i> Ouro",
-                    diamante: "<i class='fi fi-rs-diamond'></i> Diamante",
-                    esmeralda: "<img src='assets/emerald.png' class='esmeralda-icon'> Esmeralda",
+                    diamante: "<i class='fa-solid fa-gem'></i> Diamante",
+                    esmeralda: "<i class='fa-solid fa-gem' style='color:#10b981;'></i> Esmeralda",
                 };
                 const currencyColors = {
                     ouro: "#d4af37",
@@ -2427,7 +2441,8 @@
                     currencyLabel[item.currency];
 
                 const confirmBtn = document.getElementById("modalConfirm");
-                confirmBtn.innerHTML = `Confirmar — ${item.price} ${item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fi fi-rs-diamond'></i>" : "<img src='assets/emerald.png' class='esmeralda-icon'>"}`;
+                const confirmIcon = item.currency === "ouro" ? "<i class='fa-solid fa-medal'></i>" : item.currency === "diamante" ? "<i class='fa-solid fa-gem'></i>" : "<i class='fa-solid fa-gem' style='color:#10b981;'></i>";
+                confirmBtn.innerHTML = `Confirmar — ${item.price} ${confirmIcon}`;
                 confirmBtn.style.background = currencyColors[item.currency];
                 confirmBtn.style.color = currencyBg[item.currency];
 
