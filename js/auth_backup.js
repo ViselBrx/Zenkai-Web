@@ -1,5 +1,5 @@
 /**
- * js/auth.js — Configuração e Lógica do Supabase (LIMPO E ORGANIZADO)
+ * js/auth.js â€” ConfiguraÃ§Ã£o e LÃ³gica do Supabase (LIMPO E ORGANIZADO)
  */
 
 // 1. CREDENCIAIS
@@ -27,7 +27,7 @@ let supaClient;
 let previousSessionId = null;
 
 const initSupa = () => {
-  if (supaClient) return true; // Já inicializado
+  if (supaClient) return true; // JÃ¡ inicializado
   if (window.supabase) {
     try {
       supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -38,7 +38,7 @@ const initSupa = () => {
         }
       });
       window.supabaseClient = supaClient;
-      console.log("🚀 Supabase Client inicializado com sucesso.");
+      console.log("ðŸš€ Supabase Client inicializado com sucess✅");
       return true;
     } catch (e) {
       console.error("Erro ao inicializar Supabase:", e);
@@ -47,7 +47,7 @@ const initSupa = () => {
   return false;
 };
 
-// Tentar inicializar imediatamente ou aguardar se necessário
+// Tentar inicializar imediatamente ou aguardar se necessÃ¡rio
 let isAuthLogicSetup = false;
 function tryInit() {
   if (initSupa()) {
@@ -67,40 +67,40 @@ if (!tryInit()) {
   setTimeout(() => clearInterval(checkSupa), 5000);
 }
 
-// 🚀 Lógica de Redirecionamento e Auth State
+// ðŸš€ LÃ³gica de Redirecionamento e Auth State
 async function setupAuthLogic() {
   if (!supaClient) return;
   try {
 
-    const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
-    const isRecovery = window.location.hash.includes("type=recovery");
+  const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registr✅html");
+  const isRecovery = window.location.hash.includes("type=recovery");
 
-    if (isRecovery) {
-      sessionStorage.setItem('is_recovering_password', 'true');
+  if (isRecovery) {
+    sessionStorage.setItem('is_recovering_password', 'true');
+  }
+
+  if (isAuthPage && !isRecovery) {
+    if (sessionStorage.getItem('is_recovering_password') === 'true') {
+      sessionStorage.removeItem('is_recovering_password');
+      await supaClient.auth.signOut();
+      return;
     }
 
-    if (isAuthPage && !isRecovery) {
-      if (sessionStorage.getItem('is_recovering_password') === 'true') {
-        sessionStorage.removeItem('is_recovering_password');
-        await supaClient.auth.signOut();
-        return;
-      }
+    const { data: { session } } = await supaClient.auth.getSession();
+    if (session) {
+      window.location.href = "perfil.html";
+    }
+  }
 
-      const { data: { session } } = await supaClient.auth.getSession();
-      if (session) {
-        window.location.href = "perfil.html";
-      }
+  supaClient.auth.onAuthStateChange((event, session) => {
+    console.log("ðŸ”” [Auth Event]:", event, session?.user?.email);
+    const currentSessionId = session?.user?.id || null;
+
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+       // Opcional: sincronizar sessÃ£o
     }
 
-    supaClient.auth.onAuthStateChange((event, session) => {
-      console.log("🔔 [Auth Event]:", event, session?.user?.email);
-      const currentSessionId = session?.user?.id || null;
-
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        // Opcional: sincronizar sessão
-      }
-
-      if (event === 'PASSWORD_RECOVERY') {
+    if (event === 'PASSWORD_RECOVERY') {
         const modalHtml = `
           <div id="recoveryModal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(10,10,15,0.85); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); display:flex; justify-content:center; align-items:center; z-index:9999; opacity:0; transition:opacity 0.3s ease;">
             <div id="recoveryCard" style="background:var(--bg-card); padding:2.5rem; border-radius:20px; border:1px solid rgba(var(--primary-rgb),0.3); width:90%; max-width:420px; text-align:center; box-shadow:0 0 40px rgba(0,0,0,0.6), 0 0 20px rgba(var(--primary-rgb),0.2); transform:translateY(20px); transition:transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
@@ -119,7 +119,7 @@ async function setupAuthLogic() {
               <div style="text-align:left; margin-bottom:1rem;">
                 <label style="display:block; margin-bottom:8px; color:var(--text-main); font-weight:600; font-size:0.9rem;">Nova Senha</label>
                 <div style="position:relative;">
-                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
+                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="MÃ­nimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
                   <button type="button" id="toggleRecPass" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -138,7 +138,7 @@ async function setupAuthLogic() {
               
               <div id="recoveryError" style="color:var(--danger); background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:8px; padding:12px; font-size:0.9rem; margin-bottom:1.5rem; display:none; font-weight:500;"></div>
               
-              <button id="recoveryBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; transition:all 0.3s ease;">💾 Redefinir Senha</button>
+              <button id="recoveryBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; transition:all 0.3s ease;"><i class="fa-solid fa-floppy-disk"></i> Redefinir Senha</button>
             </div>
           </div>
         `;
@@ -187,19 +187,19 @@ async function setupAuthLogic() {
           const errorDiv = document.getElementById('recoveryError');
 
           if (!newPassword || newPassword.length < 6) {
-            errorDiv.innerHTML = "❌ A senha deve ter pelo menos 6 caracteres.";
+            errorDiv.innerHTML = "â Œ A senha deve ter pelo menos 6 caracteres.";
             errorDiv.style.display = "block";
             return;
           }
           if (newPassword !== confirmPassword) {
-            errorDiv.innerHTML = "❌ As senhas não coincidem.";
+            errorDiv.innerHTML = "â Œ As senhas não coincidem.";
             errorDiv.style.display = "block";
             return;
           }
 
           errorDiv.style.display = "none";
           const btn = document.getElementById('recoveryBtn');
-          btn.innerHTML = `<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Atualizando...`;
+          btn.innerHTML = `<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Atualizand✅..`;
           btn.disabled = true;
 
           const { error } = await supaClient.auth.updateUser({ password: newPassword });
@@ -209,13 +209,13 @@ async function setupAuthLogic() {
             if (msg.toLowerCase().includes("different from the old password")) {
               msg = "A nova senha deve ser diferente da antiga.";
             }
-            errorDiv.innerHTML = "❌ Erro: " + msg;
+            errorDiv.innerHTML = "â Œ Erro: " + msg;
             errorDiv.style.display = "block";
-            btn.innerHTML = "💾 Redefinir Senha";
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Redefinir Senha';
             btn.disabled = false;
           } else {
             sessionStorage.removeItem('is_recovering_password');
-            // Deslogar imediatamente para forçar o login manual e impedir que "entre na conta sozinho"
+            // Deslogar imediatamente para forÃ§ar o login manual e impedir que "entre na conta sozinho"
             await supaClient.auth.signOut();
 
             const card = document.getElementById('recoveryCard');
@@ -230,7 +230,7 @@ async function setupAuthLogic() {
                    </div>
                  </div>
                  <h2 style="color:#10b981; margin-bottom:1rem; font-family:'Bangers', cursive; font-size:2.5rem; letter-spacing:2px; text-shadow:0 0 15px rgba(16,185,129,0.3);">Sucesso!</h2>
-                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeição. Por segurança, você foi desconectado. Faça o login com sua nova senha.</p>
+                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeiÃ§Ã£✅ Por segurança, vocÃª foi desconectad✅ FaÃ§a o login com sua nova senha.</p>
                  <button id="recoveryCloseBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; background:#10b981; border-color:#10b981; box-shadow:0 0 15px rgba(16,185,129,0.4);">Fazer Login</button>
                `;
               card.style.borderColor = 'rgba(16,185,129,0.4)';
@@ -254,9 +254,9 @@ async function setupAuthLogic() {
       }
 
       if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
-        console.log("🔄 Usuário alterado. Atualizando dados locais...");
+        console.log("ðŸ”„ UsuÃ¡rio alterad✅ Atualizando dados locais...");
         try {
-          // Limpar chaves genéricas para evitar vazamento
+          // Limpar chaves genÃ©ricas para evitar vazamento
           localStorage.removeItem("animehouse_store");
           localStorage.removeItem("animehouse_customAura");
           localStorage.removeItem("animehouse_customBanner");
@@ -284,10 +284,10 @@ async function setupAuthLogic() {
           }
           keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) { }
-
-        // Evita reload infinito se estivermos na página de login/registro
+        
+        // Evita reload infinito se estivermos na pÃ¡gina de login/registro
         if (!isAuthPage) {
-          console.log("🔄 Recarregando para aplicar novos dados de usuário.");
+          console.log("ðŸ”„ Recarregando para aplicar novos dados de usuÃ¡ri✅");
           window.location.reload();
         }
       }
@@ -298,7 +298,7 @@ async function setupAuthLogic() {
   }
 }
 
-// 3. Lógica de Login e Toggles de Senha
+// 3. LÃ³gica de Login e Toggles de Senha
 function setupPasswordToggle(inputId, toggleId) {
   const input = document.getElementById(inputId);
   const toggle = document.getElementById(toggleId);
@@ -345,12 +345,12 @@ if (forgotPasswordLink) {
       });
       if (error) {
         let msg = error.message;
-        if (msg.includes("rate limit")) msg = "Limite de e-mails atingido. Por favor, aguarde alguns minutos.";
+        if (msg.includes("rate limit")) msg = "Limite de e-mails atingid✅ Por favor, aguarde alguns minutos.";
         errorDiv.textContent = "Erro: " + msg;
         errorDiv.style.display = "block";
       } else {
         if (successDiv) {
-          successDiv.innerHTML = "✅ <strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'>⚠️ <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
+          successDiv.innerHTML = "âœ… <strong>E-mail de redefiniÃ§Ã£o enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'>âš ï¸ <strong>Atenção:</strong> NÃ£o encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
           successDiv.style.display = "block";
         }
       }
@@ -365,17 +365,17 @@ const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // Limpar qualquer flag de recuperação de senha pendente
+    // Limpar qualquer flag de recuperaÃ§Ã£o de senha pendente
     sessionStorage.removeItem('is_recovering_password');
 
     const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorDiv = document.getElementById("loginError");
 
-    // Validação básica de formato de e-mail
+    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "❌ E-mail inválido ou mal formatado.";
+      errorDiv.textContent = "âŒ E-mail invÃ¡lido ou mal formatad✅";
       errorDiv.style.display = "block";
       return;
     }
@@ -383,7 +383,7 @@ if (loginForm) {
     const submitBtn = loginForm.querySelector('button[type="submit"]');
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Entrando...";
+    submitBtn.textContent = "Entrand✅..";
     errorDiv.style.display = "none";
 
     try {
@@ -396,7 +396,7 @@ if (loginForm) {
         let msg = error.message;
         if (msg.includes("Invalid login credentials")) msg = "E-mail ou senha incorretos.";
         else if (msg.includes("Email not confirmed")) msg = "Por favor, confirme seu e-mail antes de entrar.";
-        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingido. Aguarde um pouco e tente novamente.";
+        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingid✅ Aguarde um pouco e tente novamente.";
 
         errorDiv.textContent = "Erro: " + msg;
         errorDiv.style.display = "block";
@@ -406,15 +406,15 @@ if (loginForm) {
       }
 
       // Login bem sucedido
-      console.log("✅ Login realizado com sucesso. Verificando sessão...");
+      console.log("âœ… Login realizado com sucess✅ Verificando sessÃ£✅..");
       const { data: sessData } = await supaClient.auth.getSession();
-
+      
       if (sessData && sessData.session) {
         sessionStorage.setItem('freshLogin', 'true');
-        console.log("🚀 Redirecionando para perfil...");
+        console.log("ðŸš€ Redirecionando para perfil...");
         window.location.href = "perfil.html";
       } else {
-        console.warn("⚠️ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
+        console.warn("âš ï¸ SessÃ£o não encontrada apÃ³s login. Tentando redirecionar mesmo assim...");
         window.location.href = "perfil.html";
       }
     } catch (err) {
@@ -427,7 +427,7 @@ if (loginForm) {
   });
 }
 
-// 4. Lógica de Registro
+// 4. LÃ³gica de Registro
 let lastEmailRegistered = sessionStorage.getItem("lastEmailRegistered") || "";
 
 const registerForm = document.getElementById("registerForm");
@@ -441,10 +441,10 @@ if (registerForm) {
     const successDiv = document.getElementById("registerSuccess");
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
-    // Validação básica de formato de e-mail
+    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "❌ Digite um e-mail válido (ex: seu@email.com).";
+      errorDiv.textContent = "âŒ Digite um e-mail vÃ¡lido (ex: seu@email.com).";
       errorDiv.style.display = "block";
       return;
     }
@@ -462,7 +462,7 @@ if (registerForm) {
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Registrando...";
+    submitBtn.textContent = "Registrand✅..";
     lastEmailRegistered = email;
     sessionStorage.setItem("lastEmailRegistered", email); // Persiste no navegador
 
@@ -472,13 +472,13 @@ if (registerForm) {
       let msg = error.message;
 
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many requests")) {
-        msg = "⚠️ Limite de tentativas atingido. Por favor, aguarde alguns minutos.";
+        msg = "âš ï¸ Limite de tentativas atingid✅ Por favor, aguarde alguns minutos.";
       } else if (msg.toLowerCase().includes("security purposes")) {
-        msg = "⚠️ Você já solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
+        msg = "âš ï¸ VocÃª jÃ¡ solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
       } else if (msg.toLowerCase().includes("confirmation email") || msg.toLowerCase().includes("email send failed")) {
-        msg = "⚠️ Erro no servidor de e-mail (SMTP). Por favor, verifique as configurações de SMTP no painel do Supabase.";
+        msg = "âš ï¸ Erro no servidor de e-mail (SMTP). Por favor, verifique as configuraÃ§Ãµes de SMTP no painel do Supabase.";
       } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || error.status === 422) {
-        msg = "❌ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
+        msg = "âŒ AlguÃ©m jÃ¡ estÃ¡ usando essa conta. Tente fazer login ou use outro e-mail.";
       }
 
       errorDiv.textContent = msg;
@@ -486,7 +486,7 @@ if (registerForm) {
       submitBtn.disabled = false;
       submitBtn.textContent = "Criar Conta";
     } else {
-      // Registro realmente novo - Esconder form e mostrar container de verificação
+      // Registro realmente novo - Esconder form e mostrar container de verificaÃ§Ã£o
       const otpSection = document.getElementById("otpSection");
       const resendSection = document.getElementById("resendEmailSection");
       if (otpSection) {
@@ -494,7 +494,7 @@ if (registerForm) {
         otpSection.style.display = "block";
         if (resendSection) {
           resendSection.style.display = "block";
-          // Pré-preencher o campo de reenvio com o e-mail já usado
+          // PrÃ©-preencher o campo de reenvio com o e-mail jÃ¡ usado
           const resendEmailInput = document.getElementById("resendEmail");
           if (resendEmailInput) resendEmailInput.value = email;
         }
@@ -528,7 +528,7 @@ if (cancelOtpBtn) {
   });
 }
 
-// Lógica de reenvio de código
+// LÃ³gica de reenvio de código
 const resendBtn = document.getElementById("resendBtn");
 if (resendBtn) {
   let resendCooldown = false;
@@ -537,15 +537,15 @@ if (resendBtn) {
     const resendEmailInput = document.getElementById("resendEmail");
     const emailToResend = (resendEmailInput?.value || lastEmailRegistered || "").trim().toLowerCase();
     if (!emailToResend) {
-      alert("Digite o e-mail para reenviar o código.");
+      alert("Digite o e-mail para reenviar o códig✅");
       return;
     }
     resendBtn.disabled = true;
-    resendBtn.textContent = "📨 Enviando...";
+    resendBtn.textContent = "ðŸ“¨ Enviand✅..";
     const client = window.supabaseClient;
     if (!client) {
-      resendBtn.textContent = "❌ Erro ao reenviar. Tente novamente.";
-      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 3000);
+      resendBtn.textContent = "âŒ Erro ao reenviar. Tente novamente.";
+      setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 3000);
       return;
     }
     const { error } = await client.auth.resend({ type: "signup", email: emailToResend });
@@ -554,19 +554,19 @@ if (resendBtn) {
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
         msg = "Aguarde 1 minuto antes de reenviar.";
       }
-      resendBtn.textContent = "❌ " + msg;
-      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 5000);
+      resendBtn.textContent = "âŒ " + msg;
+      setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 5000);
     } else {
       resendCooldown = true;
       let seconds = 60;
-      resendBtn.textContent = `✅ Código reenviado! Aguarde ${seconds}s`;
+      resendBtn.textContent = `âœ… CÃ³digo reenviado! Aguarde ${seconds}s`;
       const interval = setInterval(() => {
         seconds--;
-        resendBtn.textContent = `⏳ Aguarde ${seconds}s para reenviar`;
+        resendBtn.textContent = `â³ Aguarde ${seconds}s para reenviar`;
         if (seconds <= 0) {
           clearInterval(interval);
           resendBtn.disabled = false;
-          resendBtn.textContent = "📧 Reenviar Código";
+          resendBtn.textContent = "ðŸ“§ Reenviar CÃ³digo";
           resendCooldown = false;
         }
       }, 1000);
@@ -576,10 +576,10 @@ if (resendBtn) {
 
 const verifyOtpBtn = document.getElementById("verifyOtpBtn");
 if (verifyOtpBtn) {
-  // Se já temos um e-mail salvo, podemos mostrar a seção de OTP direto
+  // Se jÃ¡ temos um e-mail salvo, podemos mostrar a seÃ§Ã£o de OTP direto
   if (lastEmailRegistered && document.getElementById("otpSection")) {
     // document.getElementById("otpSection").style.display = "block"; 
-    // (Opcional: descomente se quiser que apareça ao atualizar a página)
+    // (Opcional: descomente se quiser que apareÃ§a ao atualizar a pÃ¡gina)
   }
 
   verifyOtpBtn.addEventListener("click", async () => {
@@ -588,7 +588,7 @@ if (verifyOtpBtn) {
     const otpError = document.getElementById("otpError");
 
     if (!email) {
-      otpError.textContent = "Erro: E-mail não identificado.";
+      otpError.textContent = "Erro: E-mail não identificad✅";
       otpError.style.display = "block";
       return;
     }
@@ -600,10 +600,10 @@ if (verifyOtpBtn) {
     }
 
     verifyOtpBtn.disabled = true;
-    verifyOtpBtn.textContent = "🔌 Verificando...";
+    verifyOtpBtn.textContent = "ðŸ”Œ Verificand✅..";
     otpError.style.display = "none";
 
-    console.log("🔍 [DEBUG] Iniciando Verificação OTP:");
+    console.log("ðŸ” [DEBUG] Iniciando VerificaÃ§Ã£o OTP:");
     console.log("   > E-mail:", email);
     console.log("   > Token:", token);
 
@@ -613,14 +613,14 @@ if (verifyOtpBtn) {
       let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
 
       if (res.error) {
-        console.warn("   ⚠️ Falha 'signup':", res.error.message);
+        console.warn("   âš ï¸ Falha 'signup':", res.error.message);
         // 2. Tenta tipo 'email'
         console.log("   > Tentando tipo: 'email'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
       }
 
       if (res.error) {
-        console.warn("   ⚠️ Falha 'email':", res.error.message);
+        console.warn("   âš ï¸  Falha 'email':", res.error.message);
         // 3. Tenta tipo 'magiclink'
         console.log("   > Tentando tipo: 'magiclink'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
@@ -630,9 +630,9 @@ if (verifyOtpBtn) {
 
       if (error) {
         console.error("❌ ERRO FINAL:", error);
-        let userMsg = "Código inválido.";
-        if (error.message.includes("expired")) userMsg = "O código expirou ou é antigo.";
-        else if (error.message.includes("not found")) userMsg = "E-mail não encontrado.";
+        let userMsg = "Código inválid✅";
+        if (error.message.includes("expired")) userMsg = "O código expirou ou é antig✅";
+        else if (error.message.includes("not found")) userMsg = "E-mail não encontrad✅";
 
         otpError.textContent = `❌ ${userMsg} (${error.message})`;
         otpError.style.display = "block";
@@ -649,7 +649,7 @@ if (verifyOtpBtn) {
         });
       }
     } catch (err) {
-      otpError.textContent = "Erro inesperado na verificação.";
+      otpError.textContent = "Erro inesperado na verificaçã✅";
       otpError.style.display = "block";
       verifyOtpBtn.disabled = false;
     }
@@ -658,11 +658,11 @@ if (verifyOtpBtn) {
 
 // 5. Excluir Conta
 window.deleteUserAccount = async function () {
-  if (!supaClient) return { error: { message: 'Supabase não inicializado.' } };
+  if (!supaClient) return { error: { message: 'Supabase não inicializad✅' } };
 
   try {
     const { data: { user } } = await supaClient.auth.getUser();
-    if (!user) return { error: { message: 'Usuário não autenticado.' } };
+    if (!user) return { error: { message: 'Usuário não autenticad✅' } };
 
     // Chama a função de segurança (Postgres RPC) no Supabase
     const { error } = await supaClient.rpc('delete_user');
@@ -678,7 +678,7 @@ window.deleteUserAccount = async function () {
     await supaClient.auth.signOut();
     return { success: true };
   } catch (e) {
-    return { error: { message: e.message || 'Erro inesperado.' } };
+    return { error: { message: e.message || 'Erro inesperad✅' } };
   }
 };
 
@@ -687,7 +687,7 @@ window.loadBanners = async function () {
 
   if (window.supabaseClient) {
     try {
-      console.log("🛰️ Sincronizando com Storage do Supabase...");
+      console.log("🛡️ Sincronizando com Storage do Supabase...");
       const { data: supaBanners, error } = await window.supabaseClient
         .from("store_banners")
         .select("id, image_url");
@@ -700,14 +700,14 @@ window.loadBanners = async function () {
       console.log(
         `📦 Banners carregados do Supabase: ${supaBanners?.length || 0} itens`,
       );
-      console.log("🔍 Raw data do Supabase:", supaBanners);
+      console.log("⚡ Raw data do Supabase:", supaBanners);
 
       if (supaBanners && supaBanners.length > 0) {
         supaBanners.forEach((b, index) => {
           const cleanId = b.id ? b.id.trim() : "sem-id";
           const hasUrl = !!b.image_url;
 
-          console.log(`📝 [${index}] ID="${cleanId}" | hasURL=${hasUrl}`);
+          console.log(`📌 [${index}] ID="${cleanId}" | hasURL=${hasUrl}`);
 
           if (b.image_url) {
             window.BANNER_MAP[cleanId] = b.image_url;
@@ -774,7 +774,7 @@ window.loadBanners = async function () {
           }
         });
 
-        console.log("� BANNER_MAP final:", Object.keys(window.BANNER_MAP));
+        console.log("⚙ BANNER_MAP final:", Object.keys(window.BANNER_MAP));
 
         // Verifica especificamente o banner_cosmos
         if (window.BANNER_MAP["banner_cosmos"]) {
@@ -898,7 +898,7 @@ window.updateNavbarCosmetics = function () {
     }
   } else {
     // Só tenta novamente em páginas que realmente têm navbar de usuário (não login/registro)
-    const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
+    const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registr✅html");
     if (!isAuthPage) {
       if (!window._navbarCosmeticsRetries) window._navbarCosmeticsRetries = 0;
       if (window._navbarCosmeticsRetries < 20) {
@@ -1023,20 +1023,20 @@ window.updateNavbarCosmetics = function () {
         // Remover estilo de bloqueio do ::before se existir
         const hideStyle = document.getElementById("hide-history-before");
         if (hideStyle) hideStyle.remove();
-
+        
         // Limpar estilo direto para evitar duplicidade ou problemas de z-index
         sidebar.style.backgroundImage = "";
         sidebar.style.backgroundSize = "";
         sidebar.style.backgroundPosition = "";
         sidebar.style.backgroundRepeat = "";
-
+        
         // Define a variável CSS que será usada pelo pseudo-elemento ::before (que tem inset: -12px para preencher as bordas)
         sidebar.style.setProperty("--history-sidebar-banner", `url('${bannerUrl}')`);
       } else {
         // Sem banner: restaurar background padrão do CSS
         const hideStyle = document.getElementById("hide-history-before");
         if (hideStyle) hideStyle.remove();
-
+        
         sidebar.style.backgroundImage = "";
         sidebar.style.backgroundSize = "";
         sidebar.style.backgroundPosition = "";
@@ -1065,28 +1065,28 @@ window.addEventListener("storage", (e) => {
   if (!e.key || !e.key.startsWith("animehouse_")) return;
   if (typeof window.updateNavbarCosmetics === "function") {
     window.updateNavbarCosmetics();
-
+    
     // Iniciar rastreamento de status online
     window.startPresenceHeartbeat();
   }
 });
 
 // 🚀 Rastreamento de Presença (Online Status)
-window.startPresenceHeartbeat = async function () {
+window.startPresenceHeartbeat = async function() {
   if (!supaClient || window.presenceStarted) return;
   window.presenceStarted = true;
-
+  
   window.onlineUsersSet = new Set();
-
+  
   try {
     const { data: { session } } = await supaClient.auth.getSession();
     if (!session) return;
-
+    
     // Atualização de fallback no banco
     const updateStatus = async () => {
       try {
         await supaClient.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', session.user.id);
-      } catch (e) { }
+      } catch (e) {}
     };
     updateStatus();
     setInterval(updateStatus, 120000);
@@ -1101,7 +1101,7 @@ window.startPresenceHeartbeat = async function () {
         window.onlineUsersSet = new Set();
         const state = globalPresenceChannel.presenceState();
         for (const [key] of Object.entries(state)) {
-          window.onlineUsersSet.add(key);
+           window.onlineUsersSet.add(key);
         }
         document.dispatchEvent(new Event('presence_updated'));
       })
@@ -1110,7 +1110,7 @@ window.startPresenceHeartbeat = async function () {
           await globalPresenceChannel.track({ online_at: new Date().toISOString() });
         }
       });
-
+      
     window.globalPresenceChannel = globalPresenceChannel;
 
     // 🚚 Marcar mensagens pendentes como entregues (Funciona em todas as páginas)
@@ -1121,20 +1121,20 @@ window.startPresenceHeartbeat = async function () {
           .update({ delivered_at: new Date().toISOString() })
           .eq('recipient_id', session.user.id)
           .is('delivered_at', null);
-      } catch (err) { }
+      } catch (err) {}
     };
-
+    
     // Executa ao carregar qualquer página
     markAsDelivered();
-
+    
     // Escuta novas mensagens para marcar como entregue em tempo real (mesmo fora da aba de chat)
     supaClient
       .channel('delivery-tracker')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'direct_messages',
-        filter: `recipient_id=eq.${session.user.id}`
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'direct_messages', 
+        filter: `recipient_id=eq.${session.user.id}` 
       }, () => markAsDelivered())
       .subscribe();
 
@@ -1254,7 +1254,7 @@ window.checkAuthStatus = async function () {
 
       // Se estamos no perfil e não temos perfil no banco, não expulsar imediatamente
       if (!profile && currentPage === "perfil.html") {
-        console.warn("Perfil ainda não criado no banco. Aguardando sincronização...");
+        console.warn("Perfil ainda não criado no banc✅ Aguardando sincronizaçã✅..");
       }
 
       if (!window.BANNER_MAP) await loadBanners();
@@ -1272,7 +1272,7 @@ window.checkAuthStatus = async function () {
 
   // Proteção de rotas
   const protected = [
-    "cadastro.html",
+    "cadastr✅html",
     "cadastro-animes.html",
     "cadastro-filmes.html",
     "cadastro-youtube.html",
@@ -1300,7 +1300,7 @@ function populateNavbarLinks() {
     { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
     { name: "<i class='fa-solid fa-robot'></i> Open AnIme", url: "open-anime.html" },
     { name: "<i class='fa-solid fa-users'></i> Equipe", url: "sobre.html" },
-    { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradecimento.html" }
+    { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradeciment✅html" }
   ];
 
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
@@ -1402,7 +1402,7 @@ window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
 
-// Adicionar listeners para os botões social se existirem
+// Adicionar listeners para os botÃµes social se existirem
 document.addEventListener("click", (e) => {
   if (e.target.closest("#githubLoginBtn") || e.target.closest("#githubRegBtn")) {
     signInWithGithub();
@@ -1415,9 +1415,9 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// ─── Enter global para inputs ────────────────────────────────────────────────
-// Permite concluir qualquer ação do site pressionando Enter em um campo de texto,
-// exceto no campo de exclusão de conta (para evitar acidentes).
+// â”€â”€â”€ Enter global para inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Permite concluir qualquer aÃ§Ã£o do site pressionando Enter em um campo de texto,
+// exceto no campo de exclusÃ£o de conta (para evitar acidentes).
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
 
@@ -1427,11 +1427,11 @@ document.addEventListener("keydown", (e) => {
   // Permitir Shift+Enter livremente em Textareas para quebra de linha
   if (e.shiftKey && el.tagName === "TEXTAREA") return;
 
-  // Nunca ativar Enter em campos de exclusão de conta
+  // Nunca ativar Enter em campos de exclusÃ£o de conta
   const dangerIds = ["deleteConfirmEmail", "deleteConfirmPassword"];
   if (dangerIds.includes(el.id)) return;
 
-  // 1. Se já está dentro de um <form> com botão submit, deixar o comportamento nativo
+  // 1. Se jÃ¡ estÃ¡ dentro de um <form> com botÃ£o submit, deixar o comportamento nativo
   const parentForm = el.closest("form");
   if (parentForm) {
     const submitBtn = parentForm.querySelector('button[type="submit"]:not([disabled])');
@@ -1443,10 +1443,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   // 2. Para inputs fora de forms (OTP, modal de senha, etc.):
-  //    Procura o botão de ação primário mais próximo na mesma seção/container
+  //    Procura o botÃ£o de aÃ§Ã£o primÃ¡rio mais prÃ³ximo na mesma seÃ§Ã£o/container
   const EXCLUDED_BTN_IDS = ["deleteAccountBtn", "confirmDeleteBtn"];
 
-  // Mapa de input → botão de ação
+  // Mapa de input â†’ botÃ£o de aÃ§Ã£o
   // op
   const inputToBtnMap = {
     "otpToken": "verifyOtpBtn",
@@ -1466,7 +1466,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 3. Fallback: procura o primeiro botão primário visível no mesmo container pai
+  // 3. Fallback: procura o primeiro botÃ£o primÃ¡rio visÃ­vel no mesmo container pai
   const container = el.closest("section, .auth-card, .modal, [id$='Section'], [id$='Container'], [id$='Card'], form") || el.parentElement;
   if (container) {
     const btn = container.querySelector('button.btn-primary:not([disabled]), button[type="submit"]:not([disabled])');
@@ -1478,7 +1478,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ==========================================
-// 7. HUB DE NOTIFICAÇÕES (RE-INTEGRADO)
+// 7. HUB DE NOTIFICAÃ‡Ã•ES (RE-INTEGRADO)
 // ==========================================
 
 async function initializeNotificationHub(userId) {
@@ -1489,21 +1489,21 @@ async function initializeNotificationHub(userId) {
   if (!isSameUser) {
     notificationState.activeFilter = 'all';
   }
-
-  // Identificar se é Admin principal
+  
+  // Identificar se Ã© Admin principal
   const { data: userData } = await supaClient.auth.getUser();
   const email = (userData?.user?.email || "").toLowerCase();
   notificationState.isAdmin = email === "davizeravisel@gmail.com";
-
+  
   console.log(`[NotificationHub] User: ${email}, isAdmin: ${notificationState.isAdmin}`);
 
-  // Criar UI do Centro de Notificações se não existir
+  // Criar UI do Centro de NotificaÃ§Ãµes se não existir
   createNotificationCenterUI();
 
   // Buscar contagem inicial
   await fetchNotificationCount();
 
-  // Ouvir mudanças em tempo real
+  // Ouvir mudanÃ§as em tempo real
   if (!isSameUser) {
     setupNotificationRealtime();
   }
@@ -1533,7 +1533,7 @@ async function fetchNotificationCount() {
       updateNotificationBadge(count || 0);
     }
   } catch (err) {
-    console.warn("Erro ao buscar notificações:", err);
+    console.warn("Erro ao buscar notificaÃ§Ãµes:", err);
   }
 }
 
@@ -1556,13 +1556,13 @@ function createNotificationCenterUI() {
   const center = document.createElement('div');
   center.id = 'notificationCenter';
   center.className = 'notification-center';
-
-  // Seção de Admin (Apenas se for admin)
+  
+  // SeÃ§Ã£o de Admin (Apenas se for admin)
   const adminPanel = notificationState.isAdmin ? `
     <div class="notification-admin-panel" style="background: rgba(var(--primary-rgb), 0.05); border: 1px dashed var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
       <h4 style="color: var(--primary); margin: 0 0 10px 0; font-size: 0.8rem; text-transform: uppercase;"><i class="fa-solid fa-bullhorn"></i> Painel de Alerta Global</h4>
-      <input type="text" id="adminNotifTitle" placeholder="Título do Alerta" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
-      <textarea id="adminNotifMsg" placeholder="Mensagem para todos os usuários..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem; height:60px; resize:none;"></textarea>
+      <input type="text" id="adminNotifTitle" placeholder="TÃ­tulo do Alerta" style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem;">
+      <textarea id="adminNotifMsg" placeholder="Mensagem para todos os usuÃ¡rios..." style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #333; color:white; padding:8px; border-radius:6px; margin-bottom:8px; font-size:0.85rem; height:60px; resize:none;"></textarea>
       <button id="sendGlobalNotifBtn" class="btn btn-primary btn-sm" style="width:100%;">Enviar Alerta Site-Wide</button>
     </div>
   ` : '';
@@ -1570,9 +1570,9 @@ function createNotificationCenterUI() {
   center.innerHTML = `
     <div class="notification-center__header">
       <div class="notification-center__eyebrow">
-        <span><i class="fa-solid fa-bell"></i> Notificações</span>
+        <span><i class="fa-solid fa-bell"></i> NotificaÃ§Ãµes</span>
       </div>
-      <button class="notification-center__close" id="closeNotifCenter">✕</button>
+      <button class="notification-center__close" id="closeNotifCenter">âœ•</button>
     </div>
     
     ${adminPanel}
@@ -1586,7 +1586,7 @@ function createNotificationCenterUI() {
     <div class="notification-center__content" id="notifCenterContent">
       <div class="notif-empty-state">
         <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
-        <p>Buscando notificações...</p>
+        <p>Buscando notificaÃ§Ãµes...</p>
       </div>
     </div>
     
@@ -1603,7 +1603,7 @@ function createNotificationCenterUI() {
   `;
   document.body.appendChild(center);
 
-  // Lógica das Abas
+  // LÃ³gica das Abas
   center.querySelectorAll('.notif-tab').forEach(tab => {
     tab.onclick = () => {
       center.querySelectorAll('.notif-tab').forEach(t => {
@@ -1651,7 +1651,7 @@ function attachNotificationListeners() {
     };
   }
 
-  // Ações em Lote
+  // AÃ§Ãµes em Lote
   const markReadBtn = document.getElementById('markSelectedReadBtn');
   if (markReadBtn) markReadBtn.onclick = () => handleBatchAction('markRead');
 
@@ -1663,30 +1663,30 @@ function attachNotificationListeners() {
     const sendBtn = document.getElementById('sendGlobalNotifBtn');
     if (sendBtn) {
       // Remover listener antigo para não duplicar
-      sendBtn.onclick = null;
+      sendBtn.onclick = null; 
       sendBtn.onclick = async (e) => {
         console.log("[DEBUG] Iniciando processo de envio de alerta...");
         e.preventDefault();
-
+        
         const titleInput = document.getElementById('adminNotifTitle');
         const msgInput = document.getElementById('adminNotifMsg');
         const title = titleInput?.value?.trim();
         const msg = msgInput?.value?.trim();
 
-        console.log(`[DEBUG] Dados coletados - Título: "${title}", Mensagem: "${msg}"`);
+        console.log(`[DEBUG] Dados coletados - TÃ­tulo: "${title}", Mensagem: "${msg}"`);
 
         if (!title || !msg) {
-          console.warn("[DEBUG] Título ou mensagem vazios!");
-          alert("⚠️ Preencha o título e a mensagem do alerta.");
+          console.warn("[DEBUG] TÃ­tulo ou mensagem vazios!");
+          alert("âš ï¸ Preencha o tÃ­tulo e a mensagem do alerta.");
           return;
         }
 
         /* Removido confirm pois estava retornando false automaticamente em alguns casos */
-        console.log("[DEBUG] Pulando confirmação para evitar bloqueios...");
+        console.log("[DEBUG] Pulando confirmaÃ§Ã£o para evitar bloqueios...");
 
         sendBtn.disabled = true;
         const originalText = sendBtn.textContent;
-        sendBtn.innerHTML = `<span class="loader-ring" style="width:18px; height:18px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Enviando...`;
+        sendBtn.innerHTML = `<span class="loader-ring" style="width:18px; height:18px; border-width:2px; vertical-align:middle; margin-right:8px;"></span> Enviand✅..`;
 
         try {
           console.log("[DEBUG] Preparando chamada RPC...");
@@ -1700,22 +1700,22 @@ function attachNotificationListeners() {
 
           if (error) {
             console.error("[DEBUG] O Supabase retornou um erro:", error);
-            alert("❌ Erro no Banco de Dados: " + error.message + "\n\nCódigo: " + error.code);
+            alert("âŒ Erro no Banco de Dados: " + error.message + "\n\nCÃ³digo: " + error.code);
             throw error;
           }
 
           console.log("[DEBUG] Resposta de sucesso do RPC:", data);
-          alert("✅ SUCESSO! O alerta foi disparado para todo o site.");
-
+          alert("âœ… SUCESSO! O alerta foi disparado para todo o site.");
+          
           if (titleInput) titleInput.value = "";
           if (msgInput) msgInput.value = "";
         } catch (err) {
           console.error("[DEBUG] Erro capturado no catch:", err);
-          alert("⚠️ ERRO CRÍTICO: " + (err.message || "Erro desconhecido na comunicação com o servidor"));
+          alert("âš ï¸ ERRO CRÃTICO: " + (err.message || "Erro desconhecido na comunicaÃ§Ã£o com o servidor"));
         } finally {
           sendBtn.disabled = false;
           sendBtn.textContent = originalText;
-          console.log("[DEBUG] Fluxo de envio encerrado.");
+          console.log("[DEBUG] Fluxo de envio encerrad✅");
         }
       };
     }
@@ -1777,7 +1777,7 @@ function renderNotificationListFromState() {
     content.innerHTML = `
       <div class="notif-empty-state">
         <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
-        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'VocÃª não tem notificaÃ§Ãµes.'}</p>
       </div>
     `;
     syncNotificationSelectionState();
@@ -1797,7 +1797,7 @@ function renderNotificationListFromState() {
         </div>
         ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
         <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${notification.id}'])">
-          🗑️
+          ðŸ—‘ï¸
         </button>
       </div>
     `;
@@ -1828,7 +1828,7 @@ async function loadNotificationsList(filter = 'all') {
     return;
   }
 
-  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregando...</div>';
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand✅..</div>';
   syncNotificationSelectionState();
 
   try {
@@ -1853,7 +1853,7 @@ async function loadNotificationsList(filter = 'all') {
     renderNotificationListFromState();
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
   }
 }
 
@@ -1869,13 +1869,13 @@ async function handleBatchAction(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (!ids.length) {
-    alert("Selecione pelo menos uma notificação para realizar esta ação.");
+    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃ§Ã£✅");
     return;
   }
 
   if (actionButton) {
     actionButton.disabled = true;
-    actionButton.textContent = action === 'delete' ? 'Excluindo...' : 'Marcando...';
+    actionButton.textContent = action === 'delete' ? 'Excluind✅..' : 'Marcand✅..';
   }
 
   try {
@@ -1930,7 +1930,7 @@ async function deleteNotifications(ids) {
     syncNotificationBadgeFromState();
     renderNotificationListFromState();
   } catch (err) {
-    console.error("Erro ao deletar notificações:", err);
+    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -1974,7 +1974,7 @@ function setupNotificationRealtime() {
       }
 
       if (payload.eventType === 'INSERT' && payload.new && window.showToast) {
-        showToast(`🔔 ${payload.new.title}`, "info");
+        showToast(`ðŸ”” ${payload.new.title}`, "info");
         const bell = document.getElementById('navbarBellTrigger');
         if (bell) {
           bell.classList.remove('ringing');
@@ -1985,7 +1985,7 @@ function setupNotificationRealtime() {
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("✅ Escutando notificações em tempo real");
+        console.log("âœ… Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }
@@ -2037,7 +2037,7 @@ function renderNotificationListFromState() {
     content.innerHTML = `
       <div class="notif-empty-state">
         <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
-        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'VocÃª não tem notificaÃ§Ãµes.'}</p>
       </div>
     `;
     syncNotificationSelectionState();
@@ -2057,7 +2057,7 @@ function renderNotificationListFromState() {
         </div>
         ${isUnread ? '<div class="notification-item__dot"></div>' : ''}
         <button class="notification-item__delete" title="Excluir" onclick="event.stopPropagation(); deleteNotifications(['${n.id}'])">
-          🗑️
+          ðŸ—‘ï¸
         </button>
       </div>
     `;
@@ -2082,13 +2082,13 @@ async function handleBatchActionLegacy(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (ids.length === 0) {
-    alert("Selecione pelo menos uma notificação para realizar esta ação.");
+    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃ§Ã£✅");
     return;
   }
 
   if (actionButton) {
     actionButton.disabled = true;
-    actionButton.textContent = action === 'delete' ? 'Excluindo...' : 'Marcando...';
+    actionButton.textContent = action === 'delete' ? 'Excluind✅..' : 'Marcand✅..';
   }
 
   try {
@@ -2116,11 +2116,11 @@ async function handleBatchActionLegacy(action) {
 function toggleNotificationCenter() {
   const center = document.getElementById('notificationCenter');
   const overlay = document.getElementById('notificationOverlay');
-
+  
   if (!center || !overlay) return;
 
   notificationState.isOpen = !notificationState.isOpen;
-
+  
   if (notificationState.isOpen) {
     center.classList.add('active');
     overlay.classList.add('active');
@@ -2138,7 +2138,7 @@ async function loadNotificationsListLegacy(filter = 'all') {
   if (!content) return;
   notificationState.activeFilter = filter || 'all';
 
-  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregando...</div>';
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand✅..</div>';
   syncNotificationSelectionState();
 
   try {
@@ -2165,7 +2165,7 @@ async function loadNotificationsListLegacy(filter = 'all') {
 
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
   }
 }
 
@@ -2178,14 +2178,14 @@ async function handleNotificationClick(id, link) {
 
 function getNotifIcon(type) {
   const icons = {
-    'system': '⚙️',
-    'social': '👥',
-    'loja': '🎌',
-    'xp': '✨',
-    'medalha': '🏅',
-    'chat': '💬'
+    'system': 'âš™ï¸',
+    'social': 'ðŸ‘¥',
+    'loja': 'ðŸŽŒ',
+    'xp': 'âœ¨',
+    'medalha': 'ðŸ…',
+    'chat': 'ðŸ’¬'
   };
-  return icons[type] || '🔔';
+  return icons[type] || 'ðŸ””';
 }
 
 function formatNotifTime(dateStr) {
@@ -2193,13 +2193,13 @@ function formatNotifTime(dateStr) {
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
-
+  
   if (diffMins < 1) return 'Agora mesmo';
-  if (diffMins < 60) return `Há ${diffMins} min`;
-
+  if (diffMins < 60) return `HÃ¡ ${diffMins} min`;
+  
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `Há ${diffHours}h`;
-
+  if (diffHours < 24) return `HÃ¡ ${diffHours}h`;
+  
   return date.toLocaleDateString('pt-BR');
 }
 
@@ -2227,9 +2227,9 @@ async function markNotificationsReadLegacy(ids) {
 
 async function deleteNotificationsLegacy(ids) {
   if (!ids || ids.length === 0) return;
-
+  
   try {
-    console.log(`[NotificationHub] Excluindo ${ids.length} notificações...`);
+    console.log(`[NotificationHub] Excluindo ${ids.length} notificaÃ§Ãµes...`);
     const { error } = await supaClient
       .from('notifications')
       .delete()
@@ -2241,7 +2241,7 @@ async function deleteNotificationsLegacy(ids) {
     renderNotificationListFromState();
     return;
   } catch (err) {
-    console.error("Erro ao deletar notificações:", err);
+    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -2251,7 +2251,7 @@ async function markAsRead(id) {
 }
 
 async function markAllAsRead() {
-  // Mantendo para compatibilidade se necessário, mas agora usamos handleBatchAction
+  // Mantendo para compatibilidade se necessÃ¡rio, mas agora usamos handleBatchAction
   const allIds = Array.from(document.querySelectorAll('.notification-item')).map(el => el.dataset.id);
   if (allIds.length > 0) await markNotificationsRead(allIds);
 }
@@ -2264,7 +2264,7 @@ function setupNotificationRealtimeLegacy() {
     notificationState.realtimeChannel = null;
   }
 
-  // Canal para mudanças nas notificações do usuário
+  // Canal para mudanÃ§as nas notificaÃ§Ãµes do usuÃ¡rio
   notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
     .on('postgres_changes', {
       event: '*', // Ouvir TUDO (INSERT, UPDATE, DELETE)
@@ -2272,34 +2272,60 @@ function setupNotificationRealtimeLegacy() {
       table: 'notifications',
       filter: `user_id=eq.${notificationState.userId}`
     }, (payload) => {
-      console.log("Evento de notificação:", payload.eventType, payload);
-
+      console.log("Evento de notificaÃ§Ã£o:", payload.eventType, payload);
+      
       // Atualizar contagem do badge sempre
       fetchNotificationCount();
 
-      // Se o painel estiver aberto, recarregar a lista para refletir a mudança
+      // Se o painel estiver aberto, recarregar a lista para refletir a mudanÃ§a
       if (notificationState.isOpen) {
         const activeTab = document.querySelector('.notif-tab.active')?.dataset.tab || 'all';
         loadNotificationsList(activeTab);
       }
-
-      // Se for uma inserção, mostrar um Toast
+      
+      // Se for uma inserÃ§Ã£o, mostrar um Toast
       if (payload.eventType === 'INSERT' && window.showToast) {
-        showToast(`🔔 ${payload.new.title}`, "info");
+        showToast(`ðŸ”” ${payload.new.title}`, "info");
       }
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("✅ Escutando notificações em tempo real");
+        console.log("âœ… Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }
-
-window.generateMD5Password = function (pwdId, confirmId) {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
-  let hash = 'A' + 'a' + '1' + '@';
+// Password Strength and Generator functions
+window.updatePasswordStrength = function(password, fillId, textId) {
+  const fill = document.getElementById(fillId);
+  const text = document.getElementById(textId);
+  if (!fill || !text) return;
+  if (!password) {
+    fill.style.width = '0%'; fill.style.backgroundColor = 'transparent';
+    text.textContent = 'Força: Muito Fraca'; text.style.color = 'var(--text-muted)';
+    return;
+  }
+  let score = 0;
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  if (score <= 2) {
+    fill.style.width = '33%'; fill.style.backgroundColor = 'var(--danger)';
+    text.textContent = 'Força: Fraca'; text.style.color = 'var(--danger)';
+  } else if (score === 3 || score === 4) {
+    fill.style.width = '66%'; fill.style.backgroundColor = '#facc15';
+    text.textContent = 'Força: Média'; text.style.color = '#facc15';
+  } else {
+    fill.style.width = '100%'; fill.style.backgroundColor = 'var(--success)';
+    text.textContent = 'Força: Forte'; text.style.color = 'var(--success)';
+  }
+};
+window.generateMD5Password = function(pwdId, confirmId) {
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para força máxima
   const array = new Uint32Array(28);
-  window.crypto.getRandomValues(array);
+  window.crypt✅getRandomValues(array);
   for (let i = 0; i < 28; i++) {
     hash += chars[array[i] % chars.length];
   }
@@ -2309,19 +2335,19 @@ window.generateMD5Password = function (pwdId, confirmId) {
   const confirmInput = document.getElementById(confirmId);
   if (pwdInput) { pwdInput.value = hash; pwdInput.dispatchEvent(new Event('input')); }
   if (confirmInput) { confirmInput.value = hash; confirmInput.dispatchEvent(new Event('input')); }
-
+  
   const container = document.getElementById('toast');
   if (container) {
     const el = document.createElement('div');
     el.className = 'undo-toast';
     el.innerHTML = `
       <div class="undo-content">
-        <span>Senha gerada e preenchida!</span>
+        <span>Senha ultra-segura gerada e preenchida!</span>
       </div>
       <div class="undo-progress" style="transition: width 4s linear;"></div>
     `;
     container.appendChild(el);
-
+    
     setTimeout(() => {
       const progress = el.querySelector('.undo-progress');
       if (progress) progress.style.width = '0%';

@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sobre a Equipe — Anime House</title>
+  <title>Sobre a Equipe - Anime House</title>
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="js/themes.js"></script>
@@ -166,6 +167,34 @@
       font-weight: 800;
       text-transform: uppercase;
       font-size: 0.8rem;
+    }
+
+    .animated-banner {
+      background: linear-gradient(45deg, var(--primary), #ff8c00, var(--primary));
+      background-size: 200% 200%;
+      animation: gradientShift 5s ease infinite;
+      box-shadow: 0 10px 30px rgba(var(--primary-rgb), 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .pulse-box {
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .pulse-box:hover {
+      transform: scale(1.15) translateY(-5px);
+    }
+
+    .pulse-box h4 i {
+      margin-right: 8px;
+      font-size: 2.5rem;
+      vertical-align: middle;
     }
 
     /* Floating Particles */
@@ -675,15 +704,9 @@
           <p>O coração do nosso banco de dados, autenticação e armazenamento em nuvem.</p>
         </div>
         <div class="tech-item">
-          <i class="fas fa-bolt"></i>
-          <h4>Groq AI</h4>
-          <p>Velocidade extrema para processamento de IA, alimentando nosso agente interativo.</p>
-        </div>
-        <div class="tech-item">
-          <i class="fas fa-shield-alt"></i>
-          <h4>Cloudflare Workers AI</h4>
-          <p>Proteção de elite e inteligência artificial distribuída na borda (edge) para respostas instantâneas e
-            seguras.</p>
+          <i class="fas fa-brain"></i>
+          <h4>OpenRouter AI</h4>
+          <p>Acesso unificado aos melhores modelos de inteligência artificial do mundo para um agente imbatível e respostas instantâneas.</p>
         </div>
         <div class="tech-item">
           <i class="fab fa-node-js"></i>
@@ -699,18 +722,18 @@
     </div>
 
 
-    <div class="stats-banner">
-      <div class="stat-box">
-        <h4>100%</h4>
-        <p>Desenvolvimento Próprio</p>
+    <div class="stats-banner animated-banner">
+      <div class="stat-box pulse-box">
+        <h4><i class="fas fa-rocket"></i> IA</h4>
+        <p>Interatividade de Vanguarda</p>
       </div>
-      <div class="stat-box">
-        <h4>24/7</h4>
-        <p>Evolução Constante</p>
+      <div class="stat-box pulse-box" style="animation-delay: 0.2s;">
+        <h4><i class="fas fa-gamepad"></i> RPG</h4>
+        <p>Gamificação Imersiva</p>
       </div>
-      <div class="stat-box">
-        <h4>∞</h4>
-        <p>Possibilidades</p>
+      <div class="stat-box pulse-box" style="animation-delay: 0.4s;">
+        <h4><i class="fas fa-infinity"></i></h4>
+        <p>A Evolução Nunca Para</p>
       </div>
     </div>
 

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init(['animes']);
   const grid = document.getElementById('cardsGrid');
   const emptyState = document.getElementById('emptyState');
   const searchInput = document.getElementById('searchInput');

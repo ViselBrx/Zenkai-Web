@@ -5,7 +5,7 @@
  */
 (function () {
   function initCustomSelects() {
-    const bars = document.querySelectorAll('.search-bar');
+    const bars = document.querySelectorAll('.search-bar, .community-filter');
     bars.forEach(bar => {
       bar.querySelectorAll('select').forEach(nativeSelect => {
         if (nativeSelect.dataset.customized) return;

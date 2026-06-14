@@ -1,5 +1,5 @@
 /**
- * db.js â€” Cliente Supabase AnimeHouse
+ * db.js — Cliente Supabase AnimeHouse
  * =====================================
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
@@ -262,7 +262,7 @@ const _DEFAULT = {
     youtube_playlists: [],
     youtube_videos: {},
     watched: {},
-    profile: null, // Perfil completo do usuário (incluindo store_data)
+    profile: null, // Perfil completo do usuÃ¡rio (incluindo store_data)
     aiConfig: {},
     siteConfig: {}
 };
@@ -277,7 +277,7 @@ function isMissingRelationError(error) {
 
 function buildWatchedPersistenceError(error) {
     if (isMissingRelationError(error)) {
-        return new Error(`Checklist permanente indisponível. ${WATCHED_ITEMS_SETUP_HINT}`);
+        return new Error(`Checklist permanente indisponÃ­vel. ${WATCHED_ITEMS_SETUP_HINT}`);
     }
     return new Error(error?.message || 'Falha ao salvar o checklist permanente.');
 }
@@ -288,13 +288,13 @@ function clearWatchedItems(ids = []) {
     });
 }
 
-// Checa se o supabase estÃ¡ disponÃ­vel (injetado via auth.js)
+// Checa se o supabase estÃƒÂ¡ disponÃƒÂ­vel (injetado via auth.js)
 function getSupa() {
-    if (!window.supabaseClient) throw new Error("Supabase Client não encontrado!");
+    if (!window.supabaseClient) throw new Error("Supabase Client nÃ£o encontrado!");
     return window.supabaseClient;
 }
 
-// Obter o ID do usuÃ¡rio logado
+// Obter o ID do usuÃƒÂ¡rio logado
 async function getCurrentUserId() {
     const supa = getSupa();
     const { data: { session } } = await supa.auth.getSession();
@@ -303,14 +303,14 @@ async function getCurrentUserId() {
     return user?.id || null;
 }
 
-// Em operaÃ§Ãµes de escrita, o usuÃ¡rio precisa estar autenticado.
+// Em operaÃƒÂ§ÃƒÂµes de escrita, o usuÃƒÂ¡rio precisa estar autenticado.
 async function getRequiredUserId() {
     const userId = await getCurrentUserId();
-    if (!userId) throw new Error('Sessão expirada. Faça login novamente.');
+    if (!userId) throw new Error('SessÃ£o expirada. FaÃ§a login novamente.');
     return userId;
 }
 
-/** Valida JWT com o servidor (mais confiável que só getSession no storage). */
+/** Valida JWT com o servidor (mais confiÃ¡vel que sÃ³ getSession no storage). */
 async function resolveAuthUserId() {
     const supa = getSupa();
     const { data: { user }, error } = await supa.auth.getUser();
@@ -320,7 +320,7 @@ async function resolveAuthUserId() {
     return session?.user?.id || null;
 }
 
-/** Garante JSON puro para a coluna JSONB (sem _userId, sem referências quebradas). */
+/** Garante JSON puro para a coluna JSONB (sem _userId, sem referÃªncias quebradas). */
 function sanitizeStoreDataForDb(raw) {
     const o = raw && typeof raw === 'object' && !Array.isArray(raw) ? { ...raw } : {};
     delete o._userId;
@@ -339,23 +339,23 @@ function sanitizeStoreDataForDb(raw) {
     }
 }
 
-// Verificar se o usuÃ¡rio pode editar/deletar um item
+// Verificar se o usuÃƒÂ¡rio pode editar/deletar um item
 async function checkItemOwnership(itemId, table) {
     try {
         const supa = getSupa();
         const userId = await getRequiredUserId();
         
-        // UsuÃ¡rios sÃ³ podem editar seus prÃ³prios dados
+        // UsuÃƒÂ¡rios sÃƒÂ³ podem editar seus prÃƒÂ³prios dados
         const { data, error } = await supa.from(table).select('user_id').eq('id', itemId).single();
         
         if (error || !data) {
-            throw new Error('Item não encontrado.');
+            throw new Error('Item nÃ£o encontrado.');
         }
         
-        // Se o item for global (user_id é null), permitimos que a requisição siga.
-        // O Supabase (RLS) vai barrar se o usuário não for o admin no backend.
+        // Se o item for global (user_id Ã© null), permitimos que a requisiÃ§Ã£o siga.
+        // O Supabase (RLS) vai barrar se o usuÃ¡rio nÃ£o for o admin no backend.
         if (data.user_id !== null && data.user_id !== userId) {
-            throw new Error('Você não tem permissão para modificar este item.');
+            throw new Error('VocÃª nÃ£o tem permissÃ£o para modificar este item.');
         }
         
         return true;
@@ -365,10 +365,10 @@ async function checkItemOwnership(itemId, table) {
     }
 }
 
-// UtilitÃ¡rio para limpar os iframes (Redecanais mudam muito de domÃ­nio)
+// UtilitÃƒÂ¡rio para limpar os iframes (Redecanais mudam muito de domÃƒÂ­nio)
 // PROBLEMA RAIZ: os iframes usam hostname percent-encoded (ex: %72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F
-// que Ã© 'redecanais.ooo'). Browsers NÃƒO conseguem resolver hostnames codificados assim,
-// por isso o player fica preto. A correÃ§Ã£o Ã© decodificar o src e substituir o domÃ­nio.
+// que ÃƒÂ© 'redecanais.ooo'). Browsers NÃƒÆ’O conseguem resolver hostnames codificados assim,
+// por isso o player fica preto. A correÃƒÂ§ÃƒÂ£o ÃƒÂ© decodificar o src e substituir o domÃƒÂ­nio.
 function cleanIframe(iframe) {
     if (!iframe) return '';
     const iframeTrim = iframe.trim();
@@ -382,14 +382,14 @@ function cleanIframe(iframe) {
             if (el) {
                 let src = el.getAttribute('src') || '';
 
-                // DECODE: converte %72%65%64... â†’ redecanais.ooo (etc.)
+                // DECODE: converte %72%65%64... Ã¢â€ â€™ redecanais.ooo (etc.)
                 try { src = decodeURIComponent(src); } catch(e) { /* ignora erros de decode */ }
 
                 // Protocolo absoluto
                 if (src.startsWith('//')) src = 'https:' + src;
                 if (src.startsWith('http://')) src = 'https://' + src.slice(7);
 
-                // SubstituiÃ§Ã£o de domÃ­nio (cobre todos os domÃ­nios conhecidos do Redecanais)
+                // SubstituiÃƒÂ§ÃƒÂ£o de domÃƒÂ­nio (cobre todos os domÃƒÂ­nios conhecidos do Redecanais)
                 src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
                 el.setAttribute('src', src);
@@ -417,7 +417,7 @@ function cleanIframe(iframe) {
             .replace(/allow="[^"]*"/gi, 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen"');
     }
 
-    // --- Caso 2: sÃ³ a URL ---
+    // --- Caso 2: sÃƒÂ³ a URL ---
     let url = iframeTrim;
     try { url = decodeURIComponent(url); } catch(e) {}
     if (url.startsWith('//')) url = 'https:' + url;
@@ -428,7 +428,7 @@ function cleanIframe(iframe) {
         return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
     }
 
-    return iframe; // devolve original se nÃ£o reconheceu
+    return iframe; // devolve original se nÃƒÂ£o reconheceu
 }
 
 const MAIN_ACCOUNT_EMAIL = 'davizeravisel@gmail.com';
@@ -457,7 +457,7 @@ async function claimLegacyCatalogForMainAccount(userId) {
         try {
             await supa.from(table).update({ user_id: userId }).is('user_id', null);
         } catch (error) {
-            console.warn(`Não foi possível resgatar legados em ${table}:`, error?.message || error);
+            console.warn(`NÃ£o foi possÃ­vel resgatar legados em ${table}:`, error?.message || error);
         }
     }
 }
@@ -465,12 +465,12 @@ async function claimLegacyCatalogForMainAccount(userId) {
 
 const DB = {
   get _store() { return _store; },
-  // Inicializa o banco (Baixa tudo do Supabase para a memória local)
+  // Inicializa o banco (Baixa tudo do Supabase para a memÃ³ria local)
   async init(modules = 'all') {
     try {
         _store = JSON.parse(JSON.stringify(_DEFAULT));
         const supa = getSupa();
-        // Filtro: Se logado, vê os seus + globais. Se deslogado, vê apenas os globais (nulos).
+        // Filtro: Se logado, vÃª os seus + globais. Se deslogado, vÃª apenas os globais (nulos).
         const userId = await getCurrentUserId();
         
         const buildQuery = (table) => {
@@ -486,9 +486,9 @@ const DB = {
         const safeFetch = async (query, label) => {
             try {
                 // Supabase pode limitar respostas a 1000 linhas por request.
-                // Fazemos paginação por faixa para carregar o catálogo completo.
+                // Fazemos paginaÃ§Ã£o por faixa para carregar o catÃ¡logo completo.
                 const pageSize = 1000;
-                const maxPages = 200; // margem ampla de segurança
+                const maxPages = 200; // margem ampla de seguranÃ§a
                 let page = 0;
                 let allRows = [];
 
@@ -497,17 +497,17 @@ const DB = {
                     const to = from + pageSize - 1;
                     const { data, error } = await query.range(from, to);
                     if (error) {
-                        console.warn(`⚠️ [DB] Erro ao carregar ${label} (página ${page + 1}):`, error.message);
+                        console.warn(`âš ï¸ [DB] Erro ao carregar ${label} (pÃ¡gina ${page + 1}):`, error.message);
                         return allRows;
                     }
                     const rows = data || [];
                     allRows = allRows.concat(rows);
-                    if (rows.length < pageSize) break; // última página
+                    if (rows.length < pageSize) break; // Ãºltima pÃ¡gina
                     page++;
                 }
                 return allRows;
             } catch (err) {
-                console.error(`❌ [DB] Falha crítica na query ${label}:`, err);
+                console.error(`âŒ [DB] Falha crÃ­tica na query ${label}:`, err);
                 return [];
             }
         };
@@ -521,7 +521,7 @@ const DB = {
                     safeFetch(query, label).then(data => { results[key] = data; })
                 );
             } else {
-                results[key] = []; // vazio se não for requisitado
+                results[key] = []; // vazio se nÃ£o for requisitado
             }
         };
 
@@ -563,13 +563,13 @@ const DB = {
         const hqNotes = results.hqNotes;
         const settings = results.settings;
 
-        // Busca de Perfil (Isolada para não quebrar o catálogo se houver erro de coluna/schema)
-        // Chave de localStorage isolada por usuário para garantir que cada conta tenha seus próprios dados
+        // Busca de Perfil (Isolada para nÃ£o quebrar o catÃ¡logo se houver erro de coluna/schema)
+        // Chave de localStorage isolada por usuÃ¡rio para garantir que cada conta tenha seus prÃ³prios dados
         const userStoreKey = `animehouse_store_${userId}`;
         try {
             const { data: profileData, error: profileError } = await supa.from('profiles').select('*').eq('id', userId).maybeSingle();
             if (profileError) {
-                console.warn("⚠️ [DB] Erro ao carregar perfil do banco:", profileError.message);
+                console.warn("âš ï¸ [DB] Erro ao carregar perfil do banco:", profileError.message);
             } else if (profileData) {
                 _store.profile = profileData;
 
@@ -599,7 +599,7 @@ const DB = {
                 localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
 
-                // 🔄 Sincronizar TODOS os cosméticos equipados para localStorage
+                // ðŸ”„ Sincronizar TODOS os cosmÃ©ticos equipados para localStorage
                 if (mergedStore.equipped && typeof mergedStore.equipped === 'object') {
                     // Sincronizar Aura
                     if (mergedStore.equipped.aura) {
@@ -608,7 +608,7 @@ const DB = {
                         localStorage.setItem('animehouse_customAura', 'none');
                     }
 
-                    // Sincronizar Título
+                    // Sincronizar TÃ­tulo
                     if (mergedStore.equipped.titulo) {
                         localStorage.setItem('animehouse_customTitle', mergedStore.equipped.titulo);
                     } else if (mergedStore.equipped.titulo === '') {
@@ -635,11 +635,11 @@ const DB = {
                         localStorage.removeItem('animehouse_equippedCrownIcon');
                     }
 
-                    // Sincronizar Tema Cromático
+                    // Sincronizar Tema CromÃ¡tico
                     if (mergedStore.equipped.tema_cromatico === true) {
                         localStorage.setItem('equipped_tema_cromatico', 'true');
                         localStorage.setItem('animehouse_tema_cromatico', 'true');
-                        // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
+                        // Se o tema atual nÃ£o for o cromÃ¡tico, aplicar agora que sabemos que o usuÃ¡rio possui
                         if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
                             window.setTheme('theme-cromatico');
                         }
@@ -653,12 +653,12 @@ const DB = {
                     try {
                         await this.saveStoreData(mergedStore);
                     } catch (healErr) {
-                        console.warn('[DB] Compras locais não sincronizadas ao servidor neste carregamento:', healErr?.message || healErr);
+                        console.warn('[DB] Compras locais nÃ£o sincronizadas ao servidor neste carregamento:', healErr?.message || healErr);
                     }
                 }
             }
         } catch (err) {
-            console.error("❌ [DB] Falha crítica ao tentar ler tabela 'profiles':", err);
+            console.error("âŒ [DB] Falha crÃ­tica ao tentar ler tabela 'profiles':", err);
         }
 
         const { data: watchedItems, error: watchedError } = await supa
@@ -671,7 +671,7 @@ const DB = {
             if (isMissingRelationError(watchedError)) {
                 console.warn(WATCHED_ITEMS_SETUP_HINT);
             } else {
-                console.warn('Não foi possível carregar o checklist permanente:', watchedError.message || watchedError);
+                console.warn('NÃ£o foi possÃ­vel carregar o checklist permanente:', watchedError.message || watchedError);
             }
         } else if (watchedItems) {
             watchedItems.forEach(item => {
@@ -683,7 +683,7 @@ const DB = {
             });
         }
 
-        // Formatar para bater com o padrÃ£o antigo do _store
+        // Formatar para bater com o padrÃƒÂ£o antigo do _store
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
@@ -736,7 +736,7 @@ const DB = {
                     });
                 }
             });
-            // Opcional: ordenar episÃ³dios
+            // Opcional: ordenar episÃƒÂ³dios
             for(let cid in _store.episodes) {
                 for(let sid in _store.episodes[cid]) {
                     _store.episodes[cid][sid].sort((a,b) => a.epNumber - b.epNumber);
@@ -802,7 +802,7 @@ const DB = {
             });
         }
 
-        // Agrupar HQ Editions (CORREÇÃO: estava faltando!)
+        // Agrupar HQ Editions (CORREÃ‡ÃƒO: estava faltando!)
         if (hqEditions) {
             hqEditions.forEach(ed => {
                 if (!_store.hqEditions[ed.hq_id]) _store.hqEditions[ed.hq_id] = [];
@@ -810,13 +810,13 @@ const DB = {
                     id: ed.id, edition_number: ed.edition_number, title: ed.title, pdf_url: ed.pdf_url
                 });
             });
-            // Ordenar por número
+            // Ordenar por nÃºmero
             for(let hqid in _store.hqEditions) {
                 _store.hqEditions[hqid].sort((a,b) => a.edition_number - b.edition_number);
             }
         }
 
-        // Agrupar HQ Notes (CORREÇÃO: estava faltando!)
+        // Agrupar HQ Notes (CORREÃ‡ÃƒO: estava faltando!)
         if (hqNotes) {
             hqNotes.forEach(n => {
                 _store.hqNotes[n.edition_id] = {
@@ -835,13 +835,13 @@ const DB = {
     }
   },
 
-  // Upload de capa via Supabase Storage (acessÃ­vel de qualquer lugar)
+  // Upload de capa via Supabase Storage (acessÃƒÂ­vel de qualquer lugar)
   async uploadCapa(base64String) {
       const supa = getSupa();
       
-      // Extrair extensÃ£o e dados binÃ¡rios do base64
+      // Extrair extensÃƒÂ£o e dados binÃƒÂ¡rios do base64
       const matches = base64String.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-      if (!matches) throw new Error('Formato de imagem inválido');
+      if (!matches) throw new Error('Formato de imagem invÃ¡lido');
       
       const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
       const base64Data = matches[2];
@@ -863,7 +863,7 @@ const DB = {
       
       if (error) throw new Error('Falha no upload da capa: ' + error.message);
       
-      // Retornar URL pÃºblica da imagem
+      // Retornar URL pÃƒÂºblica da imagem
       const { data: { publicUrl } } = supa.storage
           .from('capas')
           .getPublicUrl(filename);
@@ -934,7 +934,7 @@ const DB = {
     delete _store.movies[id];
   },
 
-  /* Cartoons: EpisÃ³dios */
+  /* Cartoons: EpisÃƒÂ³dios */
   getAllEpisodes() { return _store.episodes; },
   getEpisodesFor(cId) { return _store.episodes[cId] || {}; },
   
@@ -950,7 +950,7 @@ const DB = {
         title: epData.title || '',
         iframe: cleanIframe(epData.iframe || '')
     };
-    delete item.epNumber; // Remove key que não existe no banco
+    delete item.epNumber; // Remove key que nÃ£o existe no banco
 
     const { error } = await getSupa().from('episodes').insert([item]);
     if (error) throw new Error(error.message);
@@ -1091,7 +1091,7 @@ const DB = {
     delete _store.animeMovies[id];
   },
 
-  /* Animes: EpisÃ³dios */
+  /* Animes: EpisÃƒÂ³dios */
   getAnimeEpisodesFor(aId, audio = 'dublado') { 
     if (!_store.animeEpisodes[aId]) return {};
     return _store.animeEpisodes[aId][audio] || {};
@@ -1111,7 +1111,7 @@ const DB = {
         title: epData.title || '',
         iframe: cleanIframe(epData.iframe || '')
     };
-    delete item.epNumber; // Remove key que não existe no banco
+    delete item.epNumber; // Remove key que nÃ£o existe no banco
     const { error } = await getSupa().from('anime_episodes').insert([item]);
     if (error) throw new Error(error.message);
 
@@ -1217,7 +1217,7 @@ const DB = {
     }
   },
 
-  /* MangÃ¡s */
+  /* MangÃƒÂ¡s */
   getMangas() { return [..._store.mangas]; },
   getMangaById(id) { return _store.mangas.find(m => m.id === id) || null; },
   async addManga(data) {
@@ -1277,7 +1277,7 @@ const DB = {
         pdf_url: pdfUrl,
         created_at: Date.now()
     };
-    delete item.volume; // Remove key que não existe no banco
+    delete item.volume; // Remove key que nÃ£o existe no banco
     
     const { error } = await getSupa().from('manga_volumes').insert([item]);
     if (error) throw new Error(error.message);
@@ -1356,7 +1356,7 @@ const DB = {
       return _store.mangaNotes[volumeId];
   },
   
-  /* HQs (Histórias em Quadrinhos) */
+  /* HQs (HistÃ³rias em Quadrinhos) */
   getHQs() { return [..._store.hqs]; },
   getHQById(id) { return _store.hqs.find(h => h.id === id) || null; },
   async addHQ(data) {
@@ -1411,7 +1411,7 @@ const DB = {
         pdf_url: pdfUrl,
         created_at: Date.now()
     };
-    delete item.edition; // Remove key que não existe no banco
+    delete item.edition; // Remove key que nÃ£o existe no banco
     const { error } = await getSupa().from('hq_editions').insert([item]);
     if (error) throw new Error(error.message);
     if (!_store.hqEditions[hqId]) _store.hqEditions[hqId] = [];
@@ -1596,7 +1596,7 @@ const DB = {
       const supa = getSupa();
       const userId = await getRequiredUserId();
       
-      // Busca específica com ID e CATEGORIA para evitar ambiguidades
+      // Busca especÃ­fica com ID e CATEGORIA para evitar ambiguidades
       const { data: existing } = await supa.from('user_favorites')
           .select('id')
           .eq('user_id', userId)
@@ -1640,14 +1640,14 @@ const DB = {
       }
   },
 
-  /** Atualiza o botão de favorito num .card sem re-render da lista */
+  /** Atualiza o botÃ£o de favorito num .card sem re-render da lista */
   applyFavoriteCardChrome(card, isFav) {
       if (!card) return;
       const star = card.querySelector('.fav-star');
       if (star) {
         const label = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
         star.classList.toggle('active', isFav);
-        star.innerHTML = isFav ? '★' : '☆';
+        star.innerHTML = isFav ? 'â˜…' : 'â˜†';
         star.title = label;
         star.setAttribute('aria-label', label);
         star.setAttribute('aria-pressed', String(isFav));
@@ -1682,7 +1682,7 @@ const DB = {
       return star ? star.closest('.card') : null;
   },
 
-  /** Wrappers de pílula (desenhos): filhos diretos com .fav-star interno */
+  /** Wrappers de pÃ­lula (desenhos): filhos diretos com .fav-star interno */
   reorderFavoritePillWrappers(container) {
       if (!container) return;
       const items = [...container.children];
@@ -1708,7 +1708,7 @@ const DB = {
       
       const { data, error } = await query.maybeSingle();
       if (error) {
-        console.warn("📌 [isFavorite Check] Erro ou não encontrado:", error.message);
+        console.warn("ðŸ“Œ [isFavorite Check] Erro ou nÃ£o encontrado:", error.message);
         return false;
       }
       return !!data;
@@ -1725,12 +1725,12 @@ const DB = {
   isPerkEquipped(perkId) {
     let store = null;
 
-    // 1) Prioridade para memória sincronizada (estado atual da sessão)
+    // 1) Prioridade para memÃ³ria sincronizada (estado atual da sessÃ£o)
     if (_store.profile && _store.profile.store_data) {
       store = _store.profile.store_data;
     }
 
-    // 2) Fallback por usuário isolado, quando disponível
+    // 2) Fallback por usuÃ¡rio isolado, quando disponÃ­vel
     if (!store || !Array.isArray(store.purchased)) {
       try {
         const currentUserId = _store.profile?.id || store?._userId || null;
@@ -1743,7 +1743,7 @@ const DB = {
       } catch (e) {}
     }
 
-    // 3) Chave genérica só se for explicitamente deste usuário
+    // 3) Chave genÃ©rica sÃ³ se for explicitamente deste usuÃ¡rio
     if (!store || !Array.isArray(store.purchased)) {
       try {
         const uid = _store.profile?.id;
@@ -1762,18 +1762,18 @@ const DB = {
     const isStrictlyEquipped = (equipped[perkId] === true || equipped[perkId] === 'true');
     const isStampedEquipped = localStorage.getItem(`equipped_${perkId}`) === 'true';
 
-    // Se o usuário não está logado, nenhum perk deve estar ativo (itens desequipam)
+    // Se o usuÃ¡rio nÃ£o estÃ¡ logado, nenhum perk deve estar ativo (itens desequipam)
     const uid = _store.profile?.id;
     if (!uid) return false;
 
-    // Regra rígida: só pode estar equipado se foi comprado
+    // Regra rÃ­gida: sÃ³ pode estar equipado se foi comprado
     const result = hasPurchased && (isStrictlyEquipped || isStampedEquipped);
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
-      console.log(`⭐ [Perk System] lista_destaque ativo: ${result}`);
+      console.log(`â­ [Perk System] lista_destaque ativo: ${result}`);
       if (!result) {
-        console.warn(`📌 [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
+        console.warn(`ðŸ“Œ [Perk Debug] Motivo: NÃ£o comprado (${!hasPurchased}), NÃ£o equipado no banco (${!isStrictlyEquipped}), NÃ£o equipado localmente (${!isStampedEquipped})`);
       }
     }
 
@@ -1803,16 +1803,16 @@ const DB = {
       if (userId) {
         localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
         localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
-        console.log('💾 [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
+        console.log('ðŸ’¾ [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
       } else {
-        console.warn('[DB] Sem userId — não gravando animehouse_store (evita vazamento entre contas).');
+        console.warn('[DB] Sem userId â€” nÃ£o gravando animehouse_store (evita vazamento entre contas).');
       }
     } catch (err) {
-      console.error('❌ [DB] Falha ao salvar no localStorage:', err);
+      console.error('âŒ [DB] Falha ao salvar no localStorage:', err);
     }
 
     if (!userId) {
-      console.warn('[DB] Sem userId, pulando sincronização com Supabase.');
+      console.warn('[DB] Sem userId, pulando sincronizaÃ§Ã£o com Supabase.');
       return;
     }
 
@@ -1820,7 +1820,7 @@ const DB = {
     try {
       supa = getSupa();
     } catch (e) {
-      console.warn('[DB] Cliente Supabase ausente — só cache local.');
+      console.warn('[DB] Cliente Supabase ausente â€” sÃ³ cache local.');
       return;
     }
 
@@ -1831,7 +1831,7 @@ const DB = {
     });
 
     if (!rpcErr) {
-      console.log('✅ [DB] Store persistido via RPC animehouse_save_store_data.');
+      console.log('âœ… [DB] Store persistido via RPC animehouse_save_store_data.');
       return;
     }
 
@@ -1842,7 +1842,7 @@ const DB = {
       rpcErr.code === 'PGRST202';
 
     if (rpcMissing) {
-      console.warn('[DB] RPC animehouse_save_store_data indisponível — usando REST. Rode database/fixes/14_animehouse_save_store_data_rpc.sql no Supabase.');
+      console.warn('[DB] RPC animehouse_save_store_data indisponÃ­vel â€” usando REST. Rode database/fixes/14_animehouse_save_store_data_rpc.sql no Supabase.');
     } else {
       console.warn('[DB] RPC animehouse_save_store_data:', rpcErr.message || rpcErr);
     }
@@ -1857,7 +1857,7 @@ const DB = {
       const updateOk = !updateError && updatedRows && updatedRows.length > 0;
 
       if (updateOk) {
-        console.log('✅ [DB] Store sincronizado com Supabase (update).');
+        console.log('âœ… [DB] Store sincronizado com Supabase (update).');
         return;
       }
 
@@ -1880,7 +1880,7 @@ const DB = {
         console.error('[DB] Upsert store_data falhou:', upsertError.message);
         throw upsertError;
       }
-      console.log('✅ [DB] Store salvo via upsert (fallback REST).');
+      console.log('âœ… [DB] Store salvo via upsert (fallback REST).');
     } catch (err) {
     }
   },
@@ -1984,7 +1984,7 @@ function showToast(msg, type = 'success', ms = 7000) {
       el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
   }
 
-  const errorPrefix = isError ? '⚠️ ' : '';
+  const errorPrefix = isError ? 'âš ï¸ ' : '';
   const progressStyle = isError
     ? `animation-duration:${ms}ms; background: var(--danger); box-shadow: 0 0 20px var(--danger);`
     : `animation-duration:${ms}ms;`;
@@ -2054,7 +2054,7 @@ function showUndoToast(msg, onComplete, onUndo) {
     el.classList.add('fade-out');
     setTimeout(() => el.remove(), 500);
     onUndo();
-    showDarkToast('Ação cancelada!', 7000);
+    showDarkToast('AÃ§Ã£o cancelada!', 7000);
   };
 }
 
@@ -2112,11 +2112,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const menu   = document.getElementById('navLinks');
   if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
 
-  // Persistir posiÃ§Ã£o do scroll da navbar de forma otimizada
+  // Persistir posiÃƒÂ§ÃƒÂ£o do scroll da navbar de forma otimizada
   if (menu) {
     const savedScroll = sessionStorage.getItem('navbarScrollPosition');
     
-    // Se tem scroll salvo, restaura. SenÃ£o, rola atÃ© o item ativo.
+    // Se tem scroll salvo, restaura. SenÃƒÂ£o, rola atÃƒÂ© o item ativo.
     if (savedScroll !== null) {
       menu.scrollLeft = parseInt(savedScroll, 10);
     } else if (activeLink) {
@@ -2133,7 +2133,14 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         sessionStorage.setItem('navbarScrollPosition', menu.scrollLeft);
-      }, 100); // Aguarda 100ms apÃ³s o scroll parar para salvar
+      }, 100); // Aguarda 100ms apÃƒÂ³s o scroll parar para salvar
     });
+  }
+});
+
+// Prevenir caracteres nÃ£o numÃ©ricos em inputs de nÃºmero
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.type === 'number') {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
   }
 });

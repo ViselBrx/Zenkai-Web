@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    await DB.init();
+    await DB.init(['youtubePlaylists', 'youtubeVideos']);
 
     // ── Refs DOM ──────────────────────────────────────────────────────────────
     const tbody            = document.getElementById('tableBody');

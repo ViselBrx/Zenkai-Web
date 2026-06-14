@@ -87,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let selectedChatFile = null;
   let selectedChatPreviewUrl = null;
   let activeChatEditState = null;
+  let activeChatReplyState = null;
   let realtimeReady = false;
   let chatDeleteConfirmResolver = null;
   let activeChatActionMessageId = null;
@@ -330,6 +331,21 @@ document.addEventListener('DOMContentLoaded', async () => {
           return;
         }
 
+        const replyScrollTrigger = event.target.closest('[data-chat-scroll-to]');
+        if (replyScrollTrigger) {
+          const targetId = replyScrollTrigger.getAttribute('data-chat-scroll-to');
+          if (targetId) {
+            const targetBubble = chatMessages.querySelector(`[data-message-id="${targetId}"]`);
+            if (targetBubble) {
+              targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              targetBubble.style.transition = 'background-color 0.5s ease';
+              targetBubble.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
+              setTimeout(() => targetBubble.style.backgroundColor = '', 1500);
+            }
+          }
+          return;
+        }
+
         const trigger = event.target.closest('[data-chat-image-url]');
         if (!trigger) return;
 
@@ -545,7 +561,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getUserDisplayName(user) {
-    return user?.full_name || user?.username || ('Membro_' + String(user?.id || '').substring(0, 5));
+    const rawName = user?.full_name || user?.username || ('Membro_' + String(user?.id || '').substring(0, 5));
+    return rawName.length > 20 ? rawName.substring(0, 20) + '...' : rawName;
   }
 
   function getUserAvatar(user) {
@@ -860,6 +877,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!message?.id || !currentUser) return [];
 
     const actions = [{
+      key: 'reply',
+      label: 'Responder',
+      icon: 'fas fa-reply',
+      danger: false
+    }, {
       key: 'delete-me',
       label: 'Excluir para mim',
       icon: 'fas fa-trash-alt',
@@ -982,6 +1004,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       <span class="chat-message-status sent" title="Enviada">
         <i class="fas fa-check"></i>
       </span>
+    `;
+  }
+  function renderMessageReplyMarkup(message) {
+    if (!message?.reply_to_id || isMessageDeletedForEveryone(message)) return '';
+    const repliedMsg = getChatMessageById(message.reply_to_id);
+    if (!repliedMsg) return '';
+
+    const isMine = repliedMsg.sender_id === currentUser?.id;
+    const senderName = isMine ? 'Você' : getUserDisplayName(allUsers.find(u => u.id === repliedMsg.sender_id));
+    const previewText = repliedMsg.attachment_url ? 'Anexo' : repliedMsg.content;
+
+    return `
+      <div class="chat-bubble-reply" data-chat-scroll-to="${repliedMsg.id}">
+        <span class="chat-bubble-reply-name">${escapeHtml(senderName)}</span>
+        <span class="chat-bubble-reply-text">${escapeHtml(previewText || '')}</span>
+      </div>
     `;
   }
 
@@ -1295,6 +1333,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     setChatInputState();
+  }
+
+  function beginChatMessageReply(message) {
+    if (!currentUser || !message?.id || isMessageDeletedForEveryone(message)) {
+      return;
+    }
+
+    if (activeChatEditState) {
+      clearChatEditState({ restoreDraft: true });
+    }
+
+    const isMine = message.sender_id === currentUser.id;
+    const senderName = isMine ? 'Você' : getUserDisplayName(allUsers.find(u => u.id === message.sender_id));
+    const previewText = message.attachment_url ? 'Anexo' : message.content;
+
+    activeChatReplyState = {
+      messageId: String(message.id),
+      senderName,
+      previewText
+    };
+
+    const replyPreviewEl = document.getElementById('chatReplyPreview');
+    const replyNameEl = document.getElementById('chatReplyPreviewName');
+    const replyTextEl = document.getElementById('chatReplyPreviewText');
+
+    if (replyPreviewEl && replyNameEl && replyTextEl) {
+      replyNameEl.textContent = 'Respondendo a ' + senderName;
+      replyTextEl.textContent = previewText || '';
+      replyPreviewEl.classList.remove('hidden');
+    }
+
+    if (chatInput) {
+      chatInput.focus();
+    }
+  }
+
+  function clearChatReplyState() {
+    activeChatReplyState = null;
+    const replyPreviewEl = document.getElementById('chatReplyPreview');
+    if (replyPreviewEl) {
+      replyPreviewEl.classList.add('hidden');
+    }
+  }
+
+  const chatReplyCancelBtn = document.getElementById('chatReplyCancelBtn');
+  if (chatReplyCancelBtn) {
+    chatReplyCancelBtn.addEventListener('click', clearChatReplyState);
   }
 
   function getOnlineCount() {
@@ -1713,16 +1798,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function setChatBusy(isBusy) {
     chatSending = isBusy;
-    const idleLabel = activeChatEditState ? 'Salvar' : 'Enviar';
-    if (chatSendBtnLabel) {
-      chatSendBtnLabel.textContent = isBusy
-        ? (activeChatEditState ? 'Salvando...' : 'Enviando...')
-        : idleLabel;
-    } else if (chatSendBtn) {
-      chatSendBtn.textContent = isBusy
-        ? (activeChatEditState ? 'Salvando...' : 'Enviando...')
-        : idleLabel;
-    }
     setChatInputState();
   }
 
@@ -2076,6 +2151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         bubble.setAttribute('data-message-id', String(message.id));
         bubble.innerHTML = `
           ${renderMessageActionsMarkup(message)}
+          ${renderMessageReplyMarkup(message)}
           ${renderMessageAttachmentMarkup(message)}
           ${isDeleted
             ? `<div class="chat-bubble-deleted"><i class="fas fa-ban"></i><span>${escapeHtml(getRenderableMessageText(message))}</span></div>`
@@ -2414,6 +2490,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           sender_id: currentUser.id,
           recipient_id: activeChatUserId,
           content: content || null,
+          reply_to_id: activeChatReplyState ? parseInt(activeChatReplyState.messageId, 10) : null,
           ...attachmentPayload
         })
         .select('*')
@@ -2425,6 +2502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setConversationDraft(activeChatUserId, '');
       if (chatInput) chatInput.value = '';
       clearSelectedChatAttachment();
+      clearChatReplyState();
       autoResizeTextarea();
       scheduleSidebarRender('bottom');
     } catch (error) {
@@ -2516,6 +2594,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         a.click();
         document.body.removeChild(a);
         showSuccessNotice('Iniciando download...');
+        return;
+      }
+      if (action === 'reply') {
+        beginChatMessageReply(message);
         return;
       }
 
@@ -3001,7 +3083,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const usersPromise = supa
       .from('profiles')
       .select('*')
-      .order('id', { ascending: false });
+      .order('updated_at', { ascending: false });
 
     const followersPromise = supa
       .from('followers')

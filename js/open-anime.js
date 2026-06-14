@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  await DB.init();
+  await DB.init([]);
 
   const tabs = document.querySelectorAll('.ai-tab-v');
   const panels = document.querySelectorAll('.tool-panel');
@@ -52,15 +52,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!text || !BROKEN_ENCODING_REGEX.test(text)) return text;
 
     try {
-      const bytes = Uint8Array.from(text, (char) => char.charCodeAt(0) & 0xFF);
-      const decoded = new TextDecoder('utf-8').decode(bytes);
-      return decoded && decoded.trim() ? decoded : text;
+      // Safe fallback for UTF-8 decoding
+      return decodeURIComponent(escape(text));
     } catch {
       return text;
     }
   }
 
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações mundiais. Nunca alucine ou invente cânones. Raciocine passo-a-passo antes de escrever. Ao responder, não dê apenas o básico: traga informações extras genuínas, curiosidades fantásticas e aprofundamento real. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler.';
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações mundiais. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, mas seja UM POUCO MAIS CONCISO E DIRETO, reduzindo um pouco o volume de texto sem perder a qualidade. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre animações globais: de animes japoneses a cartoons americanos, passando por filmes 3D e clássicos adorados. Posso recomendar títulos com explicações detalhadas, discutir personagens famosos de qualquer estúdio, comparar poderes incríveis ou analisar cenas. Qual universo animado vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
@@ -70,29 +69,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const GEMINI_VISION_MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-2.0-flash'];
   const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
   const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
-  const DEFAULT_GROQ_MODEL = 'llama-3.3-70b-versatile';
-  const COMPARE_FALLBACK_GROQ_MODEL = 'llama3-8b-8192';
+  const DEFAULT_GROQ_MODEL = 'openrouter/free';
+  const COMPARE_FALLBACK_GROQ_MODEL = 'openrouter/free';
   const COMPARE_MAX_TOKENS = 1400;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um analista visual de elite e enciclopédia geek de animes, cartoons e animações. Sua missão é realizar uma perícia técnica profunda na imagem.',
-    'Sinta-se livre para analisar e descobrir qual personagem e obra estão na tela. Confie nos seus instintos visuais!',
+    'Atue como um detetive visual implacável e enciclopédia suprema de animes, cartoons e filmes. Sua ÚNICA missão é DESCOBRIR exatamente qual é a obra e o personagem da imagem.',
+    'PROIBIDO dar respostas genéricas! Você tem a OBRIGAÇÃO de dar o seu palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
     '',
-    '### 🆔 Identificação e Origem Real',
-    '- **Veredito de Origem:** Revele qual é o provável show, anime ou desenho.',
-    '- **Personagens/Foco:** Nomeie o personagem ou descreva suas características marcantes.',
+    '### 🆔 Identificação Certeira (Obrigatório)',
+    '- **Obra/Franquia Exata:** DIGA O NOME da série, anime ou filme. (Ex: "Esta imagem é de Naruto Shippuden"). Se for impossível cravar 100%, dê o palpite com a maior probabilidade e justifique.',
+    '- **Personagem(ns):** Quem é? Se não souber o nome, compare com personagens parecidos da cultura pop.',
     '',
-    '### 🔎 Perícia Técnica e Estilo',
-    '- **DNA Visual:** O traço é cartoon americano (linhas fortes, super-heróis) ou Anime?',
-    '- **Cores:** Avalie o fogo, a aura e a paleta de cores predominante na cena.',
-    '',
-    '### 📝 Pistas e Contexto',
-    '- Se o personagem tem símbolos (ex: símbolo verde do Omnitrix), destaque para confirmar sua identidade.',
+    '### 🔎 Evidências do Detetive',
+    '- **Traço e Estúdio:** Analise o formato dos olhos, contornos, iluminação e sombreamento. É estilo Ufotable, Toei, Cartoon Network, Pixar? Que década parece ser?',
+    '- **Detalhes Chave:** Quebras de quarta parede, símbolos em roupas, armas, tipo de magia/aura.',
     '',
     '### 🎯 Veredito',
-    '- Resumo final da arte focando em quem é de fato. IMPORTANTE: Não force curiosidades da internet que não tem certeza, seja pragmático. Responda em português e mantenha o formato Markdown.'
+    '- Crave a sua resposta final em português do Brasil, usando Markdown. Se for fanart, diga de qual obra original é inspirada.'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
@@ -135,7 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function isTemporaryModelOverload(statusCode, message) {
     const status = Number(statusCode || 0);
     const text = String(message || '').toLowerCase();
-    if (status === 429 || status === 503) return true;
+    if (status === 404 || status === 429 || status === 503) return true;
     return (
       text.includes('high demand')
       || text.includes('resource_exhausted')
@@ -507,17 +503,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function writeTextToClipboard(text) {
-    if (navigator.clipboard?.writeText) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
       return navigator.clipboard.writeText(text);
     }
 
     return new Promise((resolve, reject) => {
       const textarea = document.createElement('textarea');
       textarea.value = text;
-      textarea.setAttribute('readonly', '');
+      // Make it invisible but accessible
       textarea.style.position = 'fixed';
-      textarea.style.top = '-9999px';
-      textarea.style.opacity = '0';
+      textarea.style.top = '0';
+      textarea.style.left = '0';
+      textarea.style.width = '2em';
+      textarea.style.height = '2em';
+      textarea.style.padding = '0';
+      textarea.style.border = 'none';
+      textarea.style.outline = 'none';
+      textarea.style.boxShadow = 'none';
+      textarea.style.background = 'transparent';
       document.body.appendChild(textarea);
       textarea.focus();
       textarea.select();
@@ -719,7 +722,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderVisionResult(text) {
     if (!visionOutput) return;
     const normalizedText = normalizeBrokenEncoding(text || 'Nenhum resultado retornado.');
-    visionOutput.innerHTML = `<div class="msg-content"><strong>Análise da imagem:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+    
+    // Como a div output tem position relative, o botao de copy funcionara bem.
+    visionOutput.innerHTML = `<div class="msg-content">${formatAIResponse(normalizedText)}</div>`;
 
     const existingCopyBtn = visionOutput.querySelector('.msg-copy-btn');
     if (existingCopyBtn) existingCopyBtn.remove();
@@ -765,6 +770,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (visionUpload) {
       visionUpload.value = '';
     }
+    const visionPromptInput = document.getElementById('visionPromptInput');
+    if (visionPromptInput) visionPromptInput.value = '';
+    
+    const visionOutputContainer = document.getElementById('visionOutputContainer');
+    if (visionOutputContainer) visionOutputContainer.hidden = true;
+
     if (options.keepOutput) return;
     renderVisionResult(options.outputText || 'Aguardando imagem...');
   }
@@ -779,10 +790,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!visionDropZone) return;
 
+    const visionActiveArea = document.getElementById('visionActiveArea');
+
     if (!selectedVisionFile) {
       visionDropZone.classList.remove('is-ready');
-      if (visionPreview) visionPreview.hidden = true;
-      if (visionPreviewActions) visionPreviewActions.hidden = true;
+      if (visionActiveArea) visionActiveArea.hidden = true;
       if (visionPreviewImg) visionPreviewImg.removeAttribute('src');
       if (visionFileName) visionFileName.textContent = 'Nenhuma imagem selecionada';
       if (visionFileInfo) visionFileInfo.textContent = 'Aguardando envio';
@@ -791,8 +803,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     visionDropZone.classList.add('is-ready');
 
-    if (visionPreview) visionPreview.hidden = false;
-    if (visionPreviewActions) visionPreviewActions.hidden = false;
+    if (visionActiveArea) visionActiveArea.hidden = false;
+    
     if (visionFileName) visionFileName.textContent = selectedVisionFile.name || 'Imagem selecionada';
     if (visionFileInfo) {
       visionFileInfo.textContent = options.fileInfo || `${selectedVisionFile.type || 'image/*'} - ${formatFileSize(selectedVisionFile.size)}`;
@@ -1119,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function requestAIText(requestMessages, options = {}) {
-    const target = options.target || 'groq';
+    const target = options.target || 'openrouter';
     const context = options.context || 'chat';
     const model = options.model || DEFAULT_GROQ_MODEL;
     const modelQueue = context === 'compare'
@@ -1503,7 +1515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function callAI(prompt, options = {}) {
-    const target = 'groq';
+    const target = 'openrouter';
     const model = options.model || DEFAULT_GROQ_MODEL;
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
@@ -1668,7 +1680,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
-        target: 'groq',
+        target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
         context: 'chat'
       });
@@ -1771,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
-        target: 'groq',
+        target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
         context: 'chat'
       });
@@ -1836,6 +1848,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const maxRetriesPerModel = 2;
     const visionRequestPlan = [
       {
+        target: 'openrouter',
+        models: ['google/gemini-2.0-flash-exp:free', 'openrouter/auto', 'meta-llama/llama-3.2-11b-vision-instruct:free']
+      },
+      {
         target: 'cloudflare-vision',
         models: Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)))
       },
@@ -1860,19 +1876,36 @@ document.addEventListener('DOMContentLoaded', async () => {
           const selectedModel = models[modelIndex];
 
           for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
-            const requestBody = target === 'gemini'
-              ? {
-                  model: selectedModel,
-                  messages: [{ role: 'user', content: promptText }],
-                  image: base64Image,
-                  max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
-                }
-              : {
-                  model: selectedModel,
-                  prompt: promptText,
-                  image: base64Image,
-                  max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
-                };
+            let requestBody;
+            if (target === 'gemini') {
+              requestBody = {
+                model: selectedModel,
+                messages: [{ role: 'user', content: promptText }],
+                image: base64Image,
+                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+              };
+            } else if (target === 'openrouter') {
+              requestBody = {
+                model: selectedModel,
+                messages: [
+                  {
+                    role: 'user',
+                    content: [
+                      { type: 'text', text: promptText },
+                      { type: 'image_url', image_url: { url: base64Image } }
+                    ]
+                  }
+                ],
+                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+              };
+            } else {
+              requestBody = {
+                model: selectedModel,
+                prompt: promptText,
+                image: base64Image,
+                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+              };
+            }
 
             const res = await fetch('/api/ai/proxy', {
               method: 'POST',
@@ -1901,6 +1934,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
+              console.error(`[Vision AI] O provedor '${target}' retornou um erro e não pôde concluir:`, lastError);
               break;
             }
 
@@ -1932,12 +1966,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
-      let aiResponse = await requestVisionText(VISION_PROMPT);
+      let finalPrompt = VISION_PROMPT;
+      if (options.customPrompt && options.customPrompt.trim()) {
+        finalPrompt = `[PERGUNTA DO USUÁRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}`;
+      }
+
+      let aiResponse = await requestVisionText(finalPrompt);
 
       if (false) { // aiResponse.length < VISION_MIN_COMPLETION_CHARS
         try {
           const refinementPrompt = [
-            VISION_PROMPT,
+            finalPrompt,
             '',
             'A resposta anterior ficou curta.',
             'Refaça com mais profundidade, cobrindo todos os tópicos com mais detalhes e sem resumir demais.'
@@ -2134,7 +2173,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   sendBtn.addEventListener('click', handleChatSend);
-  sendBtn.addEventListener('pointerup', handleChatSend);
+
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChatSend();
+      }
+    });
+
+    chatInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+  }
 
   if (cancelChatEditBtn) {
     cancelChatEditBtn.addEventListener('click', () => {
@@ -2225,16 +2277,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
+      const visionPromptInput = document.getElementById('visionPromptInput');
+      const customPrompt = visionPromptInput ? visionPromptInput.value.trim() : '';
+
       visionAnalyzeBtn.disabled = true;
-      renderVisionResult('Analisando imagem com Cloudflare AI (Llama 3.2 11B Vision)...');
+      const visionOutputContainer = document.getElementById('visionOutputContainer');
+      if (visionOutputContainer) visionOutputContainer.hidden = false;
+      renderVisionResult('Analisando a imagem e a sua pergunta...');
 
       try {
         const { aiResponse } = await callVisionAI(selectedVisionFile, {
           persistToAIHistory: true,
+          customPrompt: customPrompt,
           metadata: {
             fileName: selectedVisionFile.name,
             fileType: selectedVisionFile.type,
-            fileSize: selectedVisionFile.size
+            fileSize: selectedVisionFile.size,
+            customPrompt: customPrompt
           }
         });
 
@@ -2261,7 +2320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo das animações (Cartoons, Animes, 3D e Filmes Animados). Sua missão é fazer análises profundas, detalhadas e justas, respeitando as lógicas e poderes dos universos ocidentais e orientais. Nunca encurte a análise. Seja vibrante e técnico.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo das animações (Cartoons, Animes, 3D e Filmes Animados). Sua missão é fazer análises precisas, detalhadas e justas, respeitando as lógicas e poderes dos universos ocidentais e orientais. Seja um pouco mais direto e conciso na escrita para DIMINUIR A QUANTIDADE DE CONTEÚDO, mas MANTENHA EXATAMENTE TODA A ESTRUTURA MARKDOWN OBRIGATÓRIA solicitada. Seja vibrante, técnico e enxuto nas explicações.';
     const prompt = [
       `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
       'Formato obrigatório da resposta (Markdown):',

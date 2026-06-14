@@ -1586,6 +1586,43 @@
       @keyframes spin {
         to { transform: rotate(360deg); }
       }
+      .password-strength-container {
+        margin-top: 8px;
+      }
+      .password-strength-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 4px;
+        display: flex;
+      }
+      .password-strength-fill {
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease, background-color 0.3s ease;
+      }
+      .password-strength-text {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+      }
+      .btn-generate-pwd {
+        background: none;
+        border: 1px dashed var(--primary);
+        color: var(--primary);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 6px;
+        width: 100%;
+      }
+      .btn-generate-pwd:hover {
+        background: rgba(var(--primary-rgb), 0.1);
+      }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -1739,12 +1776,17 @@
 
           <form id="profileForm">
             <div class="form-group">
-              <label for="username">Nome de Exibição</label>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px;">
+                <label for="username" style="margin-bottom: 0;">Nome de Exibição</label>
+                <span id="usernameCounter" style="font-size: 0.8rem; color: var(--text-muted);">0/20</span>
+              </div>
               <input
                 type="text"
                 id="username"
                 placeholder="Seu nome"
                 required
+                maxlength="20"
+                oninput="document.getElementById('usernameCounter').textContent = this.value.length + '/20';"
               />
             </div>
 
@@ -2476,7 +2518,7 @@
           class="modal-header"
           style="border-bottom-color: rgba(239, 68, 68, 0.3)"
         >
-          <h2 style="color: #ef4444">&#x26A0;&#xFE0F; Excluir Conta</h2>
+          <h2 style="color: #ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Excluir Conta</h2>
           <button class="modal-close" id="deleteAccountModalClose">✕</button>
         </div>
         <div style="padding: 24px">
@@ -4121,7 +4163,10 @@
             profile?.avatar_url ||
             "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-          document.getElementById("username").value = usernameValue;
+          const usernameInput = document.getElementById("username");
+          const truncatedUsername = usernameValue.length > 20 ? usernameValue.substring(0, 20) : usernameValue;
+          usernameInput.value = truncatedUsername;
+          document.getElementById("usernameCounter").textContent = truncatedUsername.length + "/20";
           document.getElementById("avatarUrl").value =
             profile?.avatar_url || "";
           document.getElementById("displayUsername").textContent =
@@ -4174,8 +4219,22 @@
 
           document.getElementById("profileForm").onsubmit = async (e) => {
             e.preventDefault();
-            const username = document.getElementById("username").value;
+            const username = document.getElementById("username").value.trim();
             const avatar_url = document.getElementById("avatarUrl").value;
+
+            if (username) {
+              const { data: existing } = await supabase
+                .from("profiles")
+                .select("id")
+                .ilike("username", username)
+                .neq("id", user.id)
+                .limit(1);
+              
+              if (existing && existing.length > 0) {
+                showToast("Esse nome de usuário já está em uso.", "error", 7000);
+                return;
+              }
+            }
 
             const { error: updateError } = await supabase
               .from("profiles")

@@ -267,7 +267,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/ai/proxy') {
     try {
       const data = await getBody(req);
-      const { target, method, headers, body, apiKey: frontendApiKey } = data;
+      let { target, method, headers, body, apiKey: frontendApiKey } = data;
       const config = readData().aiConfig || {};
       
       console.log(`[AI Proxy] Alvo: ${target} | Método: ${method || 'POST'}`);
@@ -276,7 +276,17 @@ const server = http.createServer(async (req, res) => {
       let requestPayload = body || null;
       let credentialCandidates = [];
 
-      if (target === 'groq') {
+      if (target === 'openrouter') {
+        apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+        credentialCandidates = buildCredentialCandidates([
+          { source: 'frontend', value: frontendApiKey },
+          { source: 'process.env.OPENROUTER_API_KEY', value: process.env.OPENROUTER_API_KEY },
+          { source: 'data.json -> aiConfig.openrouterKey', value: config.openrouterKey }
+        ]);
+        headers = headers || {};
+        if (!headers['HTTP-Referer']) headers['HTTP-Referer'] = 'http://localhost:3000';
+        if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse Local';
+      } else if (target === 'groq') {
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         credentialCandidates = buildCredentialCandidates([
           { source: 'frontend', value: frontendApiKey },

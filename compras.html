@@ -725,7 +725,7 @@
             function showToast(message, type = "success") {
                 const toast = document.getElementById("lojaToast");
                 if (!toast) return;
-                toast.textContent = message;
+                toast.innerHTML = message;
                 toast.className = `show ${type}`;
                 setTimeout(() => {
                     toast.classList.remove("show");
@@ -856,11 +856,11 @@
                 itemToSell = item;
 
                 // Preencher modal
-                document.getElementById("mIcon").textContent = item.icon;
+                document.getElementById("mIcon").innerHTML = item.icon;
                 document.getElementById("mDesc").innerHTML =
                     `Deseja vender <strong>"${item.name}"</strong>? <br>As fichas de ${item.currency} serão devolvidas.`;
                 document.getElementById("mPrice").textContent = item.price;
-                document.getElementById("mCurrency").textContent =
+                document.getElementById("mCurrency").innerHTML =
                     item.currency === "ouro"
                         ? "<i class='fa-solid fa-medal'></i>"
                         : item.currency === "diamante"

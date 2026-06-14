@@ -1748,8 +1748,8 @@
                 </button>
 
                 <div class="filter-currency">
-                    <button class="currency-tab active" data-currency="all">
-                        Todos <i class='fa-solid fa-sack-dollar'></i>
+                    <button class="filter-tab active" data-currency="all">
+                        <i class='fa-solid fa-wand-magic-sparkles'></i> Todos
                     </button>
                     <button class="currency-tab" data-currency="ouro">
                         <i class='fa-solid fa-medal'></i> Ouro
@@ -1842,6 +1842,19 @@
 
             // ── HIERARQUIA DE PATAMARES ───────────────────────────
             // (RANK_HIERARCHY já definida globalmente pelo db.js)
+
+            function getMinXpForRank(rank) {
+                switch(rank) {
+                    case "Imortal": return 10000;
+                    case "Guardião": return 7500;
+                    case "Hokage": return 5000;
+                    case "Lenda": return 3000;
+                    case "Mestre": return 2000;
+                    case "Ouro": return 1000;
+                    case "Prata": return 500;
+                    default: return 0; // Bronze ou Novato
+                }
+            }
 
             // Rank mínimo para cada ficha
             const FICHA_REQ_RANK = {
@@ -2155,7 +2168,7 @@
                 const t = document.getElementById("lojaToast");
                 if (!t) return;
                 clearTimeout(toastTimer);
-                t.textContent = msg;
+                t.innerHTML = msg;
                 t.className = `show ${type}`;
                 toastTimer = setTimeout(() => {
                     t.className = "";
@@ -2212,6 +2225,16 @@
                                 );
                                 return;
                             }
+                            
+                            // Nova lógica: Limite de gasto de XP (não pode descer do patamar Prata)
+                            const minXp = getMinXpForRank("Prata");
+                            if (store.xp - total < minXp) {
+                                showToast(
+                                    `<i class='fa-solid fa-xmark'></i> Transação negada! O limite da loja exige manter pelo menos o patamar Prata (${minXp} XP).`,
+                                    "error"
+                                );
+                                return;
+                            }
                             store.xp -= total;
                             // Atualizar o ajuste de XP para o perfil
                             store.xp_offset = (parseInt(store.xp_offset) || 0) - total;
@@ -2221,6 +2244,8 @@
                             localStorage.setItem("animehouse_totalXP", store.xp);
                             saveStore(store);
                             updateHeroUI();
+                            updateFichasStatus();
+                            renderCatalog();
                             showToast(
                                 `<i class='fa-solid fa-check'></i> Troca realizada! +${qtd} ${icon} (${ficha}) — Saldo: ${store.xp} XP`,
                                 "success",
@@ -2258,6 +2283,8 @@
                             localStorage.setItem("animehouse_totalXP", store.xp);
                             saveStore(store);
                             updateHeroUI();
+                            updateFichasStatus();
+                            renderCatalog();
                             showToast(
                                 `<i class='fa-solid fa-check'></i> Devolução realizada! -${qtd} ${icon} (${ficha}) +${total} XP recuperados.`,
                                 "success",
@@ -2574,7 +2601,7 @@
                 let dbStore = null;
 
                 if (window.DB && window.DB.init) {
-                    await window.DB.init();
+                    await window.DB.init([]);
 
                     if (
                         window.DB._store &&

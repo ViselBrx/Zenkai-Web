@@ -187,6 +187,78 @@
     .glow-text {
       text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.8);
     }
+    /* Vision Rework UI */
+    .vision-preview-box {
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(var(--bg-dark), 0.2);
+      margin-bottom: 15px;
+    }
+
+    .vision-preview__actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .vision-input-wrapper {
+      margin-bottom: 15px;
+    }
+    
+    .vision-input-wrapper textarea {
+      width: 100%;
+      background: rgba(var(--bg-card), 0.8);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 8px;
+      color: var(--text-main);
+      padding: 12px;
+      font-size: 0.95rem;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .vision-input-wrapper textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-vision-glow {
+      background: var(--primary);
+      color: var(--bg-dark);
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      padding: 12px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.5);
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .btn-vision-glow:hover:not(:disabled) {
+      box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.8);
+      transform: translateY(-2px);
+    }
+    .btn-vision-glow:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .vision-output-title {
+      font-size: 1rem;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      color: var(--text-main);
+    }
+
+    .vision-output-bordered {
+      border-left: 3px solid var(--primary);
+      padding-left: 15px;
+      background: transparent;
+      border-radius: 0;
+    }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -219,7 +291,7 @@
           </div>
           <div class="ai-config-item">
             <span class="ai-config-label">Inteligência atual</span>
-            <strong>Groq — Llama 3.3 70B (chat) + Cloudflare — Llama 3.2 11B (visão IA)</strong>
+            <strong>OpenRouter:auto (chat) + OpenRouter:free (visão IA)</strong>
           </div>
           <div class="ai-config-item">
             <span class="ai-config-label">Como funciona</span>
@@ -280,8 +352,9 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               <span>Cancelar</span>
             </button>
-            <button class="ai-btn-send" id="sendChat" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            <button class="chat-send-btn" id="sendChat" type="button" title="Enviar mensagem" style="min-width: auto; min-height: 42px; padding: 0 16px; border-radius: 10px;">
+              <i class="fas fa-paper-plane"></i>
+              <span>Enviar</span>
             </button>
           </div>
           <p class="ai-disclaimer">A IA pode cometer erros. Confira informações importantes antes de confiar totalmente na resposta.</p>
@@ -305,20 +378,35 @@
             </div>
             <input type="file" id="visionUpload" accept="image/*" />
           </label>
-          <div class="vision-preview" id="visionPreview" hidden>
-            <img id="visionPreviewImg" alt="Preview da imagem enviada" />
-            <div class="vision-preview__meta">
-              <strong id="visionFileName">Nenhuma imagem selecionada</strong>
-              <span id="visionFileInfo">Aguardando envio</span>
+          
+          <div id="visionActiveArea" hidden>
+            <div class="vision-preview-box" id="visionPreviewBox">
+              <div class="vision-preview" id="visionPreview">
+                <img id="visionPreviewImg" alt="Preview da imagem enviada" />
+                <div class="vision-preview__meta">
+                  <strong id="visionFileName">Nenhuma imagem selecionada</strong>
+                  <span id="visionFileInfo">Aguardando envio</span>
+                </div>
+              </div>
             </div>
+            
+            <div class="vision-preview__actions" id="visionPreviewActions">
+              <button type="button" class="btn btn-ghost btn-sm" id="visionChooseAnotherBtn">Escolher outra imagem</button>
+              <button type="button" class="btn btn-danger btn-sm" id="visionClearBtn">Limpar imagem</button>
+            </div>
+
+            <div class="vision-input-wrapper">
+              <textarea id="visionPromptInput" rows="1" placeholder="Adicione uma pergunta ou detalhe extra (opcional)..."></textarea>
+            </div>
+
+            <button class="btn btn-vision-glow w-100" id="visionAnalyzeBtn" disabled>Analisar imagem</button>
           </div>
-          <div class="vision-preview__actions" id="visionPreviewActions" hidden>
-            <button type="button" class="btn btn-ghost btn-sm" id="visionChooseAnotherBtn">Escolher outra imagem</button>
-            <button type="button" class="btn btn-danger btn-sm" id="visionClearBtn">Limpar imagem</button>
-          </div>
-          <button class="btn btn-primary w-100" id="visionAnalyzeBtn" disabled>Analisar imagem</button>
-          <div id="visionOutput" class="ocr-result" style="margin-bottom: 40px;">
-            Aguardando imagem...
+
+          <div id="visionOutputContainer" hidden>
+            <h3 class="vision-output-title">Análise da imagem:</h3>
+            <div id="visionOutput" class="ocr-result vision-output-bordered" style="margin-bottom: 40px; position: relative;">
+              Aguardando imagem...
+            </div>
           </div>
         </div>
       </div>
@@ -454,26 +542,37 @@
     overflow-y: hidden;
   }
 
-  .ai-btn-send {
-    background: var(--primary);
-    color: var(--bg-dark);
-    border: none;
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
+  .chat-send-btn {
+    border: 1px solid rgba(var(--primary-rgb), 0.4);
+    background: rgba(var(--primary-rgb), 0.14);
+    color: var(--primary);
+    border-radius: 12px;
+    font-weight: 700;
     cursor: pointer;
-    display: flex;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    min-width: 138px;
+    min-height: 38px;
+    padding: 0 14px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
+    gap: 8px;
+    font-size: 0.88rem;
     position: relative;
     z-index: 2;
-    pointer-events: auto;
   }
-
-  .ai-btn-send svg {
-    width: 20px;
-    pointer-events: none;
+  .chat-send-btn:hover {
+    transform: translateY(-1px);
+    background: rgba(var(--primary-rgb), 0.24);
+    border-color: var(--primary);
+  }
+  .chat-send-btn:active {
+    transform: translateY(1px);
+  }
+  .chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
   }
 
   .ai-disclaimer {
@@ -617,6 +716,7 @@
     align-items: center;
     justify-content: center;
     opacity: 0.72;
+    z-index: 10;
     transform: translateY(0) scale(1);
     box-shadow: 0 8px 18px rgba(2, 6, 23, 0.18);
     transition: opacity 0.22s ease, transform 0.22s ease, border-color 0.22s ease, color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
@@ -1177,13 +1277,12 @@
 <!-- Scripts -->
 <script src="js/db.js"></script>
 <script src="js/history.js"></script>
-<script src="js/open-anime.js"></script>
+<script src="/js/open-anime.js?v=2"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js"></script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 </body>
-</html>
 
 
 

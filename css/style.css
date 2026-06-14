@@ -1,7 +1,7 @@
 /* ===== FONTES ===== */
 @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&family=Audiowide&display=swap");
 
-/* ===== VARIÁVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
+/* ===== VARIÃVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
 :root {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -17,10 +17,10 @@
 }   
 
 /*
- * PERFORMANCE (perfil.html): Os cards de inventário e compras acumulam múltiplas animações CSS
+ * PERFORMANCE (perfil.html): Os cards de inventÃ¡rio e compras acumulam mÃºltiplas animaÃ§Ãµes CSS
  * simultaneamente (border-glow, gradient-shift, rotate, chromatic-shine) + a transition global
  * de background-color/border-color que re-dooispara em cada frame do --ckkhromatic-hue.
- * Suprimir transitions de layout nesses cards específicos garante FPS sem afetar mais nada.
+ * Suprimir transitions de layout nesses cards especÃ­ficos garante FPS sem afetar mais nada.
  */
 .theme-cromatico,
 .theme-cromatico *,
@@ -31,7 +31,7 @@
     opacity 0.2s ease !important;
 }
 
-/* GPU Acceleration para elementos com animações frequentes */
+/* GPU Acceleration para elementos com animaÃ§Ãµes frequentes */
 .cartoon-pill,
 .episode-card,
 .manga-item,
@@ -45,7 +45,7 @@
   will-change: transform;
 }
 
-/* Suavizar entrada de conteúdo */
+/* Suavizar entrada de conteÃºdo */
 @keyframes fadeInSlideUp {
   from {
     opacity: 0;
@@ -328,7 +328,7 @@
   opacity: 1;
 }
 
-/* Loja / cosméticos (compatível com classes atuais) */
+/* Loja / cosmÃ©ticos (compatÃ­vel com classes atuais) */
 .avatar-aura-wrap.aura-common-chama::before,
 .avatar-aura-wrap.aura_chama::before,
 .user-nav-avatar-box.aura-common-chama::before,
@@ -649,7 +649,7 @@
   }
 }
 
-/* Animação de explosão de poder do Saitama */
+/* AnimaÃ§Ã£o de explosÃ£o de poder do Saitama */
 .avatar-aura-wrap.aura_void_saitama .avatar-view-img,
 .avatar-aura-wrap.avatar-aura-void .avatar-view-img,
 .user-nav-avatar-box.aura_void_saitama img,
@@ -790,7 +790,7 @@
   }
 }
 
-/* ===== NOVOS COSMÉTICOS (Banners e Títulos) ===== */
+/* ===== NOVOS COSMÃ‰TICOS (Banners e TÃ­tulos) ===== */
 .user-nav-container {
   position: relative;
   display: flex;
@@ -798,7 +798,7 @@
   justify-content: flex-end;
   gap: 12px;
   background: rgba(0, 0, 0, 0.05);
-  /* Fundo quase transparente para não ofuscar o banner */
+  /* Fundo quase transparente para nÃ£o ofuscar o banner */
   /* Base de contraste leve */
   padding: 2px 6px;
   border-radius: 50px;
@@ -817,7 +817,7 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  /* Centralização perfeita sugerida pelo usuário */
+  /* CentralizaÃ§Ã£o perfeita sugerida pelo usuÃ¡rio */
   background-repeat: no-repeat;
   opacity: 1;
   z-index: -1;
@@ -875,7 +875,7 @@
   outline: none !important;
 }
 
-/* O frame-dourado NÃO deve aplicar borda na bolinha da navbar */
+/* O frame-dourado NÃƒO deve aplicar borda na bolinha da navbar */
 .user-nav-avatar-box.frame-dourado {
   border: none !important;
   box-shadow: none !important;
@@ -894,7 +894,7 @@
 }
 
 :root {
-  /* BACKGROUNDS (Padrão para todos) */
+  /* BACKGROUNDS (PadrÃ£o para todos) */
   --bg-dark: #050f1f;
   --bg-card: #0a192f;
   --bg-surface: #112240;
@@ -1049,7 +1049,7 @@
     0 0 18px rgba(0, 176, 122, 0.64);
   --aqua-verde-scrollbar: #3ff2a0;
 
-  /* VARIÁVEIS ATIVAS (padrão = tema default) */
+  /* VARIÃVEIS ATIVAS (padrÃ£o = tema default) */
   --primary: var(--default-primary);
   --primary-rgb: var(--default-primary-rgb);
   --primary-hover: var(--default-primary-hover);
@@ -1122,7 +1122,7 @@
   --shadow-neon-h: var(--aot-shadow-neon-h);
 }
 
-/* ===== TEMA JOVENS TITÃS CLÁSSICO (DOMINANT PURPLE) ===== */
+/* ===== TEMA JOVENS TITÃƒS CLÃSSICO (DOMINANT PURPLE) ===== */
 .theme-roxo,
 .theme-tt-classic {
   --primary: var(--tt-classic-primary);
@@ -1262,7 +1262,7 @@
 }
 
 /* ===================================================== */
-/* ===== TEMA CROMÁTICO (ITEM EXCLUSIVO DA LOJA)    ===== */
+/* ===== TEMA CROMÃTICO (ITEM EXCLUSIVO DA LOJA)    ===== */
 /* ===================================================== */
 
 @property --chromatic-hue {
@@ -1282,22 +1282,22 @@
 }
 
 /*
- * PERFORMANCE: A animação fica no próprio .theme-cromatico (html/body).
- * `contain: style` isola a propagação da CSS custom property --chromatic-hue
+ * PERFORMANCE: A animaÃ§Ã£o fica no prÃ³prio .theme-cromatico (html/body).
+ * `contain: style` isola a propagaÃ§Ã£o da CSS custom property --chromatic-hue
  * ao subtree, evitando recalcs em todo o documento a cada frame.
- * Saturação 88% e luminosidade 58% → paleta mais suave e menos custosa no GPU.
+ * SaturaÃ§Ã£o 88% e luminosidade 58% â†’ paleta mais suave e menos custosa no GPU.
  */
 .theme-cromatico {
   --chromatic-hue: 210deg;
-  /* 30 s → menos recalcs/s */
+  /* 30 s â†’ menos recalcs/s */
   isolation: isolate;
   contain: style;
   /* impede que --chromatic-hue force recalc fora do subtree */
 
-  /* ── Paleta cromática elegante (sat 88 %, lum 58 %) ── */
+  /* â”€â”€ Paleta cromÃ¡tica elegante (sat 88 %, lum 58 %) â”€â”€ */
   --primary: hsl(var(--chromatic-hue), 88%, 58%);
   --primary-rgb: 180, 180, 255;
-  /* valor neutro; evita neon vermelho forçado */
+  /* valor neutro; evita neon vermelho forÃ§ado */
   --primary-hover: hsl(var(--chromatic-hue), 88%, 68%);
   --accent: hsl(calc(var(--chromatic-hue) + 120deg), 88%, 58%);
   --accent2: hsl(calc(var(--chromatic-hue) + 240deg), 88%, 58%);
@@ -1310,7 +1310,7 @@
   --bg-surface: #08080f;
   --bg-card: #0e0e18;
 
-  /* Neon Glow — raios menores = repaint mais barato */
+  /* Neon Glow â€” raios menores = repaint mais barato */
   --shadow-neon: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.35);
   --shadow-neon-h:
     0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.55),
@@ -1342,7 +1342,7 @@
   animation-play-state: paused !important;
 }
 
-/* Residual neon fix — raios menores para reduzir custo de repaint */
+/* Residual neon fix â€” raios menores para reduzir custo de repaint */
 .theme-cromatico .navbar-brand img,
 .theme-cromatico .home-icon,
 .theme-cromatico .stats-card,
@@ -1350,7 +1350,7 @@
   filter: drop-shadow(0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.28)) !important;
 }
 
-/* Títulos com gradiente cromático — paleta elegante (lum 68 %) */
+/* TÃ­tulos com gradiente cromÃ¡tico â€” paleta elegante (lum 68 %) */
 .theme-cromatico .page-header h1,
 .theme-cromatico .home-banner h2,
 .theme-cromatico .loja-hero-title,
@@ -1396,7 +1396,7 @@
   box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* Overrides para remover o branco de elementos específicos */
+/* Overrides para remover o branco de elementos especÃ­ficos */
 .theme-cromatico .home-banner p,
 .theme-cromatico .loja-hero-desc,
 .theme-cromatico .page-header p,
@@ -1429,7 +1429,7 @@
   box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.24) !important;
 }
 
-/* Ajuste para banners que têm fundos que podem conflitar */
+/* Ajuste para banners que tÃªm fundos que podem conflitar */
 .theme-cromatico .loja-hero,
 .theme-cromatico .home-banner {
   background: linear-gradient(135deg,
@@ -1582,7 +1582,7 @@
   box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessões */
+/* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessÃµes */
 .theme-cromatico .card,
 .theme-cromatico .episode-card,
 .theme-cromatico .manga-item,
@@ -1640,7 +1640,7 @@
   scrollbar-color: hsl(var(--chromatic-hue), 88%, 58%) #030308;
 }
 
-/* Chromatic Text Glow — reduzido para diminuir repaint */
+/* Chromatic Text Glow â€” reduzido para diminuir repaint */
 .theme-cromatico .btn,
 .theme-cromatico .page-header h1,
 .theme-cromatico .navbar-brand,
@@ -1668,13 +1668,13 @@
   position: fixed !important;
 }
 
-/* Título da página — fonte dinâmica para o tema cromático */
+/* TÃ­tulo da pÃ¡gina â€” fonte dinÃ¢mica para o tema cromÃ¡tico */
 .theme-cromatico .page-header h1 {
   font-family: "Audiowide", cursive;
   font-weight: 700;
 }
 
-/* Font variável para títulos no tema cromático */
+/* Font variÃ¡vel para tÃ­tulos no tema cromÃ¡tico */
 .theme-cromatico {
   --title-font: "Audiowide", cursive;
 }
@@ -1734,7 +1734,7 @@
   box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* ===== TRANSIÇÃO SUAVE DE TEMA ===== */
+/* ===== TRANSIÃ‡ÃƒO SUAVE DE TEMA ===== */
 .theme-switching,
 .theme-switching *,
 .theme-switching *::before,
@@ -1768,7 +1768,7 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
-  /* Removido o overflow-y: auto !important para evitar scrollbars duplas ou desnecessárias */
+  /* Removido o overflow-y: auto !important para evitar scrollbars duplas ou desnecessÃ¡rias */
 }
 
 a {
@@ -1788,7 +1788,7 @@ button {
   font-family: inherit;
 }
 
-/* =====/* ===== VARIÁVEIS DE SOMBRA E LAYOUT ===== */
+/* =====/* ===== VARIÃVEIS DE SOMBRA E LAYOUT ===== */
 :root {
   --sidebar-width: 280px;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -1819,21 +1819,21 @@ html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, div::-webkit-scrol
   box-shadow: 0 0 10px var(--primary) !important;
 }
 
-/* Garante que o body não tenha scroll horizontal e respeite o layout */
+/* Garante que o body nÃ£o tenha scroll horizontal e respeite o layout */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
 }
 
-/* Previne scroll do body quando modal está aberto */
+/* Previne scroll do body quando modal estÃ¡ aberto */
 body.modal-open {
   overflow: hidden !important;
   padding-right: 10px;
   /* Compensa a largura da scrollbar */
 }
 
-/* Scrollbar da Navbar - VISÍVEL E TEMATIZADA */
+/* Scrollbar da Navbar - VISÃVEL E TEMATIZADA */
 .navbar-links::-webkit-scrollbar {
   display: block !important;
   height: 10px !important;
@@ -1860,7 +1860,7 @@ body.modal-open {
   scrollbar-color: var(--primary) var(--bg-dark);
 }
 
-/* NOTA: Scrollbars webkit usam variáveis ativas que mudam com os temas */
+/* NOTA: Scrollbars webkit usam variÃ¡veis ativas que mudam com os temas */
 
 /* Corpo Principal */
 body {
@@ -1917,7 +1917,7 @@ body {
   }
 }
 
-/* Indicador discreto de rolagem horizontal na navbar (sempre visível quando há overflow) */
+/* Indicador discreto de rolagem horizontal na navbar (sempre visÃ­vel quando hÃ¡ overflow) */
 .navbar-scroll-indicator {
   display: none;
 }
@@ -2011,7 +2011,7 @@ body {
   font-weight: 700;
 }
 
-/* Garantir que notificações + perfil nunca se comprimam e fiquem na direita */
+/* Garantir que notificaÃ§Ãµes + perfil nunca se comprimam e fiquem na direita */
 #globalAuthContainer {
   flex-shrink: 0 !important;
   margin-left: auto;
@@ -2040,7 +2040,7 @@ body {
   }
 }
 
-/* Ocultar o botão burger em todos os tamanhos para remover a bolinha branca */
+/* Ocultar o botÃ£o burger em todos os tamanhos para remover a bolinha branca */
 .navbar-burger {
   display: none !important;
 }
@@ -2101,7 +2101,7 @@ body {
   color: var(--primary);
 }
 
-/* Fonts específicas para cada tema */
+/* Fonts especÃ­ficas para cada tema */
 .theme-ciano .page-header h1,
 .theme-default .page-header h1 {
   font-family: "Bangers", cursive;
@@ -2368,7 +2368,7 @@ body {
     0 0 10px rgba(var(--primary-rgb), 0.3);
 }
 
-/* ===== BOTÕES ===== */
+/* ===== BOTÃ•ES ===== */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -2475,7 +2475,7 @@ body {
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   overflow: hidden;
   position: relative;
-  /* Essencial para os botões absolutamente posicionados dentro */
+  /* Essencial para os botÃµes absolutamente posicionados dentro */
   transition: all var(--transition);
   cursor: pointer;
   display: flex;
@@ -2525,7 +2525,7 @@ body {
   transform: scale(1.08);
 }
 
-/* Mantém a capa cortada no container sem prender elementos externos */
+/* MantÃ©m a capa cortada no container sem prender elementos externos */
 .card {
   overflow: visible !important;
 }
@@ -2535,7 +2535,7 @@ body {
   position: relative;
 }
 
-/* Apenas o primeiro .card-click-area (área da imagem) recebe borda arredondada no topo */
+/* Apenas o primeiro .card-click-area (Ã¡rea da imagem) recebe borda arredondada no topo */
 .card > .card-click-area:first-child {
   border-radius: 14px 14px 0 0;
 }
@@ -2646,7 +2646,7 @@ body {
   transform: scale(1.1);
 }
 
-/* Variante para Animes (Púrpura) */
+/* Variante para Animes (PÃºrpura) */
 .anime-context .badge-accent {
   background: rgba(var(--primary-rgb), 0.15);
   color: var(--primary);
@@ -2830,10 +2830,10 @@ body:has(.modal-overlay.open) {
   justify-content: space-between;
   margin-bottom: 1.5rem;
   flex-shrink: 0;
-  /* Header não encolhe */
+  /* Header nÃ£o encolhe */
 }
 
-/* Força display block no conteúdo interno de qualquer modal/card aberto */
+/* ForÃ§a display block no conteÃºdo interno de qualquer modal/card aberto */
 .modal form,
 .modal .modal-body,
 .modal>p,
@@ -2845,7 +2845,7 @@ body:has(.modal-overlay.open) {
   display: block !important;
 }
 
-/* Scrollbar fixa e temática para o interior do card */
+/* Scrollbar fixa e temÃ¡tica para o interior do card */
 .modal form::-webkit-scrollbar,
 .modal .modal-body::-webkit-scrollbar,
 .modal .modal-content::-webkit-scrollbar,
@@ -2895,12 +2895,12 @@ body:has(.modal-overlay.open) {
   border-color: var(--danger);
 }
 
-/* ===== FORMULÁRIO ===== */
+/* ===== FORMULÃRIO ===== */
 .form-group {
   margin-bottom: 1.2rem;
 }
 
-/* Linha de formulário flexível que embrulha em telas pequenas */
+/* Linha de formulÃ¡rio flexÃ­vel que embrulha em telas pequenas */
 .form-row {
   display: flex;
   gap: 10px;
@@ -2918,7 +2918,7 @@ body:has(.modal-overlay.open) {
   min-width: auto;
 }
 
-/* Estilo para linhas de episódios/campos múltiplos */
+/* Estilo para linhas de episÃ³dios/campos mÃºltiplos */
 .ep-form-row {
   display: flex;
   gap: 0.7rem;
@@ -2966,7 +2966,7 @@ body:has(.modal-overlay.open) {
   margin-top: 2rem;
 }
 
-/* ===== EPISÓDIOS ===== */
+/* ===== EPISÃ“DIOS ===== */
 .season-section {
   margin-bottom: 2rem;
   background: var(--bg-card);
@@ -3316,7 +3316,7 @@ body:has(.modal-overlay.open) {
     0 0 12px rgba(var(--primary-rgb), 0.6);
 }
 
-/* Seletor de Temas FIXO (igual em todas as páginas e sem atrapalhar a UI) */
+/* Seletor de Temas FIXO (igual em todas as pÃ¡ginas e sem atrapalhar a UI) */
 .theme-switcher-wrapper {
   position: fixed;
   right: 20px;
@@ -3362,7 +3362,7 @@ body:has(.modal-overlay.open) {
   overflow: hidden;
 }
 
-/* Mini “dot” mostrando a cor do tema atual */
+/* Mini â€œdotâ€ mostrando a cor do tema atual */
 .theme-main-btn::after {
   content: "";
   position: absolute;
@@ -4612,12 +4612,12 @@ body:hover .watermark {
   }
 }
 
-/* ===== WATCH FRAME — PLAYER ===== */
-/* Garante que o iframe dentro do watchFrame ocupe 100% do espaço */
+/* ===== WATCH FRAME â€” PLAYER ===== */
+/* Garante que o iframe dentro do watchFrame ocupe 100% do espaÃ§o */
 #watchFrame {
   position: relative;
   isolation: isolate;
-  /* Stacking context próprio — evita herdar blur de pais */
+  /* Stacking context prÃ³prio â€” evita herdar blur de pais */
 }
 
 #watchFrame iframe {
@@ -4631,9 +4631,9 @@ body:hover .watermark {
   /* border-radius em iframe causa desfoque no Chromium */
 }
 
-/* ===== SISTEMA DE MARCAÇÃO DE EPISÓDIOS ASSISTIDOS ===== */
+/* ===== SISTEMA DE MARCAÃ‡ÃƒO DE EPISÃ“DIOS ASSISTIDOS ===== */
 
-/* Botão de marcação no episode-card */
+/* BotÃ£o de marcaÃ§Ã£o no episode-card */
 .watched-btn {
   flex-shrink: 0;
   width: 28px;
@@ -4793,7 +4793,7 @@ body:hover .watermark {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
 }
 
-/* Modal de watch: botão "Marcar como assistido" */
+/* Modal de watch: botÃ£o "Marcar como assistido" */
 .watched-modal-badge {
   display: inline-flex;
   align-items: center;
@@ -4838,7 +4838,7 @@ body:hover .watermark {
 }
 
 
-/* Animação do check ao marcar */
+/* AnimaÃ§Ã£o do check ao marcar */
 @keyframes watchedPop {
   0% {
     transform: scale(1);
@@ -4865,7 +4865,7 @@ body:hover .watermark {
 /* ====== AURAS DE CONQUISTA GLOBAIS ======= */
 /* ========================================= */
 
-/* === HOKAGE (Aura de Fogo Nível 50) === */
+/* === HOKAGE (Aura de Fogo NÃ­vel 50) === */
 .avatar-aura-wrap.avatar-aura-fire::before,
 .user-nav-avatar-box.avatar-aura-fire::before {
   background: radial-gradient(circle,
@@ -4933,7 +4933,7 @@ body:hover .watermark {
   }
 }
 
-/* === GUARDIÃO (Aura Nível 75) === */
+/* === GUARDIÃƒO (Aura NÃ­vel 75) === */
 .avatar-aura-wrap.avatar-aura-guardian::before,
 .user-nav-avatar-box.avatar-aura-guardian::before {
   background: radial-gradient(circle,
@@ -4995,7 +4995,7 @@ body:hover .watermark {
   }
 }
 
-/* === IMORTAL (Nível 100) === */
+/* === IMORTAL (NÃ­vel 100) === */
 .avatar-aura-wrap.avatar-aura-immortal::before,
 .user-nav-avatar-box.avatar-aura-immortal::before {
   background: radial-gradient(circle,
@@ -5232,7 +5232,7 @@ body:hover .watermark {
   background-position: center !important;
 }
 
-/* FONTES DINÂMICAS PARA H1 "Catálogo de" */
+/* FONTES DINÃ‚MICAS PARA H1 "CatÃ¡logo de" */
 .theme-ciano,
 .theme-default {
   --title-font: "Bangers", cursive;
@@ -5286,7 +5286,7 @@ body:hover .watermark {
   font-family: var(--title-font, "Bangers");
 }
 
-/* Botão de Favorito nos Cards */
+/* BotÃ£o de Favorito nos Cards */
 .card-fav-btn {
   position: absolute;
   top: 10px;
@@ -5427,7 +5427,7 @@ body.modo-cinema .history-sidebar {
   text-transform: uppercase;
 }
 
-/* 5. Lista Destaque (Favoritos) — Premium */
+/* 5. Lista Destaque (Favoritos) â€” Premium */
 .destaque-favoritos .fav-card {
   position: relative;
   border: 2px solid rgba(var(--primary-rgb), 0.5) !important;
@@ -5475,7 +5475,7 @@ body.modo-cinema .history-sidebar {
   }
 }
 
-/* 6. Botões de Favorito */
+/* 6. BotÃµes de Favorito */
 .card-fav-btn {
   position: absolute;
   top: 10px;
@@ -5539,7 +5539,7 @@ body.modo-cinema .history-sidebar {
   color: var(--primary);
 }
 
-/* ===== FAVORITOS DESTACADOS (INVENTÁRIO STYLE) ===== */
+/* ===== FAVORITOS DESTACADOS (INVENTÃRIO STYLE) ===== */
 .equipped-ribbon {
   position: absolute;
   top: 15px;
@@ -5585,7 +5585,7 @@ body.modo-cinema .history-sidebar {
   border-radius: 8px;
 }
 
-/* Selo de favorito nos cards (discreto; a estrela já indica no canto superior esquerdo) */
+/* Selo de favorito nos cards (discreto; a estrela jÃ¡ indica no canto superior esquerdo) */
 .fav-ribbon {
   position: absolute;
   bottom: 8px;
@@ -5717,15 +5717,15 @@ body.modo-cinema .history-sidebar {
   display: inline-block;
 }
 
-/* ===== SEARCH BAR: lupa + texto minúsculo ===== */
-/* Texto do placeholder em minúsculo e fonte normal */
+/* ===== SEARCH BAR: lupa + texto minÃºsculo ===== */
+/* Texto do placeholder em minÃºsculo e fonte normal */
 .search-bar input::placeholder {
   text-transform: none !important;
   font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
   font-weight: 400 !important;
 }
 
-/* Ícone de lupa via SVG inline no background */
+/* Ãcone de lupa via SVG inline no background */
 .search-bar input {
   padding-left: 42px !important;
 }
@@ -5737,7 +5737,7 @@ body.modo-cinema .history-sidebar {
   background-position: 14px center !important;
   background-size: 16px 16px !important;
 }
-/* Mesma sobrescrita para tema cromático (que usa background shorthand com !important) */
+/* Mesma sobrescrita para tema cromÃ¡tico (que usa background shorthand com !important) */
 .theme-cromatico .search-bar input {
   background-color: hsla(var(--chromatic-hue), 88%, 58%, 0.06) !important;
   font-family: 'Inter', system-ui, sans-serif !important;
@@ -5861,7 +5861,7 @@ body.modo-cinema .history-sidebar {
   font-weight: 600;
 }
 
-/* Tema crom�tico */
+/* Tema cromático */
 .theme-cromatico .cs-trigger {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.06);
   border-color: hsla(var(--chromatic-hue), 88%, 58%, 0.3);
@@ -5890,4 +5890,35 @@ body.modo-cinema .history-sidebar {
 .theme-cromatico .cs-option.selected {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.28);
   color: hsla(var(--chromatic-hue), 88%, 75%, 1);
+}
+
+/* Customize Native Spinners */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  width: 30px;
+  background: rgba(0, 0, 0, 0.1) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23aaaaaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 9 12 4 17 9"></polyline><polyline points="7 15 12 20 17 15"></polyline></svg>') no-repeat center center;
+  background-size: 14px;
+  border-left: 1px solid var(--border);
+  opacity: 0.8;
+  cursor: pointer;
+  height: 100%;
+}
+
+input[type="number"]::-webkit-inner-spin-button:hover,
+input[type="number"]::-webkit-outer-spin-button:hover {
+  opacity: 1;
+  background-color: rgba(var(--primary-rgb), 0.2);
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 9 12 4 17 9"></polyline><polyline points="7 15 12 20 17 15"></polyline></svg>');
+}
+
+/* Tema Cromático */
+.theme-cromatico input[type="number"]::-webkit-inner-spin-button,
+.theme-cromatico input[type="number"]::-webkit-outer-spin-button {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: rgba(255, 255, 255, 0.2);
+}
+.theme-cromatico input[type="number"]::-webkit-inner-spin-button:hover,
+.theme-cromatico input[type="number"]::-webkit-outer-spin-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
 }

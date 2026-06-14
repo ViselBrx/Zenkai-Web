@@ -91,13 +91,22 @@ export default async function handler(req, res) {
 
   try {
     const data = req.body;
-    const { target, method, headers, body, apiKey: frontendApiKey } = data;
+    let { target, method, headers, body, apiKey: frontendApiKey } = data;
     
     let apiUrl = '';
     let requestPayload = body || null;
     let credentialCandidates = [];
 
-    if (target === 'groq') {
+    if (target === 'openrouter') {
+      apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+      credentialCandidates = buildCredentialCandidates([
+        { source: 'frontend', value: frontendApiKey },
+        { source: 'process.env.OPENROUTER_API_KEY', value: process.env.OPENROUTER_API_KEY }
+      ]);
+      headers = headers || {};
+      if (!headers['HTTP-Referer']) headers['HTTP-Referer'] = 'https://animehouse-zeta.vercel.app';
+      if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse';
+    } else if (target === 'groq') {
       apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
       credentialCandidates = buildCredentialCandidates([
         { source: 'frontend', value: frontendApiKey },
