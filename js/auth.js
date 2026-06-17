@@ -119,11 +119,22 @@ async function setupAuthLogic() {
               <div style="text-align:left; margin-bottom:1rem;">
                 <label style="display:block; margin-bottom:8px; color:var(--text-main); font-weight:600; font-size:0.9rem;">Nova Senha</label>
                 <div style="position:relative;">
-                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
+                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" oninput="updatePasswordStrength(this.value, 'recStrengthFill', 'recStrengthText')" />
                   <button type="button" id="toggleRecPass" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
                 </div>
+                <div class="password-strength-container" style="margin-top: 10px;">
+                  <div class="password-strength-bar">
+                    <div id="recStrengthFill" class="password-strength-fill"></div>
+                  </div>
+                  <div class="password-strength-text">
+                    <span id="recStrengthText">Força: Muito Fraca</span>
+                  </div>
+                </div>
+                <button type="button" class="btn-generate-pwd" onclick="generateMD5Password('recoveryNewPassword', 'recoveryConfirmPassword')" style="margin-top: 10px; width: 100%;">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Gerar senha ultra-segura
+                </button>
               </div>
 
               <div style="text-align:left; margin-bottom:1.5rem;">
@@ -138,7 +149,7 @@ async function setupAuthLogic() {
               
               <div id="recoveryError" style="color:var(--danger); background:rgba(239,68,68,0.1); border:1px solid var(--danger); border-radius:8px; padding:12px; font-size:0.9rem; margin-bottom:1.5rem; display:none; font-weight:500;"></div>
               
-              <button id="recoveryBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; transition:all 0.3s ease;">💾 Redefinir Senha</button>
+              <button id="recoveryBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; transition:all 0.3s ease;"><i class="fa-solid fa-floppy-disk"></i> Redefinir Senha</button>
             </div>
           </div>
         `;
@@ -211,7 +222,7 @@ async function setupAuthLogic() {
             }
             errorDiv.innerHTML = "❌ Erro: " + msg;
             errorDiv.style.display = "block";
-            btn.innerHTML = "💾 Redefinir Senha";
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Redefinir Senha';
             btn.disabled = false;
           } else {
             sessionStorage.removeItem('is_recovering_password');
@@ -339,10 +350,14 @@ if (forgotPasswordLink) {
     if (successDiv) successDiv.style.display = "none";
 
     try {
+      forgotPasswordLink.style.pointerEvents = "none";
+      forgotPasswordLink.innerHTML = '<span class="loader-ring" style="width:14px; height:14px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:5px; border-color:var(--primary) transparent var(--primary) transparent;"></span> Aguarde...';
+      
       const redirectUrl = window.location.origin + window.location.pathname;
       const { error } = await supaClient.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl
       });
+      
       if (error) {
         let msg = error.message;
         if (msg.includes("rate limit")) msg = "Limite de e-mails atingido. Por favor, aguarde alguns minutos.";
@@ -350,13 +365,25 @@ if (forgotPasswordLink) {
         errorDiv.style.display = "block";
       } else {
         if (successDiv) {
-          successDiv.innerHTML = "✅ <strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'>⚠️ <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
+          successDiv.innerHTML = `
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px dashed var(--success); border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);">
+              <i class="fa-regular fa-envelope-open" style="font-size: 2rem; color: var(--success); margin-bottom: 10px;"></i>
+              <h3 style="color: var(--success); margin: 0 0 5px 0; font-size: 1.1rem; text-transform: uppercase;">E-mail Enviado!</h3>
+              <p style="color: var(--text-main); font-size: 0.9rem; margin: 0 0 10px 0; line-height: 1.4;">O link de redefinição de senha foi enviado para<br/><strong style="color:var(--primary);">${email}</strong></p>
+              <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid var(--warning); border-radius: 6px; padding: 10px; font-size: 0.8rem; color: var(--text-main); text-align: left;">
+                <span style="color:var(--warning);">⚠️</span> <strong>Atenção:</strong> Caso não encontre, verifique a sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.
+              </div>
+            </div>
+          `;
           successDiv.style.display = "block";
         }
       }
     } catch (err) {
       errorDiv.textContent = "Erro inesperado ao tentar redefinir a senha.";
       errorDiv.style.display = "block";
+    } finally {
+      forgotPasswordLink.style.pointerEvents = "auto";
+      forgotPasswordLink.innerHTML = "Esqueceu a senha?";
     }
   });
 }
@@ -462,7 +489,7 @@ if (registerForm) {
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Registrando...";
+    submitBtn.innerHTML = '<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Registrando...';
     lastEmailRegistered = email;
     sessionStorage.setItem("lastEmailRegistered", email); // Persiste no navegador
 
@@ -484,7 +511,7 @@ if (registerForm) {
       errorDiv.textContent = msg;
       errorDiv.style.display = "block";
       submitBtn.disabled = false;
-      submitBtn.textContent = "Criar Conta";
+      submitBtn.innerHTML = "Criar Conta";
     } else {
       // Registro realmente novo - Esconder form e mostrar container de verificação
       const otpSection = document.getElementById("otpSection");
@@ -1397,10 +1424,50 @@ async function signInWithDiscord() {
   if (error) showOAuthError("Discord", error);
 }
 
+// --- LOGIN COM TWITCH ---
+async function signInWithTwitch() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Twitch", error);
+    return;
+  }
+
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'twitch',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+
+  if (error) showOAuthError("Twitch", error);
+}
+
+// --- LOGIN COM X / TWITTER ---
+async function signInWithTwitter() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Twitter", error);
+    return;
+  }
+
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'x',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+
+  if (error) showOAuthError("Twitter", error);
+}
+
 // Expor para o HTML
 window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
+window.signInWithTwitch = signInWithTwitch;
+window.signInWithTwitter = signInWithTwitter;
 
 // Adicionar listeners para os botões social se existirem
 document.addEventListener("click", (e) => {
@@ -1412,6 +1479,12 @@ document.addEventListener("click", (e) => {
   }
   if (e.target.closest("#discordLoginBtn") || e.target.closest("#discordRegBtn")) {
     signInWithDiscord();
+  }
+  if (e.target.closest("#twitterLoginBtn") || e.target.closest("#twitterRegBtn")) {
+    signInWithTwitter();
+  }
+  if (e.target.closest("#twitchLoginBtn") || e.target.closest("#twitchRegBtn")) {
+    signInWithTwitch();
   }
 });
 
@@ -2294,6 +2367,33 @@ function setupNotificationRealtimeLegacy() {
       }
     });
 }
+
+window.updatePasswordStrength = function(password, fillId, textId) {
+  const fill = document.getElementById(fillId);
+  const text = document.getElementById(textId);
+  if (!fill || !text) return;
+  if (!password) {
+    fill.style.width = '0%'; fill.style.backgroundColor = 'transparent';
+    text.textContent = 'Força: Muito Fraca'; text.style.color = 'var(--text-muted)';
+    return;
+  }
+  let score = 0;
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/[0-9]/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  if (score <= 2) {
+    fill.style.width = '33%'; fill.style.backgroundColor = 'var(--danger)';
+    text.textContent = 'Força: Fraca'; text.style.color = 'var(--danger)';
+  } else if (score === 3 || score === 4) {
+    fill.style.width = '66%'; fill.style.backgroundColor = '#facc15';
+    text.textContent = 'Força: Média'; text.style.color = '#facc15';
+  } else {
+    fill.style.width = '100%'; fill.style.backgroundColor = 'var(--success)';
+    text.textContent = 'Força: Forte'; text.style.color = 'var(--success)';
+  }
+};
 
 window.generateMD5Password = function (pwdId, confirmId) {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';

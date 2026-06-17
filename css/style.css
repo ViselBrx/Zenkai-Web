@@ -5922,3 +5922,42 @@ input[type="number"]::-webkit-outer-spin-button:hover {
 .theme-cromatico input[type="number"]::-webkit-outer-spin-button:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
+
+/* Password Strength & Generator */
+.password-strength-container {
+  margin-top: 8px;
+}
+.password-strength-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  display: flex;
+}
+.password-strength-fill {
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+.password-strength-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+.btn-generate-pwd {
+  background: none;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 6px;
+  width: 100%;
+}
+.btn-generate-pwd:hover {
+  background: rgba(var(--primary-rgb), 0.1);
+}

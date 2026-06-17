@@ -206,6 +206,8 @@ export default async function handler(req, res) {
         fetchHeaders['Authorization'] = `Bearer ${credential.value}`;
       }
 
+      const isStream = requestPayload && requestPayload.stream === true;
+
       try {
         const attempt = await fetch(attemptUrl, {
           method: method || 'POST',
@@ -213,6 +215,22 @@ export default async function handler(req, res) {
           body: requestBody
         });
         
+        if (isStream && attempt.ok && attempt.body) {
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          res.flushHeaders();
+          
+          const reader = attempt.body.getReader();
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(value);
+          }
+          res.end();
+          return;
+        }
+
         const responseText = await attempt.text();
         lastAttempt = { statusCode: attempt.status, body: responseText };
 

@@ -204,7 +204,9 @@
     .auth-form .btn.btn-primary,
     .github-btn,
     .google-btn,
-    .discord-btn {
+    .discord-btn,
+    .twitter-btn,
+    .twitch-btn {
       position: relative;
       overflow: hidden;
       isolation: isolate;
@@ -214,7 +216,9 @@
     .auth-form .btn.btn-primary::before,
     .github-btn::before,
     .google-btn::before,
-    .discord-btn::before {
+    .discord-btn::before,
+    .twitter-btn::before,
+    .twitch-btn::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -227,14 +231,18 @@
     .auth-form .btn.btn-primary:hover,
     .github-btn:hover,
     .google-btn:hover,
-    .discord-btn:hover {
+    .discord-btn:hover,
+    .twitter-btn:hover,
+    .twitch-btn:hover {
       transform: translateY(-2px) scale(1.01);
     }
 
     .auth-form .btn.btn-primary:hover::before,
     .github-btn:hover::before,
     .google-btn:hover::before,
-    .discord-btn:hover::before {
+    .discord-btn:hover::before,
+    .twitter-btn:hover::before,
+    .twitch-btn:hover::before {
       transform: translateX(0);
     }
 
@@ -321,6 +329,70 @@
       background: #6974f7 !important;
       box-shadow: 0 14px 28px rgba(88, 101, 242, 0.32);
       filter: saturate(1.08);
+    }
+
+    .twitter-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #000000;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
+    }
+
+    .twitter-btn:hover {
+      background: #1a1a1a !important;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.6), 0 0 18px rgba(255,255,255,0.1);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .twitter-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .twitch-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #9146FF;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+      box-shadow: 0 10px 22px rgba(145, 70, 255, 0.3);
+    }
+
+    .twitch-btn:hover {
+      background: #a970ff !important;
+      box-shadow: 0 14px 28px rgba(145, 70, 255, 0.5);
+      filter: saturate(1.08);
+    }
+    
+    .twitch-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
     }
     /* ── Overlay de Carregamento Social ── */
     #socialLoadingOverlay {
@@ -488,6 +560,18 @@
           </svg>
           Discord
         </button>
+        <button class="auth-method-tab" id="tabRegTwitter" onclick="switchRegTab('twitter')">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          X / Twitter
+        </button>
+        <button class="auth-method-tab" id="tabRegTwitch" onclick="switchRegTab('twitch')">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+          </svg>
+          Twitch
+        </button>
       </div>
 
       <!-- Seção e-mail -->
@@ -628,6 +712,38 @@
         </p>
       </div>
 
+      <!-- Seção X / Twitter -->
+      <div id="registerTwitterSection" style="display:none; padding: 8px 0 4px;">
+        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+          Cadastre-se rapidamente usando sua conta do X / Twitter.
+        </p>
+        <button class="twitter-btn" id="twitterRegBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+          Criar conta com X / Twitter
+        </button>
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
+          Sua conta será criada e vinculada à sua conta X instantaneamente.
+        </p>
+      </div>
+
+      <!-- Seção Twitch -->
+      <div id="registerTwitchSection" style="display:none; padding: 8px 0 4px;">
+        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+          Cadastre-se rapidamente usando sua conta da Twitch.
+        </p>
+        <button class="twitch-btn" id="twitchRegBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+          </svg>
+          Criar conta com Twitch
+        </button>
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
+          Sua conta será criada e vinculada à sua Twitch instantaneamente.
+        </p>
+      </div>
+
       <div class="auth-links">
         <p style="color:var(--text-muted)">Já tem uma conta? <a href="login.html">Faça Login</a></p>
       </div>
@@ -649,20 +765,28 @@
       const githubSection = document.getElementById('registerGithubSection');
       const googleSection = document.getElementById('registerGoogleSection');
       const discordSection = document.getElementById('registerDiscordSection');
+      const twitterSection = document.getElementById('registerTwitterSection');
+      const twitchSection = document.getElementById('registerTwitchSection');
       const tabEmail = document.getElementById('tabRegEmail');
       const tabGithub = document.getElementById('tabRegGithub');
       const tabGoogle = document.getElementById('tabRegGoogle');
       const tabDiscord = document.getElementById('tabRegDiscord');
+      const tabTwitter = document.getElementById('tabRegTwitter');
+      const tabTwitch = document.getElementById('tabRegTwitch');
 
       // Hide all
       emailSection.style.display = 'none';
       githubSection.style.display = 'none';
       googleSection.style.display = 'none';
       discordSection.style.display = 'none';
+      if (twitterSection) twitterSection.style.display = 'none';
+      if (twitchSection) twitchSection.style.display = 'none';
       tabEmail.classList.remove('active');
       tabGithub.classList.remove('active');
       tabGoogle.classList.remove('active');
       tabDiscord.classList.remove('active');
+      if (tabTwitter) tabTwitter.classList.remove('active');
+      if (tabTwitch) tabTwitch.classList.remove('active');
 
       if (tab === 'email') {
         emailSection.style.display = '';
@@ -676,6 +800,12 @@
       } else if (tab === 'discord') {
         discordSection.style.display = '';
         tabDiscord.classList.add('active');
+      } else if (tab === 'twitter' && twitterSection && tabTwitter) {
+        twitterSection.style.display = '';
+        tabTwitter.classList.add('active');
+      } else if (tab === 'twitch' && twitchSection && tabTwitch) {
+        twitchSection.style.display = '';
+        tabTwitch.classList.add('active');
       }
     }
 
@@ -684,6 +814,8 @@
       if (e.target.closest('#githubRegBtn')) showSocialLoading('GitHub');
       if (e.target.closest('#googleRegBtn')) showSocialLoading('Google');
       if (e.target.closest('#discordRegBtn')) showSocialLoading('Discord');
+      if (e.target.closest('#twitterRegBtn')) showSocialLoading('X / Twitter');
+      if (e.target.closest('#twitchRegBtn')) showSocialLoading('Twitch');
     });
   </script>
   <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>

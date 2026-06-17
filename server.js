@@ -171,22 +171,30 @@ function buildProxyErrorBody(target, statusCode, responseBody) {
   });
 }
 
-function makeExternalRequest(apiUrl, options, requestBody) {
+function makeExternalRequest(apiUrl, options, requestBody, clientRes, isStream) {
   return new Promise((resolve, reject) => {
     const proxyReq = https.request(apiUrl, options, (proxyRes) => {
-      let resBody = '';
-
-      proxyRes.on('data', (chunk) => {
-        resBody += chunk;
-      });
-
-      proxyRes.on('end', () => {
-        resolve({
-          statusCode: proxyRes.statusCode || 500,
-          headers: proxyRes.headers || {},
-          body: resBody
+      if (isStream && proxyRes.statusCode >= 200 && proxyRes.statusCode < 300) {
+        clientRes.writeHead(proxyRes.statusCode, {
+          ...proxyRes.headers,
+          'Access-Control-Allow-Origin': '*'
         });
-      });
+        proxyRes.pipe(clientRes);
+        proxyRes.on('end', () => resolve({ streamed: true }));
+      } else {
+        let resBody = '';
+        proxyRes.on('data', (chunk) => {
+          resBody += chunk;
+        });
+
+        proxyRes.on('end', () => {
+          resolve({
+            statusCode: proxyRes.statusCode || 500,
+            headers: proxyRes.headers || {},
+            body: resBody
+          });
+        });
+      }
     });
 
     proxyReq.on('error', reject);
@@ -397,6 +405,7 @@ const server = http.createServer(async (req, res) => {
 
       const requestBody = requestPayload ? JSON.stringify(requestPayload) : null;
       let lastAttempt = null;
+      const isStream = requestPayload && requestPayload.stream === true;
 
       for (let index = 0; index < credentialCandidates.length; index += 1) {
         const credential = credentialCandidates[index];
@@ -423,8 +432,13 @@ const server = http.createServer(async (req, res) => {
         console.log(`[AI Proxy] Tentativa ${index + 1}/${credentialCandidates.length} com chave de ${credential.source}`);
 
         try {
-          const attempt = await makeExternalRequest(attemptUrl, options, requestBody);
+          const attempt = await makeExternalRequest(attemptUrl, options, requestBody, res, isStream);
           lastAttempt = attempt;
+          
+          if (attempt.streamed) {
+            console.log(`[AI Proxy] Stream repassado com sucesso ao cliente.`);
+            return;
+          }
 
           console.log(`[AI Proxy] Resposta recebida: ${attempt.statusCode}`);
           console.log(`[AI Proxy] Resposta Final (Primeiros 100 caracteres): ${attempt.body.substring(0, 100)}...`);

@@ -1,4 +1,22 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!document.getElementById('ai-typing-styles')) {
+    const style = document.createElement('style');
+    style.id = 'ai-typing-styles';
+    style.textContent = `
+      .typing-dots::after {
+        content: '';
+        animation: ai-typing-dots 1.5s infinite steps(4, end);
+      }
+      @keyframes ai-typing-dots {
+        0% { content: ''; }
+        25% { content: '.'; }
+        50% { content: '..'; }
+        75% { content: '...'; }
+        100% { content: ''; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
   await DB.init([]);
 
   const tabs = document.querySelectorAll('.ai-tab-v');
@@ -59,8 +77,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações mundiais. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, mas seja UM POUCO MAIS CONCISO E DIRETO, reduzindo um pouco o volume de texto sem perder a qualidade. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
-  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre animações globais: de animes japoneses a cartoons americanos, passando por filmes 3D e clássicos adorados. Posso recomendar títulos com explicações detalhadas, discutir personagens famosos de qualquer estúdio, comparar poderes incríveis ou analisar cenas. Qual universo animado vamos explorar hoje?';
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens, mas seja UM POUCO MAIS CONCISO E DIRETO, reduzindo um pouco o volume de texto sem perder a qualidade. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
   const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash';
@@ -69,14 +87,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const GEMINI_VISION_MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-2.0-flash'];
   const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
   const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
-  const DEFAULT_GROQ_MODEL = 'openrouter/free';
-  const COMPARE_FALLBACK_GROQ_MODEL = 'openrouter/free';
+  const DEFAULT_GROQ_MODEL = 'google/gemma-4-31b-it:free';
+  const COMPARE_FALLBACK_GROQ_MODEL = 'google/gemma-4-31b-it:free';
   const COMPARE_MAX_TOKENS = 1400;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um detetive visual implacável e enciclopédia suprema de animes, cartoons e filmes. Sua ÚNICA missão é DESCOBRIR exatamente qual é a obra e o personagem da imagem.',
+    'Atue como um detetive visual implacável e enciclopédia suprema de animes, desenhos, filmes, mangás e HQs. Sua ÚNICA missão é DESCOBRIR exatamente qual é a obra e o personagem da imagem.',
     'PROIBIDO dar respostas genéricas! Você tem a OBRIGAÇÃO de dar o seu palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
     '',
     '### 🆔 Identificação Certeira (Obrigatório)',
@@ -882,6 +900,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 80);
   }
 
+  function updateLastUserMessageButtons() {
+    if (!chatWindow) return;
+    const editableTurn = getLastUndoableChatTurn();
+    if (!editableTurn || isSendingChat || activeChatEditState) return;
+
+    const userMessages = chatWindow.querySelectorAll('.msg.user');
+    if (userMessages.length === 0) return;
+    const lastUserMsgDOM = userMessages[userMessages.length - 1];
+
+    const oldEdit = lastUserMsgDOM.querySelector('.msg-edit-btn');
+    if (oldEdit) oldEdit.remove();
+    const oldResend = lastUserMsgDOM.querySelector('.msg-resend-btn');
+    if (oldResend) oldResend.remove();
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'msg-edit-btn';
+    editBtn.type = 'button';
+    editBtn.title = 'Editar mensagem';
+    editBtn.setAttribute('aria-label', 'Editar mensagem');
+    editBtn.innerHTML = `${EDIT_ICON}<span>Editar</span>`;
+    editBtn.addEventListener('click', () => beginAIChatEdit(editableTurn.userIndex));
+    lastUserMsgDOM.insertBefore(editBtn, lastUserMsgDOM.querySelector('.msg-copy-btn') || lastUserMsgDOM.lastElementChild);
+
+    const resendBtn = document.createElement('button');
+    resendBtn.className = 'msg-resend-btn';
+    resendBtn.type = 'button';
+    resendBtn.title = 'Reenviar pergunta';
+    resendBtn.setAttribute('aria-label', 'Reenviar pergunta');
+    resendBtn.innerHTML = `${RESEND_ICON}<span>Reenviar</span>`;
+    resendBtn.addEventListener('click', () => resendLastAIChatTurn());
+    lastUserMsgDOM.insertBefore(resendBtn, lastUserMsgDOM.querySelector('.msg-copy-btn') || lastUserMsgDOM.lastElementChild);
+  }
+
   function renderChatFromMessages(messages = []) {
     if (!chatWindow) return;
     chatWindow.innerHTML = '';
@@ -1145,6 +1196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     for (let modelIndex = 0; modelIndex < modelQueue.length; modelIndex += 1) {
       const selectedModel = modelQueue[modelIndex];
       for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
+        const streamRequest = options.stream === true;
         const res = await fetch('/api/ai/proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1155,19 +1207,55 @@ document.addEventListener('DOMContentLoaded', async () => {
               messages: requestMessages,
               temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
               max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
-              stream: false
+              stream: streamRequest
             }
           })
         });
 
         if (res.ok) {
-          const data = await res.json();
-          aiResponse = normalizeBrokenEncoding(
-            data.candidates?.[0]?.content?.parts?.[0]?.text
-            || data.choices?.[0]?.message?.content
-            || 'Sem resposta da IA.'
-          );
-          break;
+          if (streamRequest && typeof options.onChunk === 'function') {
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let done = false;
+            let fullText = '';
+            let buffer = '';
+            
+            while (!done) {
+              const { value, done: doneReading } = await reader.read();
+              done = doneReading;
+              if (value) {
+                buffer += decoder.decode(value, { stream: true });
+                let eolIndex;
+                while ((eolIndex = buffer.indexOf('\n')) >= 0) {
+                  const line = buffer.slice(0, eolIndex).trim();
+                  buffer = buffer.slice(eolIndex + 1);
+                  
+                  if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                    try {
+                      const data = JSON.parse(line.slice(6));
+                      const textChunk = data.choices?.[0]?.delta?.content || '';
+                      if (textChunk) {
+                        fullText += textChunk;
+                        options.onChunk(textChunk, fullText);
+                      }
+                    } catch (e) {
+                      // Ignora erros de parse e continua
+                    }
+                  }
+                }
+              }
+            }
+            aiResponse = fullText || 'Sem resposta da IA.';
+            break;
+          } else {
+            const data = await res.json();
+            aiResponse = normalizeBrokenEncoding(
+              data.candidates?.[0]?.content?.parts?.[0]?.text
+              || data.choices?.[0]?.message?.content
+              || 'Sem resposta da IA.'
+            );
+            break;
+          }
         }
 
         const errData = await res.json().catch(() => ({}));
@@ -1561,19 +1649,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? chatHistory.map(({ role, content }) => ({ role, content }))
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
+      let chatAssistantEntry = null;
+      let lastMsgElement = null;
+
+      if (useChatContext) {
+        chatAssistantEntry = { role: 'assistant', content: '...', context, metadata: { ...metadata } };
+        chatHistory.push(chatAssistantEntry);
+        renderChatFromMessages(chatHistory);
+        lastMsgElement = chatWindow ? chatWindow.lastElementChild : null;
+        if (lastMsgElement) {
+           const contentDiv = lastMsgElement.querySelector('.msg-content');
+           if (contentDiv) contentDiv.innerHTML = '<i><span style="opacity: 0.7;">Gerando resposta</span><span class="typing-dots"></span></i>';
+        }
+      }
+
       const aiResponse = await requestAIText(requestMessages, {
         target,
         model,
         context,
         temperature: options.temperature,
-        max_tokens: options.max_tokens
+        max_tokens: options.max_tokens,
+        stream: useChatContext,
+        onChunk: (chunk, fullText) => {
+          if (chatAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
+            chatAssistantEntry.content = fullText;
+            const contentDiv = lastMsgElement.querySelector('.msg-content');
+            if (contentDiv) {
+              contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+              if (chatWindow) {
+                const isNearBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 150;
+                if (isNearBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight });
+              }
+            }
+          }
+        }
       });
 
-      let chatAssistantEntry = null;
-      if (useChatContext) {
-        chatAssistantEntry = { role: 'assistant', content: aiResponse, context, metadata: { ...metadata } };
-        chatHistory.push(chatAssistantEntry);
+      if (useChatContext && chatAssistantEntry) {
+        chatAssistantEntry.content = aiResponse;
         persistAIChatSessionState();
+        if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+          const contentDiv = lastMsgElement.querySelector('.msg-content');
+          if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'msg-copy-btn';
+          copyBtn.type = 'button';
+          copyBtn.title = 'Copiar mensagem';
+          copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+          copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+          updateCopyButton(copyBtn, false);
+          copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
+          lastMsgElement.appendChild(copyBtn);
+        }
       }
 
       if (persistToAIHistory) {
@@ -1609,11 +1736,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       return aiResponse;
     } catch (e) {
       console.error(e);
-      if (useChatContext && chatUserEntry && !chatUserEntry.id && !options.existingUserEntry && chatHistory[chatHistory.length - 1] === chatUserEntry) {
+      const errorMsg = 'Falha: ' + e.message + '. Tente novamente.';
+      if (useChatContext && chatAssistantEntry) {
+        chatAssistantEntry.content = errorMsg;
+        if (lastMsgElement) {
+           const contentDiv = lastMsgElement.querySelector('.msg-content');
+           if (contentDiv) contentDiv.innerHTML = formatAIResponse(errorMsg);
+        }
+      } else if (useChatContext && chatUserEntry && chatHistory[chatHistory.length - 1] === chatUserEntry) {
         chatHistory.pop();
       }
       persistAIChatSessionState();
-      return 'Falha: ' + e.message + '. Verifique o terminal do servidor para mais detalhes.';
+      updateLastUserMessageButtons();
+      return errorMsg;
     }
   }
 
@@ -1655,21 +1790,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     sendBtn.disabled = true;
     updateAIChatComposerState();
 
-    let loadingMsg = null;
+    let nextAssistantEntry = { role: 'assistant', content: '...', context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } };
+    let lastMsgElement = null;
 
     try {
       userMessage.content = updatedPrompt;
       chatHistory = chatHistory.filter((_, index) => index !== turn.assistantIndex);
+      chatHistory.push(nextAssistantEntry);
+      
       renderChatFromMessages(chatHistory);
       updateChatScrollInfo();
       persistAIChatSessionState({ draft: updatedPrompt });
 
-      loadingMsg = document.createElement('div');
-      loadingMsg.className = 'msg bot loading-msg';
-      loadingMsg.innerHTML = '<span class="pulse">Atualizando resposta...</span>';
-      chatWindow.appendChild(loadingMsg);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      updateChatScrollInfo();
+      lastMsgElement = chatWindow ? chatWindow.lastElementChild : null;
+      if (lastMsgElement) {
+         const contentDiv = lastMsgElement.querySelector('.msg-content');
+         if (contentDiv) contentDiv.innerHTML = '<i><span style="opacity: 0.7;">Atualizando resposta</span><span class="typing-dots"></span></i>';
+      }
 
       if (userMessage.id) {
         const updatedUserRecord = await updateAIHistoryMessageRecord(userMessage.id, { content: updatedPrompt });
@@ -1678,36 +1815,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
+      const requestMessages = chatHistory.filter(m => m !== nextAssistantEntry).map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
         target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
-        context: 'chat'
+        context: 'chat',
+        stream: true,
+        onChunk: (chunk, fullText) => {
+           if (nextAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
+             nextAssistantEntry.content = fullText;
+             const contentDiv = lastMsgElement.querySelector('.msg-content');
+             if (contentDiv) {
+                contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight });
+             }
+           }
+        }
       });
 
-      let nextAssistantEntry = null;
-      if (assistantMessage?.id) {
-        nextAssistantEntry = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
-      }
+      nextAssistantEntry.content = aiResponse;
 
-      if (!nextAssistantEntry) {
-        nextAssistantEntry = await saveAIHistoryMessageRecord({
+      if (assistantMessage?.id) {
+        const nextAssistantEntryDb = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
+        if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
+      } else {
+        const nextAssistantEntryDb = await saveAIHistoryMessageRecord({
           role: 'assistant',
           content: aiResponse,
           context: 'chat',
-          metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId }
+          metadata: nextAssistantEntry.metadata
         });
+        if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
       }
 
-      chatHistory.push(
-        nextAssistantEntry
-          ? { ...nextAssistantEntry, metadata: nextAssistantEntry.metadata || { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
-          : { role: 'assistant', content: aiResponse, context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
-      );
+      if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+        const contentDiv = lastMsgElement.querySelector('.msg-content');
+        if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'msg-copy-btn';
+        copyBtn.type = 'button';
+        copyBtn.title = 'Copiar mensagem';
+        copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+        copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+        updateCopyButton(copyBtn, false);
+        copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
+        lastMsgElement.appendChild(copyBtn);
+      }
 
       clearAIChatEditState();
-      renderChatFromMessages(chatHistory);
-      updateChatScrollInfo();
       persistAIChatSessionState();
       await syncAIThreadHistoryCard(updatedPrompt, aiResponse);
       showFeedback('Pergunta atualizada');
@@ -1724,14 +1879,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       updateAIChatComposerState();
       persistAIChatSessionState({ draft: updatedPrompt });
-      showFeedback('Nao foi possivel editar a pergunta agora');
+      showFeedback('Falha: ' + error.message);
     } finally {
-      if (loadingMsg) loadingMsg.remove();
       isSendingChat = false;
       sendBtn.disabled = false;
-      renderChatFromMessages(chatHistory);
       updateChatScrollInfo();
       updateAIChatComposerState();
+      updateLastUserMessageButtons();
     }
   }
 
@@ -1766,47 +1920,69 @@ document.addEventListener('DOMContentLoaded', async () => {
     sendBtn.disabled = true;
     updateAIChatComposerState();
 
-    let loadingMsg = null;
+    let nextAssistantEntry = { role: 'assistant', content: '...', context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } };
+    let lastMsgElement = null;
 
     try {
       chatHistory = chatHistory.filter((_, index) => index !== turn.assistantIndex);
+      chatHistory.push(nextAssistantEntry);
+      
       renderChatFromMessages(chatHistory);
       updateChatScrollInfo();
       persistAIChatSessionState({ draft: preservedDraft });
 
-      loadingMsg = document.createElement('div');
-      loadingMsg.className = 'msg bot loading-msg';
-      loadingMsg.innerHTML = '<span class="pulse">Reenviando resposta...</span>';
-      chatWindow.appendChild(loadingMsg);
-      chatWindow.scrollTop = chatWindow.scrollHeight;
-      updateChatScrollInfo();
+      lastMsgElement = chatWindow ? chatWindow.lastElementChild : null;
+      if (lastMsgElement) {
+         const contentDiv = lastMsgElement.querySelector('.msg-content');
+         if (contentDiv) contentDiv.innerHTML = '<i><span style="opacity: 0.7;">Reenviando resposta</span><span class="typing-dots"></span></i>';
+      }
 
-      const requestMessages = chatHistory.map(({ role, content }) => ({ role, content }));
+      const requestMessages = chatHistory.filter(m => m !== nextAssistantEntry).map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
         target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
-        context: 'chat'
+        context: 'chat',
+        stream: true,
+        onChunk: (chunk, fullText) => {
+           if (nextAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
+             nextAssistantEntry.content = fullText;
+             const contentDiv = lastMsgElement.querySelector('.msg-content');
+             if (contentDiv) {
+                contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+                chatWindow.scrollTo({ top: chatWindow.scrollHeight });
+             }
+           }
+        }
       });
 
-      let nextAssistantEntry = null;
-      if (assistantMessage?.id) {
-        nextAssistantEntry = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
-      }
+      nextAssistantEntry.content = aiResponse;
 
-      if (!nextAssistantEntry) {
-        nextAssistantEntry = await saveAIHistoryMessageRecord({
+      if (assistantMessage?.id) {
+        const nextAssistantEntryDb = await updateAIHistoryMessageRecord(assistantMessage.id, { content: aiResponse });
+        if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
+      } else {
+        const nextAssistantEntryDb = await saveAIHistoryMessageRecord({
           role: 'assistant',
           content: aiResponse,
           context: 'chat',
-          metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId }
+          metadata: nextAssistantEntry.metadata
         });
+        if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
       }
 
-      chatHistory.push(
-        nextAssistantEntry
-          ? { ...nextAssistantEntry, metadata: nextAssistantEntry.metadata || { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
-          : { role: 'assistant', content: aiResponse, context: 'chat', metadata: { ...(userMessage.metadata || {}), threadId: currentChatThreadId } }
-      );
+      if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+        const contentDiv = lastMsgElement.querySelector('.msg-content');
+        if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'msg-copy-btn';
+        copyBtn.type = 'button';
+        copyBtn.title = 'Copiar mensagem';
+        copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+        copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+        updateCopyButton(copyBtn, false);
+        copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
+        lastMsgElement.appendChild(copyBtn);
+      }
 
       persistAIChatSessionState({ draft: preservedDraft });
       await syncAIThreadHistoryCard(prompt, aiResponse);
@@ -1820,14 +1996,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         chatInput.value = preservedDraft;
       }
       persistAIChatSessionState({ draft: preservedDraft });
-      showFeedback('Nao foi possivel reenviar a resposta agora');
+      showFeedback('Falha: ' + error.message);
     } finally {
-      if (loadingMsg) loadingMsg.remove();
       isSendingChat = false;
       sendBtn.disabled = false;
-      renderChatFromMessages(chatHistory);
       updateChatScrollInfo();
       updateAIChatComposerState();
+      updateLastUserMessageButtons();
     }
   }
 
@@ -2127,47 +2302,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     sendBtn.disabled = true;
     updateAIChatComposerState();
 
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'msg bot loading-msg';
-    loadingMsg.innerHTML = '<span class="pulse">Pensando...</span>';
-    chatWindow.appendChild(loadingMsg);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-    updateChatScrollInfo();
-
     try {
-      const response = await callAI(val, {
+      await callAI(val, {
         useChatContext: true,
         persistToAIHistory: true,
         context: 'chat',
         existingUserEntry: optimisticUserEntry
       });
-      loadingMsg.remove();
-      const persistedAssistant = chatHistory[chatHistory.length - 1];
-      const shouldRenderPersistedHistory = persistedAssistant?.role === 'assistant'
-        && normalizeBrokenEncoding(persistedAssistant.content || '') === normalizeBrokenEncoding(response || '');
-
-      if (shouldRenderPersistedHistory) {
-        renderChatFromMessages(chatHistory);
-        updateChatScrollInfo();
-        persistAIChatSessionState();
-      } else {
-        chatHistory.push({
-          id: buildUniqueId('local_assistant'),
-          role: 'assistant',
-          content: response,
-          context: 'chat',
-          metadata: { threadId: currentChatThreadId, localOnly: true }
-        });
-        renderChatFromMessages(chatHistory);
-        updateChatScrollInfo();
-        persistAIChatSessionState();
-      }
     } finally {
       isSendingChat = false;
       sendBtn.disabled = false;
-      renderChatFromMessages(chatHistory);
       updateChatScrollInfo();
       updateAIChatComposerState();
+      updateLastUserMessageButtons();
       persistAIChatSessionState();
     }
   }
@@ -2320,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo das animações (Cartoons, Animes, 3D e Filmes Animados). Sua missão é fazer análises precisas, detalhadas e justas, respeitando as lógicas e poderes dos universos ocidentais e orientais. Seja um pouco mais direto e conciso na escrita para DIMINUIR A QUANTIDADE DE CONTEÚDO, mas MANTENHA EXATAMENTE TODA A ESTRUTURA MARKDOWN OBRIGATÓRIA solicitada. Seja vibrante, técnico e enxuto nas explicações.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo do entretenimento (Animes, Desenhos, Filmes, Mangás e HQs em geral). Sua missão é fazer análises precisas, detalhadas e justas, respeitando as lógicas, níveis de poder, lore e cânones dos universos ocidentais e orientais, incluindo páginas de mangás e HQs. Faça comparações profundas de habilidades, intelecto e feitos. Seja um pouco mais direto e conciso na escrita para DIMINUIR A QUANTIDADE DE CONTEÚDO, mas MANTENHA EXATAMENTE TODA A ESTRUTURA MARKDOWN OBRIGATÓRIA solicitada. Seja vibrante, técnico e enxuto nas explicações.';
     const prompt = [
       `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
       'Formato obrigatório da resposta (Markdown):',
