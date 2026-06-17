@@ -572,6 +572,14 @@
           </svg>
           Twitch
         </button>
+        <!-- Microsoft desativado temporariamente
+        <button class="auth-method-tab" id="tabRegMicrosoft" onclick="switchRegTab('microsoft')">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" fill="#00a4ef"/>
+          </svg>
+          Microsoft
+        </button>
+        -->
       </div>
 
       <!-- Seção e-mail -->
@@ -744,6 +752,23 @@
         </p>
       </div>
 
+      <!-- Seção Microsoft (Inativo)
+      <div id="registerMicrosoftSection" style="display:none; padding: 8px 0 4px;">
+        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
+          Cadastre-se rapidamente usando sua conta da Microsoft.
+        </p>
+        <button class="microsoft-btn" id="microsoftRegBtn" style="background: #ffffff; color: #5e5e5e; border: 1px solid #8c8c8c; width: 100%; padding: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; cursor: pointer; transition: filter 0.2s;">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;">
+            <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zm12.6 0H12.6V0H24v11.4z" fill="#00a4ef"/>
+          </svg>
+          Criar conta com Microsoft
+        </button>
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
+          Sua conta será criada e vinculada à sua conta Microsoft instantaneamente.
+        </p>
+      </div>
+      -->
+
       <div class="auth-links">
         <p style="color:var(--text-muted)">Já tem uma conta? <a href="login.html">Faça Login</a></p>
       </div>
@@ -767,12 +792,14 @@
       const discordSection = document.getElementById('registerDiscordSection');
       const twitterSection = document.getElementById('registerTwitterSection');
       const twitchSection = document.getElementById('registerTwitchSection');
+      const microsoftSection = document.getElementById('registerMicrosoftSection');
       const tabEmail = document.getElementById('tabRegEmail');
       const tabGithub = document.getElementById('tabRegGithub');
       const tabGoogle = document.getElementById('tabRegGoogle');
       const tabDiscord = document.getElementById('tabRegDiscord');
       const tabTwitter = document.getElementById('tabRegTwitter');
       const tabTwitch = document.getElementById('tabRegTwitch');
+      const tabMicrosoft = document.getElementById('tabRegMicrosoft');
 
       // Hide all
       emailSection.style.display = 'none';
@@ -781,12 +808,14 @@
       discordSection.style.display = 'none';
       if (twitterSection) twitterSection.style.display = 'none';
       if (twitchSection) twitchSection.style.display = 'none';
+      if (microsoftSection) microsoftSection.style.display = 'none';
       tabEmail.classList.remove('active');
       tabGithub.classList.remove('active');
       tabGoogle.classList.remove('active');
       tabDiscord.classList.remove('active');
       if (tabTwitter) tabTwitter.classList.remove('active');
       if (tabTwitch) tabTwitch.classList.remove('active');
+      if (tabMicrosoft) tabMicrosoft.classList.remove('active');
 
       if (tab === 'email') {
         emailSection.style.display = '';
@@ -806,6 +835,9 @@
       } else if (tab === 'twitch' && twitchSection && tabTwitch) {
         twitchSection.style.display = '';
         tabTwitch.classList.add('active');
+      } else if (tab === 'microsoft' && microsoftSection && tabMicrosoft) {
+        microsoftSection.style.display = '';
+        tabMicrosoft.classList.add('active');
       }
     }
 
@@ -816,6 +848,7 @@
       if (e.target.closest('#discordRegBtn')) showSocialLoading('Discord');
       if (e.target.closest('#twitterRegBtn')) showSocialLoading('X / Twitter');
       if (e.target.closest('#twitchRegBtn')) showSocialLoading('Twitch');
+      if (e.target.closest('#microsoftRegBtn')) showSocialLoading('Microsoft');
     });
   </script>
   <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>

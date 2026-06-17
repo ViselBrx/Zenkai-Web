@@ -828,7 +828,7 @@ const DB = {
             });
         }
 
-        console.log("Banco de dados sincronizado com o Supabase!");
+        // console.log("Banco de dados sincronizado com o Supabase!");
 
     } catch (e) {
         console.error("Falha ao inicializar o banco do Supabase:", e);

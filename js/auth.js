@@ -2,6 +2,15 @@
  * js/auth.js — Configuração e Lógica do Supabase (LIMPO E ORGANIZADO)
  */
 
+// --- DESATIVAR CONSOLE EM PRODUÇÃO (Segurança e Limpeza) ---
+if (typeof window !== "undefined" && typeof console !== "undefined") {
+  console.log = function() {};
+  console.warn = function() {};
+  console.info = function() {};
+  // console.error mantido apenas para erros fatais do navegador, se quiser tirar, descomente a linha abaixo:
+  // console.error = function() {}; 
+}
+
 // 1. CREDENCIAIS
 const SUPABASE_URL =
   window.ENV?.SUPABASE_URL || "https://bxifddhrbxbmimjkgwzr.supabase.co";
@@ -38,7 +47,7 @@ const initSupa = () => {
         }
       });
       window.supabaseClient = supaClient;
-      console.log("🚀 Supabase Client inicializado com sucesso.");
+      // console.log("🚀 Supabase Client inicializado com sucesso.");
       return true;
     } catch (e) {
       console.error("Erro ao inicializar Supabase:", e);
@@ -93,7 +102,7 @@ async function setupAuthLogic() {
     }
 
     supaClient.auth.onAuthStateChange((event, session) => {
-      console.log("🔔 [Auth Event]:", event, session?.user?.email);
+      // console.log("🔔 [Auth Event]:", event, session?.user?.email);
       const currentSessionId = session?.user?.id || null;
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -1462,12 +1471,34 @@ async function signInWithTwitter() {
   if (error) showOAuthError("Twitter", error);
 }
 
+// --- LOGIN COM MICROSOFT (INATIVO) ---
+/*
+async function signInWithMicrosoft() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Microsoft", error);
+    return;
+  }
+
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'azure',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+
+  if (error) showOAuthError("Microsoft", error);
+}
+*/
+
 // Expor para o HTML
 window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
 window.signInWithTwitch = signInWithTwitch;
 window.signInWithTwitter = signInWithTwitter;
+// window.signInWithMicrosoft = signInWithMicrosoft;
 
 // Adicionar listeners para os botões social se existirem
 document.addEventListener("click", (e) => {
@@ -1486,6 +1517,11 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#twitchLoginBtn") || e.target.closest("#twitchRegBtn")) {
     signInWithTwitch();
   }
+  /*
+  if (e.target.closest("#microsoftLoginBtn") || e.target.closest("#microsoftRegBtn")) {
+    signInWithMicrosoft();
+  }
+  */
 });
 
 // ─── Enter global para inputs ────────────────────────────────────────────────

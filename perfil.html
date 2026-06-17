@@ -649,7 +649,8 @@
       .patents-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 30px 20px; /* Aumentado o gap: 30px vertical (para o texto não sobrepor) e 20px horizontal */
+        padding-bottom: 10px; /* Um espaço extra embaixo caso precise */
       }
 
       .patent-badge {
@@ -668,16 +669,43 @@
         transition: all 0.4s ease;
       }
 
+      .badge-bronze { --badge-color: #cd7f32; }
+      .badge-prata { --badge-color: #e2e8f0; }
+      .badge-ouro { --badge-color: #ffd700; }
+      .badge-mestre { --badge-color: #ff3366; }
+      .badge-lenda { --badge-color: #9d4edd; }
+      .badge-hokage { --badge-color: #ff5400; }
+      .badge-guardiao { --badge-color: #00bbf9; }
+      .badge-imortal { --badge-color: #00f5d4; }
+
       .patent-badge.unlocked {
         filter: grayscale(0);
         opacity: 1;
-        border-color: var(--primary);
-        box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.3);
-        cursor: help;
+        border-color: var(--badge-color, var(--primary));
+        color: var(--badge-color, var(--primary));
+        box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.8);
+        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.5));
+        text-shadow: 0 0 10px var(--badge-color, var(--primary));
+        cursor: pointer;
+      }
+
+      .patent-badge.unlocked::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: 0 0 20px var(--badge-color, var(--primary));
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .patent-badge.unlocked:hover::before {
+        opacity: 0.5;
       }
 
       .patent-badge.unlocked:hover {
-        transform: scale(1.1) rotate(5deg);
+        transform: scale(1.15) translateY(-5px);
+        z-index: 10;
       }
 
       .patent-badge::after {
@@ -2078,56 +2106,56 @@
                 <div class="stat-header"><span><i class='fa-solid fa-medal'></i></span> Patentes de Uso</div>
                 <div class="patents-list" id="patentsList">
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-bronze"
                     data-label="Bronze"
                     data-desc="Alcançou o Nível 1."
                   >
                     <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-prata"
                     data-label="Prata"
                     data-desc="Alcançou o Nível 5."
                   >
                     <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-ouro"
                     data-label="Ouro"
                     data-desc="Alcançou o Nível 10."
                   >
                     <i class='fa-solid fa-medal'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-mestre"
                     data-label="Mestre"
                     data-desc="Alcançou o Nível 20."
                   >
                     <i class='fa-solid fa-user-ninja'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-lenda"
                     data-label="Lenda"
                     data-desc="Alcançou o Nível 30."
                   >
                     <i class='fa-solid fa-gem'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-hokage"
                     data-label="Hokage"
                     data-desc="Alcançou o Nível 50. Um verdadeiro líder."
                   >
                     <i class='fa-solid fa-fire'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-guardiao"
                     data-label="Guardião"
                     data-desc="Alcançou o Nível 75. O protetor do portal."
                   >
                     <i class='fa-solid fa-shield'></i>
                   </div>
                   <div
-                    class="patent-badge"
+                    class="patent-badge badge-imortal"
                     data-label="Imortal"
                     data-desc="Alcançou o Nível 100. Sua lenda nunca morrerá."
                   >
@@ -4882,10 +4910,18 @@
               if (!badge.dataset.listener) {
                 badge.addEventListener("click", () => {
                   const modal = document.getElementById("patentModal");
-                  document.getElementById("patentTitle").textContent =
-                    `Patente: ${label}`;
-                  document.getElementById("patentIcon").innerHTML =
-                    badge.innerHTML;
+                  const color = getComputedStyle(badge).getPropertyValue('--badge-color').trim() || 'var(--primary)';
+                  
+                  const title = document.getElementById("patentTitle");
+                  title.textContent = `Patente: ${label}`;
+                  title.style.color = color;
+                  title.style.textShadow = `0 0 15px ${color}`;
+                  
+                  const icon = document.getElementById("patentIcon");
+                  icon.innerHTML = badge.innerHTML;
+                  icon.style.color = color;
+                  icon.style.filter = `drop-shadow(0 0 30px ${color})`;
+                  
                   document.getElementById("patentDesc").textContent =
                     badge.getAttribute("data-desc");
                   const status = document.getElementById("patentStatus");
@@ -5058,7 +5094,7 @@
           const STORE_KEY = "animehouse_store";
 
           async function renderMeusEspeciais() {
-            console.log("<i class='fa-solid fa-bullseye'></i> renderMeusEspeciais() chamada");
+            // console.log("<i class='fa-solid fa-bullseye'></i> renderMeusEspeciais() chamada");
 
             let store = null;
             // Tentar carregar store com retry para aguardar o Supabase
@@ -5069,7 +5105,7 @@
               while (attempts < 20) {
                 if (window.DB && window.DB._store && window.DB._store.profile && window.DB._store.profile.store_data) {
                   store = JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
-                  console.log("<i class='fa-solid fa-check'></i> Store carregado do DB (Supabase)");
+                  // console.log("<i class='fa-solid fa-check'></i> Store carregado do DB (Supabase)");
                   break;
                 }
                 
@@ -5083,7 +5119,7 @@
                   const userRaw = localStorage.getItem(`animehouse_store_${userId}`);
                   if (userRaw) {
                     store = JSON.parse(userRaw);
-                    console.log("<i class='fa-solid fa-box'></i> Store carregado do localStorage isolado");
+                    // console.log("<i class='fa-solid fa-box'></i> Store carregado do localStorage isolado");
                     break;
                   }
                 }
@@ -5093,20 +5129,20 @@
                 attempts++;
               }
             } catch (e) {
-              console.warn("Erro no loop de carregamento do store:", e);
+              // console.warn("Erro no loop de carregamento do store:", e);
             }
             
             if (!store) {
               try {
                 store = JSON.parse(localStorage.getItem(STORE_KEY) || '{"purchased":[],"equipped":{}}');
-                console.log("<i class='fa-solid fa-box'></i> Fallback: Store carregado do localStorage genérico");
+                // console.log("<i class='fa-solid fa-box'></i> Fallback: Store carregado do localStorage genérico");
               } catch(e) {
                 store = { purchased: [], equipped: {} };
               }
             }
 
-            console.log("<i class='fa-solid fa-chart-simple'></i> Store:", store);
-            console.log("<i class='fa-solid fa-cart-shopping'></i> Itens comprados:", store.purchased);
+            // console.log("<i class='fa-solid fa-chart-simple'></i> Store:", store);
+            // console.log("<i class='fa-solid fa-cart-shopping'></i> Itens comprados:", store.purchased);
 
             const inventoryDisplay =
               document.getElementById("inventoryDisplay");
@@ -5117,7 +5153,7 @@
             );
 
             if (!inventoryDisplay || !equippedItemsDisplay) {
-              console.log("<i class='fa-solid fa-xmark'></i> Elementos DOM não encontrados");
+              // console.log("<i class='fa-solid fa-xmark'></i> Elementos DOM não encontrados");
               return;
             }
 
@@ -5126,10 +5162,10 @@
             equippedItemsDisplay.innerHTML = "";
 
             const purchased = store.purchased || [];
-            console.log(`<i class='fa-solid fa-bullseye'></i> ${purchased.length} itens para renderizar`);
+            // console.log(`<i class='fa-solid fa-bullseye'></i> ${purchased.length} itens para renderizar`);
 
             if (purchased.length === 0) {
-              console.log("<i class='fa-solid fa-circle-info'></i> Nenhum item comprado - mostrando mensagem vazia");
+              // console.log("<i class='fa-solid fa-circle-info'></i> Nenhum item comprado - mostrando mensagem vazia");
               emptyInventoryMsg.style.display = "block";
               equippedItemsDisplay.innerHTML =
                 '<span style="color: var(--text-muted); font-size: 0.85rem;">Nenhum item equipado</span>';
@@ -5201,13 +5237,13 @@
             // Renderizar itens comprados
             let renderedCount = 0;
             purchased.forEach((itemId) => {
-              console.log(`<i class='fa-solid fa-magnifying-glass'></i> Buscando item: ${itemId}`);
+              // console.log(`<i class='fa-solid fa-magnifying-glass'></i> Buscando item: ${itemId}`);
               const item = ALL_ITEMS.find((i) => i.id === itemId);
               if (!item) {
-                console.log(`<i class='fa-solid fa-xmark'></i> Item não encontrado na lista: ${itemId}`);
+                // console.log(`<i class='fa-solid fa-xmark'></i> Item não encontrado na lista: ${itemId}`);
                 return;
               }
-              console.log(`<i class='fa-solid fa-check'></i> Renderizando: ${item.name}`);
+              // console.log(`<i class='fa-solid fa-check'></i> Renderizando: ${item.name}`);
               renderedCount++;
 
               const isEquipped = checkEquipped(item);
@@ -5253,14 +5289,14 @@
               inventoryDisplay.appendChild(itemCard);
             });
 
-            console.log(`<i class='fa-solid fa-wand-magic-sparkles'></i> Total de itens renderizados: ${renderedCount}`);
+            // console.log(`<i class='fa-solid fa-wand-magic-sparkles'></i> Total de itens renderizados: ${renderedCount}`);
 
             // Renderizar itens equipados usando a função centralizada e isolada
             await updateEquippedPanel();
 
             // <i class='fa-solid fa-rotate'></i> Sincronizar navbar com os itens equipados atualizados
             if (window.updateNavbarCosmetics) {
-              console.log("<i class='fa-solid fa-rotate'></i> Sincronizando navbar com items equipados...");
+              // console.log("<i class='fa-solid fa-rotate'></i> Sincronizando navbar com items equipados...");
               window.updateNavbarCosmetics();
             }
           }
