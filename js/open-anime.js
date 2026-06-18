@@ -2276,6 +2276,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function handleChatSend() {
     if (getActiveToolTab() !== 'chat' || isSendingChat) return;
 
+    if (window.supabaseClient) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+    }
+
     const val = chatInput.value.trim();
     if (!val) return;
 
@@ -2356,6 +2364,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (visionUpload) {
     visionUpload.addEventListener('change', async (event) => {
+      if (window.supabaseClient) {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) {
+          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          visionUpload.value = '';
+          return;
+        }
+      }
+      
       const file = event.target.files?.[0];
       if (!file) return;
 
@@ -2401,6 +2418,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     visionDropZone.addEventListener('drop', async (event) => {
+      if (window.supabaseClient) {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) {
+          window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+          return;
+        }
+      }
+
       const file = event.dataTransfer?.files?.[0];
       if (!file || !String(file.type || '').startsWith('image/')) {
         showFeedback('Solte apenas arquivos de imagem');
@@ -2455,6 +2480,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   compareBtn.addEventListener('click', async () => {
     if (getActiveToolTab() !== 'compare') return;
+
+    if (window.supabaseClient) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+    }
 
     const c1 = char1Inp.value.trim();
     const c2 = char2Inp.value.trim();

@@ -266,7 +266,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const watchTitle = document.getElementById('watchTitle');
   const watchFrame = document.getElementById('watchFrame');
 
-  function openWatchModal(f) {
+  async function openWatchModal(f) {
+    if (window.supabaseClient) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+    }
     watchTitle.textContent = f.nome;
     watchFrame.innerHTML = f.iframe || '';
     watchModal.classList.add('open');

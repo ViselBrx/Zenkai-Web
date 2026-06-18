@@ -569,6 +569,146 @@
         box-shadow: 0 0 25px rgba(var(--primary-rgb), 0.6);
       }
 
+      /* ===== AVATAR CROP MODAL ===== */
+      #avatarCropModal {
+        position: fixed;
+        inset: 0;
+        z-index: 11000;
+        background: rgba(5, 10, 25, 0.92);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      #avatarCropModal.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .crop-modal-card {
+        background: var(--bg-card);
+        border: 1px solid rgba(var(--primary-rgb), 0.25);
+        border-radius: 20px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 440px;
+        box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 30px rgba(var(--primary-rgb), 0.12);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.2rem;
+        transform: scale(0.88);
+        transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      #avatarCropModal.open .crop-modal-card {
+        transform: scale(1);
+      }
+      .crop-modal-title {
+        font-family: 'Bangers', cursive;
+        font-size: 1.8rem;
+        letter-spacing: 2px;
+        color: var(--primary);
+        text-shadow: 0 0 12px rgba(var(--primary-rgb), 0.35);
+        margin: 0;
+      }
+      .crop-modal-hint {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        text-align: center;
+        margin: -0.5rem 0 0;
+      }
+      .crop-canvas-wrap {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--primary);
+        box-shadow: 0 0 30px rgba(var(--primary-rgb), 0.4), 0 0 60px rgba(var(--primary-rgb), 0.15);
+        cursor: grab;
+        touch-action: none;
+        flex-shrink: 0;
+      }
+      .crop-canvas-wrap:active { cursor: grabbing; }
+      #avatarCropCanvas {
+        position: absolute;
+        top: 0; left: 0;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+      }
+      .crop-zoom-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+      }
+      .crop-zoom-icon {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        flex-shrink: 0;
+      }
+      #cropZoomSlider {
+        flex: 1;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        border-radius: 99px;
+        background: rgba(var(--primary-rgb), 0.2);
+        outline: none;
+        cursor: pointer;
+      }
+      #cropZoomSlider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--primary);
+        box-shadow: 0 0 8px rgba(var(--primary-rgb), 0.6);
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+      #cropZoomSlider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+      .crop-actions {
+        display: flex;
+        gap: 0.75rem;
+        width: 100%;
+      }
+      .crop-actions .btn {
+        flex: 1;
+        padding: 12px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+      }
+      .crop-btn-cancel {
+        background: rgba(255,255,255,0.07);
+        color: var(--text-muted);
+        border: 1px solid rgba(255,255,255,0.1) !important;
+      }
+      .crop-btn-cancel:hover { background: rgba(255,255,255,0.12); color: var(--text-main); }
+      .crop-btn-confirm {
+        background: var(--primary);
+        color: #000;
+        box-shadow: 0 4px 18px rgba(var(--primary-rgb), 0.35);
+      }
+      .crop-btn-confirm:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 6px 24px rgba(var(--primary-rgb), 0.5);
+        transform: translateY(-1px);
+      }
+      @media (max-width: 480px) {
+        .crop-canvas-wrap, #avatarCropCanvas { width: 260px; height: 260px; }
+        .crop-modal-card { padding: 1.5rem; }
+      }
+
       /* Dashboard & Stats Styles */
       .profile-dashboard {
         margin-top: 30px;
@@ -2504,6 +2644,26 @@
       </div>
     </div>
 
+    <!-- ===== AVATAR CROP MODAL ===== -->
+    <div id="avatarCropModal">
+      <div class="crop-modal-card">
+        <h2 class="crop-modal-title"><i class="fa-solid fa-crop-simple"></i> Ajustar Foto</h2>
+        <p class="crop-modal-hint">Arraste para reposicionar &middot; Scroll ou slider para zoom</p>
+        <div class="crop-canvas-wrap" id="cropCanvasWrap">
+          <canvas id="avatarCropCanvas" width="300" height="300"></canvas>
+        </div>
+        <div class="crop-zoom-row">
+          <span class="crop-zoom-icon"><i class="fa-solid fa-magnifying-glass-minus"></i></span>
+          <input type="range" id="cropZoomSlider" min="1" max="4" step="0.01" value="1">
+          <span class="crop-zoom-icon"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+        </div>
+        <div class="crop-actions">
+          <button class="btn crop-btn-cancel" id="cropCancelBtn"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+          <button class="btn crop-btn-confirm" id="cropConfirmBtn"><i class="fa-solid fa-check"></i> Usar Foto</button>
+        </div>
+      </div>
+    </div>
+
     <div class="avatar-view-overlay" id="avatarViewOverlay">
       <div class="avatar-view-container">
         <button class="avatar-view-close" id="avatarViewClose">
@@ -4206,44 +4366,187 @@
           bindHistoryEvents();
           await refreshHistory();
 
-          document.getElementById("avatarFile").onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+          // ===== AVATAR CROP SYSTEM =====
+          (function() {
+            const cropModal   = document.getElementById('avatarCropModal');
+            const cropCanvas  = document.getElementById('avatarCropCanvas');
+            const cropWrap    = document.getElementById('cropCanvasWrap');
+            const zoomSlider  = document.getElementById('cropZoomSlider');
+            const cancelBtn   = document.getElementById('cropCancelBtn');
+            const confirmBtn  = document.getElementById('cropConfirmBtn');
+            const ctx         = cropCanvas.getContext('2d');
 
-            showToast("Enviando imagem...");
-            const fileExt = file.name.split(".").pop();
-            const fileName = `${user.id}-${Math.floor(Date.now() / 1000)}.${fileExt}`;
+            const SIZE = 300; // canvas render size
+            let img = new Image();
+            let scale = 1, minScale = 1;
+            let offsetX = 0, offsetY = 0;
+            let dragging = false, lastX = 0, lastY = 0;
+            let pendingFileExt = 'jpg';
 
-            const { error: uploadError } = await supabase.storage
-              .from("avatars")
-              .upload(fileName, file);
-
-            if (uploadError) {
-              console.error(uploadError);
-              showToast(
-                "Erro no upload: " + uploadError.message,
-                "error",
-                7000,
-              );
-              return;
+            function clampOffset() {
+              const drawn = SIZE * scale;
+              const maxX = Math.max(0, (drawn - SIZE) / 2);
+              const maxY = Math.max(0, (drawn - SIZE) / 2);
+              offsetX = Math.min(maxX, Math.max(-maxX, offsetX));
+              offsetY = Math.min(maxY, Math.max(-maxY, offsetY));
             }
 
-            const {
-              data: { publicUrl },
-            } = supabase.storage.from("avatars").getPublicUrl(fileName);
+            function drawCrop() {
+              ctx.clearRect(0, 0, SIZE, SIZE);
+              const drawn = SIZE * scale;
+              const x = (SIZE - drawn) / 2 + offsetX;
+              const y = (SIZE - drawn) / 2 + offsetY;
+              ctx.drawImage(img, x, y, drawn, drawn);
+            }
 
-            document.getElementById("avatarUrl").value = publicUrl;
-            document.getElementById("displayAvatar").src = publicUrl;
+            function openCropModal(file) {
+              pendingFileExt = file.name.split('.').pop().toLowerCase() || 'jpg';
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                img = new Image();
+                img.onload = () => {
+                  // Calculate minScale so the image always fills the circle
+                  const ratio = img.naturalWidth / img.naturalHeight;
+                  minScale = ratio >= 1 ? 1 : 1 / ratio;
+                  scale = minScale;
+                  offsetX = 0; offsetY = 0;
+                  zoomSlider.min  = minScale;
+                  zoomSlider.max  = minScale * 4;
+                  zoomSlider.step = minScale * 0.01;
+                  zoomSlider.value = scale;
+                  drawCrop();
+                  cropModal.classList.add('open');
+                };
+                img.src = ev.target.result;
+              };
+              reader.readAsDataURL(file);
+            }
 
-            // Salvar automaticamente no perfil após o upload
-            await supabase.from("profiles").upsert({
-              id: user.id,
-              avatar_url: publicUrl,
-              updated_at: new Date()
+            function closeCropModal() {
+              cropModal.classList.remove('open');
+              document.getElementById('avatarFile').value = '';
+            }
+
+            // Zoom slider
+            zoomSlider.addEventListener('input', () => {
+              scale = parseFloat(zoomSlider.value);
+              clampOffset();
+              drawCrop();
             });
 
-            showToast("Imagem atualizada com sucesso!", "success", 7000);
-          };
+            // Mouse drag
+            cropWrap.addEventListener('mousedown', (e) => {
+              dragging = true;
+              lastX = e.clientX; lastY = e.clientY;
+              e.preventDefault();
+            });
+            window.addEventListener('mousemove', (e) => {
+              if (!dragging) return;
+              offsetX += e.clientX - lastX;
+              offsetY += e.clientY - lastY;
+              lastX = e.clientX; lastY = e.clientY;
+              clampOffset(); drawCrop();
+            });
+            window.addEventListener('mouseup', () => { dragging = false; });
+
+            // Touch drag
+            cropWrap.addEventListener('touchstart', (e) => {
+              dragging = true;
+              lastX = e.touches[0].clientX;
+              lastY = e.touches[0].clientY;
+              e.preventDefault();
+            }, { passive: false });
+            window.addEventListener('touchmove', (e) => {
+              if (!dragging) return;
+              offsetX += e.touches[0].clientX - lastX;
+              offsetY += e.touches[0].clientY - lastY;
+              lastX = e.touches[0].clientX;
+              lastY = e.touches[0].clientY;
+              clampOffset(); drawCrop();
+            }, { passive: true });
+            window.addEventListener('touchend', () => { dragging = false; });
+
+            // Scroll to zoom
+            cropWrap.addEventListener('wheel', (e) => {
+              e.preventDefault();
+              const delta = e.deltaY > 0 ? -0.08 : 0.08;
+              scale = Math.min(parseFloat(zoomSlider.max), Math.max(minScale, scale + delta * scale));
+              zoomSlider.value = scale;
+              clampOffset(); drawCrop();
+            }, { passive: false });
+
+            // Cancel
+            cancelBtn.addEventListener('click', closeCropModal);
+            cropModal.addEventListener('click', (e) => {
+              if (e.target === cropModal) closeCropModal();
+            });
+
+            // Confirm — export canvas to blob then upload
+            confirmBtn.addEventListener('click', async () => {
+              // Render final 512×512 canvas for upload quality
+              const exportCanvas = document.createElement('canvas');
+              exportCanvas.width = 512; exportCanvas.height = 512;
+              const ectx = exportCanvas.getContext('2d');
+
+              // Circle clip
+              ectx.beginPath();
+              ectx.arc(256, 256, 256, 0, Math.PI * 2);
+              ectx.closePath();
+              ectx.clip();
+
+              const ratio = 512 / SIZE;
+              const drawn = SIZE * scale * ratio;
+              const x = (512 - drawn) / 2 + offsetX * ratio;
+              const y = (512 - drawn) / 2 + offsetY * ratio;
+              ectx.drawImage(img, x, y, drawn, drawn);
+
+              cropModal.classList.remove('open');
+              confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+              confirmBtn.disabled = true;
+
+              exportCanvas.toBlob(async (blob) => {
+                try {
+                  showToast('Enviando imagem...');
+                  const fileName = `${user.id}-${Math.floor(Date.now() / 1000)}.png`;
+
+                  const { error: uploadError } = await supabase.storage
+                    .from('avatars')
+                    .upload(fileName, blob, { contentType: 'image/png', upsert: true });
+
+                  if (uploadError) {
+                    showToast('Erro no upload: ' + uploadError.message, 'error', 7000);
+                    return;
+                  }
+
+                  const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+                  document.getElementById('avatarUrl').value = publicUrl;
+                  document.getElementById('displayAvatar').src = publicUrl;
+
+                  await supabase.from('profiles').upsert({
+                    id: user.id,
+                    avatar_url: publicUrl,
+                    updated_at: new Date()
+                  });
+
+                  showToast('Foto atualizada com sucesso!', 'success', 5000);
+                } catch (err) {
+                  showToast('Erro inesperado no upload.', 'error', 7000);
+                } finally {
+                  confirmBtn.innerHTML = '<i class="fa-solid fa-check"></i> Usar Foto';
+                  confirmBtn.disabled = false;
+                  document.getElementById('avatarFile').value = '';
+                }
+              }, 'image/png', 0.95);
+            });
+
+            // Hook the file input
+            document.getElementById('avatarFile').onchange = (e) => {
+              const file = e.target.files[0];
+              if (!file) return;
+              openCropModal(file);
+            };
+          })();
 
           document.getElementById("profileForm").onsubmit = async (e) => {
             e.preventDefault();

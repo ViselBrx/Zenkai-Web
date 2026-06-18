@@ -4,9 +4,9 @@
 
 // --- DESATIVAR CONSOLE EM PRODUÇÃO (Segurança e Limpeza) ---
 if (typeof window !== "undefined" && typeof console !== "undefined") {
-  console.log = function() {};
-  console.warn = function() {};
-  console.info = function() {};
+  console.log = function () { };
+  console.warn = function () { };
+  console.info = function () { };
   // console.error mantido apenas para erros fatais do navegador, se quiser tirar, descomente a linha abaixo:
   // console.error = function() {}; 
 }
@@ -361,12 +361,12 @@ if (forgotPasswordLink) {
     try {
       forgotPasswordLink.style.pointerEvents = "none";
       forgotPasswordLink.innerHTML = '<span class="loader-ring" style="width:14px; height:14px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:5px; border-color:var(--primary) transparent var(--primary) transparent;"></span> Aguarde...';
-      
+
       const redirectUrl = window.location.origin + window.location.pathname;
       const { error } = await supaClient.auth.resetPasswordForEmail(email, {
         redirectTo: redirectUrl
       });
-      
+
       if (error) {
         let msg = error.message;
         if (msg.includes("rate limit")) msg = "Limite de e-mails atingido. Por favor, aguarde alguns minutos.";
@@ -2404,7 +2404,7 @@ function setupNotificationRealtimeLegacy() {
     });
 }
 
-window.updatePasswordStrength = function(password, fillId, textId) {
+window.updatePasswordStrength = function (password, fillId, textId) {
   const fill = document.getElementById(fillId);
   const text = document.getElementById(textId);
   if (!fill || !text) return;

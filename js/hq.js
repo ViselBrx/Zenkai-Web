@@ -571,7 +571,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Leitor PDF ──────────────────────────────────────────
-  function openReader(url, titulo) {
+  async function openReader(url, titulo) {
+    if (window.supabaseClient) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+    }
     readerTitle.textContent = titulo;
     readerFrame.src = url + '#toolbar=0&view=FitH';
     readerModal.classList.add('open');

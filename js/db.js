@@ -1984,7 +1984,7 @@ function showToast(msg, type = 'success', ms = 7000) {
       el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
   }
 
-  const errorPrefix = isError ? 'âš ï¸ ' : '';
+  const errorPrefix = isError ? '⚠️ ' : '';
   const progressStyle = isError
     ? `animation-duration:${ms}ms; background: var(--danger); box-shadow: 0 0 20px var(--danger);`
     : `animation-duration:${ms}ms;`;

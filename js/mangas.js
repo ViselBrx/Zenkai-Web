@@ -607,7 +607,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   /* READER MODAL (TELA CHEIA PARA LER PDF) */
-  function openReader(url, titulo) {
+  async function openReader(url, titulo) {
+    if (window.supabaseClient) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+        return;
+      }
+    }
       // url é o link do pdf no Supabase Storage
       readerTitle.textContent = titulo;
       
