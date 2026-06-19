@@ -753,8 +753,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.title = 'Copiar análise';
     copyBtn.setAttribute('aria-label', 'Copiar análise');
     copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    copyBtn.dataset.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
-    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
     visionOutput.appendChild(copyBtn);
   }
 
@@ -777,8 +778,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.title = 'Copiar análise';
     copyBtn.setAttribute('aria-label', 'Copiar análise');
     copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    copyBtn.dataset.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
-    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
     compareResult.appendChild(copyBtn);
 
   }
@@ -856,8 +858,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.title = 'Copiar mensagem';
     copyBtn.setAttribute('aria-label', 'Copiar mensagem');
     copyBtn.dataset.feedbackMessage = type === 'bot' ? 'Resposta copiada' : 'Mensagem copiada';
+    copyBtn.dataset.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
-    copyBtn.addEventListener('click', () => copyText(normalizedText, copyBtn));
+    copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
 
     if (options.canEdit) {
       const editBtn = document.createElement('button');
@@ -1611,6 +1614,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const metadata = { ...(options.metadata || {}) };
     const systemPrompt = options.systemPrompt || SYSTEM_PROMPT;
     let chatUserEntry = options.existingUserEntry || null;
+    let chatAssistantEntry = null;
+    let lastMsgElement = null;
 
     if (context === 'chat') {
       currentChatThreadId = metadata.threadId || currentChatThreadId || buildUniqueId('open_anime_chat_thread');
@@ -1649,8 +1654,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         ? chatHistory.map(({ role, content }) => ({ role, content }))
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
 
-      let chatAssistantEntry = null;
-      let lastMsgElement = null;
+      chatAssistantEntry = null;
+      lastMsgElement = null;
 
       if (useChatContext) {
         chatAssistantEntry = { role: 'assistant', content: '...', context, metadata: { ...metadata } };
@@ -1676,6 +1681,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const contentDiv = lastMsgElement.querySelector('.msg-content');
             if (contentDiv) {
               contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+              const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+              if (copyBtn) copyBtn.dataset.rawText = fullText;
               if (chatWindow) {
                 const isNearBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 150;
                 if (isNearBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight });
@@ -1688,18 +1695,22 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (useChatContext && chatAssistantEntry) {
         chatAssistantEntry.content = aiResponse;
         persistAIChatSessionState();
-        if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+        if (lastMsgElement) {
           const contentDiv = lastMsgElement.querySelector('.msg-content');
           if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
-          const copyBtn = document.createElement('button');
-          copyBtn.className = 'msg-copy-btn';
-          copyBtn.type = 'button';
-          copyBtn.title = 'Copiar mensagem';
-          copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-          copyBtn.dataset.feedbackMessage = 'Resposta copiada';
-          updateCopyButton(copyBtn, false);
-          copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
-          lastMsgElement.appendChild(copyBtn);
+          let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+          if (!copyBtn) {
+            copyBtn = document.createElement('button');
+            copyBtn.className = 'msg-copy-btn';
+            copyBtn.type = 'button';
+            copyBtn.title = 'Copiar mensagem';
+            copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+            copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+            updateCopyButton(copyBtn, false);
+            copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
+            lastMsgElement.appendChild(copyBtn);
+          }
+          copyBtn.dataset.rawText = aiResponse;
         }
       }
 
@@ -1827,6 +1838,8 @@ document.addEventListener('DOMContentLoaded', async () => {
              const contentDiv = lastMsgElement.querySelector('.msg-content');
              if (contentDiv) {
                 contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+                const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+                if (copyBtn) copyBtn.dataset.rawText = fullText;
                 chatWindow.scrollTo({ top: chatWindow.scrollHeight });
              }
            }
@@ -1848,18 +1861,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
       }
 
-      if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+      if (lastMsgElement) {
         const contentDiv = lastMsgElement.querySelector('.msg-content');
         if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'msg-copy-btn';
-        copyBtn.type = 'button';
-        copyBtn.title = 'Copiar mensagem';
-        copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-        copyBtn.dataset.feedbackMessage = 'Resposta copiada';
-        updateCopyButton(copyBtn, false);
-        copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
-        lastMsgElement.appendChild(copyBtn);
+        let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+        if (!copyBtn) {
+          copyBtn = document.createElement('button');
+          copyBtn.className = 'msg-copy-btn';
+          copyBtn.type = 'button';
+          copyBtn.title = 'Copiar mensagem';
+          copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+          copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+          updateCopyButton(copyBtn, false);
+          copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
+          lastMsgElement.appendChild(copyBtn);
+        }
+        copyBtn.dataset.rawText = aiResponse;
       }
 
       clearAIChatEditState();
@@ -1949,6 +1966,8 @@ document.addEventListener('DOMContentLoaded', async () => {
              const contentDiv = lastMsgElement.querySelector('.msg-content');
              if (contentDiv) {
                 contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+                const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+                if (copyBtn) copyBtn.dataset.rawText = fullText;
                 chatWindow.scrollTo({ top: chatWindow.scrollHeight });
              }
            }
@@ -1970,18 +1989,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (nextAssistantEntryDb) Object.assign(nextAssistantEntry, nextAssistantEntryDb);
       }
 
-      if (lastMsgElement && !lastMsgElement.querySelector('.msg-copy-btn')) {
+      if (lastMsgElement) {
         const contentDiv = lastMsgElement.querySelector('.msg-content');
         if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'msg-copy-btn';
-        copyBtn.type = 'button';
-        copyBtn.title = 'Copiar mensagem';
-        copyBtn.setAttribute('aria-label', 'Copiar mensagem');
-        copyBtn.dataset.feedbackMessage = 'Resposta copiada';
-        updateCopyButton(copyBtn, false);
-        copyBtn.addEventListener('click', () => copyText(aiResponse, copyBtn));
-        lastMsgElement.appendChild(copyBtn);
+        let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
+        if (!copyBtn) {
+          copyBtn = document.createElement('button');
+          copyBtn.className = 'msg-copy-btn';
+          copyBtn.type = 'button';
+          copyBtn.title = 'Copiar mensagem';
+          copyBtn.setAttribute('aria-label', 'Copiar mensagem');
+          copyBtn.dataset.feedbackMessage = 'Resposta copiada';
+          updateCopyButton(copyBtn, false);
+          copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
+          lastMsgElement.appendChild(copyBtn);
+        }
+        copyBtn.dataset.rawText = aiResponse;
       }
 
       persistAIChatSessionState({ draft: preservedDraft });

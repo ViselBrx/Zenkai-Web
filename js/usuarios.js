@@ -1094,12 +1094,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function isUserOnline(user) {
     if (!user) return false;
-    // 1. Prioridade: Presence Channel (Tempo Real)
+    // Prioridade: Presence Channel (Tempo Real)
     if (window.onlineUsersSet && window.onlineUsersSet.has(user.id)) return true;
-    
-    // 2. Fallback: Atividade recente no banco (para evitar oscilação se a rede cair por 1s)
-    const lastSeen = user.last_seen ? new Date(user.last_seen) : null;
-    return !!(lastSeen && (Date.now() - lastSeen.getTime()) < ONLINE_WINDOW_MS);
+    return false;
   }
 
   function getStatusText(user) {

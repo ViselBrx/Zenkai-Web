@@ -58,7 +58,12 @@
         const item = document.createElement('div');
         item.className = 'cs-option' + (opt.selected ? ' selected' : '');
         item.dataset.value = opt.value;
-        item.textContent = opt.text;
+        const iconClass = opt.getAttribute('data-icon');
+        if (iconClass) {
+          item.innerHTML = `<i class="${iconClass}" style="margin-right:8px;"></i>${opt.text}`;
+        } else {
+          item.textContent = opt.text;
+        }
         item.setAttribute('role', 'option');
         item.setAttribute('aria-selected', opt.selected ? 'true' : 'false');
         item.addEventListener('click', () => {
@@ -74,7 +79,16 @@
 
     function syncSelected() {
       const selOpt = native.options[native.selectedIndex];
-      triggerText.textContent = selOpt ? selOpt.text : '';
+      if (selOpt) {
+        const iconClass = selOpt.getAttribute('data-icon');
+        if (iconClass) {
+          triggerText.innerHTML = `<i class="${iconClass}" style="margin-right:8px;"></i>${selOpt.text}`;
+        } else {
+          triggerText.textContent = selOpt.text;
+        }
+      } else {
+        triggerText.textContent = '';
+      }
       dropdown.querySelectorAll('.cs-option').forEach(item => {
         const isSel = item.dataset.value === native.value;
         item.classList.toggle('selected', isSel);

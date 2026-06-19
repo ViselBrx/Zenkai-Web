@@ -10,6 +10,170 @@
   <link rel="stylesheet" href="css/style.css" />
   <script src="js/themes.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    /* SISTEMA DE FEEDBACK STYLES */
+    .feedback-fab {
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.5);
+      cursor: pointer;
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .feedback-fab:hover {
+      transform: scale(1.1) rotate(-10deg);
+      box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.7);
+    }
+
+    .feedback-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .feedback-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .feedback-modal-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(var(--primary-rgb), 0.15);
+      transform: translateY(30px) scale(0.95);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+    .feedback-modal-overlay.active .feedback-modal-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .feedback-modal-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .feedback-modal-header h3 {
+      margin: 0;
+      color: var(--primary);
+      font-size: 1.3rem;
+      font-family: 'Bangers', cursive;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feedback-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .feedback-close-btn:hover {
+      color: var(--primary);
+      transform: rotate(90deg);
+    }
+
+    .feedback-modal-body {
+      padding: 24px;
+    }
+    .feedback-desc {
+      color: var(--text-main);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+      opacity: 0.85;
+    }
+    
+    .feedback-label {
+      display: block;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+    .feedback-input, .feedback-textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(var(--text-muted-rgb, 150, 150, 150), 0.3);
+      border-radius: 10px;
+      padding: 12px 15px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+    }
+    .feedback-input:focus, .feedback-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(var(--primary-rgb), 0.2);
+    }
+    .feedback-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    .feedback-submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    .feedback-submit-btn:hover {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.5);
+      transform: translateY(-2px);
+    }
+    .feedback-submit-btn i {
+      transition: transform 0.3s;
+    }
+    .feedback-submit-btn:hover i {
+      transform: translateX(5px);
+    }
+  </style>
 </head>
 
 <body>
@@ -131,6 +295,43 @@
 
   </main>
 
+  <!-- SISTEMA DE FEEDBACK (FAB + MODAL) -->
+  <button id="feedbackFabBtn" class="feedback-fab" title="Enviar Sugestão ou Reportar Bug">
+    <i class="fas fa-comment-dots"></i>
+  </button>
+
+  <div class="feedback-modal-overlay" id="feedbackModal">
+    <div class="feedback-modal-card">
+      <div class="feedback-modal-header">
+        <h3><i class="fas fa-paper-plane"></i> Central de Mensagens</h3>
+        <button class="feedback-close-btn" id="feedbackCloseBtn">✕</button>
+      </div>
+      <div class="feedback-modal-body">
+        <p class="feedback-desc">Ajude-nos a melhorar a Anime House! Envie sua sugestão, report de bug ou mensagem para a equipe.</p>
+        
+        <form id="feedbackForm">
+          <label class="feedback-label">Categoria</label>
+          <div class="search-bar" style="margin-bottom: 20px;">
+            <select id="feedbackCategory" class="feedback-input" style="width: 100%;">
+              <option value="sugestao" data-icon="fas fa-lightbulb">Sugestão de Melhoria</option>
+              <option value="bug" data-icon="fas fa-bug">Reportar um Bug</option>
+              <option value="elogio" data-icon="fas fa-heart">Elogio</option>
+              <option value="outro" data-icon="fas fa-envelope">Outro Assunto</option>
+            </select>
+          </div>
+
+          <label class="feedback-label">Sua Mensagem</label>
+          <textarea id="feedbackText" class="feedback-textarea" placeholder="Descreva sua ideia ou o problema encontrado..." rows="4" required></textarea>
+          
+          <button type="submit" class="feedback-submit-btn">
+            <span>Enviar Mensagem</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL QR CODE MOBILE -->
   <div class="modal-overlay" id="mobileModal">
     <div class="modal" style="max-width: 400px; text-align: center;">
@@ -177,11 +378,40 @@
       modal?.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('open');
       });
+
+      // Feedback Modal Logic
+      const feedbackFab = document.getElementById('feedbackFabBtn');
+      const feedbackModal = document.getElementById('feedbackModal');
+      const feedbackClose = document.getElementById('feedbackCloseBtn');
+      const feedbackForm = document.getElementById('feedbackForm');
+
+      if(feedbackFab && feedbackModal && feedbackClose) {
+        feedbackFab.addEventListener('click', () => {
+          feedbackModal.classList.add('active');
+        });
+        feedbackClose.addEventListener('click', () => {
+          feedbackModal.classList.remove('active');
+        });
+        feedbackModal.addEventListener('click', (e) => {
+          if (e.target === feedbackModal) feedbackModal.classList.remove('active');
+        });
+      }
+
+      if(feedbackForm) {
+        feedbackForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          // FUTURO BACKEND AQUI
+          alert('Design da Caixa de Mensagens concluído! O envio para o backend em Node.js/Vercel será implementado posteriormente.');
+          feedbackModal.classList.remove('active');
+          feedbackForm.reset();
+        });
+      }
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/history.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/custom-select.js"></script>
   <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">&copy; ViselBrx & DaviMoraes07&trade;</a></div>
 </body>
 
