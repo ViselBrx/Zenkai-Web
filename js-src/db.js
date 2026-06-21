@@ -295,8 +295,8 @@ const ALL_ITEMS = [
       price: 5,
     },
     {
-      id: "banner_lunar",
-      name: "Banner Eclipse Lunar",
+      id: "banner_nebulosa",
+      name: "Banner Nebulosa",
       icon: "🌘",
       category: "banner",
       currency: "diamante",
@@ -361,13 +361,13 @@ function clearWatchedItems(ids = []) {
     });
 }
 
-// Checa se o supabase estÃƒÂ¡ disponÃƒÂ­vel (injetado via auth.js)
+// Checa se o supabase está disponível (injetado via auth.js)
 function getSupa() {
     if (!window.supabaseClient) throw new Error("Supabase Client não encontrado!");
     return window.supabaseClient;
 }
 
-// Obter o ID do usuÃƒÂ¡rio logado
+// Obter o ID do usuAƒÂ¡rio logado
 async function getCurrentUserId() {
     const supa = getSupa();
     const { data: { session } } = await supa.auth.getSession();
@@ -376,7 +376,7 @@ async function getCurrentUserId() {
     return user?.id || null;
 }
 
-// Em operaÃƒÂ§ÃƒÂµes de escrita, o usuÃƒÂ¡rio precisa estar autenticado.
+// Em operaAƒÂ§AƒÂµes de escrita, o usuAƒÂ¡rio precisa estar autenticado.
 async function getRequiredUserId() {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('Sessão expirada. Faça login novamente.');
@@ -412,13 +412,13 @@ function sanitizeStoreDataForDb(raw) {
     }
 }
 
-// Verificar se o usuÃƒÂ¡rio pode editar/deletar um item
+// Verificar se o usuAƒÂ¡rio pode editar/deletar um item
 async function checkItemOwnership(itemId, table) {
     try {
         const supa = getSupa();
         const userId = await getRequiredUserId();
         
-        // UsuÃƒÂ¡rios sÃƒÂ³ podem editar seus prÃƒÂ³prios dados
+        // UsuAƒÂ¡rios só podem editar seus próprios dados
         const { data, error } = await supa.from(table).select('user_id').eq('id', itemId).single();
         
         if (error || !data) {
@@ -438,10 +438,10 @@ async function checkItemOwnership(itemId, table) {
     }
 }
 
-// UtilitÃƒÂ¡rio para limpar os iframes (Redecanais mudam muito de domÃƒÂ­nio)
+// Utilitário para limpar os iframes (Redecanais mudam muito de domínio)
 // PROBLEMA RAIZ: os iframes usam hostname percent-encoded (ex: %72%65%64%65%63%61%6E%61%69%73%2E%6F%6F%6F
-// que ÃƒÂ© 'redecanais.ooo'). Browsers NÃƒÆ’O conseguem resolver hostnames codificados assim,
-// por isso o player fica preto. A correÃƒÂ§ÃƒÂ£o ÃƒÂ© decodificar o src e substituir o domÃƒÂ­nio.
+// que é 'redecanais.ooo'). Browsers NAO conseguem resolver hostnames codificados assim,
+// por isso o player fica preto. A correção é decodificar o src e substituir o domínio.
 function cleanIframe(iframe) {
     if (!iframe) return '';
     const iframeTrim = iframe.trim();
@@ -462,7 +462,7 @@ function cleanIframe(iframe) {
                 if (src.startsWith('//')) src = 'https:' + src;
                 if (src.startsWith('http://')) src = 'https://' + src.slice(7);
 
-                // SubstituiÃƒÂ§ÃƒÂ£o de domÃƒÂ­nio (cobre todos os domÃƒÂ­nios conhecidos do Redecanais)
+                // Substituição de domínio (cobre todos os domínios conhecidos do Redecanais)
                 src = src.replace(/redecanais\.[a-z]{2,10}/gi, 'redecanais.ph');
 
                 el.setAttribute('src', src);
@@ -490,7 +490,7 @@ function cleanIframe(iframe) {
             .replace(/allow="[^"]*"/gi, 'allow="autoplay; encrypted-media; picture-in-picture; fullscreen"');
     }
 
-    // --- Caso 2: sÃƒÂ³ a URL ---
+    // --- Caso 2: só a URL ---
     let url = iframeTrim;
     try { url = decodeURIComponent(url); } catch(e) {}
     if (url.startsWith('//')) url = 'https:' + url;
@@ -501,7 +501,7 @@ function cleanIframe(iframe) {
         return `<iframe src="${url}" frameborder="0" width="100%" style="aspect-ratio:16/9" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
     }
 
-    return iframe; // devolve original se nÃƒÂ£o reconheceu
+    return iframe; // devolve original se não reconheceu
 }
 
 const MAIN_ACCOUNT_EMAIL = 'davizeravisel@gmail.com';
@@ -792,7 +792,7 @@ const DB = {
             });
         }
 
-        // Formatar para bater com o padrÃƒÂ£o antigo do _store
+        // Formatar para bater com o padrão antigo do _store
         _store.cartoons = (cartoons || []).map(c => ({...c, createdAt: c.created_at}));
         _store.animes = (animes || []).map(a => ({...a, createdAt: a.created_at}));
         _store.mangas = (mangas || []).map(m => ({...m, createdAt: m.created_at}));
@@ -845,7 +845,7 @@ const DB = {
                     });
                 }
             });
-            // Opcional: ordenar episÃƒÂ³dios
+            // Opcional: ordenar episódios
             for(let cid in _store.episodes) {
                 for(let sid in _store.episodes[cid]) {
                     _store.episodes[cid][sid].sort((a,b) => a.epNumber - b.epNumber);
@@ -911,7 +911,7 @@ const DB = {
             });
         }
 
-        // Agrupar HQ Editions (CORREÃ‡ÃƒO: estava faltando!)
+        // Agrupar HQ Editions (CORREÇAO: estava faltando!)
         if (hqEditions) {
             hqEditions.forEach(ed => {
                 if (!_store.hqEditions[ed.hq_id]) _store.hqEditions[ed.hq_id] = [];
@@ -925,7 +925,7 @@ const DB = {
             }
         }
 
-        // Agrupar HQ Notes (CORREÃ‡ÃƒO: estava faltando!)
+        // Agrupar HQ Notes (CORREÇAO: estava faltando!)
         if (hqNotes) {
             hqNotes.forEach(n => {
                 _store.hqNotes[n.edition_id] = {
@@ -944,11 +944,11 @@ const DB = {
     }
   },
 
-  // Upload de capa via Supabase Storage (acessÃƒÂ­vel de qualquer lugar)
+  // Upload de capa via Supabase Storage (acessível de qualquer lugar)
   async uploadCapa(base64String) {
       const supa = getSupa();
       
-      // Extrair extensÃƒÂ£o e dados binÃƒÂ¡rios do base64
+      // Extrair extensão e dados binários do base64
       const matches = base64String.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
       if (!matches) throw new Error('Formato de imagem inválido');
       
@@ -972,7 +972,7 @@ const DB = {
       
       if (error) throw new Error('Falha no upload da capa: ' + error.message);
       
-      // Retornar URL pÃƒÂºblica da imagem
+      // Retornar URL pública da imagem
       const { data: { publicUrl } } = supa.storage
           .from('capas')
           .getPublicUrl(filename);
@@ -1043,7 +1043,7 @@ const DB = {
     delete _store.movies[id];
   },
 
-  /* Cartoons: EpisÃƒÂ³dios */
+  /* Cartoons: Episódios */
   getAllEpisodes() { return _store.episodes; },
   getEpisodesFor(cId) { return _store.episodes[cId] || {}; },
   
@@ -1200,7 +1200,7 @@ const DB = {
     delete _store.animeMovies[id];
   },
 
-  /* Animes: EpisÃƒÂ³dios */
+  /* Animes: Episódios */
   getAnimeEpisodesFor(aId, audio = 'dublado') { 
     if (!_store.animeEpisodes[aId]) return {};
     return _store.animeEpisodes[aId][audio] || {};
@@ -1326,7 +1326,7 @@ const DB = {
     }
   },
 
-  /* MangÃƒÂ¡s */
+  /* Mangás */
   getMangas() { return [..._store.mangas]; },
   getMangaById(id) { return _store.mangas.find(m => m.id === id) || null; },
   async addManga(data) {
@@ -1880,7 +1880,7 @@ const DB = {
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
-      console.log(`â­ [Perk System] lista_destaque ativo: ${result}`);
+      console.log(`⭐ [Perk System] lista_destaque ativo: ${result}`);
       if (!result) {
         console.warn(`ðŸ“Œ [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
       }
@@ -2221,11 +2221,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const menu   = document.getElementById('navLinks');
   if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
 
-  // Persistir posiÃƒÂ§ÃƒÂ£o do scroll da navbar de forma otimizada
+  // Persistir posição do scroll da navbar de forma otimizada
   if (menu) {
     const savedScroll = sessionStorage.getItem('navbarScrollPosition');
     
-    // Se tem scroll salvo, restaura. SenÃƒÂ£o, rola atÃƒÂ© o item ativo.
+    // Se tem scroll salvo, restaura. Senão, rola até o item ativo.
     if (savedScroll !== null) {
       menu.scrollLeft = parseInt(savedScroll, 10);
     } else if (activeLink) {
@@ -2242,7 +2242,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         sessionStorage.setItem('navbarScrollPosition', menu.scrollLeft);
-      }, 100); // Aguarda 100ms apÃƒÂ³s o scroll parar para salvar
+      }, 100); // Aguarda 100ms apAƒÂ³s o scroll parar para salvar
     });
   }
 });

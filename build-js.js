@@ -29,10 +29,10 @@ const obfuscationOptions = {
     splitStrings: true,
     splitStringsChunkLength: 10,
     stringArray: true,
-    stringArrayEncoding: ['base64'],
+    stringArrayEncoding: [],
     stringArrayThreshold: 0.75,
     transformObjectKeys: true,
-    unicodeEscapeSequence: false
+    unicodeEscapeSequence: true
 };
 
 const files = fs.readdirSync(srcDir);

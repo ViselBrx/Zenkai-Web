@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
   const THEME_ALIASES = {
     "": "theme-ciano",
     "theme-default": "theme-ciano",
@@ -128,7 +128,7 @@
       decorContainer.id = "natal-decorations";
       decorContainer.innerHTML = `
         <div class="christmas-snowflakes">
-          ${Array(30).fill('<div class="snowflake">â„</div>').join("")}
+          ${Array(30).fill('<div class="snowflake">❄️</div>').join("")}
         </div>
         <ul class="christmas-lights">
           ${Array(20).fill('<li></li>').join("")}
@@ -144,7 +144,7 @@
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
 
-    // ProteÃ§Ã£o para o tema cromÃ¡tico: isolamento por usuÃ¡rio
+    // Proteção para o tema cromático: isolamento por usuário
     if (rawTheme === "theme-cromatico") {
       let uid = null;
       try {
@@ -176,7 +176,7 @@
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
-  // Restaurar tema cromÃ¡tico de volta Ã  sessionStorage se estava equipado no localStorage (user-scoped)
+  // Restaurar tema cromático de volta A  sessionStorage se estava equipado no localStorage (user-scoped)
   const syncChromaticTheme = () => {
     let uid = null;
     try {
@@ -279,7 +279,7 @@
     wrapper.id = "theme-switcher";
     wrapper.className = "theme-switcher-wrapper";
     wrapper.innerHTML = `
-            <button class="theme-main-btn" title="Mudar cor"><span>ðŸŽ¨</span></button>
+            <button class="theme-main-btn" title="Mudar cor"><i class="fa-solid fa-palette"></i></button>
             <div class="theme-options">
                 <button class="theme-opt-btn" data-theme="theme-ciano" title="Ciano" aria-label="Ciano"></button>
                 <button class="theme-opt-btn" data-theme="theme-verde" title="Verde" aria-label="Verde"></button>
@@ -373,13 +373,13 @@
       links.appendChild(li);
     });
 
-    // Restaura a posiÃ§Ã£o do scroll da navbar salva no localStorage
+    // Restaura a posiA§A£o do scroll da navbar salva no localStorage
     const savedScroll = localStorage.getItem("navbarScrollPosition");
     if (savedScroll) {
       links.scrollLeft = parseInt(savedScroll);
     }
 
-    // Salva a posiÃ§Ã£o do scroll sempre que houver rolagem
+    // Salva a posiA§A£o do scroll sempre que houver rolagem
     links.addEventListener("scroll", () => {
       localStorage.setItem("navbarScrollPosition", links.scrollLeft.toString());
     });

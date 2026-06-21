@@ -1,1275 +1,1278 @@
-﻿<!doctype html>
-<html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Anime House â€” Minhas Compras</title>
-        <link rel="stylesheet" href="css/style.css" />
-        <script src="js-ofuscado/themes.js"></script>
-        <style>
-            .inventory-shell {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 40px 16px;
-            }
-            .inventory-header {
-                margin-bottom: 40px;
-                border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
-                padding-bottom: 20px;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-end;
-            }
-            .inventory-title {
-                font-family: "Bangers", cursive;
-                font-size: 3rem;
-                letter-spacing: 2px;
-                color: var(--text-main);
-            }
-            .inventory-title span {
-                color: var(--primary);
-            }
-
-            .empty-state {
-                text-align: center;
-                padding: 100px 20px;
-                background: rgba(var(--primary-rgb), 0.05);
-                border: 2px dashed rgba(var(--primary-rgb), 0.2);
-                border-radius: 20px;
-                color: var(--text-muted);
-            }
-            .empty-state h2 {
-                font-family: "Bangers";
-                font-size: 2rem;
-                margin-bottom: 10px;
-                color: var(--text-main);
-            }
-
-            .items-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 20px;
-            }
-
-            .purchased-card {
-                background: linear-gradient(
-                    145deg,
-                    rgba(30, 30, 50, 0.4),
-                    rgba(10, 10, 25, 0.6)
-                );
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 20px;
-                padding: 0;
-                display: flex;
-                flex-direction: column;
-                position: relative;
-                overflow: hidden;
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                backdrop-filter: blur(10px);
-            }
-            .purchased-card.esmeralda {
-                background: linear-gradient(
-                    145deg,
-                    rgba(40, 30, 10, 0.6),
-                    rgba(20, 15, 5, 0.8)
-                );
-                border: 2px solid rgba(255, 215, 0, 0.4);
-                box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
-            }
-            
-            @keyframes chromatic-shine {
-                0% {
-                    left: -100%;
-                }
-                100% {
-                    left: 100%;
-                }
-            }
-            @keyframes chromatic-pulse {
-                0%,
-                100% {
-                    filter: hue-rotate(0deg) brightness(1.1);
-                }
-                50% {
-                    filter: hue-rotate(10deg) brightness(1.3);
-                }
-            }
-            .purchased-card:hover {
-                transform: translateY(-8px);
-                box-shadow:
-                    0 15px 35px rgba(0, 0, 0, 0.5),
-                    0 0 20px rgba(var(--primary-rgb), 0.2);
-                border-color: rgba(var(--primary-rgb), 0.4);
-            }
-            .card-banner {
-                height: 80px;
-                background: linear-gradient(
-                    to bottom,
-                    rgba(var(--primary-rgb), 0.15),
-                    transparent
-                );
-                position: relative;
-            }
-            .item-preview-circle {
-                width: 100px;
-                height: 100px;
-                background: #0f0f1a;
-                border: 3px solid rgba(var(--primary-rgb), 0.3);
-                border-radius: 50%;
-                margin: -50px auto 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 3.5rem;
-                position: relative;
-                z-index: 2;
-                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-            }
-            .purchased-card.is-equipped .item-preview-circle {
-                border-color: #22c55e;
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-            }
-            .purchased-card.esmeralda .item-preview-circle {
-                border: 3px solid rgba(255, 215, 0, 0.5);
-                box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-                
-            }
-            .purchased-card.esmeralda.is-equipped .item-preview-circle {
-                border-color: #ffd700;
-                box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-                
-            }
-            @keyframes border-pulse {
-                0%,
-                100% {
-                    border-color: rgba(255, 215, 0, 0.6);
-                }
-                50% {
-                    border-color: rgba(255, 215, 0, 1);
-                }
-            }
-            .item-info {
-                padding: 20px;
-                text-align: center;
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 8px;
-            }
-            .item-type-badge {
-                display: inline-block;
-                align-self: center;
-                padding: 4px 12px;
-                background: rgba(var(--primary-rgb), 0.1);
-                color: var(--primary);
-                border-radius: 20px;
-                font-size: 0.65rem;
-                font-weight: 800;
-                letter-spacing: 1px;
-                text-transform: uppercase;
-                border: 1px solid rgba(var(--primary-rgb), 0.2);
-            }
-            .purchased-card.esmeralda .item-type-badge {
-                background: rgba(255, 215, 0, 0.15);
-                border: 1px solid rgba(255, 215, 0, 0.4);
-                color: #ffd700;
-                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            }
-            .item-name {
-                font-family: "Bangers";
-                font-size: 1.4rem;
-                color: var(--text-main);
-                margin-top: 5px;
-                letter-spacing: 0.5px;
-            }
-            .item-desc {
-                font-size: 0.8rem;
-                color: var(--text-muted);
-                line-height: 1.4;
-                margin-bottom: 10px;
-            }
-
-            .card-actions {
-                padding: 15px;
-                background: rgba(0, 0, 0, 0.2);
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
-
-            .btn-action {
-                padding: 10px;
-                border-radius: 12px;
-                font-weight: 700;
-                font-size: 0.75rem;
-                cursor: pointer;
-                transition: 0.3s;
-                text-align: center;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px;
-                border: 1px solid transparent;
-            }
-            .btn-equip {
-                background: var(--primary);
-                color: #000;
-            }
-            .purchased-card.esmeralda .btn-equip:not(.equipped) {
-                background: linear-gradient(135deg, #ffd700, #ffaa00);
-                color: #1a1200;
-                font-weight: 800;
-                
-                background-size: 200% auto;
-            }
-            @keyframes chromatic-shine-btn {
-                0% {
-                    background-position: -200% center;
-                }
-                100% {
-                    background-position: 200% center;
-                }
-            }
-            .btn-equip:hover {
-                opacity: 0.9;
-                transform: scale(1.05);
-            }
-            .btn-equip.equipped {
-                background: #22c55e;
-                color: #fff;
-            }
-            .btn-sell {
-                background: transparent;
-                border: 1px solid rgba(239, 68, 68, 0.4);
-                color: #ef4444;
-            }
-            .btn-sell:hover {
-                background: rgba(239, 68, 68, 0.1);
-                border-color: #ef4444;
-            }
-            .equipped-ribbon {
-                position: absolute;
-                top: 15px;
-                right: -30px;
-                background: #22c55e;
-                color: #fff;
-                padding: 5px 35px;
-                font-weight: 900;
-                font-size: 0.6rem;
-                transform: rotate(45deg);
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                z-index: 10;
-            }
-            .purchased-card.esmeralda .equipped-ribbon {
-                background: linear-gradient(135deg, #ffd700, #ffaa00);
-                color: #1a1200;
-                text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-            }
-
-            /* ===== TOAST (NOTIFICAÃƒâ€¡ÃƒÆ’O) ===== */
-            #lojaToast {
-                position: fixed;
-                bottom: 30px;
-                left: 50%;
-                transform: translateX(-50%) translateY(80px);
-                z-index: 9999;
-                padding: 14px 28px;
-                border-radius: 12px;
-                font-size: 0.9rem;
-                font-weight: 600;
-                backdrop-filter: blur(12px);
-                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                opacity: 0;
-                pointer-events: none;
-                white-space: nowrap;
-            }
-            #lojaToast.show {
-                transform: translateX(-50%) translateY(0);
-                opacity: 1;
-            }
-            #lojaToast.success {
-                background: rgba(34, 197, 94, 0.15);
-                border: 1px solid rgba(34, 197, 94, 0.4);
-                color: #86efac;
-            }
-            #lojaToast.error {
-                background: rgba(239, 68, 68, 0.15);
-                border: 1px solid rgba(239, 68, 68, 0.4);
-                color: #fca5a5;
-            }
-
-            /* ===== MODAL DE VENDA (PREMIUM) ===== */
-            .modal-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.85);
-                backdrop-filter: blur(12px);
-                z-index: 5000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                opacity: 0;
-                pointer-events: none;
-                transition: all 0.3s ease;
-            }
-            .modal-overlay.open {
-                opacity: 1;
-                pointer-events: auto;
-            }
-            .sell-modal {
-                background: linear-gradient(
-                    160deg,
-                    rgba(15, 8, 8, 0.98),
-                    rgba(24, 4, 4, 0.99)
-                );
-                border-radius: 24px;
-                padding: 40px;
-                max-width: 440px;
-                width: 90vw;
-                border: 1px solid rgba(239, 68, 68, 0.3);
-                box-shadow:
-                    0 0 50px rgba(239, 68, 68, 0.1),
-                    0 30px 90px rgba(0, 0, 0, 0.7);
-                transform: scale(0.8) translateY(30px);
-                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                text-align: center;
-            }
-            .modal-overlay.open .sell-modal {
-                transform: scale(1) translateY(0);
-            }
-            .m-icon {
-                font-size: 4.5rem;
-                margin-bottom: 20px;
-                filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));
-            }
-            .m-title {
-                font-family: "Bangers", cursive;
-                font-size: 2.2rem;
-                letter-spacing: 2px;
-                color: #ef4444;
-                margin-bottom: 10px;
-            }
-            .m-desc {
-                font-size: 0.95rem;
-                color: var(--text-muted);
-                line-height: 1.6;
-                margin-bottom: 25px;
-            }
-            .m-price-box {
-                background: rgba(239, 68, 68, 0.08);
-                border: 1px dashed rgba(239, 68, 68, 0.3);
-                border-radius: 12px;
-                padding: 15px;
-                margin-bottom: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                font-family: "Bangers";
-                font-size: 1.4rem;
-                color: #fff;
-            }
-            .m-actions {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 15px;
-            }
-            .m-btn {
-                padding: 14px;
-                border-radius: 12px;
-                font-weight: 800;
-                font-size: 0.85rem;
-                cursor: pointer;
-                transition: 0.3s;
-                border: none;
-            }
-            .m-btn-cancel {
-                background: rgba(255, 255, 255, 0.05);
-                color: var(--text-muted);
-            }
-            .m-btn-confirm {
-                background: #ef4444;
-                color: #fff;
-                box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
-            }
-            .m-btn:hover {
-                transform: scale(1.05);
-                opacity: 0.9;
-            }
-        </style>
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-</head>
-    <body>
-        <nav class="navbar">
-            <a href="index.html" class="navbar-brand">
-                <img
-                    src="assets/tryhard.png"
-                    alt="Mascote"
-                    style="height: 50px; width: auto"
-                />
-                <span>Anime</span>House
-            </a>
-            <ul class="navbar-links" id="navLinks"></ul>
-            <button class="navbar-burger" id="navBurger" aria-label="Menu">
-                <span></span><span></span><span></span>
-            </button>
-        </nav>
-
-        <div class="inventory-shell" style="padding-top: 100px">
-            <div class="inventory-header">
-                <div>
-                    <h1 class="inventory-title">Meus <span>Tesouros</span></h1>
-                    <p style="color: var(--text-muted)">
-                        Aqui vocÃª encontra tudo o que adquiriu na SenseiMod
-                        Store.
-                    </p>
-                </div>
-            </div>
-
-            <div id="inventoryContainer">
-                <div class="empty-state">
-                    <h2>Seu inventÃ¡rio estÃ¡ vazio...</h2>
-                    <p>Visite a loja e troque seus XP por itens Ã©picos!</p>
-                    <br />
-                    <a href="loja.html" class="btn btn-primary"
-                        >Ir para a Loja</a
-                    >
-                </div>
-            </div>
-        </div>
-
-        <!-- MODAL DE VENDA CUSTOMIZADO -->
-        <div class="modal-overlay" id="sellModalOverlay">
-            <div class="sell-modal">
-                <div class="m-icon" id="mIcon"><i class='fa-solid fa-trash'></i></div>
-                <div class="m-title">Vender Item?</div>
-                <p class="m-desc" id="mDesc">
-                    VocÃª estÃ¡ prestes a vender este item. O valor de compra serÃ¡
-                    devolvido ÃƒÂ  sua conta da loja.
-                </p>
-
-                <div class="m-price-box">
-                    <span>Receber:</span>
-                    <span id="mPrice">0</span>
-                    <span id="mCurrency"><i class='fa-solid fa-medal'></i></span>
-                </div>
-
-                <div class="m-actions">
-                    <button
-                        class="m-btn m-btn-cancel"
-                        onclick="closeSellModal()"
-                    >
-                        Cancelar
-                    </button>
-                    <button class="m-btn m-btn-confirm" id="confirmSellBtn">
-                        Confirmar Venda
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- TOAST -->
-        <div id="lojaToast"></div>
-
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <script src="js-ofuscado/db.js"></script>
-        <script src="js-ofuscado/auth.js"></script>
-        <script>
-            const STORE_KEY = "animehouse_store";
-
-            // Lista completa de base para recuperar dados dos itens pelo ID
-            const CATALOG_ITEMS = [
-                {
-                    id: "banner_claro",
-                    name: "Banner Aurora Simples",
-                    icon: "<i class='fa-solid fa-sun'></i>",
-                    category: "banner",
-                    currency: "ouro",
-                    price: 3,
-                },
-                {
-                    id: "titulo_explorador",
-                    name: "TÃ­tulo: Explorador",
-                    icon: "<i class='fa-solid fa-map'></i>",
-                    category: "titulo",
-                    currency: "ouro",
-                    price: 5,
-                },
-                {
-                    id: "aura_chama",
-                    name: "Aura Chama Simples",
-                    icon: "<i class='fa-solid fa-fire'></i>",
-                    category: "aura",
-                    currency: "ouro",
-                    price: 8,
-                },
-                {
-                    id: "banner_cosmica",
-                    name: "Banner Noite CÃ³smica",
-                    icon: "<i class='fa-solid fa-meteor'></i>",
-                    category: "banner",
-                    currency: "ouro",
-                    price: 10,
-                },
-                {
-                    id: "titulo_caÃ§ador",
-                    name: "TÃ­tulo: CaÃ§ador de EpisÃ³dios",
-                    icon: "<i class='fa-solid fa-bullseye'></i>",
-                    category: "titulo",
-                    currency: "ouro",
-                    price: 6,
-                },
-                {
-                    id: "banner_berserk",
-                    name: "Banner: Eclipse de Guts",
-                    icon: "<i class='fa-solid fa-khanda'></i>",
-                    category: "banner",
-                    currency: "ouro",
-                    price: 4,
-                },
-                {
-                    id: "titulo_espadachim",
-                    name: "TÃ­tulo: Espadachim SolitÃ¡rio",
-                    icon: "<i class='fa-solid fa-khanda'></i>",
-                    category: "titulo",
-                    currency: "ouro",
-                    price: 5,
-                },
-                {
-                    id: "aura_chama_naruto",
-                    name: "Aura Modo SÃ¡bio",
-                    icon: "<i class='fa-solid fa-fire'></i>",
-                    category: "aura",
-                    currency: "ouro",
-                    price: 7,
-                },
-                {
-                    id: "aura_ceifador",
-                    name: "Aura: Olhar do Ceifador",
-                    icon: "<i class='fa-solid fa-book'></i>",
-                    category: "aura",
-                    currency: "ouro",
-                    price: 15,
-                },
-                {
-                    id: "banner_oni",
-                    name: "Banner Oni Samurai",
-                    icon: "<i class='fa-solid fa-masks-theater'></i>",
-                    category: "banner",
-                    currency: "diamante",
-                    price: 5,
-                },
-                {
-                    id: "aura_thunder",
-                    name: "Aura RelÃ¢mpago ElÃ©trico",
-                    icon: "<i class='fa-solid fa-bolt'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 8,
-                },
-                {
-                    id: "banner_shinobi",
-                    name: "Banner Shinobi Dark",
-                    icon: "<i class='fa-solid fa-user-ninja'></i>",
-                    category: "banner",
-                    currency: "diamante",
-                    price: 7,
-                },
-                {
-                    id: "titulo_mestre_das_listas",
-                    name: "TÃ­tulo: Mestre das Listas",
-                    icon: "<i class='fa-solid fa-clipboard'></i>",
-                    category: "titulo",
-                    currency: "diamante",
-                    price: 10,
-                },
-                {
-                    id: "aura_sakura",
-                    name: "Aura PÃ©tala de Sakura",
-                    icon: "<i class='fa-solid fa-fan'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 9,
-                },
-                {
-                    id: "aura_gelo",
-                    name: "Aura Cristal de Gelo",
-                    icon: "<i class='fa-solid fa-snowflake'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 11,
-                },
-                {
-                    id: "banner_aot",
-                    name: "Banner: Attack on Titan",
-                    icon: "<i class='fa-solid fa-cubes'></i>",
-                    category: "banner",
-                    currency: "diamante",
-                    price: 6,
-                },
-                {
-                    id: "aura_susanoo",
-                    name: "Aura Susanoo Perfeito",
-                    icon: "<i class='fa-solid fa-bolt'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 9,
-                },
-                {
-                    id: "banner_ragnarok",
-                    name: "Banner: Arena Ragnarok",
-                    icon: "<i class='fa-solid fa-building-columns'></i>",
-                    category: "banner",
-                    currency: "diamante",
-                    price: 10,
-                },
-                {
-                    id: "aura_stands",
-                    name: "Aura Stand: Star Platinum",
-                    icon: "<i class='fa-solid fa-circle'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 12,
-                },
-                {
-                    id: "coroa_lendaria",
-                    name: "Coroa Rei dos Animes",
-                    icon: "<i class='fa-solid fa-crown'></i>",
-                    category: "exclusivo",
-                    currency: "esmeralda",
-                    price: 3,
-                },
-                {
-                    id: "aura_dragon",
-                    name: "Aura DragÃ£o Arcano",
-                    icon: "<i class='fa-solid fa-dragon'></i>",
-                    category: "aura",
-                    currency: "esmeralda",
-                    price: 5,
-                },
-                {
-                    id: "banner_cosmos",
-                    name: "Banner Cosmos",
-                    icon: "<i class='fa-solid fa-hurricane'></i>",
-                    category: "banner",
-                    currency: "esmeralda",
-                    price: 4,
-                },
-                {
-                    id: "titulo_guardiao",
-                    name: "TÃ­tulo: GuardiÃ£o Lenda",
-                    icon: "<i class='fa-solid fa-shield'></i>",
-                    category: "titulo",
-                    currency: "esmeralda",
-                    price: 2,
-                },
-                {
-                    id: "coroa_tryhard",
-                    name: "Caveira do Carrasco",
-                    icon: "<i class='fa-solid fa-skull'></i>",
-                    category: "exclusivo",
-                    currency: "esmeralda",
-                    price: 3,
-                },
-                {
-                    id: "coroa_gorro_natal",
-                    name: "Gorro do Noel",
-                    icon: "ðŸŽ…",
-                    category: "exclusivo",
-                    currency: "esmeralda",
-                    price: 3,
-                },
-                {
-                    id: "titulo_sensei_mod",
-                    name: "TÃ­tulo: SenseiMod",
-                    icon: "<i class='fa-solid fa-graduation-cap'></i>",
-                    category: "titulo",
-                    currency: "esmeralda",
-                    price: 5,
-                },
-                {
-                    id: "banner_vinland",
-                    name: "Banner: Vinland Saga",
-                    icon: "<i class='fa-solid fa-shield'></i>",
-                    category: "banner",
-                    currency: "esmeralda",
-                    price: 6,
-                },
-                {
-                    id: "aura_void_saitama",
-                    name: "Aura ONE PUNCH",
-                    icon: "<i class='fa-solid fa-hand-fist'></i>",
-                    category: "aura",
-                    currency: "esmeralda",
-                    price: 4,
-                },
-                {
-                    id: "tema_cromatico",
-                    name: "Tema CromÃ¡tico",
-                    icon: "<i class='fa-solid fa-rainbow'></i>",
-                    category: "tema",
-                    currency: "esmeralda",
-                    price: 8,
-                },
-                {
-                    id: "tema_natal",
-                    name: "Especial de Natal",
-                    icon: "<i class='fa-solid fa-snowflake'></i>",
-                    category: "tema",
-                    currency: "esmeralda",
-                    price: 7,
-                },
-
-                {
-                    id: "cursor_camaleao",
-                    name: "Cursor CamaleÃ£o",
-                    icon: "<i class='fa-solid fa-palette'></i>",
-                    category: "cursor",
-                    currency: "diamante",
-                    price: 8,
-                },
-                {
-                    id: "cursor_gelo",
-                    name: "Cursor Nevasca",
-                    icon: "<i class='fa-solid fa-snowflake'></i>",
-                    category: "cursor",
-                    currency: "esmeralda",
-                    price: 6,
-                },
-                {
-                    id: "cursor_rgb",
-                    name: "Cursor RGB Supremo",
-                    icon: "<i class='fa-solid fa-wand-magic-sparkles'></i>",
-                    category: "cursor",
-                    currency: "esmeralda",
-                    price: 10,
-                },
-                {
-                    id: "aura_saiyajin",
-                    name: "Aura Super Saiyajin",
-                    icon: "<i class='fa-solid fa-bolt'></i>",
-                    category: "aura",
-                    currency: "diamante",
-                    price: 10,
-                },
-                {
-                    id: "aura_shinigami",
-                    name: "Aura Shinigami",
-                    icon: "<i class='fa-solid fa-apple-whole'></i>",
-                    category: "aura",
-                    currency: "esmeralda",
-                    price: 6,
-                },
-                {
-                    id: "banner_cyberpunk",
-                    name: "Banner Cyberpunk Neon",
-                    icon: "<i class='fa-solid fa-city'></i>",
-                    category: "banner",
-                    currency: "esmeralda",
-                    price: 5,
-                },
-                {
-                    id: "banner_lunar",
-                    name: "Banner Eclipse Lunar",
-                    icon: "<i class='fa-solid fa-moon'></i>",
-                    category: "banner",
-                    currency: "diamante",
-                    price: 8,
-                },
-            ];
-
-            function showToast(message, type = "success") {
-                const toast = document.getElementById("lojaToast");
-                if (!toast) return;
-                toast.innerHTML = message;
-                toast.className = `show ${type}`;
-                setTimeout(() => {
-                    toast.classList.remove("show");
-                }, 3000);
-            }
-
-            // getComprasStore: usado como fallback sÃ­ncrono pelo fluxo de venda/equipar
-            // O carregamento principal (DOMContentLoaded) usa fetch direto ao Supabase
-            function getComprasStore(userId) {
-                // 1. DB._store se estiver populado
-                if (window.DB?._store?.profile?.store_data) {
-                    try {
-                        return JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
-                    } catch (e) {}
-                }
-                // 2. localStorage isolado por userId
-                try {
-                    const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
-                    const s = JSON.parse(localStorage.getItem(key) || 'null');
-                    if (s && typeof s === 'object') return s;
-                } catch (e) {}
-                // 3. Detecta userId do token supabase
-                try {
-                    const supaKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
-                    const session = supaKey ? JSON.parse(localStorage.getItem(supaKey)) : null;
-                    const uid = session?.user?.id;
-                    if (uid) {
-                        const s = JSON.parse(localStorage.getItem(`animehouse_store_${uid}`) || 'null');
-                        if (s && typeof s === 'object') return s;
-                    }
-                } catch (e) {}
-                return { purchased: [], equipped: {} };
-            }
-
-            // renderInventory recebe (userId, store) diretamente do DOMContentLoaded
-            // eliminando dependÃªncia de window.DB._store que pode ser resetado por DB.init()
-            async function renderInventory(userId, store) {
-                // Se store nÃ£o foi passado, busca como fallback
-                if (!store) store = getComprasStore(userId);
-                const container = document.getElementById("inventoryContainer");
-
-                const userKey = (base) => userId ? `${base}_${userId}` : base;
-
-                // Limpa sempre para evitar fantasmas de itens vendidos
-                container.innerHTML = "";
-
-                if (!store.purchased || store.purchased.length === 0) {
-                    container.innerHTML = `
-                      <div class="empty-state">
-                        <h2>Seu inventÃ¡rio estÃ¡ vazio...</h2>
-                        <p>Visite a loja e troque seus XP por itens Ã©picos!</p>
-                        <br>
-                        <a href="loja.html" class="btn btn-primary">Ir para a Loja</a>
-                      </div>
-                    `;
-                    return;
-                }
-
-                container.innerHTML = '<div class="items-grid" id="inventoryGrid"></div>';
-                const grid = document.getElementById("inventoryGrid");
-
-                store.purchased.forEach((itemId) => {
-                    const item = CATALOG_ITEMS.find((i) => i.id === itemId);
-                    if (!item) return;
-
-                    // Verificar se estÃ¡ equipado usando chaves ISOLADAS
-                    let isEquipped = false;
-                    if (item.category === "aura")
-                        isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === itemId;
-                    else if (item.category === "titulo")
-                        isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("TÃ­tulo: ", "");
-                    else if (item.category === "banner")
-                        isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === itemId;
-                    else if (item.category === "exclusivo")
-                        isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && 
-                                     localStorage.getItem(userKey("animehouse_equippedCrownId")) === itemId;
-                    else if (item.category === "tema" || item.category === "cursor") {
-                        isEquipped = localStorage.getItem(userKey("animehouse_" + item.id)) === "true";
-                    } else if (item.category === "experiencia") {
-                        isEquipped = store.equipped && (store.equipped[itemId] === true || store.equipped[itemId] === "true");
-                    }
-
-                    const card = document.createElement("div");
-                    card.className = `purchased-card ${item.currency} ${isEquipped ? "is-equipped" : ""}`;
-                    const currencyIcon =
-                        item.currency === "ouro"
-                            ? "<i class='fa-solid fa-medal'></i>"
-                            : item.currency === "diamante"
-                              ? "<i class='fa-solid fa-gem'></i>"
-                              : "";
-
-                    card.innerHTML = `
-          ${isEquipped ? '<div class="equipped-dot" title="Item Equipado">âœ“</div>' : ""}
-          <div class="card-banner" style="${item.category === "banner" ? `background-image: url('${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}'); background-size: cover; background-position: center;` : `background: linear-gradient(45deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));`}"></div>
-          <div class="item-preview-circle">
-            ${
-                item.category === "banner"
-                    ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='<i class='fa-solid fa-image'></i>'">`
-                    : item.icon
-            }
-          </div>
-
-          <div class="item-info">
-            <span class="item-type-badge">${item.category}</span>
-            <div class="item-name" style="${item.currency === "esmeralda" ? "background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700, #ffaa00, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; " : ""}">${item.name}</div>
-            <p class="item-desc">Item de customizaÃ§Ã£o exclusiva. Valor de revenda atual: <strong style="${item.currency === "esmeralda" ? "color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);" : ""}">${item.price} ${currencyIcon}</strong></p>
-          </div>
-
-          <div class="card-actions">
-            <button onclick="toggleEquip('${item.id}', '${item.category}', '${item.name.replace("TÃ­tulo: ", "")}')" class="btn-action btn-equip ${isEquipped ? "equipped" : ""}">
-              ${isEquipped ? "<span>âœ“</span> Desmarcar" : "<span><i class='fa-solid fa-bolt'></i></span> Marcar"}
-            </button>
-            <button onclick="sellItem('${item.id}')" class="btn-action btn-sell">
-              <span><i class='fa-solid fa-sack-dollar'></i></span> Vender
-            </button>
-          </div>
-        `;
-                    grid.appendChild(card);
-                });
-            }
-
-            let itemToSell = null;
-
-            window.sellItem = function (id) {
-                const item = CATALOG_ITEMS.find((i) => i.id === id);
-                if (!item) return;
-
-                itemToSell = item;
-
-                // Preencher modal
-                document.getElementById("mIcon").innerHTML = item.icon;
-                document.getElementById("mDesc").innerHTML =
-                    `Deseja vender <strong>"${item.name}"</strong>? <br>As fichas de ${item.currency} serÃ£o devolvidas.`;
-                document.getElementById("mPrice").textContent = item.price;
-                document.getElementById("mCurrency").innerHTML =
-                    item.currency === "ouro"
-                        ? "<i class='fa-solid fa-medal'></i>"
-                        : item.currency === "diamante"
-                          ? "<i class='fa-solid fa-gem'></i>"
-                          : "<i class='fa-solid fa-heart'></i>";
-
-                // Abrir modal
-                document
-                    .getElementById("sellModalOverlay")
-                    .classList.add("open");
-            };
-
-            window.closeSellModal = function () {
-                document
-                    .getElementById("sellModalOverlay")
-                    .classList.remove("open");
-                itemToSell = null;
-            };
-
-            document.getElementById("confirmSellBtn").onclick =
-                async function () {
-                    if (!itemToSell) return;
-                    const id = itemToSell.id;
-                    const item = itemToSell;
-
-                    try {
-                        let store = getComprasStore();
-
-                        store.purchased = (store.purchased || []).filter(
-                            (itemId) => itemId !== id,
-                        );
-
-                        const moeda = item.currency || "ouro";
-                        store[moeda] =
-                            (Number(store[moeda]) || 0) + Number(item.price);
-
-                        // Desequipar se necessÃ¡rio
-                        if (store.equipped) {
-                            if (store.equipped.aura === id)
-                                store.equipped.aura = "none";
-                            if (store.equipped.banner === id)
-                                store.equipped.banner = "none";
-                            if (
-                                store.equipped.titulo ===
-                                item.name.replace("TÃ­tulo: ", "")
-                            )
-                                store.equipped.titulo = "";
-                            if (id.includes("coroa"))
-                                store.equipped.crown = false;
-                            if (id === "tema_cromatico")
-                                store.equipped.tema_cromatico = false;
-                            if (store.equipped[id]) delete store.equipped[id];
-                        }
-
-                        let userId = null;
-                        try {
-                            if (window.supabaseClient) {
-                                const { data: { user } } = await window.supabaseClient.auth.getUser();
-                                userId = user?.id;
-                            }
-                        } catch (e) {}
-                        
-                        if (window.DB && window.DB.saveStoreData) {
-                            await window.DB.saveStoreData(store);
-                        } else {
-                            localStorage.setItem(
-                                userId ? `animehouse_store_${userId}` : STORE_KEY,
-                                JSON.stringify(store),
-                            );
-                        }
-
-                        // Fallback desequipar individual (compatibilidadeLegado) usando chaves isoladas
-                        const userKey = (base) => userId ? `${base}_${userId}` : base;
-
-                        if (localStorage.getItem(userKey("animehouse_customAura")) === id)
-                            localStorage.setItem(userKey("animehouse_customAura"), "none");
-                        
-                        if (localStorage.getItem(userKey("animehouse_customBanner")) === id)
-                            localStorage.setItem(userKey("animehouse_customBanner"), "none");
-                        
-                        if (localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("TÃ­tulo: ", ""))
-                            localStorage.setItem(userKey("animehouse_customTitle"), "");
-
-                        if (localStorage.getItem(userKey("animehouse_equippedCrownId")) === id) {
-                            localStorage.setItem(userKey("animehouse_showCrown"), "false");
-                            localStorage.removeItem(userKey("animehouse_equippedCrownId"));
-                        }
-                        
-                        if (item.category === "tema" || item.category === "cursor") {
-                            localStorage.removeItem(userKey("animehouse_" + id));
-                            if (id === "tema_cromatico" && window.setTheme) {
-                                window.setTheme("theme-ciano");
-                            }
-                        }
-
-                        if (window.checkAuthStatus) window.checkAuthStatus();
-
-                        closeSellModal();
-                        // RelÃª o store do localStorage apÃ³s a venda (sincrÃƒÂ´nico e confiÃ¡vel)
-                        const updatedStore = getComprasStore(userId);
-                        renderInventory(userId, updatedStore);
-                        if (typeof showToast === "function")
-                            showToast(`<i class='fa-solid fa-check'></i> "${item.name}" vendido!`, "success");
-                    } catch (err) {
-                        console.error("Erro ao processar venda:", err);
-                        alert("Erro crÃ­tico ao processar a venda.");
-                    }
-                };
-
-            // Fechar modal ao clicar fora
-            document.getElementById("sellModalOverlay").onclick = function (e) {
-                if (e.target.id === "sellModalOverlay") closeSellModal();
-            };
-
-            window.toggleEquip = async function (id, type, rawName) {
-                // <i class='fa-solid fa-clapperboard'></i> Feedback tÃ¡til imediato
-                const clickedBtn = document.activeElement;
-                if (clickedBtn && clickedBtn.classList.contains('btn-equip')) {
-                    clickedBtn.style.transform = 'scale(0.95)';
-                    setTimeout(() => clickedBtn.style.transform = '', 150);
-                }
-
-                let store = getComprasStore();
-                if (!store.equipped) store.equipped = {};
-
-                let userId = null;
-                try {
-                    if (window.supabaseClient) {
-                        const { data: { user } } = await window.supabaseClient.auth.getUser();
-                        userId = user?.id;
-                    }
-                } catch (e) {}
-
-                const userKey = (base) => userId ? `${base}_${userId}` : base;
-
-                // Verificar estado atual para saber se vamos equipar ou desequipar
-                let isEquipped = false;
-                if (type === "aura") isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === id;
-                else if (type === "titulo") isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === rawName;
-                else if (type === "banner") isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === id;
-                else if (type === "exclusivo" && id.includes("coroa")) {
-                    isEquipped = (localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id);
-                } else if (type === "tema" || type === "cursor") {
-                    isEquipped = localStorage.getItem(userKey("animehouse_" + id)) === "true";
-                }
-
-                const newState = !isEquipped;
-
-                if (isEquipped) {
-                    // Desequipar
-                    if (type === "aura") {
-                        localStorage.setItem(userKey("animehouse_customAura"), "none");
-                        store.equipped.aura = "none";
-                    } else if (type === "titulo") {
-                        localStorage.setItem(userKey("animehouse_customTitle"), "");
-                        store.equipped.titulo = "";
-                    } else if (type === "banner") {
-                        localStorage.setItem(userKey("animehouse_customBanner"), "none");
-                        store.equipped.banner = "none";
-                    } else if (type === "exclusivo" && id.includes("coroa")) {
-                        localStorage.setItem(userKey("animehouse_showCrown"), "false");
-                        localStorage.removeItem(userKey("animehouse_equippedCrownId"));
-                        localStorage.removeItem(userKey("animehouse_equippedCrownIcon"));
-                        store.equipped.crown = false;
-                        store.equipped.crownId = "";
-                        store.equipped.crownIcon = "";
-                    } else if (type === "tema" || type === "cursor") {
-                        if (id === "tema_cromatico") {
-                            if (window.setTheme) window.setTheme("theme-ciano");
-                        }
-                        store.equipped[id] = false;
-                        localStorage.removeItem(userKey("animehouse_" + id));
-                    }
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>⛩️ Anime House — Minhas Compras</title>
+        <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+        <link rel="stylesheet" href="css/style.css" />
+        <script src="js-ofuscado/themes.js"></script>
+        <style>
+            .inventory-shell {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 40px 16px;
+            }
+            .inventory-header {
+                margin-bottom: 40px;
+                border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+                padding-bottom: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-end;
+            }
+            .inventory-title {
+                font-family: "Bangers", cursive;
+                font-size: 3rem;
+                letter-spacing: 2px;
+                color: var(--text-main);
+            }
+            .inventory-title span {
+                color: var(--primary);
+            }
+
+            .empty-state {
+                text-align: center;
+                padding: 100px 20px;
+                background: rgba(var(--primary-rgb), 0.05);
+                border: 2px dashed rgba(var(--primary-rgb), 0.2);
+                border-radius: 20px;
+                color: var(--text-muted);
+            }
+            .empty-state h2 {
+                font-family: "Bangers";
+                font-size: 2rem;
+                margin-bottom: 10px;
+                color: var(--text-main);
+            }
+
+            .items-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 20px;
+            }
+
+            .purchased-card {
+                background: linear-gradient(
+                    145deg,
+                    rgba(30, 30, 50, 0.4),
+                    rgba(10, 10, 25, 0.6)
+                );
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 20px;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                backdrop-filter: blur(10px);
+            }
+            .purchased-card.esmeralda {
+                background: linear-gradient(
+                    145deg,
+                    rgba(40, 30, 10, 0.6),
+                    rgba(20, 15, 5, 0.8)
+                );
+                border: 2px solid rgba(255, 215, 0, 0.4);
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+            }
+            
+            @keyframes chromatic-shine {
+                0% {
+                    left: -100%;
+                }
+                100% {
+                    left: 100%;
+                }
+            }
+            @keyframes chromatic-pulse {
+                0%,
+                100% {
+                    filter: hue-rotate(0deg) brightness(1.1);
+                }
+                50% {
+                    filter: hue-rotate(10deg) brightness(1.3);
+                }
+            }
+            .purchased-card:hover {
+                transform: translateY(-8px);
+                box-shadow:
+                    0 15px 35px rgba(0, 0, 0, 0.5),
+                    0 0 20px rgba(var(--primary-rgb), 0.2);
+                border-color: rgba(var(--primary-rgb), 0.4);
+            }
+            .card-banner {
+                height: 80px;
+                background: linear-gradient(
+                    to bottom,
+                    rgba(var(--primary-rgb), 0.15),
+                    transparent
+                );
+                position: relative;
+            }
+            .item-preview-circle {
+                width: 100px;
+                height: 100px;
+                background: #0f0f1a;
+                border: 3px solid rgba(var(--primary-rgb), 0.3);
+                border-radius: 50%;
+                margin: -50px auto 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 3.5rem;
+                position: relative;
+                z-index: 2;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            }
+            .purchased-card.is-equipped .item-preview-circle {
+                border-color: #22c55e;
+                box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            }
+            .purchased-card.esmeralda .item-preview-circle {
+                border: 3px solid rgba(255, 215, 0, 0.5);
+                box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
+                
+            }
+            .purchased-card.esmeralda.is-equipped .item-preview-circle {
+                border-color: #ffd700;
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+                
+            }
+            @keyframes border-pulse {
+                0%,
+                100% {
+                    border-color: rgba(255, 215, 0, 0.6);
+                }
+                50% {
+                    border-color: rgba(255, 215, 0, 1);
+                }
+            }
+            .item-info {
+                padding: 20px;
+                text-align: center;
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .item-type-badge {
+                display: inline-block;
+                align-self: center;
+                padding: 4px 12px;
+                background: rgba(var(--primary-rgb), 0.1);
+                color: var(--primary);
+                border-radius: 20px;
+                font-size: 0.65rem;
+                font-weight: 800;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                border: 1px solid rgba(var(--primary-rgb), 0.2);
+            }
+            .purchased-card.esmeralda .item-type-badge {
+                background: rgba(255, 215, 0, 0.15);
+                border: 1px solid rgba(255, 215, 0, 0.4);
+                color: #ffd700;
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            .item-name {
+                font-family: "Bangers";
+                font-size: 1.4rem;
+                color: var(--text-main);
+                margin-top: 5px;
+                letter-spacing: 0.5px;
+            }
+            .item-desc {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                line-height: 1.4;
+                margin-bottom: 10px;
+            }
+
+            .card-actions {
+                padding: 15px;
+                background: rgba(0, 0, 0, 0.2);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .btn-action {
+                padding: 10px;
+                border-radius: 12px;
+                font-weight: 700;
+                font-size: 0.75rem;
+                cursor: pointer;
+                transition: 0.3s;
+                text-align: center;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                border: 1px solid transparent;
+            }
+            .btn-equip {
+                background: var(--primary);
+                color: #000;
+            }
+            .purchased-card.esmeralda .btn-equip:not(.equipped) {
+                background: linear-gradient(135deg, #ffd700, #ffaa00);
+                color: #1a1200;
+                font-weight: 800;
+                
+                background-size: 200% auto;
+            }
+            @keyframes chromatic-shine-btn {
+                0% {
+                    background-position: -200% center;
+                }
+                100% {
+                    background-position: 200% center;
+                }
+            }
+            .btn-equip:hover {
+                opacity: 0.9;
+                transform: scale(1.05);
+            }
+            .btn-equip.equipped {
+                background: #22c55e;
+                color: #fff;
+            }
+            .btn-sell {
+                background: transparent;
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                color: #ef4444;
+            }
+            .btn-sell:hover {
+                background: rgba(239, 68, 68, 0.1);
+                border-color: #ef4444;
+            }
+            .equipped-ribbon {
+                position: absolute;
+                top: 15px;
+                right: -30px;
+                background: #22c55e;
+                color: #fff;
+                padding: 5px 35px;
+                font-weight: 900;
+                font-size: 0.6rem;
+                transform: rotate(45deg);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                z-index: 10;
+            }
+            .purchased-card.esmeralda .equipped-ribbon {
+                background: linear-gradient(135deg, #ffd700, #ffaa00);
+                color: #1a1200;
+                text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+            }
+
+            /* ===== TOAST (NOTIFICAÇÃO) ===== */
+            #lojaToast {
+                position: fixed;
+                bottom: 30px;
+                left: 50%;
+                transform: translateX(-50%) translateY(80px);
+                z-index: 9999;
+                padding: 14px 28px;
+                border-radius: 12px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                backdrop-filter: blur(12px);
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                opacity: 0;
+                pointer-events: none;
+                white-space: nowrap;
+            }
+            #lojaToast.show {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            #lojaToast.success {
+                background: rgba(34, 197, 94, 0.15);
+                border: 1px solid rgba(34, 197, 94, 0.4);
+                color: #86efac;
+            }
+            #lojaToast.error {
+                background: rgba(239, 68, 68, 0.15);
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                color: #fca5a5;
+            }
+
+            /* ===== MODAL DE VENDA (PREMIUM) ===== */
+            .modal-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.85);
+                backdrop-filter: blur(12px);
+                z-index: 5000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0;
+                pointer-events: none;
+                transition: all 0.3s ease;
+            }
+            .modal-overlay.open {
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .sell-modal {
+                background: linear-gradient(
+                    160deg,
+                    rgba(15, 8, 8, 0.98),
+                    rgba(24, 4, 4, 0.99)
+                );
+                border-radius: 24px;
+                padding: 40px;
+                max-width: 440px;
+                width: 90vw;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+                box-shadow:
+                    0 0 50px rgba(239, 68, 68, 0.1),
+                    0 30px 90px rgba(0, 0, 0, 0.7);
+                transform: scale(0.8) translateY(30px);
+                transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                text-align: center;
+            }
+            .modal-overlay.open .sell-modal {
+                transform: scale(1) translateY(0);
+            }
+            .m-icon {
+                font-size: 4.5rem;
+                margin-bottom: 20px;
+                filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.3));
+            }
+            .m-title {
+                font-family: "Bangers", cursive;
+                font-size: 2.2rem;
+                letter-spacing: 2px;
+                color: #ef4444;
+                margin-bottom: 10px;
+            }
+            .m-desc {
+                font-size: 0.95rem;
+                color: var(--text-muted);
+                line-height: 1.6;
+                margin-bottom: 25px;
+            }
+            .m-price-box {
+                background: rgba(239, 68, 68, 0.08);
+                border: 1px dashed rgba(239, 68, 68, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                margin-bottom: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                font-family: "Bangers";
+                font-size: 1.4rem;
+                color: #fff;
+            }
+            .m-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .m-btn {
+                padding: 14px;
+                border-radius: 12px;
+                font-weight: 800;
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: 0.3s;
+                border: none;
+            }
+            .m-btn-cancel {
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--text-muted);
+            }
+            .m-btn-confirm {
+                background: #ef4444;
+                color: #fff;
+                box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            }
+            .m-btn:hover {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        </style>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+    <body>
+        <nav class="navbar">
+            <a href="index.html" class="navbar-brand">
+                <img
+                    src="assets/tryhard.png"
+                    alt="Mascote"
+                    style="height: 50px; width: auto"
+                />
+                <span>Anime</span>House
+            </a>
+            <ul class="navbar-links" id="navLinks"></ul>
+            <button class="navbar-burger" id="navBurger" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+
+        <div class="inventory-shell" style="padding-top: 100px">
+            <div class="inventory-header">
+                <div>
+                    <h1 class="inventory-title">Meus <span>Tesouros</span></h1>
+                    <p style="color: var(--text-muted)">
+                        Aqui você encontra tudo o que adquiriu na SenseiMod
+                        Store.
+                    </p>
+                </div>
+            </div>
+
+            <div id="inventoryContainer">
+                <div class="empty-state">
+                    <h2>Seu inventário está vazio...</h2>
+                    <p>Visite a loja e troque seus XP por itens épicos!</p>
+                    <br />
+                    <a href="loja.html" class="btn btn-primary"
+                        >Ir para a Loja</a
+                    >
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL DE VENDA CUSTOMIZADO -->
+        <div class="modal-overlay" id="sellModalOverlay">
+            <div class="sell-modal">
+                <div class="m-icon" id="mIcon"><i class='fa-solid fa-trash'></i></div>
+                <div class="m-title">Vender Item?</div>
+                <p class="m-desc" id="mDesc">
+                    Você está prestes a vender este item. O valor de compra será
+                    devolvido à sua conta da loja.
+                </p>
+
+                <div class="m-price-box">
+                    <span>Receber:</span>
+                    <span id="mPrice">0</span>
+                    <span id="mCurrency"><i class='fa-solid fa-medal'></i></span>
+                </div>
+
+                <div class="m-actions">
+                    <button
+                        class="m-btn m-btn-cancel"
+                        onclick="closeSellModal()"
+                    >
+                        Cancelar
+                    </button>
+                    <button class="m-btn m-btn-confirm" id="confirmSellBtn">
+                        Confirmar Venda
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST -->
+        <div id="lojaToast"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="js-ofuscado/db.js"></script>
+        <script src="js-ofuscado/auth.js"></script>
+        <script>
+            const STORE_KEY = "animehouse_store";
+
+            // Lista completa de base para recuperar dados dos itens pelo ID
+            const CATALOG_ITEMS = [
+                {
+                    id: "banner_claro",
+                    name: "Banner Aurora Simples",
+                    icon: "<i class='fa-solid fa-sun'></i>",
+                    category: "banner",
+                    currency: "ouro",
+                    price: 3,
+                },
+                {
+                    id: "titulo_explorador",
+                    name: "Título: Explorador",
+                    icon: "<i class='fa-solid fa-map'></i>",
+                    category: "titulo",
+                    currency: "ouro",
+                    price: 5,
+                },
+                {
+                    id: "aura_chama",
+                    name: "Aura Chama Simples",
+                    icon: "<i class='fa-solid fa-fire'></i>",
+                    category: "aura",
+                    currency: "ouro",
+                    price: 8,
+                },
+                {
+                    id: "banner_cosmica",
+                    name: "Banner Noite Cósmica",
+                    icon: "<i class='fa-solid fa-meteor'></i>",
+                    category: "banner",
+                    currency: "ouro",
+                    price: 10,
+                },
+                {
+                    id: "titulo_caçador",
+                    name: "Título: Caçador de Episódios",
+                    icon: "<i class='fa-solid fa-bullseye'></i>",
+                    category: "titulo",
+                    currency: "ouro",
+                    price: 6,
+                },
+                {
+                    id: "banner_berserk",
+                    name: "Banner: Eclipse de Guts",
+                    icon: "<i class='fa-solid fa-khanda'></i>",
+                    category: "banner",
+                    currency: "ouro",
+                    price: 4,
+                },
+                {
+                    id: "titulo_espadachim",
+                    name: "Título: Espadachim Solitário",
+                    icon: "<i class='fa-solid fa-khanda'></i>",
+                    category: "titulo",
+                    currency: "ouro",
+                    price: 5,
+                },
+                {
+                    id: "aura_chama_naruto",
+                    name: "Aura Modo Sábio",
+                    icon: "<i class='fa-solid fa-fire'></i>",
+                    category: "aura",
+                    currency: "ouro",
+                    price: 7,
+                },
+                {
+                    id: "aura_ceifador",
+                    name: "Aura: Olhar do Ceifador",
+                    icon: "<i class='fa-solid fa-book'></i>",
+                    category: "aura",
+                    currency: "ouro",
+                    price: 15,
+                },
+                {
+                    id: "banner_oni",
+                    name: "Banner Oni Samurai",
+                    icon: "<i class='fa-solid fa-masks-theater'></i>",
+                    category: "banner",
+                    currency: "diamante",
+                    price: 5,
+                },
+                {
+                    id: "aura_thunder",
+                    name: "Aura Relâmpago Elétrico",
+                    icon: "<i class='fa-solid fa-bolt'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 8,
+                },
+                {
+                    id: "banner_shinobi",
+                    name: "Banner Shinobi Dark",
+                    icon: "<i class='fa-solid fa-user-ninja'></i>",
+                    category: "banner",
+                    currency: "diamante",
+                    price: 7,
+                },
+                {
+                    id: "titulo_mestre_das_listas",
+                    name: "Título: Mestre das Listas",
+                    icon: "<i class='fa-solid fa-clipboard'></i>",
+                    category: "titulo",
+                    currency: "diamante",
+                    price: 10,
+                },
+                {
+                    id: "aura_sakura",
+                    name: "Aura Pétala de Sakura",
+                    icon: "<i class='fa-solid fa-fan'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 9,
+                },
+                {
+                    id: "aura_gelo",
+                    name: "Aura Cristal de Gelo",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 11,
+                },
+                {
+                    id: "banner_aot",
+                    name: "Banner: Attack on Titan",
+                    icon: "<i class='fa-solid fa-cubes'></i>",
+                    category: "banner",
+                    currency: "diamante",
+                    price: 6,
+                },
+                {
+                    id: "aura_susanoo",
+                    name: "Aura Susanoo Perfeito",
+                    icon: "<i class='fa-solid fa-bolt'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 9,
+                },
+                {
+                    id: "banner_ragnarok",
+                    name: "Banner: Arena Ragnarok",
+                    icon: "<i class='fa-solid fa-building-columns'></i>",
+                    category: "banner",
+                    currency: "diamante",
+                    price: 10,
+                },
+                {
+                    id: "aura_stands",
+                    name: "Aura Stand: Star Platinum",
+                    icon: "<i class='fa-solid fa-circle'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 12,
+                },
+                {
+                    id: "coroa_lendaria",
+                    name: "Coroa Rei dos Animes",
+                    icon: "<i class='fa-solid fa-crown'></i>",
+                    category: "exclusivo",
+                    currency: "esmeralda",
+                    price: 3,
+                },
+                {
+                    id: "aura_dragon",
+                    name: "Aura Dragão Arcano",
+                    icon: "<i class='fa-solid fa-dragon'></i>",
+                    category: "aura",
+                    currency: "esmeralda",
+                    price: 5,
+                },
+                {
+                    id: "banner_cosmos",
+                    name: "Banner Cosmos",
+                    icon: "<i class='fa-solid fa-hurricane'></i>",
+                    category: "banner",
+                    currency: "esmeralda",
+                    price: 4,
+                },
+                {
+                    id: "titulo_guardiao",
+                    name: "Título: Guardião Lenda",
+                    icon: "<i class='fa-solid fa-shield'></i>",
+                    category: "titulo",
+                    currency: "esmeralda",
+                    price: 2,
+                },
+                {
+                    id: "coroa_tryhard",
+                    name: "Caveira do Carrasco",
+                    icon: "<i class='fa-solid fa-skull'></i>",
+                    category: "exclusivo",
+                    currency: "esmeralda",
+                    price: 3,
+                },
+                {
+                    id: "coroa_gorro_natal",
+                    name: "Gorro do Noel",
+                    icon: "🎅",
+                    category: "exclusivo",
+                    currency: "esmeralda",
+                    price: 3,
+                },
+                {
+                    id: "titulo_sensei_mod",
+                    name: "Título: SenseiMod",
+                    icon: "<i class='fa-solid fa-graduation-cap'></i>",
+                    category: "titulo",
+                    currency: "esmeralda",
+                    price: 5,
+                },
+                {
+                    id: "banner_vinland",
+                    name: "Banner: Vinland Saga",
+                    icon: "<i class='fa-solid fa-shield'></i>",
+                    category: "banner",
+                    currency: "esmeralda",
+                    price: 6,
+                },
+                {
+                    id: "aura_void_saitama",
+                    name: "Aura ONE PUNCH",
+                    icon: "<i class='fa-solid fa-hand-fist'></i>",
+                    category: "aura",
+                    currency: "esmeralda",
+                    price: 4,
+                },
+                {
+                    id: "tema_cromatico",
+                    name: "Tema Cromático",
+                    icon: "<i class='fa-solid fa-rainbow'></i>",
+                    category: "tema",
+                    currency: "esmeralda",
+                    price: 8,
+                },
+                {
+                    id: "tema_natal",
+                    name: "Especial de Natal",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
+                    category: "tema",
+                    currency: "esmeralda",
+                    price: 7,
+                },
+
+                {
+                    id: "cursor_camaleao",
+                    name: "Cursor Camaleão",
+                    icon: "<i class='fa-solid fa-palette'></i>",
+                    category: "cursor",
+                    currency: "diamante",
+                    price: 8,
+                },
+                {
+                    id: "cursor_gelo",
+                    name: "Cursor Nevasca",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
+                    category: "cursor",
+                    currency: "esmeralda",
+                    price: 6,
+                },
+                {
+                    id: "cursor_rgb",
+                    name: "Cursor RGB Supremo",
+                    icon: "<i class='fa-solid fa-wand-magic-sparkles'></i>",
+                    category: "cursor",
+                    currency: "esmeralda",
+                    price: 10,
+                },
+                {
+                    id: "aura_saiyajin",
+                    name: "Aura Super Saiyajin",
+                    icon: "<i class='fa-solid fa-bolt'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 10,
+                },
+                {
+                    id: "aura_shinigami",
+                    name: "Aura Shinigami",
+                    icon: "<i class='fa-solid fa-apple-whole'></i>",
+                    category: "aura",
+                    currency: "esmeralda",
+                    price: 6,
+                },
+                {
+                    id: "banner_cyberpunk",
+                    name: "Banner Cyberpunk Neon",
+                    icon: "<i class='fa-solid fa-city'></i>",
+                    category: "banner",
+                    currency: "esmeralda",
+                    price: 5,
+                },
+                {
+                    id: "banner_nebulosa",
+                    name: "Banner Nebulosa",
+                    icon: "<i class='fa-solid fa-moon'></i>",
+                    category: "banner",
+                    currency: "diamante",
+                    price: 8,
+                },
+            ];
+
+            function showToast(message, type = "success") {
+                const toast = document.getElementById("lojaToast");
+                if (!toast) return;
+                toast.innerHTML = message;
+                toast.className = `show ${type}`;
+                setTimeout(() => {
+                    toast.classList.remove("show");
+                }, 3000);
+            }
+
+            // getComprasStore: usado como fallback síncrono pelo fluxo de venda/equipar
+            // O carregamento principal (DOMContentLoaded) usa fetch direto ao Supabase
+            function getComprasStore(userId) {
+                // 1. DB._store se estiver populado
+                if (window.DB?._store?.profile?.store_data) {
+                    try {
+                        return JSON.parse(JSON.stringify(window.DB._store.profile.store_data));
+                    } catch (e) {}
+                }
+                // 2. localStorage isolado por userId
+                try {
+                    const key = userId ? `animehouse_store_${userId}` : STORE_KEY;
+                    const s = JSON.parse(localStorage.getItem(key) || 'null');
+                    if (s && typeof s === 'object') return s;
+                } catch (e) {}
+                // 3. Detecta userId do token supabase
+                try {
+                    const supaKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+                    const session = supaKey ? JSON.parse(localStorage.getItem(supaKey)) : null;
+                    const uid = session?.user?.id;
+                    if (uid) {
+                        const s = JSON.parse(localStorage.getItem(`animehouse_store_${uid}`) || 'null');
+                        if (s && typeof s === 'object') return s;
+                    }
+                } catch (e) {}
+                return { purchased: [], equipped: {} };
+            }
+
+            // renderInventory recebe (userId, store) diretamente do DOMContentLoaded
+            // eliminando dependência de window.DB._store que pode ser resetado por DB.init()
+            async function renderInventory(userId, store) {
+                // Se store não foi passado, busca como fallback
+                if (!store) store = getComprasStore(userId);
+                const container = document.getElementById("inventoryContainer");
+
+                const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+                // Limpa sempre para evitar fantasmas de itens vendidos
+                container.innerHTML = "";
+
+                if (!store.purchased || store.purchased.length === 0) {
+                    container.innerHTML = `
+                      <div class="empty-state">
+                        <h2>Seu inventário está vazio...</h2>
+                        <p>Visite a loja e troque seus XP por itens épicos!</p>
+                        <br>
+                        <a href="loja.html" class="btn btn-primary">Ir para a Loja</a>
+                      </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '<div class="items-grid" id="inventoryGrid"></div>';
+                const grid = document.getElementById("inventoryGrid");
+
+                store.purchased.forEach((itemId) => {
+                    const item = CATALOG_ITEMS.find((i) => i.id === itemId);
+                    if (!item) return;
+
+                    // Verificar se está equipado usando chaves ISOLADAS
+                    let isEquipped = false;
+                    if (item.category === "aura")
+                        isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === itemId;
+                    else if (item.category === "titulo")
+                        isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", "");
+                    else if (item.category === "banner")
+                        isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === itemId;
+                    else if (item.category === "exclusivo")
+                        isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && 
+                                     localStorage.getItem(userKey("animehouse_equippedCrownId")) === itemId;
+                    else if (item.category === "tema" || item.category === "cursor") {
+                        isEquipped = localStorage.getItem(userKey("animehouse_" + item.id)) === "true";
+                    }
+
+                    const card = document.createElement("div");
+                    card.className = `purchased-card ${item.currency} ${isEquipped ? "is-equipped" : ""}`;
+                    const currencyIcon =
+                        item.currency === "ouro"
+                            ? "<i class='fa-solid fa-medal'></i>"
+                            : item.currency === "diamante"
+                              ? "<i class='fa-solid fa-gem'></i>"
+                              : "";
+
+                    card.innerHTML = `
+          ${isEquipped ? '<div class="equipped-dot" title="Item Equipado">✓</div>' : ""}
+          <div class="card-banner" style="${item.category === "banner" ? `background-image: url('${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}'); background-size: cover; background-position: center;` : `background: linear-gradient(45deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));`}"></div>
+          <div class="item-preview-circle">
+            ${
+                item.category === "banner"
+                    ? `<img src="${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" onerror="this.parentElement.innerHTML='<i class='fa-solid fa-image'></i>'">`
+                    : item.icon
+            }
+          </div>
+
+          <div class="item-info">
+            <span class="item-type-badge">${item.category}</span>
+            <div class="item-name" style="${item.currency === "esmeralda" ? "background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700, #ffaa00, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; " : ""}">${item.name}</div>
+            <p class="item-desc">Item de customização exclusiva. Valor de revenda atual: <strong style="${item.currency === "esmeralda" ? "color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);" : ""}">${item.price} ${currencyIcon}</strong></p>
+          </div>
+
+          <div class="card-actions">
+            <button onclick="toggleEquip('${item.id}', '${item.category}', '${item.name.replace("Título: ", "")}')" class="btn-action btn-equip ${isEquipped ? "equipped" : ""}">
+              ${isEquipped ? "<span>✓</span> Desmarcar" : "<span><i class='fa-solid fa-bolt'></i></span> Marcar"}
+            </button>
+            <button onclick="sellItem('${item.id}')" class="btn-action btn-sell">
+              <span><i class='fa-solid fa-sack-dollar'></i></span> Vender
+            </button>
+          </div>
+        `;
+                    grid.appendChild(card);
+                });
+            }
+
+            let itemToSell = null;
+
+            window.sellItem = function (id) {
+                const item = CATALOG_ITEMS.find((i) => i.id === id);
+                if (!item) return;
+
+                itemToSell = item;
+
+                // Preencher modal
+                if (item.category === "banner" && window.BANNER_MAP && window.BANNER_MAP[item.id]) {
+                    document.getElementById("mIcon").innerHTML = `<img src="${window.BANNER_MAP[item.id]}" style="width:60px; height:60px; object-fit:cover; border-radius:50%;">`;
                 } else {
-                    // Equipar
-                    if (type === "aura") {
-                        localStorage.setItem(userKey("animehouse_customAura"), id);
-                        store.equipped.aura = id;
-                    } else if (type === "titulo") {
-                        localStorage.setItem(userKey("animehouse_customTitle"), rawName);
-                        store.equipped.titulo = rawName;
-                    } else if (type === "banner") {
-                        localStorage.setItem(userKey("animehouse_customBanner"), id);
-                        store.equipped.banner = id;
-                    } else if (type === "exclusivo" && id.includes("coroa")) {
-                        localStorage.setItem(userKey("animehouse_showCrown"), "true");
-                        localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
-                        const item = CATALOG_ITEMS.find((i) => i.id === id);
-                        localStorage.setItem(userKey("animehouse_equippedCrownIcon"), item?.icon || "<i class='fa-solid fa-crown'></i>");
-                        store.equipped.crown = true;
-                        store.equipped.crownId = id;
-                        store.equipped.crownIcon = item?.icon || "<i class='fa-solid fa-crown'></i>";
-                    } else if (type === "tema" || type === "cursor") {
-                        if (id === "tema_cromatico") {
-                            if (window.setTheme) window.setTheme("theme-cromatico");
-                        }
-                        store.equipped[id] = true;
-                        localStorage.setItem(userKey("animehouse_" + id), "true");
-                    }
-                }
-
-                // Salva no background para nÃ£o travar a UI
-                if (window.DB && window.DB.saveStoreData) {
-                    window.DB.saveStoreData(store).catch(console.error);
-                } else {
-                    localStorage.setItem(userId ? `animehouse_store_${userId}` : STORE_KEY, JSON.stringify(store));
-                }
-
-                // <i class='fa-solid fa-palette'></i> AtualizaÃ§Ã£o VISUAL EM TEMPO REAL (sem renderInventory completo)
-                updateItemUI(id, newState, type);
-
-                // Sincroniza Navbar
-                if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
-                
-                if (typeof showToast === "function")
-                    showToast(newState ? "Item equipado com sucesso!" : "Item desmarcado!", "success");
-            };
-
-            function updateItemUI(itemId, isEquipped, type) {
-                const cards = document.querySelectorAll('.purchased-card');
-                cards.forEach(card => {
-                    const btn = card.querySelector('.btn-equip');
-                    if (!btn) return;
-
-                    const onclick = btn.getAttribute('onclick') || '';
-                    const isTarget = onclick.includes(`'${itemId}'`);
-
-                    if (isTarget) {
-                        // Atualiza o card clicado
-                        card.classList.toggle('is-equipped', isEquipped);
-                        btn.classList.toggle('equipped', isEquipped);
-                        
-                        // Atualiza Ã­cone e texto do botÃ£o
-                        if (isEquipped) {
-                            btn.innerHTML = '<span>âœ“</span> Desmarcar';
-                            if (!card.querySelector('.equipped-ribbon')) {
-                                const ribbon = document.createElement('div');
-                                ribbon.className = 'equipped-ribbon';
-                                ribbon.textContent = 'EQUIPADO';
-                                card.appendChild(ribbon);
-                            }
-                        } else {
-                            btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
-                            const ribbon = card.querySelector('.equipped-ribbon');
-                            if (ribbon) ribbon.remove();
-                        }
-                    } else {
-                        // Desmarca outros itens da mesma CATEGORIA se acabamos de equipar um novo
-                        if (isEquipped) {
-                            const otherTypeMatch = onclick.includes(`'${type}'`);
-                            if (otherTypeMatch) {
-                                card.classList.remove('is-equipped');
-                                btn.classList.remove('equipped');
-                                btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
-                                const ribbon = card.querySelector('.equipped-ribbon');
-                                if (ribbon) ribbon.remove();
-                            }
-                        }
-                    }
-                });
-            }
-
-            document.addEventListener("DOMContentLoaded", async () => {
-                // Spinner enquanto busca
-                const container = document.getElementById("inventoryContainer");
-                container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);font-size:1.1rem;">
-                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:16px;display:block;"></i>
-                    Carregando seu inventÃ¡rio...
-                </div>`;
-
-                // Aguarda supabaseClient (injetado pelo auth.js)
-                let attempts = 0;
-                while (!window.supabaseClient && attempts < 80) {
-                    await new Promise(r => setTimeout(r, 100));
-                    attempts++;
-                }
-
-                // Sem supabaseClient: tenta localStorage
-                if (!window.supabaseClient) {
-                    console.warn("[Compras] supabaseClient nÃ£o disponÃ­vel â€” usando localStorage.");
-                    renderInventory(null, null);
-                    return;
-                }
-
-                // Resolve o usuÃ¡rio logado
-                let currentUserId = null;
-                try {
-                    const { data: { user } } = await window.supabaseClient.auth.getUser();
-                    currentUserId = user?.id || null;
-                } catch (e) {
-                    console.warn("[Compras] Erro ao obter usuÃ¡rio:", e);
-                }
-
-                if (!currentUserId) {
-                    console.warn("[Compras] UsuÃ¡rio nÃ£o logado.");
-                    renderInventory(null, null);
-                    return;
-                }
-
-                // â”€â”€â”€ Busca LEVE: sÃ³ store_data, sem DB.init() pesado â”€â”€â”€
-                let finalStore = null;
-                try {
-                    const { data, error } = await window.supabaseClient
-                        .from("profiles")
-                        .select("store_data")
-                        .eq("id", currentUserId)
-                        .maybeSingle();
-
-                    if (error) {
-                        console.warn("[Compras] Erro ao buscar store_data:", error.message);
-                    } else if (data?.store_data) {
-                        const remoteStore = data.store_data;
-
-                        // Mescla com localStorage (preserva compras feitas offline)
-                        const localKey = `animehouse_store_${currentUserId}`;
-                        let localStore = {};
-                        try {
-                            const raw = localStorage.getItem(localKey);
-                            if (raw) localStore = JSON.parse(raw) || {};
-                        } catch (e) {}
-
-                        const dbP = Array.isArray(remoteStore.purchased) ? remoteStore.purchased : [];
-                        const lcP = Array.isArray(localStore.purchased) ? localStore.purchased : [];
-                        const merged = [...new Set([...dbP, ...lcP])];
-
-                        finalStore = {
-                            ...remoteStore,
-                            purchased: merged,
-                            equipped: { ...(localStore.equipped || {}), ...(remoteStore.equipped || {}) },
-                            _userId: currentUserId
-                        };
-
-                        // Persiste localmente para uso offline futuro
-                        localStorage.setItem(localKey, JSON.stringify(finalStore));
-                        console.log(`[Compras] Ã¢Å“â€¦ ${merged.length} itens carregados do Supabase.`);
-                    } else {
-                        console.log("[Compras] store_data vazio ou perfil sem compras.");
-                    }
-                } catch (err) {
-                    console.warn("[Compras] Falha na query ao Supabase:", err);
-                }
-
-                // â”€â”€â”€ Se Supabase nÃ£o retornou nada, usa localStorage como fallback â”€â”€â”€
-                if (!finalStore) {
-                    finalStore = getComprasStore(currentUserId);
-                    console.log(`[Compras] Ã¢Å¡Â Â Usando localStorage como fallback: ${finalStore?.purchased?.length || 0} itens.`);
-                }
-
-                // Renderiza passando store diretamente (sem depender de window.DB._store)
-                renderInventory(currentUserId, finalStore);
-            });
-        </script>
-    </body>
-</html>
-
-
+                    document.getElementById("mIcon").innerHTML = item.icon;
+                }
+                document.getElementById("mDesc").innerHTML =
+                    `Deseja vender <strong>"${item.name}"</strong>? <br>As fichas de ${item.currency} serão devolvidas.`;
+                document.getElementById("mPrice").textContent = item.price;
+                document.getElementById("mCurrency").innerHTML =
+                    item.currency === "ouro"
+                        ? "<i class='fa-solid fa-medal'></i>"
+                        : item.currency === "diamante"
+                          ? "<i class='fa-solid fa-gem'></i>"
+                          : "<i class='fa-solid fa-heart'></i>";
+
+                // Abrir modal
+                document
+                    .getElementById("sellModalOverlay")
+                    .classList.add("open");
+            };
+
+            window.closeSellModal = function () {
+                document
+                    .getElementById("sellModalOverlay")
+                    .classList.remove("open");
+                itemToSell = null;
+            };
+
+            document.getElementById("confirmSellBtn").onclick =
+                async function () {
+                    if (!itemToSell) return;
+                    const id = itemToSell.id;
+                    const item = itemToSell;
+
+                    try {
+                        let store = getComprasStore();
+
+                        store.purchased = (store.purchased || []).filter(
+                            (itemId) => itemId !== id,
+                        );
+
+                        const moeda = item.currency || "ouro";
+                        store[moeda] =
+                            (Number(store[moeda]) || 0) + Number(item.price);
+
+                        // Desequipar se necessário
+                        if (store.equipped) {
+                            if (store.equipped.aura === id)
+                                store.equipped.aura = "none";
+                            if (store.equipped.banner === id)
+                                store.equipped.banner = "none";
+                            if (
+                                store.equipped.titulo ===
+                                item.name.replace("Título: ", "")
+                            )
+                                store.equipped.titulo = "";
+                            if (id.includes("coroa"))
+                                store.equipped.crown = false;
+                            if (id === "tema_cromatico")
+                                store.equipped.tema_cromatico = false;
+                            if (store.equipped[id]) delete store.equipped[id];
+                        }
+
+                        let userId = null;
+                        try {
+                            if (window.supabaseClient) {
+                                const { data: { user } } = await window.supabaseClient.auth.getUser();
+                                userId = user?.id;
+                            }
+                        } catch (e) {}
+                        
+                        if (window.DB && window.DB.saveStoreData) {
+                            await window.DB.saveStoreData(store);
+                        } else {
+                            localStorage.setItem(
+                                userId ? `animehouse_store_${userId}` : STORE_KEY,
+                                JSON.stringify(store),
+                            );
+                        }
+
+                        // Fallback desequipar individual (compatibilidadeLegado) usando chaves isoladas
+                        const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+                        if (localStorage.getItem(userKey("animehouse_customAura")) === id)
+                            localStorage.setItem(userKey("animehouse_customAura"), "none");
+                        
+                        if (localStorage.getItem(userKey("animehouse_customBanner")) === id)
+                            localStorage.setItem(userKey("animehouse_customBanner"), "none");
+                        
+                        if (localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", ""))
+                            localStorage.setItem(userKey("animehouse_customTitle"), "");
+
+                        if (localStorage.getItem(userKey("animehouse_equippedCrownId")) === id) {
+                            localStorage.setItem(userKey("animehouse_showCrown"), "false");
+                            localStorage.removeItem(userKey("animehouse_equippedCrownId"));
+                        }
+                        
+                        if (item.category === "tema" || item.category === "cursor") {
+                            localStorage.removeItem(userKey("animehouse_" + id));
+                            if (id === "tema_cromatico" && window.setTheme) {
+                                window.setTheme("theme-ciano");
+                            }
+                        }
+
+                        if (window.checkAuthStatus) window.checkAuthStatus();
+
+                        closeSellModal();
+                        // Relê o store do localStorage após a venda (sincrônico e confiável)
+                        const updatedStore = getComprasStore(userId);
+                        renderInventory(userId, updatedStore);
+                        if (typeof showToast === "function")
+                            showToast(`<i class='fa-solid fa-check'></i> "${item.name}" vendido!`, "success");
+                    } catch (err) {
+                        console.error("Erro ao processar venda:", err);
+                        alert("Erro crítico ao processar a venda.");
+                    }
+                };
+
+            // Fechar modal ao clicar fora
+            document.getElementById("sellModalOverlay").onclick = function (e) {
+                if (e.target.id === "sellModalOverlay") closeSellModal();
+            };
+
+            window.toggleEquip = async function (id, type, rawName) {
+                // <i class='fa-solid fa-clapperboard'></i> Feedback tátil imediato
+                const clickedBtn = document.activeElement;
+                if (clickedBtn && clickedBtn.classList.contains('btn-equip')) {
+                    clickedBtn.style.transform = 'scale(0.95)';
+                    setTimeout(() => clickedBtn.style.transform = '', 150);
+                }
+
+                let store = getComprasStore();
+                if (!store.equipped) store.equipped = {};
+
+                let userId = null;
+                try {
+                    if (window.supabaseClient) {
+                        const { data: { user } } = await window.supabaseClient.auth.getUser();
+                        userId = user?.id;
+                    }
+                } catch (e) {}
+
+                const userKey = (base) => userId ? `${base}_${userId}` : base;
+
+                // Verificar estado atual para saber se vamos equipar ou desequipar
+                let isEquipped = false;
+                if (type === "aura") isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === id;
+                else if (type === "titulo") isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === rawName;
+                else if (type === "banner") isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === id;
+                else if (type === "exclusivo" && id.includes("coroa")) {
+                    isEquipped = (localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id);
+                } else if (type === "tema" || type === "cursor") {
+                    isEquipped = localStorage.getItem(userKey("animehouse_" + id)) === "true";
+                }
+
+                const newState = !isEquipped;
+
+                if (isEquipped) {
+                    // Desequipar
+                    if (type === "aura") {
+                        localStorage.setItem(userKey("animehouse_customAura"), "none");
+                        store.equipped.aura = "none";
+                    } else if (type === "titulo") {
+                        localStorage.setItem(userKey("animehouse_customTitle"), "");
+                        store.equipped.titulo = "";
+                    } else if (type === "banner") {
+                        localStorage.setItem(userKey("animehouse_customBanner"), "none");
+                        store.equipped.banner = "none";
+                    } else if (type === "exclusivo" && id.includes("coroa")) {
+                        localStorage.setItem(userKey("animehouse_showCrown"), "false");
+                        localStorage.removeItem(userKey("animehouse_equippedCrownId"));
+                        localStorage.removeItem(userKey("animehouse_equippedCrownIcon"));
+                        store.equipped.crown = false;
+                        store.equipped.crownId = "";
+                        store.equipped.crownIcon = "";
+                    } else if (type === "tema" || type === "cursor") {
+                        if (id === "tema_cromatico") {
+                            if (window.setTheme) window.setTheme("theme-ciano");
+                        }
+                        store.equipped[id] = false;
+                        localStorage.removeItem(userKey("animehouse_" + id));
+                    }
+                } else {
+                    // Equipar
+                    if (type === "aura") {
+                        localStorage.setItem(userKey("animehouse_customAura"), id);
+                        store.equipped.aura = id;
+                    } else if (type === "titulo") {
+                        localStorage.setItem(userKey("animehouse_customTitle"), rawName);
+                        store.equipped.titulo = rawName;
+                    } else if (type === "banner") {
+                        localStorage.setItem(userKey("animehouse_customBanner"), id);
+                        store.equipped.banner = id;
+                    } else if (type === "exclusivo" && id.includes("coroa")) {
+                        localStorage.setItem(userKey("animehouse_showCrown"), "true");
+                        localStorage.setItem(userKey("animehouse_equippedCrownId"), id);
+                        const item = CATALOG_ITEMS.find((i) => i.id === id);
+                        localStorage.setItem(userKey("animehouse_equippedCrownIcon"), item?.icon || "<i class='fa-solid fa-crown'></i>");
+                        store.equipped.crown = true;
+                        store.equipped.crownId = id;
+                        store.equipped.crownIcon = item?.icon || "<i class='fa-solid fa-crown'></i>";
+                    } else if (type === "tema" || type === "cursor") {
+                        if (id === "tema_cromatico") {
+                            if (window.setTheme) window.setTheme("theme-cromatico");
+                        }
+                        store.equipped[id] = true;
+                        localStorage.setItem(userKey("animehouse_" + id), "true");
+                    }
+                }
+
+                // Salva no background para não travar a UI
+                if (window.DB && window.DB.saveStoreData) {
+                    window.DB.saveStoreData(store).catch(console.error);
+                } else {
+                    localStorage.setItem(userId ? `animehouse_store_${userId}` : STORE_KEY, JSON.stringify(store));
+                }
+
+                // <i class='fa-solid fa-palette'></i> Atualização VISUAL EM TEMPO REAL (sem renderInventory completo)
+                updateItemUI(id, newState, type);
+
+                // Sincroniza Navbar
+                if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+                
+                if (typeof showToast === "function")
+                    showToast(newState ? "Item equipado com sucesso!" : "Item desmarcado!", "success");
+            };
+
+            function updateItemUI(itemId, isEquipped, type) {
+                const cards = document.querySelectorAll('.purchased-card');
+                cards.forEach(card => {
+                    const btn = card.querySelector('.btn-equip');
+                    if (!btn) return;
+
+                    const onclick = btn.getAttribute('onclick') || '';
+                    const isTarget = onclick.includes(`'${itemId}'`);
+
+                    if (isTarget) {
+                        // Atualiza o card clicado
+                        card.classList.toggle('is-equipped', isEquipped);
+                        btn.classList.toggle('equipped', isEquipped);
+                        
+                        // Atualiza ícone e texto do botão
+                        if (isEquipped) {
+                            btn.innerHTML = '<span>✓</span> Desmarcar';
+                            if (!card.querySelector('.equipped-ribbon')) {
+                                const ribbon = document.createElement('div');
+                                ribbon.className = 'equipped-ribbon';
+                                ribbon.textContent = 'EQUIPADO';
+                                card.appendChild(ribbon);
+                            }
+                        } else {
+                            btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
+                            const ribbon = card.querySelector('.equipped-ribbon');
+                            if (ribbon) ribbon.remove();
+                        }
+                    } else {
+                        // Desmarca outros itens da mesma CATEGORIA se acabamos de equipar um novo
+                        if (isEquipped) {
+                            const otherTypeMatch = onclick.includes(`'${type}'`);
+                            if (otherTypeMatch) {
+                                card.classList.remove('is-equipped');
+                                btn.classList.remove('equipped');
+                                btn.innerHTML = '<span><i class="fa-solid fa-bolt"></i></span> Marcar';
+                                const ribbon = card.querySelector('.equipped-ribbon');
+                                if (ribbon) ribbon.remove();
+                            }
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", async () => {
+                // Spinner enquanto busca
+                const container = document.getElementById("inventoryContainer");
+                container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);font-size:1.1rem;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:16px;display:block;"></i>
+                    Carregando seu inventário...
+                </div>`;
+
+                // Aguarda supabaseClient (injetado pelo auth.js)
+                let attempts = 0;
+                while (!window.supabaseClient && attempts < 80) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
+                }
+
+                // Sem supabaseClient: tenta localStorage
+                if (!window.supabaseClient) {
+                    console.warn("[Compras] supabaseClient não disponível — usando localStorage.");
+                    renderInventory(null, null);
+                    return;
+                }
+
+                // Resolve o usuário logado
+                let currentUserId = null;
+                try {
+                    const { data: { user } } = await window.supabaseClient.auth.getUser();
+                    currentUserId = user?.id || null;
+                } catch (e) {
+                    console.warn("[Compras] Erro ao obter usuário:", e);
+                }
+
+                if (!currentUserId) {
+                    console.warn("[Compras] Usuário não logado.");
+                    renderInventory(null, null);
+                    return;
+                }
+
+                // ─── Busca LEVE: só store_data, sem DB.init() pesado ───
+                let finalStore = null;
+                try {
+                    const { data, error } = await window.supabaseClient
+                        .from("profiles")
+                        .select("store_data")
+                        .eq("id", currentUserId)
+                        .maybeSingle();
+
+                    if (error) {
+                        console.warn("[Compras] Erro ao buscar store_data:", error.message);
+                    } else if (data?.store_data) {
+                        const remoteStore = data.store_data;
+
+                        // Mescla com localStorage (preserva compras feitas offline)
+                        const localKey = `animehouse_store_${currentUserId}`;
+                        let localStore = {};
+                        try {
+                            const raw = localStorage.getItem(localKey);
+                            if (raw) localStore = JSON.parse(raw) || {};
+                        } catch (e) {}
+
+                        const dbP = Array.isArray(remoteStore.purchased) ? remoteStore.purchased : [];
+                        const lcP = Array.isArray(localStore.purchased) ? localStore.purchased : [];
+                        const merged = [...new Set([...dbP, ...lcP])];
+
+                        finalStore = {
+                            ...remoteStore,
+                            purchased: merged,
+                            equipped: { ...(localStore.equipped || {}), ...(remoteStore.equipped || {}) },
+                            _userId: currentUserId
+                        };
+
+                        // Persiste localmente para uso offline futuro
+                        localStorage.setItem(localKey, JSON.stringify(finalStore));
+                        console.log(`[Compras] ✅ ${merged.length} itens carregados do Supabase.`);
+                    } else {
+                        console.log("[Compras] store_data vazio ou perfil sem compras.");
+                    }
+                } catch (err) {
+                    console.warn("[Compras] Falha na query ao Supabase:", err);
+                }
+
+                // ─── Se Supabase não retornou nada, usa localStorage como fallback ───
+                if (!finalStore) {
+                    finalStore = getComprasStore(currentUserId);
+                    console.log(`[Compras] âš  Usando localStorage como fallback: ${finalStore?.purchased?.length || 0} itens.`);
+                }
+
+                // Renderiza passando store diretamente (sem depender de window.DB._store)
+                renderInventory(currentUserId, finalStore);
+            });
+        </script>
+    </body>
+</html>
+
+

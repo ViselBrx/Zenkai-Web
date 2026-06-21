@@ -3011,6 +3011,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const name = getUserDisplayName(user);
     const avatar = getUserAvatar(user);
     const banner = equipped.banner || 'none';
+      const cursor = equipped.cursor || 'none';
     const level = progress.level;
     const xp = progress.totalXp;
     const followersCount = buildFollowersCountMap().get(user.id) || 0;
@@ -3033,7 +3034,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const bannerEl = document.getElementById('modalBanner');
     if (banner !== 'none') {
-      bannerEl.style.backgroundImage = `url('${banner}')`;
+      const bannerUrl = (window.BANNER_MAP && window.BANNER_MAP[banner]) ? window.BANNER_MAP[banner] : banner;
+      bannerEl.style.backgroundImage = `url('${bannerUrl}')`;
     } else {
       bannerEl.style.background = 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(0,0,0,0.6))';
     }
@@ -3258,6 +3260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const equipped = storeData.equipped || {};
       const aura = equipped.aura || 'none';
       const banner = equipped.banner || 'none';
+      const cursor = equipped.cursor || 'none';
       // Mapear acessórios: perfil usa crownId, usuários usava acessorio
       const accessoryId = equipped.acessorio || equipped.crownId || 'none';
       
@@ -3269,6 +3272,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       if (banner !== 'none') {
         const item = ALL_ITEMS.find(i => i.id === banner);
+        if (item) equippedIcons.push({ icon: item.icon, name: item.name });
+      }
+      if (cursor !== 'none') {
+        const item = ALL_ITEMS.find(i => i.id === cursor);
         if (item) equippedIcons.push({ icon: item.icon, name: item.name });
       }
       if (accessoryId !== 'none') {
@@ -3295,8 +3302,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         userCard.setAttribute('data-aura', aura);
       }
 
+      const bannerUrl = (window.BANNER_MAP && window.BANNER_MAP[banner]) ? window.BANNER_MAP[banner] : banner;
       const bannerStyle = banner !== 'none'
-        ? `background-image: url('${banner}'); background-size: cover;`
+        ? `background-image: url('${bannerUrl}'); background-size: cover;`
         : 'background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));';
 
       userCard.innerHTML = `

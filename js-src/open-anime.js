@@ -1131,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       return error ? null : (data || null);
     } catch (err) {
-      console.error('Erro ao salvar histÃ³rico detalhado da IA:', err);
+      console.error('Erro ao salvar histórico detalhado da IA:', err);
       return null;
     }
   }
