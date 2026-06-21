@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -2087,7 +2087,7 @@
             </div>
           </section>
 
-          <!-- DASHBOARD DE ESTATÍSTICAS -->
+          <!-- DASHBOARD DE ESTATÃSTICAS -->
           <section class="profile-dashboard">
             <div class="main-head">
               <h2
@@ -2551,7 +2551,7 @@
                 </div>
               </div>
 
-              <!-- Última Atividade -->
+              <!-- Ãšltima Atividade -->
               <div
                 class="stat-card full-width"
                 style="
@@ -2562,7 +2562,7 @@
                   );
                 "
               >
-                <div class="stat-header"><span><i class='fa-regular fa-clock'></i></span> Última Atividade</div>
+                <div class="stat-header"><span><i class='fa-regular fa-clock'></i></span> Ãšltima Atividade</div>
                 <div style="padding: 5px 10px">
                   <p
                     id="lastActivityTitle"
@@ -2595,7 +2595,7 @@
       <div class="modal" style="max-width: 380px; text-align: center">
         <div class="modal-header">
           <h2 id="patentTitle">Patente</h2>
-          <button class="modal-close" id="patentModalClose">✕</button>
+          <button class="modal-close" id="patentModalClose">âœ•</button>
         </div>
         <div style="padding: 20px">
           <div id="patentIcon" style="font-size: 5rem; margin-bottom: 20px">
@@ -2617,7 +2617,7 @@
       <div class="modal" style="max-width: 430px">
         <div class="modal-header">
           <h2>Renomear Conversa</h2>
-          <button class="modal-close" id="renameModalClose">✕</button>
+          <button class="modal-close" id="renameModalClose">âœ•</button>
         </div>
         <div class="form-group" style="margin-bottom: 10px">
           <label for="renameConversationInput">Novo nome</label>
@@ -2692,7 +2692,7 @@
 
     <div id="toast"></div>
 
-    <!-- MODAL: CONFIRMAR EXCLUSÃO DE CONTA -->
+    <!-- MODAL: CONFIRMAR EXCLUSÃƒO DE CONTA -->
     <div class="modal-overlay" id="deleteAccountModal" style="z-index: 20000">
       <div
         class="modal"
@@ -2707,7 +2707,7 @@
           style="border-bottom-color: rgba(239, 68, 68, 0.3)"
         >
           <h2 style="color: #ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Excluir Conta</h2>
-          <button class="modal-close" id="deleteAccountModalClose">✕</button>
+          <button class="modal-close" id="deleteAccountModalClose">âœ•</button>
         </div>
         <div style="padding: 24px">
           <p
@@ -2716,7 +2716,7 @@
             Isso apagará
             <strong style="color: #ef4444">permanentemente</strong> sua conta,
             histórico de visualização, itens comprados, saldo de ouro/diamante e conquistas. <br /><strong style="color: #ef4444"
-              >ESTA AÇÃO É IRREVERSÍVEL.</strong
+              >ESTA AÃ‡ÃƒO Ã‰ IRREVERSÃVEL.</strong
             >
           </p>
           
@@ -2999,6 +2999,14 @@
           price: 3,
         },
         {
+          id: "coroa_gorro_natal",
+          name: "Gorro do Noel",
+          icon: "🎅",
+          category: "exclusivo",
+          currency: "esmeralda",
+          price: 3,
+        },
+        {
           id: "titulo_sensei_mod",
           name: "Título: SenseiMod",
           icon: "<i class='fa-solid fa-graduation-cap'></i>",
@@ -3157,7 +3165,7 @@
             .trim();
           if (!normalized) return "";
           if (normalized.length <= maxLen) return normalized;
-          return normalized.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+          return normalized.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "â€¦";
         }
 
         function getHistoryDescription(item) {
@@ -3275,7 +3283,7 @@
 
         function buildHistoryItemCard(item) {
           const itemId = escapeHtml(item.id || "");
-          const title = escapeHtml(item.title || "ConteÃºdo sem tÃ­tulo");
+          const title = escapeHtml(item.title || "ConteÃƒÂºdo sem tÃƒÂ­tulo");
           const subtitle = escapeHtml(getHistoryPreview(item));
           const stamp =
             item.last_watched_at || item.created_at || item.updated_at;
@@ -3632,7 +3640,7 @@
           if (typeof HistoryTracker === "undefined") return;
           if (pendingHistoryClearSnapshot || pendingHistoryDeletes.size > 0) {
             showToast(
-              "Conclua ou desfaÃ§a a remoÃ§Ã£o pendente antes de editar favoritos.",
+              "Conclua ou desfaÃƒÂ§a a remoÃƒÂ§ÃƒÂ£o pendente antes de editar favoritos.",
               "error",
               7000,
             );
@@ -3646,7 +3654,7 @@
           const ok = await HistoryTracker.setFavorite(itemId, nextFavorite);
           if (!ok) {
             showToast(
-              "NÃ£o foi possÃ­vel atualizar esse favorito.",
+              "NÃƒÂ£o foi possÃƒÂ­vel atualizar esse favorito.",
               "error",
               7000,
             );
@@ -3679,7 +3687,7 @@
           if (typeof HistoryTracker === "undefined") return;
           if (pendingHistoryClearSnapshot) {
             showToast(
-              "A limpeza total do histÃ³rico jÃ¡ estÃ¡ em andamento.",
+              "A limpeza total do histÃƒÂ³rico jÃƒÂ¡ estÃƒÂ¡ em andamento.",
               "error",
               7000,
             );
@@ -3694,11 +3702,11 @@
           renderHistory();
 
           const safeTitle = escapeHtml(
-            shortenText(item.title || "Item do histÃ³rico", 42),
+            shortenText(item.title || "Item do histÃƒÂ³rico", 42),
           );
 
           showHistoryUndoToast(
-            `Removendo "${safeTitle}" do histÃ³rico...`,
+            `Removendo "${safeTitle}" do histÃƒÂ³rico...`,
             async () => {
               const ok = await HistoryTracker.remove(itemId);
               pendingHistoryDeletes.delete(normalizedId);
@@ -3706,7 +3714,7 @@
               if (!ok) {
                 renderHistory();
                 showToast(
-                  "Falha ao remover item do histÃ³rico.",
+                  "Falha ao remover item do histÃƒÂ³rico.",
                   "error",
                   7000,
                 );
@@ -3717,7 +3725,7 @@
                 (entry) => String(entry.id) !== normalizedId,
               );
               renderHistory();
-              showToast("Item removido do histÃ³rico.", "success", 7000);
+              showToast("Item removido do histÃƒÂ³rico.", "success", 7000);
             },
             () => {
               pendingHistoryDeletes.delete(normalizedId);
@@ -3731,7 +3739,7 @@
           if (pendingHistoryClearSnapshot) return;
           if (pendingHistoryDeletes.size > 0) {
             showToast(
-              "Conclua ou desfaÃ§a a remoÃ§Ã£o pendente antes de apagar tudo.",
+              "Conclua ou desfaÃƒÂ§a a remoÃƒÂ§ÃƒÂ£o pendente antes de apagar tudo.",
               "error",
               7000,
             );
@@ -3739,7 +3747,7 @@
           }
 
           if (getVisibleHistoryItems().length === 0) {
-            showToast("Seu histÃ³rico jÃ¡ estÃ¡ vazio.", "error", 7000);
+            showToast("Seu histÃƒÂ³rico jÃƒÂ¡ estÃƒÂ¡ vazio.", "error", 7000);
             return;
           }
 
@@ -3747,20 +3755,20 @@
           renderHistory();
 
           showHistoryUndoToast(
-            "Apagando todo o histÃ³rico da sua conta...",
+            "Apagando todo o histÃƒÂ³rico da sua conta...",
             async () => {
               const ok = await HistoryTracker.clearAll();
               pendingHistoryClearSnapshot = null;
 
               if (!ok) {
                 renderHistory();
-                showToast("Falha ao limpar histÃ³rico.", "error", 7000);
+                showToast("Falha ao limpar histÃƒÂ³rico.", "error", 7000);
                 return;
               }
 
               historyItems = [];
               renderHistory();
-              showToast("HistÃ³rico excluÃ­do com sucesso.", "success", 7000);
+              showToast("HistÃƒÂ³rico excluÃƒÂ­do com sucesso.", "success", 7000);
             },
             () => {
               pendingHistoryClearSnapshot = null;
@@ -4230,7 +4238,7 @@
           }
         }
 
-        // ===== MEUS ESPECIAIS - FLAGGING PARA EVITAR MÚLTIPLAS CHAMADAS =====
+        // ===== MEUS ESPECIAIS - FLAGGING PARA EVITAR MÃšLTIPLAS CHAMADAS =====
         let meusEspeciaisInitialized = false;
 
         async function renderMeusEspeciaisStandalone() {
@@ -4483,7 +4491,7 @@
 
             // Confirm — export canvas to blob then upload
             confirmBtn.addEventListener('click', async () => {
-              // Render final 512×512 canvas for upload quality
+              // Render final 512Ã—512 canvas for upload quality
               const exportCanvas = document.createElement('canvas');
               exportCanvas.width = 512; exportCanvas.height = 512;
               const ectx = exportCanvas.getContext('2d');
@@ -4631,7 +4639,7 @@
             window.location.href = "index.html";
           };
 
-          // --- LÓGICA EXCLUIR CONTA ---
+          // --- LÃ“GICA EXCLUIR CONTA ---
           const openDeleteAccountBtn = document.getElementById(
             "openDeleteAccountBtn",
           );
@@ -4863,7 +4871,7 @@
             await DB.init();
             const countHist = historyItems.length; // Mantido apenas caso precise para outra coisa, mas o XP agora usa totalWatched embaixo.
 
-            // --- CÁLCULO DE PORCENTAGEM POR CHECKMARK ---
+            // --- CÃLCULO DE PORCENTAGEM POR CHECKMARK ---
             let animeTotal = 0,
               animeWatched = 0;
             let movieTotal = 0,
@@ -4928,7 +4936,7 @@
               });
             });
 
-            // D. MANGÁS
+            // D. MANGÃS
             const siteMangas = DB.getMangas();
             siteMangas.forEach((m) => {
               const volumes = DB.getMangaVolumesFor(m.id);
@@ -5254,7 +5262,7 @@
               });
 
             if (historyItems.length > 0) {
-              // Última atividade
+              // Ãšltima atividade
               const last = historyItems[0];
               document.getElementById("lastActivityTitle").textContent =
                 last.title || "Conteúdo";
@@ -5481,7 +5489,7 @@
             function checkEquipped(item) {
               const userKey = (base) => userId ? `${base}_${userId}` : base;
 
-              // 1️⃣ Verificar localStorage (prioridade 1)
+              // 1âƒ£ Verificar localStorage (prioridade 1)
               if (item.category === "aura")
                 return (
                   localStorage.getItem(userKey("animehouse_customAura")) === item.id
@@ -5503,10 +5511,14 @@
               }
               if (item.category === "tema")
                 return (
-                  localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true"
+                  localStorage.getItem(userKey(`animehouse_${item.id}`)) === "true"
+                );
+              if (item.category === "cursor")
+                return (
+                  localStorage.getItem(userKey(`animehouse_${item.id}`)) === "true"
                 );
 
-              // 2️⃣ Fallback: verificar store.equipped (se localStorage falhar)
+              // 2âƒ£ Fallback: verificar store.equipped (se localStorage falhar)
               if (store && store.equipped && typeof store.equipped === 'object') {
                 if (item.category === "aura" && store.equipped.aura === item.id) {
                   console.log(`✓ Aura ${item.id} encontrada em store.equipped`);
@@ -5526,6 +5538,9 @@
                 }
                 if (item.category === "tema" && item.id === "tema_cromatico" && store.equipped.tema_cromatico === true) {
                   console.log(`✓ Tema cromático encontrado em store.equipped`);
+                  return true;
+                }
+                if (item.category === "cursor" && store.equipped[item.id] === true) {
                   return true;
                 }
                 if ((item.category === "tema" || item.id === "tema_cromatico") && store.equipped[item.id] === true) {
@@ -5559,12 +5574,11 @@
                     : "<i class='fa-solid fa-crown'></i>";
 
               const itemCard = document.createElement("div");
-              itemCard.className = `inventory-item-card ${item.currency} ${isEquipped ? "equipped" : ""} ${isEmerald ? "item-card-emerald" : ""}`;
+              itemCard.className = `inventory-item-card ${item.currency} ${isEquipped ? "equipped" : ""}`;
 
               const btnClass = isEquipped ? "equipped" : item.currency;
               const btnText = isEquipped ? "✓ Equipado" : "<i class='fa-solid fa-bolt'></i> Equipar";
-              const btnStyle =
-                isEmerald && !isEquipped ? "btn-equip-chromatic" : "";
+              const btnStyle = "";
 
               itemCard.dataset.id = item.id;
               itemCard.dataset.type = item.category;
@@ -5653,7 +5667,9 @@
             else if (type === "exclusivo" && id.includes("coroa")) {
               isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id;
             } else if (type === "tema") {
-              isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
+              isEquipped = localStorage.getItem(userKey(`animehouse_${id}`)) === "true";
+            } else if (type === "cursor") {
+              isEquipped = localStorage.getItem(userKey(`animehouse_${id}`)) === "true";
             }
 
             const newState = !isEquipped;
@@ -5675,8 +5691,11 @@
                 store.equipped.crown = false;
               } else if (type === "tema") {
                 if (window.setTheme) window.setTheme("theme-ciano");
-                store.equipped.tema_cromatico = false;
-                localStorage.removeItem(userKey("animehouse_tema_cromatico"));
+                store.equipped[id] = false;
+                localStorage.removeItem(userKey(`animehouse_${id}`));
+              } else if (type === "cursor") {
+                store.equipped[id] = false;
+                localStorage.removeItem(userKey(`animehouse_${id}`));
               }
             } else {
               // Equipar
@@ -5699,9 +5718,25 @@
                 store.equipped.crownId = id;
                 store.equipped.crownIcon = icon;
               } else if (type === "tema") {
-                if (window.setTheme) window.setTheme("theme-cromatico");
-                store.equipped.tema_cromatico = true;
-                localStorage.setItem(userKey("animehouse_tema_cromatico"), "true");
+                // Desequipar outros temas primeiro
+                ["tema_cromatico", "tema_natal"].forEach(t => {
+                  store.equipped[t] = false;
+                  localStorage.removeItem(userKey(`animehouse_${t}`));
+                });
+                
+                const themeAlias = id === "tema_cromatico" ? "theme-cromatico" : 
+                                  id === "tema_natal" ? "theme-natal" : "theme-ciano";
+                if (window.setTheme) window.setTheme(themeAlias);
+                store.equipped[id] = true;
+                localStorage.setItem(userKey(`animehouse_${id}`), "true");
+              } else if (type === "cursor") {
+                // Desequipar outros cursores primeiro
+                ["cursor_camaleao", "cursor_gelo", "cursor_rgb"].forEach(c => {
+                  store.equipped[c] = false;
+                  localStorage.removeItem(userKey(`animehouse_${c}`));
+                });
+                store.equipped[id] = true;
+                localStorage.setItem(userKey(`animehouse_${id}`), "true");
               }
             }
 
@@ -5768,7 +5803,8 @@
                 type === "titulo" ||
                 type === "banner" ||
                 type === "exclusivo" ||
-                type === "tema"
+                type === "tema" ||
+                type === "cursor"
               ) {
                 // Desequipar outros itens do mesmo tipo (só pode ter 1 equipado por tipo)
                 const cardType = card.dataset.type;
@@ -5810,8 +5846,6 @@
             const equippedBanner = localStorage.getItem(userKey("animehouse_customBanner"));
             const equippedCrown = localStorage.getItem(userKey("animehouse_showCrown")) === "true";
             const equippedCrownId = localStorage.getItem(userKey("animehouse_equippedCrownId"));
-            const equippedTema = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
-
             if (equippedAura && equippedAura !== "none") {
               const aura = ALL_ITEMS.find((i) => i.id === equippedAura);
               if (aura) equippedItems.push({ ...aura, type: "Aura" });
@@ -5828,10 +5862,19 @@
               const coroa = ALL_ITEMS.find((i) => i.id === equippedCrownId);
               if (coroa) equippedItems.push({ ...coroa, type: "Decoração" });
             }
-            if (equippedTema) {
-              const tema = ALL_ITEMS.find((i) => i.id === "tema_cromatico");
-              if (tema) equippedItems.push({ ...tema, type: "Tema" });
-            }
+            
+            ["tema_cromatico", "tema_natal"].forEach(t => {
+              if (localStorage.getItem(userKey(`animehouse_${t}`)) === "true") {
+                const tema = ALL_ITEMS.find((i) => i.id === t);
+                if (tema) equippedItems.push({ ...tema, type: "Tema" });
+              }
+            });
+            ["cursor_camaleao", "cursor_gelo", "cursor_rgb"].forEach(c => {
+              if (localStorage.getItem(userKey(`animehouse_${c}`)) === "true") {
+                const cursor = ALL_ITEMS.find((i) => i.id === c);
+                if (cursor) equippedItems.push({ ...cursor, type: "Cursor" });
+              }
+            });
 
             equippedItemsDisplay.innerHTML = "";
             if (equippedItems.length === 0) {
@@ -5847,20 +5890,19 @@
                       ? "<i class='fa-solid fa-gem'></i>"
                       : "<i class='fa-solid fa-crown'></i>";
                 const badge = document.createElement("div");
-                badge.className = isEmerald ? "item-card-emerald" : "";
+                badge.className = "simple-equipped-badge";
                 badge.style.cssText = `
-              background: ${isEmerald ? "transparent" : "linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--primary-rgb), 0.05))"};
-              border: 2px solid ${isEmerald ? "rgba(255, 215, 0, 0.5)" : "rgba(var(--primary-rgb), 0.4)"};
-              border-radius: 12px;
-              padding: 10px 15px;
+              background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+              border: 1px solid rgba(var(--primary-rgb), 0.3);
+              border-radius: 8px;
+              padding: 8px 12px;
               display: flex;
               align-items: center;
               gap: 8px;
               font-size: 0.85rem;
-              animation: fadeIn 0.3s ease;
             `;
                 badge.innerHTML = `
-              <span style="font-size: 1.5rem; ${isEmerald ? "animation: chromatic-gold 4s ease-in-out infinite; text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);" : ""}">${item.icon}</span>
+              <span style="font-size: 1.5rem;">${item.icon}</span>
               <div style="display: flex; flex-direction: column; align-items: flex-start;">
                 <span style="font-weight: bold; color: var(--text-main);">${item.name}</span>
                 <span style="font-size: 0.7rem; color: var(--text-muted);">${item.type} • ${item.price} ${currencyIcon}</span>

@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gartic Anime — Desenhe e Adivinhe</title>
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    .gartic-container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 20px;
+      max-width: 1200px;
+      margin: 20px auto;
+      height: 70vh;
+    }
+
+    @media (max-width: 768px) {
+      .gartic-container {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+    }
+
+    .canvas-section {
+      background: var(--bg-card);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+
+    .canvas-header {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+    }
+
+    .room-code {
+      background: rgba(var(--primary-rgb), 0.1);
+      padding: 5px 15px;
+      border-radius: 10px;
+      border: 1px solid var(--primary);
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .word-to-draw {
+      font-family: 'Bangers', cursive;
+      font-size: 2rem;
+      color: #fff;
+      letter-spacing: 2px;
+      text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.5);
+    }
+
+    .drawing-area {
+      flex: 1;
+      background: #fff;
+      position: relative;
+      cursor: crosshair;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .tools-area {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid rgba(var(--primary-rgb), 0.2);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .color-picker {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      padding: 0;
+      background: transparent;
+    }
+    .color-picker::-webkit-color-swatch {
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+
+    .brush-size {
+      width: 100px;
+      cursor: pointer;
+    }
+
+    .btn-clear {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      padding: 8px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .btn-clear:hover { background: #ef4444; color: #fff; }
+
+    /* CHAT SECTION */
+    .chat-section {
+      background: var(--bg-card);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .chat-header {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 15px;
+      text-align: center;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+      color: var(--primary);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      font-size: 0.9rem;
+      padding: 8px 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 10px;
+      color: var(--text-main);
+    }
+
+    .message.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid #10b981;
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    .message.system {
+      background: transparent;
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+    }
+
+    .chat-input-area {
+      padding: 15px;
+      border-top: 1px solid rgba(var(--primary-rgb), 0.2);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      color: #fff;
+      outline: none;
+    }
+    .chat-input:focus { border-color: var(--primary); }
+
+    .btn-send {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    /* BLOQUEIO DO CANVAS PARA QUEM ADIVINHA */
+    .guessing-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 10;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </a>
+  </nav>
+
+  <main class="container">
+    <div class="gartic-container">
+      
+      <!-- LADO DO DESENHO -->
+      <div class="canvas-section">
+        <div class="canvas-header">
+          <div><span style="color:var(--text-muted); font-size:0.8rem;">SALA</span><br><span id="displayRoomCode" class="room-code">----</span></div>
+          <div id="wordToDraw" class="word-to-draw">Aguardando...</div>
+          <button class="btn-clear" onclick="window.location.href='jogos.html'" style="border: 1px solid var(--text-muted); color: var(--text-muted); background: transparent;">Sair</button>
+        </div>
+        
+        <div class="drawing-area" id="drawingArea">
+          <canvas id="gameCanvas"></canvas>
+          <div id="guessingOverlay" class="guessing-overlay" style="display: none;"></div>
+        </div>
+
+        <div class="tools-area" id="toolsArea">
+          <input type="color" id="colorPicker" class="color-picker" value="#000000" title="Cor da Tinta">
+          <input type="range" id="brushSize" class="brush-size" min="1" max="20" value="5" title="Tamanho do Pincel">
+          <button id="btnClearCanvas" class="btn-clear"><i class="fa-solid fa-trash"></i> Limpar</button>
+        </div>
+      </div>
+
+      <!-- LADO DO CHAT -->
+      <div class="chat-section">
+        <div class="chat-header">
+          <i class="fa-solid fa-comments"></i> Bate-Papo
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="message system">Bem-vindo à sala!</div>
+        </div>
+        <form class="chat-input-area" id="chatForm">
+          <input type="text" id="chatInput" class="chat-input" placeholder="Adivinhe a palavra..." autocomplete="off">
+          <button type="submit" class="btn-send"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+      </div>
+
+    </div>
+  </main>
+
+  <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">&copy; ViselBrx & DaviMoraes07&trade;</a></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js-ofuscado/db.js"></script>
+  <script src="js-ofuscado/auth.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomCode = urlParams.get('room');
+      const theme = urlParams.get('theme') || 'livre';
+      const isHost = urlParams.get('host') === 'true';
+
+      if (!roomCode) {
+        window.location.href = 'jogos.html';
+        return;
+      }
+
+      document.getElementById('displayRoomCode').textContent = roomCode;
+
+      // Palavras Mágicas por Tema
+      const wordsDB = {
+        'naruto': ['Rasengan', 'Kunai', 'Sharingan', 'Kurama', 'Hokage', 'Ramen', 'Akatsuki'],
+        'aot': ['Titã Colossal', 'DMT', 'Muralha', 'Eren', 'Levi', 'Cabo', 'Cachecol'],
+        'demon-slayer': ['Espada', 'Caixa de Madeira', 'Nezuko', 'Javali', 'Respiração', 'Muzan'],
+        'apenas-um-show': ['Carrinho de Golfe', 'Video Game', 'Maquina de Chiclete', 'Pairulito', 'Bateria'],
+        'gumball': ['Controle Remoto', 'Peixe', 'Casquinha', 'Daisey', 'Sueter'],
+        'hora-de-aventura': ['Coroa', 'Espada do Finn', 'BMO', 'Vampira', 'Princesa'],
+        'livre': ['Espada', 'Dragão', 'Magia', 'Shuriken', 'Mecha', 'Alienígena']
+      };
+
+      let secretWord = '';
+      if (isHost) {
+        const pool = wordsDB[theme] || wordsDB['livre'];
+        secretWord = pool[Math.floor(Math.random() * pool.length)];
+        document.getElementById('wordToDraw').textContent = secretWord;
+      } else {
+        document.getElementById('wordToDraw').textContent = "Adivinhe o Desenho!";
+        document.getElementById('guessingOverlay').style.display = 'block';
+        document.getElementById('toolsArea').style.display = 'none'; // Quem adivinha não desenha
+        document.getElementById('chatInput').focus();
+      }
+
+      // Configuração do Canvas
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+      let isDrawing = false;
+      let lastX = 0;
+      let lastY = 0;
+      let gameActive = true;
+
+      function resizeCanvas() {
+        const parent = document.getElementById('drawingArea');
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+      }
+      window.addEventListener('resize', resizeCanvas);
+      resizeCanvas();
+
+      // Supabase Realtime
+      await new Promise(r => setTimeout(r, 1000));
+      if (!window.supabaseClient) {
+        alert("Erro ao conectar ao servidor. Tente recarregar.");
+        return;
+      }
+
+      const channel = window.supabaseClient.channel(`room_${roomCode}`);
+
+      // Desenho Local
+      function startDrawing(e) {
+        if (!isHost || !gameActive) return;
+        isDrawing = true;
+        const rect = canvas.getBoundingClientRect();
+        lastX = (e.clientX || e.touches[0].clientX) - rect.left;
+        lastY = (e.clientY || e.touches[0].clientY) - rect.top;
+      }
+
+      function draw(e) {
+        if (!isDrawing || !isHost || !gameActive) return;
+        e.preventDefault(); // previne scroll no mobile
+        
+        const rect = canvas.getBoundingClientRect();
+        const currentX = (e.clientX || e.touches[0].clientX) - rect.left;
+        const currentY = (e.clientY || e.touches[0].clientY) - rect.top;
+        const color = document.getElementById('colorPicker').value;
+        const size = document.getElementById('brushSize').value;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(currentX, currentY);
+        ctx.stroke();
+
+        // Broadcast the line
+        channel.send({
+          type: 'broadcast',
+          event: 'draw',
+          payload: { 
+            x0: lastX / canvas.width, y0: lastY / canvas.height, 
+            x1: currentX / canvas.width, y1: currentY / canvas.height, 
+            color, size 
+          }
+        });
+
+        lastX = currentX;
+        lastY = currentY;
+      }
+
+      function stopDrawing() { isDrawing = false; }
+
+      // Eventos do Mouse/Touch
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+      canvas.addEventListener('touchstart', startDrawing);
+      canvas.addEventListener('touchmove', draw);
+      canvas.addEventListener('touchend', stopDrawing);
+
+      document.getElementById('btnClearCanvas').addEventListener('click', () => {
+        if (!isHost) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        channel.send({ type: 'broadcast', event: 'clear', payload: {} });
+      });
+
+      // Recebendo Broadcats (Desenho e Chat)
+      channel.on('broadcast', { event: 'request_room_info' }, () => {
+        if (isHost) {
+          channel.send({
+            type: 'broadcast',
+            event: 'room_info',
+            payload: { gameType: 'gartic', theme: theme }
+          });
+        }
+      });
+
+      channel.on('broadcast', { event: 'draw' }, (payload) => {
+        if (isHost) return; // Host já desenhou localmente
+        const { x0, y0, x1, y1, color, size } = payload.payload;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = size;
+        ctx.beginPath();
+        ctx.moveTo(x0 * canvas.width, y0 * canvas.height);
+        ctx.lineTo(x1 * canvas.width, y1 * canvas.height);
+        ctx.stroke();
+      });
+
+      channel.on('broadcast', { event: 'clear' }, () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      });
+
+      channel.on('broadcast', { event: 'chat' }, (payload) => {
+        addMessage(payload.payload.text, payload.payload.isCorrect);
+        // Se a mensagem for correta, o jogo acaba.
+        if (payload.payload.isCorrect && gameActive) {
+          gameActive = false;
+          addSystemMessage("A partida acabou!");
+          document.getElementById('wordToDraw').textContent = payload.payload.word; // Revela a palavra
+        }
+      });
+
+      channel.subscribe();
+
+      // Chat Logic
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+      const chatMessages = document.getElementById('chatMessages');
+
+      function addMessage(text, isCorrect = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message' + (isCorrect ? ' correct' : '');
+        msgDiv.textContent = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+      
+      function addSystemMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message system';
+        msgDiv.textContent = text;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text || !gameActive) return;
+
+        chatInput.value = '';
+
+        if (isHost) {
+          // O desenhista não deve dar a resposta no chat! Mas pode dar dicas.
+          const msg = `Host: ${text}`;
+          addMessage(msg, false);
+          channel.send({ type: 'broadcast', event: 'chat', payload: { text: msg, isCorrect: false } });
+          return;
+        }
+
+        // Convidado envia palpite para si mesmo (pra comparar se for preciso, mas no P2P quem checa é ele mesmo)
+        // O correto seria o Host checar, mas num P2P broadcast, todos recebem a word? 
+        // Não, a secretWord é gerada localmente pelo Host. Então o Guest envia a tentativa, o Host que deveria validar.
+        // Como o Guest não sabe a palavra, ele transmite a tentativa como broadcast tipo 'guess'.
+        channel.send({ type: 'broadcast', event: 'guess', payload: { text: text } });
+        addMessage(`Você: ${text}`, false);
+      });
+
+      // Validação do lado do Host
+      channel.on('broadcast', { event: 'guess' }, (payload) => {
+        if (!isHost || !gameActive) return; // Só o Host valida e dispara a recompensa.
+        
+        const guess = payload.payload.text;
+        const normalizedGuess = guess.toLowerCase().trim();
+        const normalizedSecret = secretWord.toLowerCase().trim();
+
+        if (normalizedGuess === normalizedSecret) {
+          // Acertou!
+          const successMsg = `🎉 Alguém acertou a palavra: ${secretWord}!`;
+          channel.send({ type: 'broadcast', event: 'chat', payload: { text: successMsg, isCorrect: true, word: secretWord } });
+          addMessage(successMsg, true);
+          gameActive = false;
+          
+          // Recompensa o Host também pela obra de arte
+          console.log("XP Adicionado para o Desenhista (Host)!");
+        } else {
+          // Errou, repassa pro chat global
+          const msg = `Alguém chutou: ${guess}`;
+          channel.send({ type: 'broadcast', event: 'chat', payload: { text: msg, isCorrect: false } });
+          addMessage(msg, false);
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>

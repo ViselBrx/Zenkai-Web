@@ -1,7 +1,7 @@
-/* ===== FONTES ===== */
+﻿/* ===== FONTES ===== */
 @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&family=Audiowide&display=swap");
 
-/* ===== VARIÃVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
+/* ===== VARIÃƒÆ’Ã‚ÂVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
 :root {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -17,10 +17,10 @@
 }   
 
 /*
- * PERFORMANCE (perfil.html): Os cards de inventÃ¡rio e compras acumulam mÃºltiplas animaÃ§Ãµes CSS
+ * PERFORMANCE (perfil.html): Os cards de inventÃƒÆ’Ã‚Â¡rio e compras acumulam mÃƒÆ’Ã‚Âºltiplas animaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes CSS
  * simultaneamente (border-glow, gradient-shift, rotate, chromatic-shine) + a transition global
  * de background-color/border-color que re-dooispara em cada frame do --ckkhromatic-hue.
- * Suprimir transitions de layout nesses cards especÃ­ficos garante FPS sem afetar mais nada.
+ * Suprimir transitions de layout nesses cards especÃƒÆ’Ã‚Â­ficos garante FPS sem afetar mais nada.
  */
 .theme-cromatico,
 .theme-cromatico *,
@@ -31,7 +31,7 @@
     opacity 0.2s ease !important;
 }
 
-/* GPU Acceleration para elementos com animaÃ§Ãµes frequentes */
+/* GPU Acceleration para elementos com animaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes frequentes */
 .cartoon-pill,
 .episode-card,
 .manga-item,
@@ -45,7 +45,7 @@
   will-change: transform;
 }
 
-/* Suavizar entrada de conteÃºdo */
+/* Suavizar entrada de conteÃƒÆ’Ã‚Âºdo */
 @keyframes fadeInSlideUp {
   from {
     opacity: 0;
@@ -54,7 +54,7 @@
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 }
 
@@ -367,7 +367,7 @@
   100% { opacity: 1;    filter: blur(11px) brightness(1.2) hue-rotate(15deg); }
 }
 
-/* Loja / cosméticos (compatível com classes atuais) */
+/* Loja / cosmÃƒÂ©ticos (compatÃƒÂ­vel com classes atuais) */
 
 /* === AURA CHAMA SIMPLES (Common) === */
 .avatar-aura-wrap.aura-common-chama::before,
@@ -410,7 +410,7 @@
   100% { opacity: 0.9;  transform: scale(1.0)  translateY(0px);  }
 }
 
-/* === AURA MODO SÁBIO / NARUTO (Common) === */
+/* === AURA MODO SÃƒÂBIO / NARUTO (Common) === */
 .avatar-aura-wrap.aura-common-naruto::before,
 .avatar-aura-wrap.aura_chama_naruto::before,
 .user-nav-avatar-box.aura-common-naruto::before,
@@ -496,7 +496,7 @@
   100% { opacity: 0.8;  filter: blur(9px)  brightness(1.0); }
 }
 
-/* === AURA RELÂMPAGO / THUNDER (Rare) === */
+/* === AURA RELÃƒâ€šMPAGO / THUNDER (Rare) === */
 .avatar-aura-wrap.aura-rare-thunder::before,
 .avatar-aura-wrap.aura_thunder::before,
 .user-nav-avatar-box.aura-rare-thunder::before,
@@ -814,7 +814,7 @@
   100% { opacity: 1;    transform: scale(1.04); filter: brightness(1.22); }
 }
 
-/* Animação de explosão de poder do Saitama */
+/* AnimaÃƒÂ§ÃƒÂ£o de explosÃƒÂ£o de poder do Saitama */
 .avatar-aura-wrap.aura_void_saitama .avatar-view-img,
 .avatar-aura-wrap.avatar-aura-void .avatar-view-img,
 .user-nav-avatar-box.aura_void_saitama img,
@@ -949,7 +949,7 @@
   }
 }
 
-/* ===== NOVOS COSMÃ‰TICOS (Banners e TÃ­tulos) ===== */
+/* ===== NOVOS COSMÃƒÆ’Ã¢â‚¬Â°TICOS (Banners e TÃƒÆ’Ã‚Â­tulos) ===== */
 .user-nav-container {
   position: relative;
   display: flex;
@@ -957,7 +957,7 @@
   justify-content: flex-end;
   gap: 12px;
   background: rgba(0, 0, 0, 0.05);
-  /* Fundo quase transparente para nÃ£o ofuscar o banner */
+  /* Fundo quase transparente para nÃƒÆ’Ã‚Â£o ofuscar o banner */
   /* Base de contraste leve */
   padding: 2px 6px;
   border-radius: 50px;
@@ -976,7 +976,7 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  /* CentralizaÃ§Ã£o perfeita sugerida pelo usuÃ¡rio */
+  /* CentralizaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o perfeita sugerida pelo usuÃƒÆ’Ã‚Â¡rio */
   background-repeat: no-repeat;
   opacity: 1;
   z-index: -1;
@@ -1034,7 +1034,7 @@
   outline: none !important;
 }
 
-/* O frame-dourado NÃƒO deve aplicar borda na bolinha da navbar */
+/* O frame-dourado NÃƒÆ’Ã†â€™O deve aplicar borda na bolinha da navbar */
 .user-nav-avatar-box.frame-dourado {
   border: none !important;
   box-shadow: none !important;
@@ -1053,7 +1053,7 @@
 }
 
 :root {
-  /* BACKGROUNDS (PadrÃ£o para todos) */
+  /* BACKGROUNDS (PadrÃƒÆ’Ã‚Â£o para todos) */
   --bg-dark: #050f1f;
   --bg-card: #0a192f;
   --bg-surface: #112240;
@@ -1208,7 +1208,21 @@
     0 0 18px rgba(0, 176, 122, 0.64);
   --aqua-verde-scrollbar: #3ff2a0;
 
-  /* VARIÃVEIS ATIVAS (padrÃ£o = tema default) */
+  /* TEMA - NATAL */
+  --natal-primary: #d42426;
+  --natal-primary-rgb: 212, 36, 38;
+  --natal-primary-hover: #f03a3d;
+  --natal-accent: #165b33;
+  --natal-accent2: #f8b229;
+  --natal-text-main: #ffffff;
+  --natal-text-muted: #ea4630;
+  --natal-border: #d42426;
+  --natal-shadow-neon: 0 0 28px rgba(212, 36, 38, 0.6);
+  --natal-shadow-neon-h:
+    0 0 55px rgba(248, 178, 41, 0.8), 0 0 28px rgba(212, 36, 38, 0.5);
+  --natal-scrollbar: #d42426;
+
+  /* VARIÃƒÆ’Ã‚ÂVEIS ATIVAS (padrÃƒÆ’Ã‚Â£o = tema default) */
   --primary: var(--default-primary);
   --primary-rgb: var(--default-primary-rgb);
   --primary-hover: var(--default-primary-hover);
@@ -1281,7 +1295,7 @@
   --shadow-neon-h: var(--aot-shadow-neon-h);
 }
 
-/* ===== TEMA JOVENS TITÃƒS CLÃSSICO (DOMINANT PURPLE) ===== */
+/* ===== TEMA JOVENS TITÃƒÆ’Ã†â€™S CLÃƒÆ’Ã‚ÂSSICO (DOMINANT PURPLE) ===== */
 .theme-roxo,
 .theme-tt-classic {
   --primary: var(--tt-classic-primary);
@@ -1371,6 +1385,19 @@
   --shadow-neon-h: var(--aqua-verde-shadow-neon-h);
 }
 
+.theme-natal {
+  --primary: var(--natal-primary);
+  --primary-rgb: var(--natal-primary-rgb);
+  --primary-hover: var(--natal-primary-hover);
+  --accent: var(--natal-accent);
+  --accent2: var(--natal-accent2);
+  --text-main: var(--natal-text-main);
+  --text-muted: var(--natal-text-muted);
+  --border: var(--natal-border);
+  --shadow-neon: var(--natal-shadow-neon);
+  --shadow-neon-h: var(--natal-shadow-neon-h);
+}
+
 .theme-ciano,
 .theme-default {
   scrollbar-color: var(--default-scrollbar) #050f1f;
@@ -1420,8 +1447,12 @@
   scrollbar-color: var(--aqua-verde-scrollbar) #050f1f;
 }
 
+.theme-natal {
+  scrollbar-color: var(--natal-scrollbar) #050f1f;
+}
+
 /* ===================================================== */
-/* ===== TEMA CROMÃTICO (ITEM EXCLUSIVO DA LOJA)    ===== */
+/* ===== TEMA CROMÃƒÆ’Ã‚ÂTICO (ITEM EXCLUSIVO DA LOJA)    ===== */
 /* ===================================================== */
 
 @property --chromatic-hue {
@@ -1441,22 +1472,22 @@
 }
 
 /*
- * PERFORMANCE: A animaÃ§Ã£o fica no prÃ³prio .theme-cromatico (html/body).
- * `contain: style` isola a propagaÃ§Ã£o da CSS custom property --chromatic-hue
+ * PERFORMANCE: A animaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o fica no prÃƒÆ’Ã‚Â³prio .theme-cromatico (html/body).
+ * `contain: style` isola a propagaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o da CSS custom property --chromatic-hue
  * ao subtree, evitando recalcs em todo o documento a cada frame.
- * SaturaÃ§Ã£o 88% e luminosidade 58% â†’ paleta mais suave e menos custosa no GPU.
+ * SaturaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o 88% e luminosidade 58% ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ paleta mais suave e menos custosa no GPU.
  */
 .theme-cromatico {
   --chromatic-hue: 210deg;
-  /* 30 s â†’ menos recalcs/s */
+  /* 30 s ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ menos recalcs/s */
   isolation: isolate;
   contain: style;
   /* impede que --chromatic-hue force recalc fora do subtree */
 
-  /* â”€â”€ Paleta cromÃ¡tica elegante (sat 88 %, lum 58 %) â”€â”€ */
+  /* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Paleta cromÃƒÆ’Ã‚Â¡tica elegante (sat 88 %, lum 58 %) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
   --primary: hsl(var(--chromatic-hue), 88%, 58%);
   --primary-rgb: 180, 180, 255;
-  /* valor neutro; evita neon vermelho forÃ§ado */
+  /* valor neutro; evita neon vermelho forÃƒÆ’Ã‚Â§ado */
   --primary-hover: hsl(var(--chromatic-hue), 88%, 68%);
   --accent: hsl(calc(var(--chromatic-hue) + 120deg), 88%, 58%);
   --accent2: hsl(calc(var(--chromatic-hue) + 240deg), 88%, 58%);
@@ -1469,7 +1500,7 @@
   --bg-surface: #08080f;
   --bg-card: #0e0e18;
 
-  /* Neon Glow â€” raios menores = repaint mais barato */
+  /* Neon Glow ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â raios menores = repaint mais barato */
   --shadow-neon: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.35);
   --shadow-neon-h:
     0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.55),
@@ -1501,7 +1532,7 @@
   animation-play-state: paused !important;
 }
 
-/* Residual neon fix â€” raios menores para reduzir custo de repaint */
+/* Residual neon fix ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â raios menores para reduzir custo de repaint */
 .theme-cromatico .navbar-brand img,
 .theme-cromatico .home-icon,
 .theme-cromatico .stats-card,
@@ -1509,7 +1540,7 @@
   filter: drop-shadow(0 0 4px hsla(var(--chromatic-hue), 88%, 58%, 0.28)) !important;
 }
 
-/* TÃ­tulos com gradiente cromÃ¡tico â€” paleta elegante (lum 68 %) */
+/* TÃƒÆ’Ã‚Â­tulos com gradiente cromÃƒÆ’Ã‚Â¡tico ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â paleta elegante (lum 68 %) */
 .theme-cromatico .page-header h1,
 .theme-cromatico .home-banner h2,
 .theme-cromatico .loja-hero-title,
@@ -1555,7 +1586,7 @@
   box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* Overrides para remover o branco de elementos especÃ­ficos */
+/* Overrides para remover o branco de elementos especÃƒÆ’Ã‚Â­ficos */
 .theme-cromatico .home-banner p,
 .theme-cromatico .loja-hero-desc,
 .theme-cromatico .page-header p,
@@ -1588,7 +1619,7 @@
   box-shadow: 0 0 14px hsla(var(--chromatic-hue), 88%, 58%, 0.24) !important;
 }
 
-/* Ajuste para banners que tÃªm fundos que podem conflitar */
+/* Ajuste para banners que tÃƒÆ’Ã‚Âªm fundos que podem conflitar */
 .theme-cromatico .loja-hero,
 .theme-cromatico .home-banner {
   background: linear-gradient(135deg,
@@ -1741,7 +1772,7 @@
   box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessÃµes */
+/* Corrigindo o neon branco (primary-rgb: 255,255,255) nos cards e sessÃƒÆ’Ã‚Âµes */
 .theme-cromatico .card,
 .theme-cromatico .episode-card,
 .theme-cromatico .manga-item,
@@ -1799,7 +1830,7 @@
   scrollbar-color: hsl(var(--chromatic-hue), 88%, 58%) #030308;
 }
 
-/* Chromatic Text Glow â€” reduzido para diminuir repaint */
+/* Chromatic Text Glow ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â reduzido para diminuir repaint */
 .theme-cromatico .btn,
 .theme-cromatico .page-header h1,
 .theme-cromatico .navbar-brand,
@@ -1827,13 +1858,13 @@
   position: fixed !important;
 }
 
-/* TÃ­tulo da pÃ¡gina â€” fonte dinÃ¢mica para o tema cromÃ¡tico */
+/* TÃƒÆ’Ã‚Â­tulo da pÃƒÆ’Ã‚Â¡gina ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â fonte dinÃƒÆ’Ã‚Â¢mica para o tema cromÃƒÆ’Ã‚Â¡tico */
 .theme-cromatico .page-header h1 {
   font-family: "Audiowide", cursive;
   font-weight: 700;
 }
 
-/* Font variÃ¡vel para tÃ­tulos no tema cromÃ¡tico */
+/* Font variÃƒÆ’Ã‚Â¡vel para tÃƒÆ’Ã‚Â­tulos no tema cromÃƒÆ’Ã‚Â¡tico */
 .theme-cromatico {
   --title-font: "Audiowide", cursive;
 }
@@ -1893,7 +1924,7 @@
   box-shadow: 0 0 16px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
 }
 
-/* ===== TRANSIÃ‡ÃƒO SUAVE DE TEMA ===== */
+/* ===== TRANSIÃƒÆ’Ã¢â‚¬Â¡ÃƒÆ’Ã†â€™O SUAVE DE TEMA ===== */
 .theme-switching,
 .theme-switching *,
 .theme-switching *::before,
@@ -1927,7 +1958,7 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
-  /* Removido o overflow-y: auto !important para evitar scrollbars duplas ou desnecessÃ¡rias */
+  /* Removido o overflow-y: auto !important para evitar scrollbars duplas ou desnecessÃƒÆ’Ã‚Â¡rias */
 }
 
 a {
@@ -1993,7 +2024,7 @@ input[type="file"]::file-selector-button:hover {
   transform: translateY(-2px);
 }
 
-/* =====/* ===== VARIÃVEIS DE SOMBRA E LAYOUT ===== */
+/* =====/* ===== VARIÃƒÆ’Ã‚ÂVEIS DE SOMBRA E LAYOUT ===== */
 :root {
   --sidebar-width: 280px;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -2024,21 +2055,21 @@ html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb, div::-webkit-scrol
   box-shadow: 0 0 10px var(--primary) !important;
 }
 
-/* Garante que o body nÃ£o tenha scroll horizontal e respeite o layout */
+/* Garante que o body nÃƒÆ’Ã‚Â£o tenha scroll horizontal e respeite o layout */
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
 }
 
-/* Previne scroll do body quando modal estÃ¡ aberto */
+/* Previne scroll do body quando modal estÃƒÆ’Ã‚Â¡ aberto */
 body.modal-open {
   overflow: hidden !important;
   padding-right: 10px;
   /* Compensa a largura da scrollbar */
 }
 
-/* Scrollbar da Navbar - VISÃVEL E TEMATIZADA */
+/* Scrollbar da Navbar - VISÃƒÆ’Ã‚ÂVEL E TEMATIZADA */
 .navbar-links::-webkit-scrollbar {
   display: block !important;
   height: 10px !important;
@@ -2065,7 +2096,7 @@ body.modal-open {
   scrollbar-color: var(--primary) var(--bg-dark);
 }
 
-/* NOTA: Scrollbars webkit usam variÃ¡veis ativas que mudam com os temas */
+/* NOTA: Scrollbars webkit usam variÃƒÆ’Ã‚Â¡veis ativas que mudam com os temas */
 
 /* Corpo Principal */
 body {
@@ -2114,15 +2145,15 @@ body {
 
   0%,
   100% {
-    transform: translateX(-50%) rotate(10deg) translateY(0);
+    transform: translateX(-50%) rotate(10deg) translateY(-1px);
   }
 
   50% {
-    transform: translateX(-50%) rotate(12deg) translateY(-3px);
+    transform: translateX(-50%) rotate(12deg) translateY(-4px);
   }
 }
 
-/* Indicador discreto de rolagem horizontal na navbar (sempre visÃ­vel quando hÃ¡ overflow) */
+/* Indicador discreto de rolagem horizontal na navbar (sempre visÃƒÆ’Ã‚Â­vel quando hÃƒÆ’Ã‚Â¡ overflow) */
 .navbar-scroll-indicator {
   display: none;
 }
@@ -2216,7 +2247,7 @@ body {
   font-weight: 700;
 }
 
-/* Garantir que notificaÃ§Ãµes + perfil nunca se comprimam e fiquem na direita */
+/* Garantir que notificaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Âµes + perfil nunca se comprimam e fiquem na direita */
 #globalAuthContainer {
   flex-shrink: 0 !important;
   margin-left: auto;
@@ -2241,11 +2272,11 @@ body {
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 }
 
-/* Ocultar o botÃ£o burger em todos os tamanhos para remover a bolinha branca */
+/* Ocultar o botÃƒÆ’Ã‚Â£o burger em todos os tamanhos para remover a bolinha branca */
 .navbar-burger {
   display: none !important;
 }
@@ -2306,7 +2337,7 @@ body {
   color: var(--primary);
 }
 
-/* Fonts especÃ­ficas para cada tema */
+/* Fonts especÃƒÆ’Ã‚Â­ficas para cada tema */
 .theme-ciano .page-header h1,
 .theme-default .page-header h1 {
   font-family: "Bangers", cursive;
@@ -2458,7 +2489,7 @@ body {
 
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 
   50% {
@@ -2573,7 +2604,7 @@ body {
     0 0 10px rgba(var(--primary-rgb), 0.3);
 }
 
-/* ===== BOTÃ•ES ===== */
+/* ===== BOTÃƒÆ’Ã¢â‚¬Â¢ES ===== */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -2607,7 +2638,7 @@ body {
 
 .btn-primary:hover {
   background: var(--primary-hover);
-  transform: translateY(-3px);
+  transform: translateY(-5px);
   box-shadow:
     0 8px 35px rgba(var(--primary-rgb), 0.7),
     0 0 35px rgba(var(--primary-rgb), 0.5);
@@ -2680,7 +2711,7 @@ body {
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   overflow: hidden;
   position: relative;
-  /* Essencial para os botÃµes absolutamente posicionados dentro */
+  /* Essencial para os botÃƒÆ’Ã‚Âµes absolutamente posicionados dentro */
   transition: all var(--transition);
   cursor: pointer;
   display: flex;
@@ -2730,7 +2761,7 @@ body {
   transform: scale(1.08);
 }
 
-/* MantÃ©m a capa cortada no container sem prender elementos externos */
+/* MantÃƒÆ’Ã‚Â©m a capa cortada no container sem prender elementos externos */
 .card {
   overflow: visible !important;
 }
@@ -2740,7 +2771,7 @@ body {
   position: relative;
 }
 
-/* Apenas o primeiro .card-click-area (Ã¡rea da imagem) recebe borda arredondada no topo */
+/* Apenas o primeiro .card-click-area (ÃƒÆ’Ã‚Â¡rea da imagem) recebe borda arredondada no topo */
 .card > .card-click-area:first-child {
   border-radius: 14px 14px 0 0;
 }
@@ -2851,7 +2882,7 @@ body {
   transform: scale(1.1);
 }
 
-/* Variante para Animes (PÃºrpura) */
+/* Variante para Animes (PÃƒÆ’Ã‚Âºrpura) */
 .anime-context .badge-accent {
   background: rgba(var(--primary-rgb), 0.15);
   color: var(--primary);
@@ -3017,7 +3048,7 @@ tr:hover td {
   }
 
   to {
-    transform: translateY(0) scale(1);
+    transform: translateY(-1px) scale(1);
     opacity: 1;
   }
 }
@@ -3035,10 +3066,10 @@ body:has(.modal-overlay.open) {
   justify-content: space-between;
   margin-bottom: 1.5rem;
   flex-shrink: 0;
-  /* Header nÃ£o encolhe */
+  /* Header nÃƒÆ’Ã‚Â£o encolhe */
 }
 
-/* ForÃ§a display block no conteÃºdo interno de qualquer modal/card aberto */
+/* ForÃƒÆ’Ã‚Â§a display block no conteÃƒÆ’Ã‚Âºdo interno de qualquer modal/card aberto */
 .modal form,
 .modal .modal-body,
 .modal>p,
@@ -3050,7 +3081,7 @@ body:has(.modal-overlay.open) {
   display: block !important;
 }
 
-/* Scrollbar fixa e temÃ¡tica para o interior do card */
+/* Scrollbar fixa e temÃƒÆ’Ã‚Â¡tica para o interior do card */
 .modal form::-webkit-scrollbar,
 .modal .modal-body::-webkit-scrollbar,
 .modal .modal-content::-webkit-scrollbar,
@@ -3100,12 +3131,12 @@ body:has(.modal-overlay.open) {
   border-color: var(--danger);
 }
 
-/* ===== FORMULÃRIO ===== */
+/* ===== FORMULÃƒÆ’Ã‚ÂRIO ===== */
 .form-group {
   margin-bottom: 1.2rem;
 }
 
-/* Linha de formulÃ¡rio flexÃ­vel que embrulha em telas pequenas */
+/* Linha de formulÃƒÆ’Ã‚Â¡rio flexÃƒÆ’Ã‚Â­vel que embrulha em telas pequenas */
 .form-row {
   display: flex;
   gap: 10px;
@@ -3123,7 +3154,7 @@ body:has(.modal-overlay.open) {
   min-width: auto;
 }
 
-/* Estilo para linhas de episÃ³dios/campos mÃºltiplos */
+/* Estilo para linhas de episÃƒÆ’Ã‚Â³dios/campos mÃƒÆ’Ã‚Âºltiplos */
 .ep-form-row {
   display: flex;
   gap: 0.7rem;
@@ -3171,7 +3202,7 @@ body:has(.modal-overlay.open) {
   margin-top: 2rem;
 }
 
-/* ===== EPISÃ“DIOS ===== */
+/* ===== EPISÃƒÆ’Ã¢â‚¬Å“DIOS ===== */
 .season-section {
   margin-bottom: 2rem;
   background: var(--bg-card);
@@ -3521,7 +3552,7 @@ body:has(.modal-overlay.open) {
     0 0 12px rgba(var(--primary-rgb), 0.6);
 }
 
-/* Seletor de Temas FIXO (igual em todas as pÃ¡ginas e sem atrapalhar a UI) */
+/* Seletor de Temas FIXO (igual em todas as pÃƒÆ’Ã‚Â¡ginas e sem atrapalhar a UI) */
 .theme-switcher-wrapper {
   position: fixed;
   right: 20px;
@@ -3567,7 +3598,7 @@ body:has(.modal-overlay.open) {
   overflow: hidden;
 }
 
-/* Mini â€œdotâ€ mostrando a cor do tema atual */
+/* Mini ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œdotÃƒÂ¢Ã¢â€šÂ¬Ã‚Â mostrando a cor do tema atual */
 .theme-main-btn::after {
   content: "";
   position: absolute;
@@ -3638,7 +3669,7 @@ body:has(.modal-overlay.open) {
 }
 
 .theme-switcher-wrapper.active .theme-options {
-  transform: translateY(0);
+  transform: translateY(-1px);
   opacity: 1;
   visibility: visible;
 }
@@ -3710,6 +3741,11 @@ body:has(.modal-overlay.open) {
 .theme-opt-btn[data-theme="theme-aqua-verde"] {
   background: var(--aqua-verde-primary);
   color: #042f24;
+}
+
+.theme-opt-btn[data-theme="theme-natal"] {
+  background: linear-gradient(135deg, #ff0044, #00ffaa);
+  color: #ffffff;
 }
 
 .theme-opt-btn[data-theme="theme-cromatico"] {
@@ -4357,7 +4393,7 @@ section.home-notification-hub {
 }
 
 @keyframes floating {
-  0%, 100% { transform: translateY(0) rotate(0); }
+  0%, 100% { transform: translateY(-1px) rotate(0); }
   50% { transform: translateY(-15px) rotate(5deg); }
 }
 
@@ -4443,7 +4479,7 @@ section.home-notification-hub {
   }
   to { 
     opacity: 1; 
-    transform: translateY(0) scale(1); 
+    transform: translateY(-1px) scale(1); 
     filter: blur(0);
   }
 }
@@ -4544,7 +4580,7 @@ section.home-notification-hub {
 }
 
 .notification-item__checkbox::after {
-  content: '✓';
+  content: 'Ã¢Å“â€œ';
   font-size: 14px;
   color: #000;
   font-weight: 900;
@@ -4587,7 +4623,7 @@ section.home-notification-hub {
 }
 
 #selectAllNotifs::after {
-  content: '✓';
+  content: 'Ã¢Å“â€œ';
   font-size: 14px;
   color: #000;
   font-weight: 900;
@@ -4817,12 +4853,12 @@ body:hover .watermark {
   }
 }
 
-/* ===== WATCH FRAME â€” PLAYER ===== */
-/* Garante que o iframe dentro do watchFrame ocupe 100% do espaÃ§o */
+/* ===== WATCH FRAME ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â PLAYER ===== */
+/* Garante que o iframe dentro do watchFrame ocupe 100% do espaÃƒÆ’Ã‚Â§o */
 #watchFrame {
   position: relative;
   isolation: isolate;
-  /* Stacking context prÃ³prio â€” evita herdar blur de pais */
+  /* Stacking context prÃƒÆ’Ã‚Â³prio ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â evita herdar blur de pais */
 }
 
 #watchFrame iframe {
@@ -4836,9 +4872,9 @@ body:hover .watermark {
   /* border-radius em iframe causa desfoque no Chromium */
 }
 
-/* ===== SISTEMA DE MARCAÃ‡ÃƒO DE EPISÃ“DIOS ASSISTIDOS ===== */
+/* ===== SISTEMA DE MARCAÃƒÆ’Ã¢â‚¬Â¡ÃƒÆ’Ã†â€™O DE EPISÃƒÆ’Ã¢â‚¬Å“DIOS ASSISTIDOS ===== */
 
-/* BotÃ£o de marcaÃ§Ã£o no episode-card */
+/* BotÃƒÆ’Ã‚Â£o de marcaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o no episode-card */
 .watched-btn {
   flex-shrink: 0;
   width: 28px;
@@ -4998,7 +5034,7 @@ body:hover .watermark {
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
 }
 
-/* Modal de watch: botÃ£o "Marcar como assistido" */
+/* Modal de watch: botÃƒÆ’Ã‚Â£o "Marcar como assistido" */
 .watched-modal-badge {
   display: inline-flex;
   align-items: center;
@@ -5043,7 +5079,7 @@ body:hover .watermark {
 }
 
 
-/* AnimaÃ§Ã£o do check ao marcar */
+/* AnimaÃƒÆ’Ã‚Â§ÃƒÆ’Ã‚Â£o do check ao marcar */
 @keyframes watchedPop {
   0% {
     transform: scale(1);
@@ -5070,7 +5106,7 @@ body:hover .watermark {
 /* ====== AURAS DE CONQUISTA GLOBAIS ======= */
 /* ========================================= */
 
-/* === HOKAGE (Aura de Fogo NÃ­vel 50) === */
+/* === HOKAGE (Aura de Fogo NÃƒÆ’Ã‚Â­vel 50) === */
 .avatar-aura-wrap.avatar-aura-fire::before,
 .user-nav-avatar-box.avatar-aura-fire::before {
   background: radial-gradient(circle,
@@ -5138,7 +5174,7 @@ body:hover .watermark {
   }
 }
 
-/* === GUARDIÃƒO (Aura NÃ­vel 75) === */
+/* === GUARDIÃƒÆ’Ã†â€™O (Aura NÃƒÆ’Ã‚Â­vel 75) === */
 .avatar-aura-wrap.avatar-aura-guardian::before,
 .user-nav-avatar-box.avatar-aura-guardian::before {
   background: radial-gradient(circle,
@@ -5200,7 +5236,7 @@ body:hover .watermark {
   }
 }
 
-/* === IMORTAL (NÃ­vel 100) === */
+/* === IMORTAL (NÃƒÆ’Ã‚Â­vel 100) === */
 .avatar-aura-wrap.avatar-aura-immortal::before,
 .user-nav-avatar-box.avatar-aura-immortal::before {
   background: radial-gradient(circle,
@@ -5409,7 +5445,7 @@ body:hover .watermark {
 
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(-1px);
   }
 
   50% {
@@ -5437,7 +5473,7 @@ body:hover .watermark {
   background-position: center !important;
 }
 
-/* FONTES DINÃ‚MICAS PARA H1 "CatÃ¡logo de" */
+/* FONTES DINÃƒÆ’Ã¢â‚¬Å¡MICAS PARA H1 "CatÃƒÆ’Ã‚Â¡logo de" */
 .theme-ciano,
 .theme-default {
   --title-font: "Bangers", cursive;
@@ -5449,7 +5485,8 @@ body:hover .watermark {
 }
 
 .theme-dourado,
-.theme-vinland {
+.theme-vinland,
+.theme-natal {
   --title-font: "Righteous", cursive;
 }
 
@@ -5491,7 +5528,7 @@ body:hover .watermark {
   font-family: var(--title-font, "Bangers");
 }
 
-/* BotÃ£o de Favorito nos Cards */
+/* BotÃƒÆ’Ã‚Â£o de Favorito nos Cards */
 .card-fav-btn {
   position: absolute;
   top: 10px;
@@ -5632,7 +5669,7 @@ body.modo-cinema .history-sidebar {
   text-transform: uppercase;
 }
 
-/* 5. Lista Destaque (Favoritos) â€” Premium */
+/* 5. Lista Destaque (Favoritos) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Premium */
 .destaque-favoritos .fav-card {
   position: relative;
   border: 2px solid rgba(var(--primary-rgb), 0.5) !important;
@@ -5672,7 +5709,7 @@ body.modo-cinema .history-sidebar {
 
   0%,
   100% {
-    transform: translateY(0) rotate(-5deg);
+    transform: translateY(-1px) rotate(-5deg);
   }
 
   50% {
@@ -5680,7 +5717,7 @@ body.modo-cinema .history-sidebar {
   }
 }
 
-/* 6. BotÃµes de Favorito */
+/* 6. BotÃƒÆ’Ã‚Âµes de Favorito */
 .card-fav-btn {
   position: absolute;
   top: 10px;
@@ -5744,7 +5781,7 @@ body.modo-cinema .history-sidebar {
   color: var(--primary);
 }
 
-/* ===== FAVORITOS DESTACADOS (INVENTÃRIO STYLE) ===== */
+/* ===== FAVORITOS DESTACADOS (INVENTÃƒÆ’Ã‚ÂRIO STYLE) ===== */
 .equipped-ribbon {
   position: absolute;
   top: 15px;
@@ -5790,7 +5827,7 @@ body.modo-cinema .history-sidebar {
   border-radius: 8px;
 }
 
-/* Selo de favorito nos cards (discreto; a estrela jÃ¡ indica no canto superior esquerdo) */
+/* Selo de favorito nos cards (discreto; a estrela jÃƒÆ’Ã‚Â¡ indica no canto superior esquerdo) */
 .fav-ribbon {
   position: absolute;
   bottom: 8px;
@@ -5922,15 +5959,15 @@ body.modo-cinema .history-sidebar {
   display: inline-block;
 }
 
-/* ===== SEARCH BAR: lupa + texto minÃºsculo ===== */
-/* Texto do placeholder em minÃºsculo e fonte normal */
+/* ===== SEARCH BAR: lupa + texto minÃƒÆ’Ã‚Âºsculo ===== */
+/* Texto do placeholder em minÃƒÆ’Ã‚Âºsculo e fonte normal */
 .search-bar input::placeholder {
   text-transform: none !important;
   font-family: 'Inter', 'Poppins', system-ui, sans-serif !important;
   font-weight: 400 !important;
 }
 
-/* Ãcone de lupa via SVG inline no background */
+/* ÃƒÆ’Ã‚Âcone de lupa via SVG inline no background */
 .search-bar input {
   padding-left: 42px !important;
 }
@@ -5942,7 +5979,7 @@ body.modo-cinema .history-sidebar {
   background-position: 14px center !important;
   background-size: 16px 16px !important;
 }
-/* Mesma sobrescrita para tema cromÃ¡tico (que usa background shorthand com !important) */
+/* Mesma sobrescrita para tema cromÃƒÆ’Ã‚Â¡tico (que usa background shorthand com !important) */
 .theme-cromatico .search-bar input {
   background-color: hsla(var(--chromatic-hue), 88%, 58%, 0.06) !important;
   font-family: 'Inter', system-ui, sans-serif !important;
@@ -6041,7 +6078,7 @@ body.modo-cinema .history-sidebar {
 
 @keyframes cs-fade-in {
   from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(-1px); }
 }
 
 .cs-option {
@@ -6066,7 +6103,7 @@ body.modo-cinema .history-sidebar {
   font-weight: 600;
 }
 
-/* Tema cromático */
+/* Tema cromÃƒÂ¡tico */
 .theme-cromatico .cs-trigger {
   background: hsla(var(--chromatic-hue), 88%, 58%, 0.06);
   border-color: hsla(var(--chromatic-hue), 88%, 58%, 0.3);
@@ -6117,7 +6154,7 @@ input[type="number"]::-webkit-outer-spin-button:hover {
   background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 9 12 4 17 9"></polyline><polyline points="7 15 12 20 17 15"></polyline></svg>');
 }
 
-/* Tema Cromático */
+/* Tema CromÃƒÂ¡tico */
 .theme-cromatico input[type="number"]::-webkit-inner-spin-button,
 .theme-cromatico input[type="number"]::-webkit-outer-spin-button {
   background-color: rgba(255, 255, 255, 0.05);
@@ -6166,3 +6203,257 @@ input[type="number"]::-webkit-outer-spin-button:hover {
 .btn-generate-pwd:hover {
   background: rgba(var(--primary-rgb), 0.1);
 }
+
+/* CURSORS FUTURIST THEME (Now uses cursor-effects JS library) */
+
+/* === AURA SAIYAJIN (Rare) === */
+.avatar-aura-wrap.aura_saiyajin::before,
+.user-nav-avatar-box.aura_saiyajin::before {
+  background:
+    radial-gradient(circle at 50% 50%,
+      rgba(50, 255, 50, 0.9) 0%,
+      rgba(0, 200, 0, 0.7) 25%,
+      rgba(0, 100, 0, 0.45) 50%,
+      transparent 75%),
+    radial-gradient(circle at 30% 25%,
+      rgba(150, 255, 150, 0.65) 0%,
+      rgba(50, 200, 50, 0.4) 35%,
+      transparent 65%),
+    radial-gradient(circle at 70% 75%,
+      rgba(0, 255, 100, 0.55) 0%,
+      transparent 55%);
+  filter: blur(8px);
+  animation: aura-saiyajin-zap 0.9s ease-in-out infinite alternate;
+}
+
+.avatar-aura-wrap.aura_saiyajin::after,
+.user-nav-avatar-box.aura_saiyajin::after {
+  inset: -13px;
+  filter: blur(14px);
+  background: conic-gradient(from 20deg,
+      rgba(100, 255, 100, 0.95),
+      rgba(0, 200, 50, 0.82),
+      rgba(0, 100, 0, 0.72),
+      rgba(50, 200, 50, 0.85),
+      rgba(100, 255, 100, 0.95));
+  animation: aura-fx-rotate 4s linear infinite;
+  opacity: 0.95;
+}
+
+@keyframes aura-saiyajin-zap {
+  0%   { opacity: 0.8;  filter: blur(7px)  brightness(1);    }
+  40%  { opacity: 1;    filter: blur(12px) brightness(1.5);  }
+  60%  { opacity: 0.85; filter: blur(8px)  brightness(1.1);  }
+  100% { opacity: 1;    filter: blur(11px) brightness(1.35); }
+}
+
+/* === AURA SHINIGAMI (Epic) === */
+.avatar-aura-wrap.aura_shinigami::before,
+.user-nav-avatar-box.aura_shinigami::before {
+  background:
+    radial-gradient(circle at 50% 55%,
+      rgba(10, 0, 30, 1) 0%,
+      rgba(120, 0, 220, 0.9) 30%,
+      rgba(255, 0, 0, 0.8) 55%,
+      transparent 85%),
+    radial-gradient(circle at 30% 30%,
+      rgba(139, 0, 0, 0.8) 0%,
+      transparent 70%),
+    radial-gradient(circle at 70% 70%,
+      rgba(100, 0, 200, 0.7) 0%,
+      transparent 65%);
+  filter: blur(9px);
+  animation: aura-shinigami-pulse 3s ease-in-out infinite alternate;
+}
+
+.avatar-aura-wrap.aura_shinigami::after,
+.user-nav-avatar-box.aura_shinigami::after {
+  inset: -15px;
+  filter: blur(16px);
+  background: conic-gradient(from 60deg,
+      rgba(120, 0, 255, 1),
+      rgba(30, 0, 90, 1),
+      rgba(200, 0, 0, 1),
+      rgba(60, 0, 150, 1),
+      rgba(120, 0, 255, 1));
+  animation: aura-fx-rotate 5.5s linear infinite;
+  opacity: 1;
+}
+
+@keyframes aura-shinigami-pulse {
+  0%   { opacity: 0.9; filter: blur(10px)  brightness(1.1); }
+  50%  { opacity: 1;    filter: blur(14px) brightness(1.6); }
+  100% { opacity: 0.95;  filter: blur(12px)  brightness(1.2); }
+}
+
+/* ===================================================== */
+/* ===== DECORAÃ‡Ã•ES DO TEMA NATAL (JS INJECTED)      ===== */
+/* ===================================================== */
+#natal-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* --- NEVE --- */
+.christmas-snowflakes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.christmas-snowflakes .snowflake {
+  position: absolute;
+  top: -10vh;
+  color: #fff;
+  font-size: 1.2em;
+  opacity: 0.8;
+  animation: fall linear infinite;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+.christmas-snowflakes .snowflake:nth-child(2n) { font-size: 0.8em; animation-duration: 10s; left: 10%; }
+.christmas-snowflakes .snowflake:nth-child(3n) { font-size: 1.5em; animation-duration: 12s; left: 25%; }
+.christmas-snowflakes .snowflake:nth-child(4n) { font-size: 1em; animation-duration: 8s; left: 40%; }
+.christmas-snowflakes .snowflake:nth-child(5n) { font-size: 1.2em; animation-duration: 15s; left: 55%; }
+.christmas-snowflakes .snowflake:nth-child(6n) { font-size: 0.9em; animation-duration: 9s; left: 70%; }
+.christmas-snowflakes .snowflake:nth-child(7n) { font-size: 1.4em; animation-duration: 11s; left: 85%; }
+.christmas-snowflakes .snowflake:nth-child(8n) { left: 95%; }
+.christmas-snowflakes .snowflake:nth-child(odd) { animation-delay: -5s; }
+.christmas-snowflakes .snowflake:nth-child(even) { animation-delay: -2s; }
+.christmas-snowflakes .snowflake:nth-child(9n) { left: 5%; animation-duration: 14s; }
+.christmas-snowflakes .snowflake:nth-child(10n) { left: 15%; animation-duration: 9s; }
+.christmas-snowflakes .snowflake:nth-child(11n) { left: 35%; animation-duration: 11s; }
+.christmas-snowflakes .snowflake:nth-child(12n) { left: 65%; animation-duration: 13s; }
+.christmas-snowflakes .snowflake:nth-child(13n) { left: 80%; animation-duration: 8s; }
+
+@keyframes fall {
+  0% { transform: translateY(-10vh) translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) translateX(30px) rotate(360deg); opacity: 0; }
+}
+
+/* --- PISCA-PISCAS --- */
+.christmas-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  margin: 0;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  border-top: 2px solid #113311;
+  box-shadow: inset 0 20px 20px -20px rgba(0,0,0,0.5);
+}
+.christmas-lights li {
+  width: 14px;
+  height: 22px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  margin-top: -2px;
+  position: relative;
+  animation: flash 1.5s infinite;
+}
+.christmas-lights li::before {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 4px;
+  width: 6px;
+  height: 5px;
+  background: #222;
+  border-radius: 2px;
+}
+.christmas-lights li:nth-child(4n+1) { background: #d42426; box-shadow: 0px 5px 24px 3px #d42426; }
+.christmas-lights li:nth-child(4n+2) { background: #165b33; box-shadow: 0px 5px 24px 3px #165b33; animation-delay: 0.4s; }
+.christmas-lights li:nth-child(4n+3) { background: #f8b229; box-shadow: 0px 5px 24px 3px #f8b229; animation-delay: 0.8s; }
+.christmas-lights li:nth-child(4n+4) { background: #ffffff; box-shadow: 0px 5px 24px 3px #ffffff; animation-delay: 1.2s; }
+
+@keyframes flash {
+  0%, 100% { opacity: 1; filter: brightness(1.2); }
+  50% { opacity: 0.3; filter: brightness(0.5); }
+}
+
+/* --- PRESENTES --- */
+.christmas-gift {
+  position: absolute;
+  bottom: 20px;
+  font-size: 4.5rem;
+  filter: drop-shadow(0 0 20px rgba(248, 178, 41, 0.4));
+  animation: float-gift 4s ease-in-out infinite;
+}
+.christmas-gift.left {
+  left: 40px;
+  transform-origin: bottom center;
+}
+.christmas-gift.right {
+  right: 40px;
+  animation-delay: -2s;
+}
+@keyframes float-gift {
+  0%, 100% { transform: translateY(-1px) rotate(-3deg); }
+  50% { transform: translateY(-15px) rotate(3deg); }
+}
+
+/* --- BORDAS FESTIVAS --- */
+#natal-decorations::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px 20px rgba(255, 255, 255, 0.25), inset 0 0 120px 40px rgba(212, 36, 38, 0.2);
+  border: 4px solid rgba(248, 178, 41, 0.6);
+  z-index: 9998;
+  border-radius: 8px;
+}
+
+/* --- OVERRIDE BORDAS FESTIVAS ANTERIORES --- */
+#natal-decorations::after {
+  display: none !important;
+}
+
+/* --- DIAGONAIS DE NATAL --- */
+.corner-decor {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.9;
+}
+.corner-decor.top-left {
+  top: 0;
+  left: 0;
+  background: radial-gradient(circle at top left, rgba(22, 91, 51, 0.5) 0%, rgba(212, 36, 38, 0.35) 45%, transparent 70%);
+}
+.corner-decor.bottom-right {
+  bottom: 0;
+  right: 0;
+  background: radial-gradient(circle at bottom right, rgba(212, 36, 38, 0.5) 0%, rgba(22, 91, 51, 0.35) 45%, transparent 70%);
+}
+.corner-decor::after {
+  position: absolute;
+  font-size: 3.5rem;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+}
+.corner-decor.top-left::after {
+  content: "";
+  top: 20px;
+  left: 20px;
+  transform: rotate(-10deg);
+}
+.corner-decor.bottom-right::after {
+  content: "";
+  bottom: 25px;
+  right: 25px;
+  font-size: 4rem;
+  color: #f8b229;
+}
+
+
+
+
+

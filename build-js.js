@@ -3,7 +3,7 @@ const path = require('path');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
 const srcDir = path.join(__dirname, 'js-src');
-const outDir = path.join(__dirname, 'js');
+const outDir = path.join(__dirname, 'js-ofuscado');
 
 // Create the output directory if it doesn't exist
 if (!fs.existsSync(outDir)) {

@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Anime House — Minhas Compras</title>
+        <title>Anime House â€” Minhas Compras</title>
         <link rel="stylesheet" href="css/style.css" />
         <script src="js-ofuscado/themes.js"></script>
         <style>
@@ -76,22 +76,7 @@
                 border: 2px solid rgba(255, 215, 0, 0.4);
                 box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
             }
-            .purchased-card.esmeralda::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(
-                    90deg,
-                    transparent,
-                    rgba(255, 215, 0, 0.1),
-                    transparent
-                );
-                animation: chromatic-shine 4s linear infinite;
-                pointer-events: none;
-            }
+            
             @keyframes chromatic-shine {
                 0% {
                     left: -100%;
@@ -147,14 +132,12 @@
             .purchased-card.esmeralda .item-preview-circle {
                 border: 3px solid rgba(255, 215, 0, 0.5);
                 box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-                animation: chromatic-pulse 3s ease-in-out infinite;
+                
             }
             .purchased-card.esmeralda.is-equipped .item-preview-circle {
                 border-color: #ffd700;
                 box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-                animation:
-                    chromatic-pulse 3s ease-in-out infinite,
-                    border-pulse 2s ease-in-out infinite;
+                
             }
             @keyframes border-pulse {
                 0%,
@@ -236,7 +219,7 @@
                 background: linear-gradient(135deg, #ffd700, #ffaa00);
                 color: #1a1200;
                 font-weight: 800;
-                animation: chromatic-shine-btn 3s linear infinite;
+                
                 background-size: 200% auto;
             }
             @keyframes chromatic-shine-btn {
@@ -283,7 +266,7 @@
                 text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
             }
 
-            /* ===== TOAST (NOTIFICAÇÃO) ===== */
+            /* ===== TOAST (NOTIFICAÃƒâ€¡ÃƒÆ’O) ===== */
             #lojaToast {
                 position: fixed;
                 bottom: 30px;
@@ -437,7 +420,7 @@
                 <div>
                     <h1 class="inventory-title">Meus <span>Tesouros</span></h1>
                     <p style="color: var(--text-muted)">
-                        Aqui você encontra tudo o que adquiriu na SenseiMod
+                        Aqui vocÃª encontra tudo o que adquiriu na SenseiMod
                         Store.
                     </p>
                 </div>
@@ -445,8 +428,8 @@
 
             <div id="inventoryContainer">
                 <div class="empty-state">
-                    <h2>Seu inventário está vazio...</h2>
-                    <p>Visite a loja e troque seus XP por itens épicos!</p>
+                    <h2>Seu inventÃ¡rio estÃ¡ vazio...</h2>
+                    <p>Visite a loja e troque seus XP por itens Ã©picos!</p>
                     <br />
                     <a href="loja.html" class="btn btn-primary"
                         >Ir para a Loja</a
@@ -461,8 +444,8 @@
                 <div class="m-icon" id="mIcon"><i class='fa-solid fa-trash'></i></div>
                 <div class="m-title">Vender Item?</div>
                 <p class="m-desc" id="mDesc">
-                    Você está prestes a vender este item. O valor de compra será
-                    devolvido à sua conta da loja.
+                    VocÃª estÃ¡ prestes a vender este item. O valor de compra serÃ¡
+                    devolvido ÃƒÂ  sua conta da loja.
                 </p>
 
                 <div class="m-price-box">
@@ -506,7 +489,7 @@
                 },
                 {
                     id: "titulo_explorador",
-                    name: "Título: Explorador",
+                    name: "TÃ­tulo: Explorador",
                     icon: "<i class='fa-solid fa-map'></i>",
                     category: "titulo",
                     currency: "ouro",
@@ -522,15 +505,15 @@
                 },
                 {
                     id: "banner_cosmica",
-                    name: "Banner Noite Cósmica",
+                    name: "Banner Noite CÃ³smica",
                     icon: "<i class='fa-solid fa-meteor'></i>",
                     category: "banner",
                     currency: "ouro",
                     price: 10,
                 },
                 {
-                    id: "titulo_caçador",
-                    name: "Título: Caçador de Episódios",
+                    id: "titulo_caÃ§ador",
+                    name: "TÃ­tulo: CaÃ§ador de EpisÃ³dios",
                     icon: "<i class='fa-solid fa-bullseye'></i>",
                     category: "titulo",
                     currency: "ouro",
@@ -546,7 +529,7 @@
                 },
                 {
                     id: "titulo_espadachim",
-                    name: "Título: Espadachim Solitário",
+                    name: "TÃ­tulo: Espadachim SolitÃ¡rio",
                     icon: "<i class='fa-solid fa-khanda'></i>",
                     category: "titulo",
                     currency: "ouro",
@@ -554,7 +537,7 @@
                 },
                 {
                     id: "aura_chama_naruto",
-                    name: "Aura Modo Sábio",
+                    name: "Aura Modo SÃ¡bio",
                     icon: "<i class='fa-solid fa-fire'></i>",
                     category: "aura",
                     currency: "ouro",
@@ -578,7 +561,7 @@
                 },
                 {
                     id: "aura_thunder",
-                    name: "Aura Relâmpago Elétrico",
+                    name: "Aura RelÃ¢mpago ElÃ©trico",
                     icon: "<i class='fa-solid fa-bolt'></i>",
                     category: "aura",
                     currency: "diamante",
@@ -594,7 +577,7 @@
                 },
                 {
                     id: "titulo_mestre_das_listas",
-                    name: "Título: Mestre das Listas",
+                    name: "TÃ­tulo: Mestre das Listas",
                     icon: "<i class='fa-solid fa-clipboard'></i>",
                     category: "titulo",
                     currency: "diamante",
@@ -602,7 +585,7 @@
                 },
                 {
                     id: "aura_sakura",
-                    name: "Aura Pétala de Sakura",
+                    name: "Aura PÃ©tala de Sakura",
                     icon: "<i class='fa-solid fa-fan'></i>",
                     category: "aura",
                     currency: "diamante",
@@ -658,7 +641,7 @@
                 },
                 {
                     id: "aura_dragon",
-                    name: "Aura Dragão Arcano",
+                    name: "Aura DragÃ£o Arcano",
                     icon: "<i class='fa-solid fa-dragon'></i>",
                     category: "aura",
                     currency: "esmeralda",
@@ -674,7 +657,7 @@
                 },
                 {
                     id: "titulo_guardiao",
-                    name: "Título: Guardião Lenda",
+                    name: "TÃ­tulo: GuardiÃ£o Lenda",
                     icon: "<i class='fa-solid fa-shield'></i>",
                     category: "titulo",
                     currency: "esmeralda",
@@ -689,8 +672,16 @@
                     price: 3,
                 },
                 {
+                    id: "coroa_gorro_natal",
+                    name: "Gorro do Noel",
+                    icon: "ðŸŽ…",
+                    category: "exclusivo",
+                    currency: "esmeralda",
+                    price: 3,
+                },
+                {
                     id: "titulo_sensei_mod",
-                    name: "Título: SenseiMod",
+                    name: "TÃ­tulo: SenseiMod",
                     icon: "<i class='fa-solid fa-graduation-cap'></i>",
                     category: "titulo",
                     currency: "esmeralda",
@@ -714,10 +705,75 @@
                 },
                 {
                     id: "tema_cromatico",
-                    name: "Tema Cromático",
+                    name: "Tema CromÃ¡tico",
                     icon: "<i class='fa-solid fa-rainbow'></i>",
                     category: "tema",
                     currency: "esmeralda",
+                    price: 8,
+                },
+                {
+                    id: "tema_natal",
+                    name: "Especial de Natal",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
+                    category: "tema",
+                    currency: "esmeralda",
+                    price: 7,
+                },
+
+                {
+                    id: "cursor_camaleao",
+                    name: "Cursor CamaleÃ£o",
+                    icon: "<i class='fa-solid fa-palette'></i>",
+                    category: "cursor",
+                    currency: "diamante",
+                    price: 8,
+                },
+                {
+                    id: "cursor_gelo",
+                    name: "Cursor Nevasca",
+                    icon: "<i class='fa-solid fa-snowflake'></i>",
+                    category: "cursor",
+                    currency: "esmeralda",
+                    price: 6,
+                },
+                {
+                    id: "cursor_rgb",
+                    name: "Cursor RGB Supremo",
+                    icon: "<i class='fa-solid fa-wand-magic-sparkles'></i>",
+                    category: "cursor",
+                    currency: "esmeralda",
+                    price: 10,
+                },
+                {
+                    id: "aura_saiyajin",
+                    name: "Aura Super Saiyajin",
+                    icon: "<i class='fa-solid fa-bolt'></i>",
+                    category: "aura",
+                    currency: "diamante",
+                    price: 10,
+                },
+                {
+                    id: "aura_shinigami",
+                    name: "Aura Shinigami",
+                    icon: "<i class='fa-solid fa-apple-whole'></i>",
+                    category: "aura",
+                    currency: "esmeralda",
+                    price: 6,
+                },
+                {
+                    id: "banner_cyberpunk",
+                    name: "Banner Cyberpunk Neon",
+                    icon: "<i class='fa-solid fa-city'></i>",
+                    category: "banner",
+                    currency: "esmeralda",
+                    price: 5,
+                },
+                {
+                    id: "banner_lunar",
+                    name: "Banner Eclipse Lunar",
+                    icon: "<i class='fa-solid fa-moon'></i>",
+                    category: "banner",
+                    currency: "diamante",
                     price: 8,
                 },
             ];
@@ -732,7 +788,7 @@
                 }, 3000);
             }
 
-            // getComprasStore: usado como fallback síncrono pelo fluxo de venda/equipar
+            // getComprasStore: usado como fallback sÃ­ncrono pelo fluxo de venda/equipar
             // O carregamento principal (DOMContentLoaded) usa fetch direto ao Supabase
             function getComprasStore(userId) {
                 // 1. DB._store se estiver populado
@@ -761,9 +817,9 @@
             }
 
             // renderInventory recebe (userId, store) diretamente do DOMContentLoaded
-            // eliminando dependência de window.DB._store que pode ser resetado por DB.init()
+            // eliminando dependÃªncia de window.DB._store que pode ser resetado por DB.init()
             async function renderInventory(userId, store) {
-                // Se store não foi passado, busca como fallback
+                // Se store nÃ£o foi passado, busca como fallback
                 if (!store) store = getComprasStore(userId);
                 const container = document.getElementById("inventoryContainer");
 
@@ -775,8 +831,8 @@
                 if (!store.purchased || store.purchased.length === 0) {
                     container.innerHTML = `
                       <div class="empty-state">
-                        <h2>Seu inventário está vazio...</h2>
-                        <p>Visite a loja e troque seus XP por itens épicos!</p>
+                        <h2>Seu inventÃ¡rio estÃ¡ vazio...</h2>
+                        <p>Visite a loja e troque seus XP por itens Ã©picos!</p>
                         <br>
                         <a href="loja.html" class="btn btn-primary">Ir para a Loja</a>
                       </div>
@@ -791,19 +847,19 @@
                     const item = CATALOG_ITEMS.find((i) => i.id === itemId);
                     if (!item) return;
 
-                    // Verificar se está equipado usando chaves ISOLADAS
+                    // Verificar se estÃ¡ equipado usando chaves ISOLADAS
                     let isEquipped = false;
                     if (item.category === "aura")
                         isEquipped = localStorage.getItem(userKey("animehouse_customAura")) === itemId;
                     else if (item.category === "titulo")
-                        isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", "");
+                        isEquipped = localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("TÃ­tulo: ", "");
                     else if (item.category === "banner")
                         isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === itemId;
                     else if (item.category === "exclusivo")
                         isEquipped = localStorage.getItem(userKey("animehouse_showCrown")) === "true" && 
                                      localStorage.getItem(userKey("animehouse_equippedCrownId")) === itemId;
-                    else if (item.category === "tema") {
-                        isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
+                    else if (item.category === "tema" || item.category === "cursor") {
+                        isEquipped = localStorage.getItem(userKey("animehouse_" + item.id)) === "true";
                     } else if (item.category === "experiencia") {
                         isEquipped = store.equipped && (store.equipped[itemId] === true || store.equipped[itemId] === "true");
                     }
@@ -815,10 +871,10 @@
                             ? "<i class='fa-solid fa-medal'></i>"
                             : item.currency === "diamante"
                               ? "<i class='fa-solid fa-gem'></i>"
-                              : "�";
+                              : "";
 
                     card.innerHTML = `
-          ${isEquipped ? '<div class="equipped-dot" title="Item Equipado">✓</div>' : ""}
+          ${isEquipped ? '<div class="equipped-dot" title="Item Equipado">âœ“</div>' : ""}
           <div class="card-banner" style="${item.category === "banner" ? `background-image: url('${(window.BANNER_MAP && window.BANNER_MAP[item.id]) || ""}'); background-size: cover; background-position: center;` : `background: linear-gradient(45deg, rgba(var(--primary-rgb), 0.1), rgba(0,0,0,0.4));`}"></div>
           <div class="item-preview-circle">
             ${
@@ -830,13 +886,13 @@
 
           <div class="item-info">
             <span class="item-type-badge">${item.category}</span>
-            <div class="item-name" style="${item.currency === "esmeralda" ? "background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700, #ffaa00, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: chromatic-shine-text 2s linear infinite;" : ""}">${item.name}</div>
-            <p class="item-desc">Item de customização exclusiva. Valor de revenda atual: <strong style="${item.currency === "esmeralda" ? "color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);" : ""}">${item.price} ${currencyIcon}</strong></p>
+            <div class="item-name" style="${item.currency === "esmeralda" ? "background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700, #ffaa00, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; " : ""}">${item.name}</div>
+            <p class="item-desc">Item de customizaÃ§Ã£o exclusiva. Valor de revenda atual: <strong style="${item.currency === "esmeralda" ? "color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);" : ""}">${item.price} ${currencyIcon}</strong></p>
           </div>
 
           <div class="card-actions">
-            <button onclick="toggleEquip('${item.id}', '${item.category}', '${item.name.replace("Título: ", "")}')" class="btn-action btn-equip ${isEquipped ? "equipped" : ""}">
-              ${isEquipped ? "<span>✓</span> Desmarcar" : "<span><i class='fa-solid fa-bolt'></i></span> Marcar"}
+            <button onclick="toggleEquip('${item.id}', '${item.category}', '${item.name.replace("TÃ­tulo: ", "")}')" class="btn-action btn-equip ${isEquipped ? "equipped" : ""}">
+              ${isEquipped ? "<span>âœ“</span> Desmarcar" : "<span><i class='fa-solid fa-bolt'></i></span> Marcar"}
             </button>
             <button onclick="sellItem('${item.id}')" class="btn-action btn-sell">
               <span><i class='fa-solid fa-sack-dollar'></i></span> Vender
@@ -858,7 +914,7 @@
                 // Preencher modal
                 document.getElementById("mIcon").innerHTML = item.icon;
                 document.getElementById("mDesc").innerHTML =
-                    `Deseja vender <strong>"${item.name}"</strong>? <br>As fichas de ${item.currency} serão devolvidas.`;
+                    `Deseja vender <strong>"${item.name}"</strong>? <br>As fichas de ${item.currency} serÃ£o devolvidas.`;
                 document.getElementById("mPrice").textContent = item.price;
                 document.getElementById("mCurrency").innerHTML =
                     item.currency === "ouro"
@@ -897,7 +953,7 @@
                         store[moeda] =
                             (Number(store[moeda]) || 0) + Number(item.price);
 
-                        // Desequipar se necessário
+                        // Desequipar se necessÃ¡rio
                         if (store.equipped) {
                             if (store.equipped.aura === id)
                                 store.equipped.aura = "none";
@@ -905,7 +961,7 @@
                                 store.equipped.banner = "none";
                             if (
                                 store.equipped.titulo ===
-                                item.name.replace("Título: ", "")
+                                item.name.replace("TÃ­tulo: ", "")
                             )
                                 store.equipped.titulo = "";
                             if (id.includes("coroa"))
@@ -941,7 +997,7 @@
                         if (localStorage.getItem(userKey("animehouse_customBanner")) === id)
                             localStorage.setItem(userKey("animehouse_customBanner"), "none");
                         
-                        if (localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("Título: ", ""))
+                        if (localStorage.getItem(userKey("animehouse_customTitle")) === item.name.replace("TÃ­tulo: ", ""))
                             localStorage.setItem(userKey("animehouse_customTitle"), "");
 
                         if (localStorage.getItem(userKey("animehouse_equippedCrownId")) === id) {
@@ -949,23 +1005,24 @@
                             localStorage.removeItem(userKey("animehouse_equippedCrownId"));
                         }
                         
-                        if (id === "tema_cromatico")
-                            localStorage.removeItem(userKey("animehouse_tema_cromatico"));
-                        if (id === "tema_cromatico") {
-                            if (window.setTheme) window.setTheme("theme-ciano");
+                        if (item.category === "tema" || item.category === "cursor") {
+                            localStorage.removeItem(userKey("animehouse_" + id));
+                            if (id === "tema_cromatico" && window.setTheme) {
+                                window.setTheme("theme-ciano");
+                            }
                         }
 
                         if (window.checkAuthStatus) window.checkAuthStatus();
 
                         closeSellModal();
-                        // Relê o store do localStorage após a venda (sincrônico e confiável)
+                        // RelÃª o store do localStorage apÃ³s a venda (sincrÃƒÂ´nico e confiÃ¡vel)
                         const updatedStore = getComprasStore(userId);
                         renderInventory(userId, updatedStore);
                         if (typeof showToast === "function")
                             showToast(`<i class='fa-solid fa-check'></i> "${item.name}" vendido!`, "success");
                     } catch (err) {
                         console.error("Erro ao processar venda:", err);
-                        alert("Erro crítico ao processar a venda.");
+                        alert("Erro crÃ­tico ao processar a venda.");
                     }
                 };
 
@@ -975,7 +1032,7 @@
             };
 
             window.toggleEquip = async function (id, type, rawName) {
-                // <i class='fa-solid fa-clapperboard'></i> Feedback tátil imediato
+                // <i class='fa-solid fa-clapperboard'></i> Feedback tÃ¡til imediato
                 const clickedBtn = document.activeElement;
                 if (clickedBtn && clickedBtn.classList.contains('btn-equip')) {
                     clickedBtn.style.transform = 'scale(0.95)';
@@ -1002,8 +1059,8 @@
                 else if (type === "banner") isEquipped = localStorage.getItem(userKey("animehouse_customBanner")) === id;
                 else if (type === "exclusivo" && id.includes("coroa")) {
                     isEquipped = (localStorage.getItem(userKey("animehouse_showCrown")) === "true" && localStorage.getItem(userKey("animehouse_equippedCrownId")) === id);
-                } else if (type === "tema" || id === "tema_cromatico") {
-                    isEquipped = localStorage.getItem(userKey("animehouse_tema_cromatico")) === "true";
+                } else if (type === "tema" || type === "cursor") {
+                    isEquipped = localStorage.getItem(userKey("animehouse_" + id)) === "true";
                 }
 
                 const newState = !isEquipped;
@@ -1026,10 +1083,12 @@
                         store.equipped.crown = false;
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
-                    } else if (type === "tema") {
-                        if (window.setTheme) window.setTheme("theme-ciano");
-                        store.equipped.tema_cromatico = false;
-                        localStorage.removeItem(userKey("animehouse_tema_cromatico"));
+                    } else if (type === "tema" || type === "cursor") {
+                        if (id === "tema_cromatico") {
+                            if (window.setTheme) window.setTheme("theme-ciano");
+                        }
+                        store.equipped[id] = false;
+                        localStorage.removeItem(userKey("animehouse_" + id));
                     }
                 } else {
                     // Equipar
@@ -1050,21 +1109,23 @@
                         store.equipped.crown = true;
                         store.equipped.crownId = id;
                         store.equipped.crownIcon = item?.icon || "<i class='fa-solid fa-crown'></i>";
-                    } else if (type === "tema") {
-                        if (window.setTheme) window.setTheme("theme-cromatico");
-                        store.equipped.tema_cromatico = true;
-                        localStorage.setItem(userKey("animehouse_tema_cromatico"), "true");
+                    } else if (type === "tema" || type === "cursor") {
+                        if (id === "tema_cromatico") {
+                            if (window.setTheme) window.setTheme("theme-cromatico");
+                        }
+                        store.equipped[id] = true;
+                        localStorage.setItem(userKey("animehouse_" + id), "true");
                     }
                 }
 
-                // Salva no background para não travar a UI
+                // Salva no background para nÃ£o travar a UI
                 if (window.DB && window.DB.saveStoreData) {
                     window.DB.saveStoreData(store).catch(console.error);
                 } else {
                     localStorage.setItem(userId ? `animehouse_store_${userId}` : STORE_KEY, JSON.stringify(store));
                 }
 
-                // <i class='fa-solid fa-palette'></i> Atualização VISUAL EM TEMPO REAL (sem renderInventory completo)
+                // <i class='fa-solid fa-palette'></i> AtualizaÃ§Ã£o VISUAL EM TEMPO REAL (sem renderInventory completo)
                 updateItemUI(id, newState, type);
 
                 // Sincroniza Navbar
@@ -1088,9 +1149,9 @@
                         card.classList.toggle('is-equipped', isEquipped);
                         btn.classList.toggle('equipped', isEquipped);
                         
-                        // Atualiza ícone e texto do botão
+                        // Atualiza Ã­cone e texto do botÃ£o
                         if (isEquipped) {
-                            btn.innerHTML = '<span>✓</span> Desmarcar';
+                            btn.innerHTML = '<span>âœ“</span> Desmarcar';
                             if (!card.querySelector('.equipped-ribbon')) {
                                 const ribbon = document.createElement('div');
                                 ribbon.className = 'equipped-ribbon';
@@ -1123,7 +1184,7 @@
                 const container = document.getElementById("inventoryContainer");
                 container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--text-muted);font-size:1.1rem;">
                     <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;margin-bottom:16px;display:block;"></i>
-                    Carregando seu inventário...
+                    Carregando seu inventÃ¡rio...
                 </div>`;
 
                 // Aguarda supabaseClient (injetado pelo auth.js)
@@ -1135,27 +1196,27 @@
 
                 // Sem supabaseClient: tenta localStorage
                 if (!window.supabaseClient) {
-                    console.warn("[Compras] supabaseClient não disponível — usando localStorage.");
+                    console.warn("[Compras] supabaseClient nÃ£o disponÃ­vel â€” usando localStorage.");
                     renderInventory(null, null);
                     return;
                 }
 
-                // Resolve o usuário logado
+                // Resolve o usuÃ¡rio logado
                 let currentUserId = null;
                 try {
                     const { data: { user } } = await window.supabaseClient.auth.getUser();
                     currentUserId = user?.id || null;
                 } catch (e) {
-                    console.warn("[Compras] Erro ao obter usuário:", e);
+                    console.warn("[Compras] Erro ao obter usuÃ¡rio:", e);
                 }
 
                 if (!currentUserId) {
-                    console.warn("[Compras] Usuário não logado.");
+                    console.warn("[Compras] UsuÃ¡rio nÃ£o logado.");
                     renderInventory(null, null);
                     return;
                 }
 
-                // ─── Busca LEVE: só store_data, sem DB.init() pesado ───
+                // â”€â”€â”€ Busca LEVE: sÃ³ store_data, sem DB.init() pesado â”€â”€â”€
                 let finalStore = null;
                 try {
                     const { data, error } = await window.supabaseClient
@@ -1190,7 +1251,7 @@
 
                         // Persiste localmente para uso offline futuro
                         localStorage.setItem(localKey, JSON.stringify(finalStore));
-                        console.log(`[Compras] ✅ ${merged.length} itens carregados do Supabase.`);
+                        console.log(`[Compras] Ã¢Å“â€¦ ${merged.length} itens carregados do Supabase.`);
                     } else {
                         console.log("[Compras] store_data vazio ou perfil sem compras.");
                     }
@@ -1198,10 +1259,10 @@
                     console.warn("[Compras] Falha na query ao Supabase:", err);
                 }
 
-                // ─── Se Supabase não retornou nada, usa localStorage como fallback ───
+                // â”€â”€â”€ Se Supabase nÃ£o retornou nada, usa localStorage como fallback â”€â”€â”€
                 if (!finalStore) {
                     finalStore = getComprasStore(currentUserId);
-                    console.log(`[Compras] ⚠️ Usando localStorage como fallback: ${finalStore?.purchased?.length || 0} itens.`);
+                    console.log(`[Compras] Ã¢Å¡Â Â Usando localStorage como fallback: ${finalStore?.purchased?.length || 0} itens.`);
                 }
 
                 // Renderiza passando store diretamente (sem depender de window.DB._store)
@@ -1210,4 +1271,5 @@
         </script>
     </body>
 </html>
+
 

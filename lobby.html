@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime House — Conectando à Sala</title>
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    .lobby-container {
+      max-width: 600px;
+      margin: 100px auto;
+      text-align: center;
+      background: var(--bg-card);
+      padding: 40px;
+      border-radius: 20px;
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    .loader {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="lobby-container">
+    <div class="loader"></div>
+    <h2 style="color: var(--primary); font-family: 'Bangers', cursive; font-size: 2.5rem; letter-spacing: 2px;">Buscando Sala...</h2>
+    <p id="lobbyStatus" style="color: var(--text-muted); margin-top: 15px;">Conectando com o Host da sala <strong id="roomCodeDisplay"></strong></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js-ofuscado/db.js"></script>
+  <script src="js-ofuscado/auth.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomCode = urlParams.get('room');
+      
+      if (!roomCode) {
+        document.getElementById('lobbyStatus').textContent = "Código de sala inválido.";
+        return;
+      }
+      
+      document.getElementById('roomCodeDisplay').textContent = roomCode;
+
+      // Esperar auth carregar
+      await new Promise(r => setTimeout(r, 1000));
+      if (!window.supabaseClient) {
+        document.getElementById('lobbyStatus').textContent = "Erro ao conectar ao servidor.";
+        return;
+      }
+
+      const channel = window.supabaseClient.channel(`room_${roomCode}`);
+
+      channel.on('broadcast', { event: 'room_info' }, (payload) => {
+        console.log("Recebido info da sala:", payload);
+        const { gameType, theme } = payload.payload;
+        
+        document.getElementById('lobbyStatus').textContent = "Sala encontrada! Redirecionando...";
+        
+        const targetUrl = gameType === 'gartic' ? 'jogo-gartic.html' : 'jogo-velha.html';
+        window.location.href = `${targetUrl}?room=${roomCode}&theme=${theme}&host=false`;
+      });
+
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          // Pede para o Host enviar as infos da sala
+          channel.send({
+            type: 'broadcast',
+            event: 'request_room_info',
+            payload: {}
+          });
+          
+          // Timeout caso a sala não exista
+          setTimeout(() => {
+            if (document.getElementById('lobbyStatus').textContent.includes('Conectando')) {
+              document.getElementById('lobbyStatus').innerHTML = "Nenhum Host encontrado nesta sala. <br><a href='jogos.html' style='color:var(--primary)'>Voltar</a>";
+              document.querySelector('.loader').style.display = 'none';
+            }
+          }, 5000);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

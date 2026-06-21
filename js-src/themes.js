@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const THEME_ALIASES = {
     "": "theme-ciano",
     "theme-default": "theme-ciano",
@@ -11,6 +11,7 @@
     "theme-demon-slayer": "theme-verde-escuro",
     "theme-vagabond": "theme-branco",
     tema_cromatico: "theme-cromatico",
+    tema_natal: "theme-natal",
   };
   const AVAILABLE_THEMES = new Set([
     "theme-ciano",
@@ -24,6 +25,7 @@
     "theme-branco",
     "theme-aqua-verde",
     "theme-cromatico",
+    "theme-natal",
   ]);
 
   const ALL_THEME_CLASSES = [
@@ -47,6 +49,7 @@
     "theme-vagabond",
     "theme-aqua-verde",
     "theme-cromatico",
+    "theme-natal",
   ];
 
   const CHROMATIC_THEME = "theme-cromatico";
@@ -111,43 +114,91 @@
     startChromaticCycle();
   }
 
+  function syncNatalDecorations(theme) {
+    const isNatal = normalizeTheme(theme) === "theme-natal";
+    const existingDecor = document.getElementById("natal-decorations");
+
+    if (!isNatal) {
+      if (existingDecor) existingDecor.remove();
+      return;
+    }
+
+    if (!existingDecor && document.body) {
+      const decorContainer = document.createElement("div");
+      decorContainer.id = "natal-decorations";
+      decorContainer.innerHTML = `
+        <div class="christmas-snowflakes">
+          ${Array(30).fill('<div class="snowflake">â„</div>').join("")}
+        </div>
+        <ul class="christmas-lights">
+          ${Array(20).fill('<li></li>').join("")}
+        </ul>
+        <div class="corner-decor top-left"></div>
+        <div class="corner-decor bottom-right"></div>
+      `;
+      document.body.appendChild(decorContainer);
+    }
+  }
+
   function normalizeTheme(theme) {
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
-    
-    // Proteção para o tema cromático: isolamento por usuário
+
+    // ProteÃ§Ã£o para o tema cromÃ¡tico: isolamento por usuÃ¡rio
     if (rawTheme === "theme-cromatico") {
       let uid = null;
       try {
-          const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
-          uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
-      } catch(e) {}
+        const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+        uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+      } catch (e) { }
 
       const userKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
-      const isEquipped = localStorage.getItem(userKey) === "true" || 
-                         (window.DB?._store?.profile?.store_data?.equipped?.tema_cromatico === true);
-      
+      const isEquipped = localStorage.getItem(userKey) === "true" ||
+        (window.DB?._store?.profile?.store_data?.equipped?.tema_cromatico === true);
+
+      if (!isEquipped) return "theme-ciano";
+    }
+
+    if (rawTheme === "theme-natal") {
+      let uid = null;
+      try {
+        const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+        uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+      } catch (e) { }
+
+      const userKey = uid ? `animehouse_tema_natal_${uid}` : "animehouse_tema_natal";
+      const isEquipped = localStorage.getItem(userKey) === "true" ||
+        (window.DB?._store?.profile?.store_data?.equipped?.tema_natal === true);
+
       if (!isEquipped) return "theme-ciano";
     }
 
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
-  // Restaurar tema cromático de volta à sessionStorage se estava equipado no localStorage (user-scoped)
+  // Restaurar tema cromÃ¡tico de volta Ã  sessionStorage se estava equipado no localStorage (user-scoped)
   const syncChromaticTheme = () => {
-      let uid = null;
-      try {
-          const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
-          uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
-      } catch(e) {}
-      
-      const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
-      if (
-        localStorage.getItem(themeKey) === "true" &&
-        (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
-      ) {
-        sessionStorage.setItem("theme", "theme-cromatico");
-      }
+    let uid = null;
+    try {
+      const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+      uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+    } catch (e) { }
+
+    const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
+    if (
+      localStorage.getItem(themeKey) === "true" &&
+      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
+    ) {
+      sessionStorage.setItem("theme", "theme-cromatico");
+    }
+
+    const natalKey = uid ? `animehouse_tema_natal_${uid}` : "animehouse_tema_natal";
+    if (
+      localStorage.getItem(natalKey) === "true" &&
+      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
+    ) {
+      sessionStorage.setItem("theme", "theme-natal");
+    }
   };
   syncChromaticTheme();
 
@@ -156,6 +207,7 @@
   document.documentElement.className = savedTheme;
   sessionStorage.setItem("theme", savedTheme);
   syncChromaticRuntimeClasses(savedTheme);
+  syncNatalDecorations(savedTheme);
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!document.body) return;
@@ -164,6 +216,7 @@
     ALL_THEME_CLASSES.forEach((cls) => document.body.classList.remove(cls));
     document.body.classList.add(currentTheme);
     syncChromaticRuntimeClasses(currentTheme);
+    syncNatalDecorations(currentTheme);
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -198,6 +251,7 @@
     }
 
     syncChromaticRuntimeClasses(themeToApply);
+    syncNatalDecorations(themeToApply);
 
     sessionStorage.setItem("theme", themeToApply);
 
@@ -225,7 +279,7 @@
     wrapper.id = "theme-switcher";
     wrapper.className = "theme-switcher-wrapper";
     wrapper.innerHTML = `
-            <button class="theme-main-btn" title="Mudar cor"><span>🎨</span></button>
+            <button class="theme-main-btn" title="Mudar cor"><span>ðŸŽ¨</span></button>
             <div class="theme-options">
                 <button class="theme-opt-btn" data-theme="theme-ciano" title="Ciano" aria-label="Ciano"></button>
                 <button class="theme-opt-btn" data-theme="theme-verde" title="Verde" aria-label="Verde"></button>
@@ -319,13 +373,13 @@
       links.appendChild(li);
     });
 
-    // Restaura a posição do scroll da navbar salva no localStorage
+    // Restaura a posiÃ§Ã£o do scroll da navbar salva no localStorage
     const savedScroll = localStorage.getItem("navbarScrollPosition");
     if (savedScroll) {
       links.scrollLeft = parseInt(savedScroll);
     }
 
-    // Salva a posição do scroll sempre que houver rolagem
+    // Salva a posiÃ§Ã£o do scroll sempre que houver rolagem
     links.addEventListener("scroll", () => {
       localStorage.setItem("navbarScrollPosition", links.scrollLeft.toString());
     });
@@ -356,3 +410,4 @@
     setupNavbarScrollIndicator();
   });
 })();
+

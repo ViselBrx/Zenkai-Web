@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo da Velha Temático</title>
+  <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    .game-container {
+      max-width: 600px;
+      margin: 40px auto;
+      text-align: center;
+      background: var(--bg-card);
+      padding: 30px;
+      border-radius: 20px;
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+    
+    .room-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+    }
+
+    .player-profile-img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 5px;
+      vertical-align: middle;
+      border: 1px solid var(--primary);
+    }
+
+    .room-code {
+      background: rgba(var(--primary-rgb), 0.1);
+      padding: 5px 15px;
+      border-radius: 10px;
+      border: 1px solid var(--primary);
+      font-weight: bold;
+      color: var(--primary);
+      letter-spacing: 1px;
+    }
+
+    .status-text {
+      font-family: 'Bangers', cursive;
+      font-size: 2rem;
+      color: #fff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.5);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 0 auto 30px auto;
+      max-width: 400px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(var(--primary-rgb), 0.3);
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cell:hover {
+      background: rgba(var(--primary-rgb), 0.1);
+      border-color: var(--primary);
+    }
+
+    .cell.taken {
+      cursor: not-allowed;
+    }
+
+    .player-indicator {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .player-card {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      opacity: 0.5;
+      transition: all 0.3s;
+    }
+
+    .player-card.active {
+      opacity: 1;
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.3);
+    }
+    
+    .player-icon {
+      font-size: 2rem;
+      margin-bottom: 5px;
+    }
+
+    .btn-exit {
+      background: var(--danger, #ef4444);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .btn-exit:hover {
+      background: #dc2626;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+<body>
+  
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
+      <span>Anime</span>House
+    </a>
+  </nav>
+
+  <main class="container">
+    <div class="game-container">
+      <div class="room-header">
+        <div>
+          <span style="color: var(--text-muted); font-size: 0.9rem;">Sala:</span>
+          <span id="displayRoomCode" class="room-code">SALA-----</span>
+        </div>
+        <button class="btn-exit" onclick="window.location.href='jogos.html'">Sair</button>
+      </div>
+
+      <div class="player-indicator">
+        <div id="p1Card" class="player-card active">
+          <div id="p1Icon" class="player-icon">⚔️</div>
+          <div id="p1Name">Jogador 1</div>
+        </div>
+        <div id="p2Card" class="player-card">
+          <div id="p2Icon" class="player-icon">🛡️</div>
+          <div id="p2Name">Aguardando...</div>
+        </div>
+      </div>
+
+      <div id="statusText" class="status-text">Aguardando oponente...</div>
+
+      <div class="board" id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js-ofuscado/db.js"></script>
+  <script src="js-ofuscado/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomCode = urlParams.get('room');
+      const theme = urlParams.get('theme') || 'livre';
+      const isHost = urlParams.get('host') === 'true';
+
+      if (!roomCode) {
+        window.location.href = 'jogos.html';
+        return;
+      }
+
+      document.getElementById('displayRoomCode').textContent = roomCode;
+
+      // Temas (Caminhos para as imagens que você vai colocar em assets/personagens)
+      // Se não achar imagem, ele cai graciosamente para emojis no "livre".
+      const themeIcons = {
+        'livre': ['❌', '⭕'],
+        'naruto': ['assets/personagens/naruto.png', 'assets/personagens/sasuke.png'],
+        'aot': ['assets/personagens/eren.png', 'assets/personagens/tita.png'],
+        'demon-slayer': ['assets/personagens/tanjiro.png', 'assets/personagens/rui.png'],
+        'apenas-um-show': ['assets/personagens/rigby.png', 'assets/personagens/mordecai.png'],
+        'gumball': ['assets/personagens/gumball.png', 'assets/personagens/darwin.png'],
+        'hora-de-aventura': ['assets/personagens/finn.png', 'assets/personagens/jake.png']
+      };
+
+      const icons = themeIcons[theme] || themeIcons['livre'];
+
+      function getIconHTML(iconData) {
+        if (iconData.startsWith('assets')) {
+          return `<img src="${iconData}" style="width: 80%; height: 80%; object-fit: contain; pointer-events: none;" alt="Personagem">`;
+        }
+        return iconData;
+      }
+
+      document.getElementById('p1Icon').innerHTML = getIconHTML(icons[0]);
+      document.getElementById('p2Icon').innerHTML = getIconHTML(icons[1]);
+
+      let board = ['', '', '', '', '', '', '', '', ''];
+      let myTurn = isHost; // Host começa
+      let gameActive = false;
+      let opponentPresent = false;
+
+      // Esperar auth inicializar
+      await new Promise(r => setTimeout(r, 1000));
+      if (!window.supabaseClient) {
+        alert("Erro ao conectar ao servidor. Tente recarregar.");
+        return;
+      }
+
+      // Pegar perfil local do Supabase Auth
+      let myName = isHost ? "Jogador 1" : "Jogador 2";
+      let myAvatar = "";
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (session && session.user) {
+        const meta = session.user.user_metadata || {};
+        myName = meta.username || meta.full_name || meta.name || myName;
+        myAvatar = meta.avatar_url || meta.picture || "";
+      }
+
+      const channel = window.supabaseClient.channel(`room_${roomCode}`, {
+        config: {
+          presence: { key: isHost ? 'host' : 'guest' },
+        },
+      });
+
+      // Lógica de Presence (Para ver quem entrou)
+      channel.on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        
+        // Atualiza Host
+        if (state.host && state.host.length > 0) {
+          const hostData = state.host[0];
+          const avatarHtml = hostData.avatar ? `<img src="${hostData.avatar}" class="player-profile-img">` : '';
+          document.getElementById('p1Name').innerHTML = `${avatarHtml}${hostData.name}`;
+        }
+
+        // Atualiza Guest
+        if (state.guest && state.guest.length > 0) {
+          const guestData = state.guest[0];
+          const avatarHtml = guestData.avatar ? `<img src="${guestData.avatar}" class="player-profile-img">` : '';
+          document.getElementById('p2Name').innerHTML = `${avatarHtml}${guestData.name}`;
+          
+          if (!opponentPresent) {
+            alert(`O usuário ${guestData.name} entrou na sala!`);
+          }
+          
+          opponentPresent = true;
+          if (!gameActive && board.every(c => c === '')) {
+            gameActive = true;
+            updateStatusText();
+          }
+        } else {
+          document.getElementById('p2Name').textContent = 'Aguardando...';
+          opponentPresent = false;
+          if (gameActive) {
+            gameActive = false;
+            document.getElementById('statusText').textContent = "Oponente desconectou.";
+          }
+        }
+      });
+
+      // Lógica de Broadcast (Jogadas e Infos)
+      channel.on('broadcast', { event: 'request_room_info' }, () => {
+        if (isHost) {
+          channel.send({
+            type: 'broadcast',
+            event: 'room_info',
+            payload: { gameType: 'velha', theme: theme }
+          });
+        }
+      });
+
+      channel.on('broadcast', { event: 'move' }, (payload) => {
+        const { index, icon } = payload.payload;
+        board[index] = icon;
+        document.querySelector(`.cell[data-index="${index}"]`).innerHTML = getIconHTML(icon);
+        document.querySelector(`.cell[data-index="${index}"]`).classList.add('taken');
+        
+        checkWin();
+        if (gameActive) {
+          myTurn = true;
+          updateStatusText();
+        }
+      });
+
+      channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ 
+            online_at: new Date().toISOString(),
+            name: myName,
+            avatar: myAvatar
+          });
+          
+          if (!isHost) {
+            // Inicialmente colocar seu próprio nome até syncar
+            const avatarHtml = myAvatar ? `<img src="${myAvatar}" class="player-profile-img">` : '';
+            document.getElementById('p2Name').innerHTML = `${avatarHtml}Você (${myName})`;
+          } else {
+            const avatarHtml = myAvatar ? `<img src="${myAvatar}" class="player-profile-img">` : '';
+            document.getElementById('p1Name').innerHTML = `${avatarHtml}Você (${myName})`;
+          }
+        }
+      });
+
+      function updateStatusText() {
+        const statusEl = document.getElementById('statusText');
+        const p1Card = document.getElementById('p1Card');
+        const p2Card = document.getElementById('p2Card');
+
+        if (myTurn) {
+          statusEl.textContent = "Sua vez de jogar!";
+          if (isHost) { p1Card.classList.add('active'); p2Card.classList.remove('active'); }
+          else { p2Card.classList.add('active'); p1Card.classList.remove('active'); }
+        } else {
+          statusEl.textContent = "Vez do oponente...";
+          if (isHost) { p2Card.classList.add('active'); p1Card.classList.remove('active'); }
+          else { p1Card.classList.add('active'); p2Card.classList.remove('active'); }
+        }
+      }
+
+      const winningCombinations = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
+        [0, 4, 8], [2, 4, 6]             // Diagonais
+      ];
+
+      function checkWin() {
+        let roundWon = false;
+        let winnerIcon = '';
+        for (let i = 0; i < winningCombinations.length; i++) {
+          const [a, b, c] = winningCombinations[i];
+          if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+            roundWon = true;
+            winnerIcon = board[a];
+            break;
+          }
+        }
+
+        if (roundWon) {
+          gameActive = false;
+          const myIcon = isHost ? icons[0] : icons[1];
+          if (winnerIcon === myIcon) {
+            document.getElementById('statusText').textContent = "🏆 Você Venceu! +50 XP";
+            document.getElementById('statusText').style.color = "var(--success, #10b981)";
+            addXP(50);
+          } else {
+            document.getElementById('statusText').textContent = "💀 Você Perdeu!";
+            document.getElementById('statusText').style.color = "var(--danger, #ef4444)";
+          }
+          return;
+        }
+
+        if (!board.includes('')) {
+          gameActive = false;
+          document.getElementById('statusText').textContent = "🤝 Empate!";
+          return;
+        }
+      }
+
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.addEventListener('click', () => {
+          if (!gameActive || !myTurn || !opponentPresent) return;
+          
+          const index = cell.getAttribute('data-index');
+          if (board[index] !== '') return; // Já preenchido
+
+          const myIcon = isHost ? icons[0] : icons[1];
+          
+          board[index] = myIcon;
+          cell.innerHTML = getIconHTML(myIcon);
+          cell.classList.add('taken');
+          myTurn = false;
+          updateStatusText();
+          checkWin();
+
+          channel.send({
+            type: 'broadcast',
+            event: 'move',
+            payload: { index: parseInt(index), icon: myIcon }
+          });
+        });
+      });
+
+      async function addXP(amount) {
+        // Usa a tabela history global (ou a que eles usam para XP)
+        // Por hora, apenas simulando que salvou. O db.js lidará com a atualização visual no perfil.
+        console.log(`XP Adicionado: ${amount}`);
+        // Se houver uma função window.addXpGlobal() no futuro, ela será chamada aqui.
+      }
+
+      if (!isHost) updateStatusText(); // Update inicial para convidado
+    });
+  </script>
+  <div class="watermark"><a href="sobre.html" style="color: inherit; text-decoration: none;">&copy; ViselBrx & DaviMoraes07&trade;</a></div>
+</body>
+</html>
