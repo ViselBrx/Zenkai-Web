@@ -1,4 +1,4 @@
-/**
+﻿/**
  * js/auth.js â€” Configuração e Lógica do Supabase (LIMPO E ORGANIZADO)
  */
 
@@ -979,8 +979,11 @@ window.updateNavbarCosmetics = function () {
     if (sbCrown) {
       sbCrown.style.display = savedCrown ? "block" : "none";
       if (savedCrown) {
-        const crownIcon = getCosmetic("crownIcon", "👑");
-        sbCrown.textContent = crownIcon;
+        let crownIcon = getCosmetic("crownIcon", "👑");
+        if (crownIcon.includes("gorrodenatal.png") || crownIcon === "🎅" || crownIcon.includes("??")) {
+          crownIcon = "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>";
+        }
+        sbCrown.innerHTML = crownIcon;
       }
     }
   }
@@ -999,7 +1002,10 @@ window.updateNavbarCosmetics = function () {
     if (savedCrown) {
       const crown = document.createElement("div");
       crown.className = "crown-nav"; // Usar classe do style.css
-      const crownIcon = getCosmetic("crownIcon", "👑");
+      let crownIcon = getCosmetic("crownIcon", "👑");
+      if (crownIcon.includes("gorrodenatal.png") || crownIcon === "🎅" || crownIcon.includes("??")) {
+        crownIcon = "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>";
+      }
       crown.innerHTML = crownIcon;
       avatarBox.appendChild(crown);
     }
@@ -1476,6 +1482,168 @@ document.addEventListener("keydown", (e) => {
     }
   }
 });
+
+// ===== NOTIFICATION CENTER UI HELPERS =====
+
+function updateNotificationBadge(count) {
+  const badge = document.getElementById('navbarBellBadge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function fetchNotificationCount() {
+  if (!supaClient || !notificationState.userId) return;
+  try {
+    const { count } = await supaClient
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', notificationState.userId)
+      .eq('read', false);
+    updateNotificationBadge(count || 0);
+  } catch (e) {
+    console.warn('[NotificationHub] Erro ao buscar contagem:', e);
+  }
+}
+
+function createNotificationCenterUI() {
+  const existingCenter = document.getElementById('notificationCenter');
+  const existingOverlay = document.getElementById('notificationOverlay');
+  if (existingCenter) existingCenter.remove();
+  if (existingOverlay) existingOverlay.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'notificationOverlay';
+  overlay.className = 'notification-center-overlay';
+  overlay.onclick = () => toggleNotificationCenter();
+
+  const center = document.createElement('div');
+  center.id = 'notificationCenter';
+  center.className = 'notification-center';
+
+  const adminPanelHtml = notificationState.isAdmin ? `
+    <details class="notification-admin-panel" style="margin-bottom:1rem;">
+      <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:8px 0;">
+        <i class="fa-solid fa-shield-halved"></i> Painel Admin - Enviar Notificação
+      </summary>
+      <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
+        <input id="adminNotifUserId" type="text" placeholder="User ID do destinatário (deixe vazio para todos)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <input id="adminNotifTitle" type="text" placeholder="Título da notificação" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <textarea id="adminNotifMessage" rows="2" placeholder="Mensagem..." style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem; resize:vertical;"></textarea>
+        <input id="adminNotifLink" type="text" placeholder="Link (opcional)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <button onclick="sendAdminNotification()" style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; font-weight:700;">
+          <i class="fa-solid fa-paper-plane"></i> Enviar
+        </button>
+      </div>
+    </details>
+   ` : '';
+
+  center.innerHTML = `
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+      <h3 style="font-family:'Bangers'; font-size:1.4rem; color:var(--primary); letter-spacing:1px; margin:0;">
+        <i class="fa-solid fa-bell"></i> Notificações
+      </h3>
+      <button class="notification-center__close" onclick="toggleNotificationCenter()" title="Fechar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    ${adminPanelHtml}
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <div style="display:flex; gap:0.5rem;">
+        <button class="notif-tab active" data-tab="all" onclick="switchNotifTab('all', this)">Todas</button>
+        <button class="notif-tab" data-tab="site" onclick="switchNotifTab('site', this)">Site</button>
+        <button class="notif-tab" data-tab="chat" onclick="switchNotifTab('chat', this)">Chat</button>
+      </div>
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-left:auto;">
+        <input type="checkbox" id="selectAllNotifs" title="Selecionar todas" style="cursor:pointer;">
+        <span style="font-size:0.8rem; color:var(--text-muted);">Selecionar todas</span>
+      </div>
+    </div>
+    <div id="notifCenterContent" class="notification-center__content">
+      <div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregando...</div>
+    </div>
+    <div class="notification-center__footer" style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+      <div style="display:flex; gap:0.5rem;">
+        <button id="markSelectedReadBtn" class="btn-notif-action" onclick="handleBatchAction('read')" disabled>
+          <i class="fa-solid fa-check-double"></i> Marcar lidas
+        </button>
+        <button id="deleteSelectedBtn" class="btn-notif-action danger" onclick="handleBatchAction('delete')" disabled>
+          <i class="fa-solid fa-trash"></i> Excluir
+        </button>
+      </div>
+      <button class="btn-notif-action" onclick="markAllAsRead()">
+        <i class="fa-solid fa-envelope-open"></i> Marcar todas como lidas
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.appendChild(center);
+
+  const selectAll = document.getElementById('selectAllNotifs');
+  if (selectAll) {
+    selectAll.onchange = () => {
+      const content = document.getElementById('notifCenterContent');
+      const checkboxes = content?.querySelectorAll('.notification-item__checkbox') || [];
+      checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+      syncNotificationSelectionState();
+    };
+  }
+}
+function attachNotificationListeners() {
+  const bell = document.getElementById('navbarBellTrigger');
+  if (bell && !bell._notifListenerAttached) {
+    bell.onclick = (e) => {
+      e.stopPropagation();
+      toggleNotificationCenter();
+    };
+    bell._notifListenerAttached = true;
+  }
+  const selectAll = document.getElementById('selectAllNotifs');
+  if (selectAll) {
+    selectAll.onchange = () => {
+      const content = document.getElementById('notifCenterContent');
+      const checkboxes = content?.querySelectorAll('.notification-item__checkbox') || [];
+      checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
+      syncNotificationSelectionState();
+    };
+  }
+}
+
+window.switchNotifTab = function(tab, btnEl) {
+  document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  notificationState.activeFilter = tab;
+  notificationState.notifications = [];
+  loadNotificationsList(tab);
+};
+
+window.sendAdminNotification = async function() {
+  if (!supaClient) return;
+  const userId = document.getElementById('adminNotifUserId')?.value.trim();
+  const title = document.getElementById('adminNotifTitle')?.value.trim();
+  const message = document.getElementById('adminNotifMessage')?.value.trim();
+  const link = document.getElementById('adminNotifLink')?.value.trim();
+  if (!title || !message) {
+    if (window.showToast) showToast('Preencha título e mensagem.', 'error');
+    return;
+  }
+  const payload = { title, message, link: link || null, type: 'site', read: false };
+  if (userId) payload.user_id = userId;
+  const { error } = await supaClient.from('notifications').insert([payload]);
+  if (error) {
+    if (window.showToast) showToast('Erro ao enviar notificação.', 'error');
+  } else {
+    if (window.showToast) showToast('Notificação enviada!', 'success');
+    document.getElementById('adminNotifTitle').value = '';
+    document.getElementById('adminNotifMessage').value = '';
+    document.getElementById('adminNotifLink').value = '';
+    document.getElementById('adminNotifUserId').value = '';
+  }
+};
 
 // Notification hub overrides
 async function initializeNotificationHub(userId) {

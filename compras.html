@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
     <head>
         <meta charset="UTF-8" />
@@ -675,7 +675,7 @@
                 {
                     id: "coroa_gorro_natal",
                     name: "Gorro do Noel",
-                    icon: "🎅",
+                    icon: "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>",
                     category: "exclusivo",
                     currency: "esmeralda",
                     price: 3,
@@ -1133,6 +1133,7 @@
 
                 // Sincroniza Navbar
                 if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+                if (window.updateCursorEffect) window.updateCursorEffect();
                 
                 if (typeof showToast === "function")
                     showToast(newState ? "Item equipado com sucesso!" : "Item desmarcado!", "success");

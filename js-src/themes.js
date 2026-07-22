@@ -128,7 +128,7 @@
       decorContainer.id = "natal-decorations";
       decorContainer.innerHTML = `
         <div class="christmas-snowflakes">
-          ${Array(30).fill('<div class="snowflake">❄️</div>').join("")}
+          ${Array(30).fill('<div class="snowflake"><i class="fa-solid fa-snowflake"></i></div>').join("")}
         </div>
         <ul class="christmas-lights">
           ${Array(20).fill('<li></li>').join("")}
@@ -411,3 +411,184 @@
   });
 })();
 
+
+  // ===== CURSOR EFFECTS SYSTEM (LIGHTWEIGHT VANILLA CANVAS) =====
+  let cursorCanvas = null;
+  let cursorCtx = null;
+  let cursorParticles = [];
+  let cursorActiveType = null; // 'rgb', 'gelo', 'camaleao'
+  let cursorMousePos = { x: 0, y: 0 };
+  let cursorAnimationFrame = null;
+
+  class CursorParticle {
+    constructor(x, y, type, color) {
+      this.x = x;
+      this.y = y;
+      this.type = type;
+      this.color = color;
+      this.size = type === 'gelo' ? Math.random() * 8 + 4 : Math.random() * 6 + 3;
+      this.alpha = 1;
+      
+      if (type === 'gelo') {
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = Math.random() * 1.2 + 0.8; // fall down
+        this.spin = Math.random() * 0.1 - 0.05;
+        this.angle = Math.random() * Math.PI * 2;
+        this.decay = Math.random() * 0.015 + 0.01;
+      } else {
+        this.vx = (Math.random() - 0.5) * 1.0;
+        this.vy = (Math.random() - 0.5) * 1.0;
+        this.decay = Math.random() * 0.02 + 0.015;
+      }
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= this.decay;
+      if (this.type === 'gelo') {
+        this.angle += this.spin;
+      }
+    }
+
+    draw(ctx) {
+      ctx.save();
+      ctx.globalAlpha = this.alpha;
+      
+      if (this.type === 'gelo') {
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `${this.size}px Arial`;
+        ctx.fillText('❄', -this.size/2, this.size/2);
+      } else {
+        // Glowing dot
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function getThemeColor() {
+    const computed = getComputedStyle(document.documentElement);
+    const primary = computed.getPropertyValue('--primary').trim();
+    return primary || '#00e1ff';
+  }
+
+  function getRGBColor(tick) {
+    const hue = (tick) % 360;
+    return `hsl(${hue}, 100%, 65%)`;
+  }
+
+  function handleMouseMove(e) {
+    cursorMousePos.x = e.clientX;
+    cursorMousePos.y = e.clientY;
+
+    if (!cursorActiveType) return;
+    
+    // Spawn particles on move
+    const spawnCount = cursorActiveType === 'gelo' ? 1 : 2;
+    for (let i = 0; i < spawnCount; i++) {
+      let color = '#fff';
+      if (cursorActiveType === 'rgb') {
+        color = getRGBColor(Date.now() / 8);
+      } else if (cursorActiveType === 'camaleao') {
+        color = getThemeColor();
+      }
+      cursorParticles.push(new CursorParticle(cursorMousePos.x, cursorMousePos.y, cursorActiveType, color));
+    }
+  }
+
+  function animateCursor() {
+    if (!cursorCtx || !cursorCanvas) return;
+    cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+    for (let i = cursorParticles.length - 1; i >= 0; i--) {
+      const p = cursorParticles[i];
+      p.update();
+      if (p.alpha <= 0) {
+        cursorParticles.splice(i, 1);
+      } else {
+        p.draw(cursorCtx);
+      }
+    }
+
+    cursorAnimationFrame = requestAnimationFrame(animateCursor);
+  }
+
+  function resizeCursorCanvas() {
+    if (cursorCanvas) {
+      cursorCanvas.width = window.innerWidth;
+      cursorCanvas.height = window.innerHeight;
+    }
+  }
+
+  function initCursorEffect(type) {
+    cursorActiveType = type;
+    if (!type) {
+      destroyCursorEffect();
+      return;
+    }
+
+    if (!cursorCanvas) {
+      cursorCanvas = document.createElement('canvas');
+      cursorCanvas.id = 'theme-cursor-canvas';
+      cursorCanvas.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:999999;';
+      document.body.appendChild(cursorCanvas);
+      cursorCtx = cursorCanvas.getContext('2d');
+      
+      window.addEventListener('resize', resizeCursorCanvas);
+      window.addEventListener('mousemove', handleMouseMove);
+      resizeCursorCanvas();
+    }
+
+    if (!cursorAnimationFrame) {
+      animateCursor();
+    }
+  }
+
+  function destroyCursorEffect() {
+    if (cursorAnimationFrame) {
+      cancelAnimationFrame(cursorAnimationFrame);
+      cursorAnimationFrame = null;
+    }
+    if (cursorCanvas) {
+      window.removeEventListener('resize', resizeCursorCanvas);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cursorCanvas.remove();
+      cursorCanvas = null;
+      cursorCtx = null;
+    }
+    cursorParticles = [];
+    cursorActiveType = null;
+  }
+
+  window.updateCursorEffect = function() {
+    let uid = null;
+    try {
+      const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+      uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
+    } catch (e) { }
+
+    const uKey = (base) => uid ? `${base}_${uid}` : base;
+
+    if (localStorage.getItem(uKey("animehouse_cursor_rgb")) === "true") {
+      initCursorEffect('rgb');
+    } else if (localStorage.getItem(uKey("animehouse_cursor_gelo")) === "true") {
+      initCursorEffect('gelo');
+    } else if (localStorage.getItem(uKey("animehouse_cursor_camaleao")) === "true") {
+      initCursorEffect('camaleao');
+    } else {
+      initCursorEffect(null);
+    }
+  };
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Wait a brief moment to ensure Supabase session is read
+    setTimeout(window.updateCursorEffect, 300);
+  });

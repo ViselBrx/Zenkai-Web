@@ -1,4 +1,4 @@
-/**
+﻿/**
  * db.js — Cliente Supabase AnimeHouse
  * =====================================
  * Modificado para usar Supabase no lugar de armazenamento local!
@@ -200,7 +200,7 @@ const ALL_ITEMS = [
     {
       id: "coroa_gorro_natal",
       name: "Gorro do Noel",
-      icon: "🎅",
+      icon: "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>",
       category: "exclusivo",
       currency: "esmeralda",
       price: 3,

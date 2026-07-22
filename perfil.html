@@ -3001,7 +3001,7 @@
         {
           id: "coroa_gorro_natal",
           name: "Gorro do Noel",
-          icon: "🎅",
+          icon: "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>",
           category: "exclusivo",
           currency: "esmeralda",
           price: 3,
@@ -5757,6 +5757,7 @@
             updateItemCardVisual(id, newState, type);
             updateEquippedPanel();
             if (window.updateNavbarCosmetics) window.updateNavbarCosmetics();
+            if (window.updateCursorEffect) window.updateCursorEffect();
           };
 
           // Função helper para atualizar visual do card específico

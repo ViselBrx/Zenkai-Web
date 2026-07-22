@@ -1,4 +1,4 @@
-﻿/* ===== FONTES ===== */
+/* ===== FONTES ===== */
 @import url("https://fonts.googleapis.com/css2?family=Bangers&family=Black+Ops+One&family=Fredoka:wght@600;700&family=Fredoka+One&family=Lilita+One&family=Nunito:wght@400;600;700;800;900&family=Poppins:wght@400;500;600;700&family=Righteous:wght@400;700&family=Audiowide&display=swap");
 
 /* ===== VARIÃƒÆ’Ã‚ÂVEIS PRINCIPAIS + TODOS OS TEMAS ===== */
@@ -2139,6 +2139,30 @@ body {
     0 0 20px rgba(255, 215, 0, 0.5);
   pointer-events: none;
   animation: crown-float 3s ease-in-out infinite;
+}
+
+/* Gorro de Noel Icon and Placement Styles */
+.gorro-img-cosmetic {
+  width: 1.25em;
+  height: 1.25em;
+  object-fit: contain;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* Adjustments when worn on the head */
+.crown-nav .gorro-img-cosmetic {
+  width: 1.85em;
+  height: 1.85em;
+  transform: translate(0.12em, 4px) rotate(-5deg);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));
+}
+
+#sidebarCrown .gorro-img-cosmetic {
+  width: 2.25em;
+  height: 2.25em;
+  transform: translate(0.15em, 5px) rotate(-5deg);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.45));
 }
 
 @keyframes crown-float {
