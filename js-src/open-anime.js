@@ -77,6 +77,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  function sanitizeAIResponseText(value) {
+    const text = normalizeBrokenEncoding(String(value ?? ''));
+    if (!text) return '';
+
+    return text
+      .split(/\r?\n/)
+      .filter((line) => {
+        const trimmed = line.trim();
+        if (!trimmed) return true;
+        return !/^(?:user\s+safety|safety(?:\s+rating(?:s)?)?)\s*:\s*.+$/i.test(trimmed);
+      })
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens, mas seja UM POUCO MAIS CONCISO E DIRETO, reduzindo um pouco o volume de texto sem perder a qualidade. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
@@ -87,9 +103,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const GEMINI_VISION_MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-2.0-flash'];
   const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
   const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
-  const DEFAULT_GROQ_MODEL = 'google/gemma-4-31b-it:free';
-  const COMPARE_FALLBACK_GROQ_MODEL = 'google/gemma-4-31b-it:free';
-  const COMPARE_MAX_TOKENS = 1400;
+  const DEFAULT_GROQ_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
+  const COMPARE_GROQ_MODEL = 'google/gemma-4-31b-it:free';
+  const COMPARE_FALLBACK_GROQ_MODEL = DEFAULT_GROQ_MODEL;
+  const COMPARE_MAX_TOKENS = 1100;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
@@ -739,7 +756,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderVisionResult(text) {
     if (!visionOutput) return;
-    const normalizedText = normalizeBrokenEncoding(text || 'Nenhum resultado retornado.');
+    const normalizedText = sanitizeAIResponseText(text || 'Nenhum resultado retornado.');
     
     // Como a div output tem position relative, o botao de copy funcionara bem.
     visionOutput.innerHTML = `<div class="msg-content">${formatAIResponse(normalizedText)}</div>`;
@@ -761,7 +778,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderComparisonResult(text) {
     if (!compareResult) return;
-    const normalizedText = normalizeBrokenEncoding(text || '');
+    const normalizedText = sanitizeAIResponseText(text || '');
     if (!normalizedText) {
       compareResult.style.display = 'none';
       return;
@@ -1185,13 +1202,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function requestAIText(requestMessages, options = {}) {
-    const target = options.target || 'openrouter';
+    let target = options.target || 'openrouter';
     const context = options.context || 'chat';
     const model = options.model || DEFAULT_GROQ_MODEL;
     const modelQueue = context === 'compare'
       ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
       : [model];
     const maxRetriesPerModel = 2;
+
+    if (window.ENV && window.ENV.GEMINI_KEY_SET && target === 'openrouter') {
+      target = 'gemini';
+    }
 
     let aiResponse = '';
     let lastError = null;
@@ -1650,9 +1671,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      const requestMessages = useChatContext
+      let requestMessages = useChatContext
         ? chatHistory.map(({ role, content }) => ({ role, content }))
         : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
+
+      if (useChatContext && context === 'chat' && currentChatThreadId) {
+        try {
+          const persisted = await loadAIHistoryMessages({
+            context: 'chat',
+            metadataContains: { threadId: currentChatThreadId },
+            limit: 500
+          });
+
+          if (Array.isArray(persisted) && persisted.length > 0) {
+            const persistedMessages = persisted.map((msg) => ({
+              role: msg.role,
+              content: normalizeBrokenEncoding(msg.content)
+            }));
+
+            const merged = [];
+            const seen = new Set();
+            for (const message of [...persistedMessages, ...requestMessages]) {
+              const key = `${message.role}:${String(message.content || '')}`;
+              if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(message);
+              }
+            }
+            requestMessages = merged;
+          }
+        } catch (historyError) {
+          console.warn('Falha ao carregar histórico completo do chat:', historyError);
+        }
+      }
 
       chatAssistantEntry = null;
       lastMsgElement = null;
@@ -1674,15 +1725,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         context,
         temperature: options.temperature,
         max_tokens: options.max_tokens,
-        stream: useChatContext,
+        stream: options.stream === true,
         onChunk: (chunk, fullText) => {
           if (chatAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
-            chatAssistantEntry.content = fullText;
+            const sanitizedText = sanitizeAIResponseText(fullText);
+            chatAssistantEntry.content = sanitizedText;
             const contentDiv = lastMsgElement.querySelector('.msg-content');
             if (contentDiv) {
-              contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
+              contentDiv.innerHTML = formatAIResponse(sanitizedText);
               const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
-              if (copyBtn) copyBtn.dataset.rawText = fullText;
+              if (copyBtn) copyBtn.dataset.rawText = sanitizedText;
               if (chatWindow) {
                 const isNearBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 150;
                 if (isNearBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight });
@@ -1693,11 +1745,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
 
       if (useChatContext && chatAssistantEntry) {
-        chatAssistantEntry.content = aiResponse;
+        chatAssistantEntry.content = sanitizeAIResponseText(aiResponse);
         persistAIChatSessionState();
         if (lastMsgElement) {
           const contentDiv = lastMsgElement.querySelector('.msg-content');
-          if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+          if (contentDiv) contentDiv.innerHTML = formatAIResponse(chatAssistantEntry.content);
           let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
           if (!copyBtn) {
             copyBtn = document.createElement('button');
@@ -1710,7 +1762,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
             lastMsgElement.appendChild(copyBtn);
           }
-          copyBtn.dataset.rawText = aiResponse;
+          copyBtn.dataset.rawText = chatAssistantEntry.content;
         }
       }
 
@@ -1831,19 +1883,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
         context: 'chat',
-        stream: true,
-        onChunk: (chunk, fullText) => {
-           if (nextAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
-             nextAssistantEntry.content = fullText;
-             const contentDiv = lastMsgElement.querySelector('.msg-content');
-             if (contentDiv) {
-                contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
-                const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
-                if (copyBtn) copyBtn.dataset.rawText = fullText;
-                chatWindow.scrollTo({ top: chatWindow.scrollHeight });
-             }
-           }
-        }
+        stream: false
       });
 
       nextAssistantEntry.content = aiResponse;
@@ -1863,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (lastMsgElement) {
         const contentDiv = lastMsgElement.querySelector('.msg-content');
-        if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+        if (contentDiv) contentDiv.innerHTML = formatAIResponse(sanitizeAIResponseText(aiResponse));
         let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
         if (!copyBtn) {
           copyBtn = document.createElement('button');
@@ -1876,7 +1916,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
           lastMsgElement.appendChild(copyBtn);
         }
-        copyBtn.dataset.rawText = aiResponse;
+        copyBtn.dataset.rawText = sanitizeAIResponseText(aiResponse);
       }
 
       clearAIChatEditState();
@@ -1959,19 +1999,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         target: 'openrouter',
         model: DEFAULT_GROQ_MODEL,
         context: 'chat',
-        stream: true,
-        onChunk: (chunk, fullText) => {
-           if (nextAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
-             nextAssistantEntry.content = fullText;
-             const contentDiv = lastMsgElement.querySelector('.msg-content');
-             if (contentDiv) {
-                contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(fullText));
-                const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
-                if (copyBtn) copyBtn.dataset.rawText = fullText;
-                chatWindow.scrollTo({ top: chatWindow.scrollHeight });
-             }
-           }
-        }
+        stream: false
       });
 
       nextAssistantEntry.content = aiResponse;
@@ -1991,7 +2019,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (lastMsgElement) {
         const contentDiv = lastMsgElement.querySelector('.msg-content');
-        if (contentDiv) contentDiv.innerHTML = formatAIResponse(normalizeBrokenEncoding(aiResponse));
+        if (contentDiv) contentDiv.innerHTML = formatAIResponse(sanitizeAIResponseText(aiResponse));
         let copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
         if (!copyBtn) {
           copyBtn = document.createElement('button');
@@ -2004,7 +2032,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
           lastMsgElement.appendChild(copyBtn);
         }
-        copyBtn.dataset.rawText = aiResponse;
+        copyBtn.dataset.rawText = sanitizeAIResponseText(aiResponse);
       }
 
       persistAIChatSessionState({ draft: preservedDraft });
@@ -2048,10 +2076,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       {
         target: 'openrouter',
         models: ['google/gemini-2.0-flash-exp:free', 'openrouter/auto', 'meta-llama/llama-3.2-11b-vision-instruct:free']
-      },
-      {
-        target: 'cloudflare-vision',
-        models: Array.from(new Set([requestedModel, DEFAULT_VISION_MODEL].filter(Boolean)))
       },
       {
         target: 'gemini',
@@ -2116,7 +2140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const result = await res.json().catch(() => ({}));
             if (res.ok) {
-              const text = normalizeBrokenEncoding(extractVisionText(result));
+              const text = sanitizeAIResponseText(extractVisionText(result));
               if (!text) {
                 lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
               } else {
@@ -2338,7 +2362,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         useChatContext: true,
         persistToAIHistory: true,
         context: 'chat',
-        existingUserEntry: optimisticUserEntry
+        existingUserEntry: optimisticUserEntry,
+        stream: false
       });
     } finally {
       isSendingChat = false;
@@ -2556,9 +2581,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         useChatContext: false,
         persistToAIHistory: true,
         context: 'compare',
-        model: DEFAULT_GROQ_MODEL,
+        model: COMPARE_GROQ_MODEL,
         temperature: COMPARE_TEMPERATURE,
-        max_tokens: 2500,
+        max_tokens: COMPARE_MAX_TOKENS,
         systemPrompt: compareSystemPrompt,
         metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
       });

@@ -444,6 +444,7 @@
 
           const categoria = document.getElementById("feedbackCategory").value;
           const mensagem = document.getElementById("feedbackText").value;
+          const supportApiUrl = window.ENV?.SUPPORT_API_URL || 'https://animehousesuporte.vercel.app/api/support';
 
           function showToast(msg, type = 'success', ms = 7000) {
             let container = document.getElementById('toast');
@@ -482,18 +483,22 @@
           }
 
           try {
-            // URL do novo backend separado!
-            const response = await fetch('https://animehousesuporte.vercel.app/api/support', {
+            const response = await fetch(supportApiUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({ categoria, mensagem })
+              body: JSON.stringify({
+                categoria,
+                mensagem,
+                pageUrl: window.location.href,
+                userAgent: navigator.userAgent
+              })
             });
 
-            const data = await response.json();
+            const data = await response.json().catch(() => ({}));
 
-            if (data.success) {
+            if (response.ok && data.success) {
               showToast("Mensagem recebida com sucesso! A equipe da Anime House agradece o contato.", "success");
               feedbackModal.classList.remove('active');
               feedbackForm.reset();

@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 function tryParseJSON(value) {
   if (typeof value !== 'string' || !value.trim()) return null;
   try {
@@ -5,6 +8,26 @@ function tryParseJSON(value) {
   } catch {
     return null;
   }
+}
+
+function readDataFile() {
+  const candidatePaths = [
+    path.join(process.cwd(), 'data', 'data.json'),
+    path.join(process.cwd(), '..', 'data', 'data.json'),
+    path.join(process.cwd(), '..', '..', 'data', 'data.json')
+  ];
+
+  for (const dataPath of candidatePaths) {
+    try {
+      if (fs.existsSync(dataPath)) {
+        return JSON.parse(fs.readFileSync(dataPath, 'utf8')) || {};
+      }
+    } catch {
+      // Tenta o próximo caminho
+    }
+  }
+
+  return {};
 }
 
 function dataUrlToByteArray(dataUrl) {
@@ -75,7 +98,7 @@ function buildProxyErrorBody(target, statusCode, responseBody) {
   });
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   // CORS configuration
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -92,6 +115,7 @@ export default async function handler(req, res) {
   try {
     const data = req.body;
     let { target, method, headers, body, apiKey: frontendApiKey } = data;
+    const config = readDataFile().aiConfig || {};
     
     let apiUrl = '';
     let requestPayload = body || null;
@@ -101,16 +125,18 @@ export default async function handler(req, res) {
       apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
       credentialCandidates = buildCredentialCandidates([
         { source: 'frontend', value: frontendApiKey },
-        { source: 'process.env.OPENROUTER_API_KEY', value: process.env.OPENROUTER_API_KEY }
+        { source: 'process.env.OPENROUTER_API_KEY', value: process.env.OPENROUTER_API_KEY },
+        { source: 'data.json -> aiConfig.openrouterKey', value: config.openrouterKey }
       ]);
       headers = headers || {};
-      if (!headers['HTTP-Referer']) headers['HTTP-Referer'] = 'https://animehouse-zeta.vercel.app';
+      if (!headers.Referer && !headers['referer']) headers.Referer = 'https://animehouse-zeta.vercel.app';
       if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse';
     } else if (target === 'groq') {
       apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
       credentialCandidates = buildCredentialCandidates([
         { source: 'frontend', value: frontendApiKey },
-        { source: 'process.env.GROQ_API_KEY', value: process.env.GROQ_API_KEY }
+        { source: 'process.env.GROQ_API_KEY', value: process.env.GROQ_API_KEY },
+        { source: 'data.json -> aiConfig.groqKey', value: config.groqKey }
       ]);
     } else if (target === 'gemini') {
       const geminiModel = String(
@@ -122,7 +148,8 @@ export default async function handler(req, res) {
       credentialCandidates = buildCredentialCandidates([
         { source: 'frontend', value: frontendApiKey },
         { source: 'process.env.GEMINI_API_KEY', value: process.env.GEMINI_API_KEY },
-        { source: 'process.env.GOOGLE_API_KEY', value: process.env.GOOGLE_API_KEY }
+        { source: 'process.env.GOOGLE_API_KEY', value: process.env.GOOGLE_API_KEY },
+        { source: 'data.json -> aiConfig.geminiKey', value: config.geminiKey }
       ]);
       
       const contents = (body?.messages || []).filter(m => m.role !== 'system').map(m => ({
@@ -162,13 +189,14 @@ export default async function handler(req, res) {
         }
       }
     } else if (target === 'cloudflare-vision') {
-      const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+      const cloudflareAccountId = process.env.CLOUDFLARE_ACCOUNT_ID || config.cloudflareAccountId || '';
       apiUrl = cloudflareAccountId
         ? `https://api.cloudflare.com/client/v4/accounts/${cloudflareAccountId}/ai/run/@cf/meta/llama-3.2-11b-vision-instruct`
         : '';
       credentialCandidates = buildCredentialCandidates([
         { source: 'frontend', value: frontendApiKey },
-        { source: 'process.env.CLOUDFLARE_API_TOKEN', value: process.env.CLOUDFLARE_API_TOKEN }
+        { source: 'process.env.CLOUDFLARE_API_TOKEN', value: process.env.CLOUDFLARE_API_TOKEN },
+        { source: 'data.json -> aiConfig.cloudflareApiToken', value: config.cloudflareApiToken }
       ]);
 
       if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
@@ -263,3 +291,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: e.message || 'Erro interno no proxy' });
   }
 }
+
+module.exports = handler;

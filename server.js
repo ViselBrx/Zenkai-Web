@@ -11,6 +11,11 @@ const fs   = require('fs');
 const path = require('path');
 const url  = require('url');
 const https = require('https');
+const {
+  appendSupportMessage,
+  buildSupportRecord,
+  validateSupportPayload
+} = require('./support-shared');
 
 function loadEnvFallback(envFilePath) {
   try {
@@ -50,6 +55,7 @@ const PUBLIC_DIR = ROOT; // Os arquivos agora estão no root
 const PAGES_DIR  = ROOT; // Os arquivos agora estão no root
 const DATA_FILE  = path.join(ROOT, 'data', 'data.json');
 const UPLOADS_DIR = path.join(ROOT, 'uploads');
+const SUPPORT_FILE = path.join(ROOT, 'data', 'support_messages.json');
 
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
@@ -98,6 +104,11 @@ function dataUrlToByteArray(dataUrl) {
   const matches = dataUrl.match(/^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/);
   if (!matches) return null;
   return Array.from(Buffer.from(matches[1], 'base64'));
+}
+
+function getRequestText(req, headerName) {
+  const value = req.headers[String(headerName || '').toLowerCase()];
+  return Array.isArray(value) ? String(value[0] || '') : String(value || '');
 }
 
 function buildCredentialCandidates(entries) {
@@ -154,6 +165,16 @@ function buildProxyErrorBody(target, statusCode, responseBody) {
         code: Number(statusCode || 403),
         status: 'PERMISSION_DENIED',
         message: 'A chave da Gemini configurada foi marcada como vazada pelo Google. Gere uma nova chave no Google AI Studio e atualize o .env, o data.json ou a chave enviada pelo frontend.',
+        providerMessage
+      }
+    });
+  }
+
+  if (target === 'openrouter' && Number(statusCode) === 429 && /rate-limited upstream/i.test(providerMessage)) {
+    return JSON.stringify({
+      error: {
+        code: 429,
+        message: 'OpenRouter/Google Gemma free está temporariamente rate-limited upstream. Tente novamente em alguns minutos ou use sua própria chave OpenRouter/Gemini.',
         providerMessage
       }
     });
@@ -271,6 +292,31 @@ const server = http.createServer(async (req, res) => {
     } catch(e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
+  if (req.method === 'POST' && pathname === '/api/support') {
+    try {
+      const data = await getBody(req);
+      const validation = validateSupportPayload(data);
+      if (validation.error) {
+        return sendJSON(res, 400, { success: false, error: validation.error });
+      }
+
+      const record = buildSupportRecord(validation.data, {
+        pageUrl: getRequestText(req, 'origin') || getRequestText(req, 'referer') || '',
+        userAgent: getRequestText(req, 'user-agent'),
+        referer: getRequestText(req, 'referer')
+      });
+
+      appendSupportMessage(record, SUPPORT_FILE);
+      return sendJSON(res, 200, {
+        success: true,
+        id: record.id
+      });
+    } catch (e) {
+      console.error('[Support] Falha ao salvar mensagem:', e);
+      return sendJSON(res, 500, { success: false, error: 'Erro interno no servidor ao tentar salvar sua mensagem.' });
+    }
+  }
+
   // AI Proxy Route
   if (req.method === 'POST' && pathname === '/api/ai/proxy') {
     try {
@@ -292,7 +338,7 @@ const server = http.createServer(async (req, res) => {
           { source: 'data.json -> aiConfig.openrouterKey', value: config.openrouterKey }
         ]);
         headers = headers || {};
-        if (!headers['HTTP-Referer']) headers['HTTP-Referer'] = 'http://localhost:3000';
+        if (!headers.Referer && !headers['referer']) headers.Referer = 'http://localhost:3000';
         if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse Local';
       } else if (target === 'groq') {
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
@@ -501,7 +547,9 @@ const server = http.createServer(async (req, res) => {
       // Injeta variáveis de ambiente no <head> para que o auth.js consiga ler as configurações do Supabase escondidas do código fonte
       let responseContent = content.replace(/<head>/i, `<head>\n  <script>window.ENV = ${JSON.stringify({
         SUPABASE_URL: process.env.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co',
-        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol'
+        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol',
+        SUPPORT_API_URL: process.env.SUPPORT_API_URL || 'https://animehousesuporte.vercel.app/api/support',
+        GEMINI_KEY_SET: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
       })};</script>`);
 
       res.writeHead(200, { 'Content-Type': MIME[ext], 'Access-Control-Allow-Origin': '*' });

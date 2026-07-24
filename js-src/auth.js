@@ -1,5 +1,5 @@
 ﻿/**
- * js/auth.js â€” Configuração e Lógica do Supabase (LIMPO E ORGANIZADO)
+ * js/auth.js Ã¢â‚¬â€ ConfiguraÃ§Ã£o e LÃ³gica do Supabase (LIMPO E ORGANIZADO)
  */
 
 // 1. CREDENCIAIS
@@ -27,7 +27,7 @@ let supaClient;
 let previousSessionId = null;
 
 const initSupa = () => {
-  if (supaClient) return true; // Já inicializado
+  if (supaClient) return true; // JÃ¡ inicializado
   if (window.supabase) {
     try {
       supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -38,7 +38,7 @@ const initSupa = () => {
         }
       });
       window.supabaseClient = supaClient;
-      console.log("ðŸš€ Supabase Client inicializado com sucess✅");
+      console.log("Ã°Å¸Å¡â‚¬ Supabase Client inicializado com sucesso");
       return true;
     } catch (e) {
       console.error("Erro ao inicializar Supabase:", e);
@@ -47,7 +47,7 @@ const initSupa = () => {
   return false;
 };
 
-// Tentar inicializar imediatamente ou aguardar se necessário
+// Tentar inicializar imediatamente ou aguardar se necessÃ¡rio
 let isAuthLogicSetup = false;
 function tryInit() {
   if (initSupa()) {
@@ -67,12 +67,12 @@ if (!tryInit()) {
   setTimeout(() => clearInterval(checkSupa), 5000);
 }
 
-// ðŸš€ Lógica de Redirecionamento e Auth State
+// Ã°Å¸Å¡â‚¬ LÃ³gica de Redirecionamento e Auth State
 async function setupAuthLogic() {
   if (!supaClient) return;
   try {
 
-  const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registr✅html");
+  const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
   const isRecovery = window.location.hash.includes("type=recovery");
 
   if (isRecovery) {
@@ -93,11 +93,11 @@ async function setupAuthLogic() {
   }
 
   supaClient.auth.onAuthStateChange((event, session) => {
-    console.log("ðŸ”” [Auth Event]:", event, session?.user?.email);
+    console.log("Ã°Å¸â€â€ [Auth Event]:", event, session?.user?.email);
     const currentSessionId = session?.user?.id || null;
 
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-       // Opcional: sincronizar sessão
+       // Opcional: sincronizar sessÃ£o
     }
 
     if (event === 'PASSWORD_RECOVERY') {
@@ -119,7 +119,7 @@ async function setupAuthLogic() {
               <div style="text-align:left; margin-bottom:1rem;">
                 <label style="display:block; margin-bottom:8px; color:var(--text-main); font-weight:600; font-size:0.9rem;">Nova Senha</label>
                 <div style="position:relative;">
-                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
+                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="MÃ­nimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
                   <button type="button" id="toggleRecPass" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -187,19 +187,19 @@ async function setupAuthLogic() {
           const errorDiv = document.getElementById('recoveryError');
 
           if (!newPassword || newPassword.length < 6) {
-            errorDiv.innerHTML = "â Œ A senha deve ter pelo menos 6 caracteres.";
+            errorDiv.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> A senha deve ter pelo menos 6 caracteres.";
             errorDiv.style.display = "block";
             return;
           }
           if (newPassword !== confirmPassword) {
-            errorDiv.innerHTML = "â Œ As senhas não coincidem.";
+            errorDiv.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> As senhas nÃ£o coincidem.";
             errorDiv.style.display = "block";
             return;
           }
 
           errorDiv.style.display = "none";
           const btn = document.getElementById('recoveryBtn');
-          btn.innerHTML = `<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Atualizand✅..`;
+          btn.innerHTML = `<span class="loader-ring" style="width:20px; height:20px; border-width:2px; display:inline-block; vertical-align:middle; margin-right:8px;"></span> Atualizando..`;
           btn.disabled = true;
 
           const { error } = await supaClient.auth.updateUser({ password: newPassword });
@@ -209,13 +209,13 @@ async function setupAuthLogic() {
             if (msg.toLowerCase().includes("different from the old password")) {
               msg = "A nova senha deve ser diferente da antiga.";
             }
-            errorDiv.innerHTML = "â Œ Erro: " + msg;
+            errorDiv.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> Erro: " + msg;
             errorDiv.style.display = "block";
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Redefinir Senha';
             btn.disabled = false;
           } else {
             sessionStorage.removeItem('is_recovering_password');
-            // Deslogar imediatamente para forçar o login manual e impedir que "entre na conta sozinho"
+            // Deslogar imediatamente para forÃ§ar o login manual e impedir que "entre na conta sozinho"
             await supaClient.auth.signOut();
 
             const card = document.getElementById('recoveryCard');
@@ -230,7 +230,7 @@ async function setupAuthLogic() {
                    </div>
                  </div>
                  <h2 style="color:#10b981; margin-bottom:1rem; font-family:'Bangers', cursive; font-size:2.5rem; letter-spacing:2px; text-shadow:0 0 15px rgba(16,185,129,0.3);">Sucesso!</h2>
-                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeiÃ§Ã£✅ Por segurança, você foi desconectad✅ Faça o login com sua nova senha.</p>
+                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeiÃ§Ã£o! Por seguranÃ§a, vocÃª foi desconectado. FaÃ§a o login com sua nova senha.</p>
                  <button id="recoveryCloseBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; background:#10b981; border-color:#10b981; box-shadow:0 0 15px rgba(16,185,129,0.4);">Fazer Login</button>
                `;
               card.style.borderColor = 'rgba(16,185,129,0.4)';
@@ -254,9 +254,9 @@ async function setupAuthLogic() {
       }
 
       if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
-        console.log("ðŸ”„ Usuário alterad✅ Atualizando dados locais...");
+        console.log("Ã°Å¸â€â€ž UsuÃ¡rio alterado Atualizando dados locais...");
         try {
-          // Limpar chaves genéricas para evitar vazamento
+          // Limpar chaves genÃ©ricas para evitar vazamento
           localStorage.removeItem("animehouse_store");
           localStorage.removeItem("animehouse_customAura");
           localStorage.removeItem("animehouse_customBanner");
@@ -285,9 +285,9 @@ async function setupAuthLogic() {
           keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) { }
         
-        // Evita reload infinito se estivermos na página de login/registro
+        // Evita reload infinito se estivermos na pÃ¡gina de login/registro
         if (!isAuthPage) {
-          console.log("ðŸ”„ Recarregando para aplicar novos dados de usuári✅");
+          console.log("Ã°Å¸â€â€ž Recarregando para aplicar novos dados de usuÃ¡rio");
           window.location.reload();
         }
       }
@@ -298,7 +298,7 @@ async function setupAuthLogic() {
   }
 }
 
-// 3. Lógica de Login e Toggles de Senha
+// 3. LÃ³gica de Login e Toggles de Senha
 function setupPasswordToggle(inputId, toggleId) {
   const input = document.getElementById(inputId);
   const toggle = document.getElementById(toggleId);
@@ -345,12 +345,12 @@ if (forgotPasswordLink) {
       });
       if (error) {
         let msg = error.message;
-        if (msg.includes("rate limit")) msg = "Limite de e-mails atingid✅ Por favor, aguarde alguns minutos.";
+        if (msg.includes("rate limit")) msg = "Limite de e-mails atingido.  Por favor, aguarde alguns minutos.";
         errorDiv.textContent = "Erro: " + msg;
         errorDiv.style.display = "block";
       } else {
         if (successDiv) {
-          successDiv.innerHTML = "âœ… <strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'>âš ï¸ <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
+          successDiv.innerHTML = "<i class='fa-solid fa-circle-check' style='color:var(--success);margin-right:6px;'></i><strong>E-mail de redefiniÃ§Ã£o enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'><i class='fa-solid fa-triangle-exclamation'></i> <strong>AtenÃ§Ã£o:</strong> NÃ£o encontrou? Verifique sua pasta de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>";
           successDiv.style.display = "block";
         }
       }
@@ -365,17 +365,17 @@ const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // Limpar qualquer flag de recuperação de senha pendente
+    // Limpar qualquer flag de recuperaÃ§Ã£o de senha pendente
     sessionStorage.removeItem('is_recovering_password');
 
     const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorDiv = document.getElementById("loginError");
 
-    // Validação básica de formato de e-mail
+    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "âŒ E-mail inválido ou mal formatad✅";
+      errorDiv.textContent = "E-mail invÃ¡lido ou mal formatado.";
       errorDiv.style.display = "block";
       return;
     }
@@ -383,7 +383,7 @@ if (loginForm) {
     const submitBtn = loginForm.querySelector('button[type="submit"]');
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Entrand✅..";
+    submitBtn.textContent = "Entrando..";
     errorDiv.style.display = "none";
 
     try {
@@ -396,7 +396,7 @@ if (loginForm) {
         let msg = error.message;
         if (msg.includes("Invalid login credentials")) msg = "E-mail ou senha incorretos.";
         else if (msg.includes("Email not confirmed")) msg = "Por favor, confirme seu e-mail antes de entrar.";
-        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingid✅ Aguarde um pouco e tente novamente.";
+        else if (msg.includes("rate limit")) msg = "Limite de tentativas atingido.  Aguarde um pouco e tente novamente.";
 
         errorDiv.textContent = "Erro: " + msg;
         errorDiv.style.display = "block";
@@ -406,7 +406,7 @@ if (loginForm) {
       }
 
       // Login bem sucedido
-      console.log("âœ… Login realizado com sucess✅ Verificando sessÃ£✅..");
+      console.log("âœ… Login realizado com sucesso. Verificando sessÃ£o..");
       const { data: sessData } = await supaClient.auth.getSession();
       
       if (sessData && sessData.session) {
@@ -414,7 +414,7 @@ if (loginForm) {
         console.log("ðŸš€ Redirecionando para perfil...");
         window.location.href = "perfil.html";
       } else {
-        console.warn("âš ï¸ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
+        console.warn("âš ï¸ SessÃ£o nÃ£o encontrada apÃ³s login. Tentando redirecionar mesmo assim...");
         window.location.href = "perfil.html";
       }
     } catch (err) {
@@ -427,7 +427,7 @@ if (loginForm) {
   });
 }
 
-// 4. Lógica de Registro
+// 4. LÃ³gica de Registro
 let lastEmailRegistered = sessionStorage.getItem("lastEmailRegistered") || "";
 
 const registerForm = document.getElementById("registerForm");
@@ -441,16 +441,16 @@ if (registerForm) {
     const successDiv = document.getElementById("registerSuccess");
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
-    // Validação básica de formato de e-mail
+    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "âŒ Digite um e-mail válido (ex: seu@email.com).";
+      errorDiv.textContent = "Digite um e-mail vÃ¡lido (ex: seu@email.com).";
       errorDiv.style.display = "block";
       return;
     }
 
     if (password !== confirmPassword) {
-      errorDiv.textContent = "As senhas não coincidem.";
+      errorDiv.textContent = "As senhas nÃ£o coincidem.";
       errorDiv.style.display = "block";
       return;
     }
@@ -462,7 +462,7 @@ if (registerForm) {
     }
 
     submitBtn.disabled = true;
-    submitBtn.textContent = "Registrand✅..";
+    submitBtn.textContent = "Registrando..";
     lastEmailRegistered = email;
     sessionStorage.setItem("lastEmailRegistered", email); // Persiste no navegador
 
@@ -472,13 +472,13 @@ if (registerForm) {
       let msg = error.message;
 
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many requests")) {
-        msg = "âš ï¸ Limite de tentativas atingid✅ Por favor, aguarde alguns minutos.";
+        msg = "âš ï¸ Limite de tentativas atingido. Por favor, aguarde alguns minutos.";
       } else if (msg.toLowerCase().includes("security purposes")) {
-        msg = "âš ï¸ Você já solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
+        msg = "âš ï¸ VocÃª jÃ¡ solicitou um cÃ³digo para este e-mail. Aguarde 1 minuto para tentar novamente.";
       } else if (msg.toLowerCase().includes("confirmation email") || msg.toLowerCase().includes("email send failed")) {
-        msg = "âš ï¸ Erro no servidor de e-mail (SMTP). Por favor, verifique as configurações de SMTP no painel do Supabase.";
+        msg = "âš ï¸ Erro no servidor de e-mail (SMTP). Por favor, verifique as configuraÃ§Ãµes de SMTP no painel do Supabase.";
       } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || error.status === 422) {
-        msg = "âŒ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
+        msg = "âŒ AlguÃ©m jÃ¡ estÃ¡ usando essa conta. Tente fazer login ou use outro e-mail.";
       }
 
       errorDiv.textContent = msg;
@@ -486,7 +486,7 @@ if (registerForm) {
       submitBtn.disabled = false;
       submitBtn.textContent = "Criar Conta";
     } else {
-      // Registro realmente novo - Esconder form e mostrar container de verificação
+      // Registro realmente novo - Esconder form e mostrar container de verificaÃ§Ã£o
       const otpSection = document.getElementById("otpSection");
       const resendSection = document.getElementById("resendEmailSection");
       if (otpSection) {
@@ -494,7 +494,7 @@ if (registerForm) {
         otpSection.style.display = "block";
         if (resendSection) {
           resendSection.style.display = "block";
-          // Pré-preencher o campo de reenvio com o e-mail já usado
+          // PrÃ©-preencher o campo de reenvio com o e-mail jÃ¡ usado
           const resendEmailInput = document.getElementById("resendEmail");
           if (resendEmailInput) resendEmailInput.value = email;
         }
@@ -502,10 +502,10 @@ if (registerForm) {
         // Atualizar texto do email na tela
         const emailDisplay = otpSection.querySelector("p");
         if (emailDisplay) {
-          emailDisplay.innerHTML = `Quase lá! Enviamos um código de segurança de 6 dígitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;">⚠️ <strong>Atenção:</strong> O e-mail pode demorar 1 minuto para chegar. Se não encontrar, verifique sua caixa de <strong>Spam ou Lixo Eletrônico</strong>.</span>`;
+          emailDisplay.innerHTML = `Quase lÃ¡! Enviamos um cÃ³digo de seguranÃ§a de 6 dÃ­gitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;"><strong>AtenÃ§Ã£o:</strong> O e-mail pode demorar 1 minuto para chegar. Se nÃ£o encontrar, verifique sua caixa de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>`;
         }
       } else {
-        console.error("❌ otpSection NÃO encontrado no DOM!");
+        console.error("otpSection NÃƒO encontrado no DOM!");
       }
 
       submitBtn.disabled = false;
@@ -528,7 +528,7 @@ if (cancelOtpBtn) {
   });
 }
 
-// Lógica de reenvio de código
+// LÃ³gica de reenvio de cÃ³digo
 const resendBtn = document.getElementById("resendBtn");
 if (resendBtn) {
   let resendCooldown = false;
@@ -537,15 +537,15 @@ if (resendBtn) {
     const resendEmailInput = document.getElementById("resendEmail");
     const emailToResend = (resendEmailInput?.value || lastEmailRegistered || "").trim().toLowerCase();
     if (!emailToResend) {
-      alert("Digite o e-mail para reenviar o códig✅");
+      alert("Digite o e-mail para reenviar o cÃ³digo");
       return;
     }
     resendBtn.disabled = true;
-    resendBtn.textContent = "ðŸ“¨ Enviand✅..";
+    resendBtn.textContent = "Ã°Å¸â€œÂ¨ Enviando..";
     const client = window.supabaseClient;
     if (!client) {
-      resendBtn.textContent = "âŒ Erro ao reenviar. Tente novamente.";
-      setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar Código"; resendBtn.disabled = false; }, 3000);
+      resendBtn.textContent = "Ã¢ÂÅ’ Erro ao reenviar. Tente novamente.";
+      setTimeout(() => { resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 3000);
       return;
     }
     const { error } = await client.auth.resend({ type: "signup", email: emailToResend });
@@ -554,19 +554,19 @@ if (resendBtn) {
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
         msg = "Aguarde 1 minuto antes de reenviar.";
       }
-      resendBtn.textContent = "âŒ " + msg;
-      setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar Código"; resendBtn.disabled = false; }, 5000);
+      resendBtn.textContent = "Ã¢ÂÅ’ " + msg;
+      setTimeout(() => { resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 5000);
     } else {
       resendCooldown = true;
       let seconds = 60;
-      resendBtn.textContent = `âœ… Código reenviado! Aguarde ${seconds}s`;
+      resendBtn.textContent = `Ã¢Å“â€¦ CÃ³digo reenviado! Aguarde ${seconds}s`;
       const interval = setInterval(() => {
         seconds--;
-        resendBtn.textContent = `⏳ Aguarde ${seconds}s para reenviar`;
+        resendBtn.textContent = `<i class="fa-solid fa-hourglass-half"></i> Aguarde ${seconds}s para reenviar`;
         if (seconds <= 0) {
           clearInterval(interval);
           resendBtn.disabled = false;
-          resendBtn.textContent = "ðŸ“§ Reenviar Código";
+          resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo";
           resendCooldown = false;
         }
       }, 1000);
@@ -576,10 +576,10 @@ if (resendBtn) {
 
 const verifyOtpBtn = document.getElementById("verifyOtpBtn");
 if (verifyOtpBtn) {
-  // Se já temos um e-mail salvo, podemos mostrar a seção de OTP direto
+  // Se jÃ¡ temos um e-mail salvo, podemos mostrar a seÃ§Ã£o de OTP direto
   if (lastEmailRegistered && document.getElementById("otpSection")) {
     // document.getElementById("otpSection").style.display = "block"; 
-    // (Opcional: descomente se quiser que apareça ao atualizar a página)
+    // (Opcional: descomente se quiser que apareÃ§a ao atualizar a pÃ¡gina)
   }
 
   verifyOtpBtn.addEventListener("click", async () => {
@@ -588,22 +588,22 @@ if (verifyOtpBtn) {
     const otpError = document.getElementById("otpError");
 
     if (!email) {
-      otpError.textContent = "Erro: E-mail não identificad✅";
+      otpError.textContent = "Erro: E-mail nÃ£o identificado";
       otpError.style.display = "block";
       return;
     }
 
     if (!token || token.length < 6) {
-      otpError.textContent = "Digite o código completo recebido por e-mail.";
+      otpError.textContent = "Digite o cÃ³digo completo recebido por e-mail.";
       otpError.style.display = "block";
       return;
     }
 
     verifyOtpBtn.disabled = true;
-    verifyOtpBtn.textContent = "ðŸ”Œ Verificand✅..";
+    verifyOtpBtn.textContent = "Ã°Å¸â€Å’ Verificando..";
     otpError.style.display = "none";
 
-    console.log("ðŸ” [DEBUG] Iniciando Verificação OTP:");
+    console.log("Ã°Å¸â€Â [DEBUG] Iniciando VerificaÃ§Ã£o OTP:");
     console.log("   > E-mail:", email);
     console.log("   > Token:", token);
 
@@ -613,14 +613,14 @@ if (verifyOtpBtn) {
       let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
 
       if (res.error) {
-        console.warn("   âš ï¸ Falha 'signup':", res.error.message);
+        console.warn("   Ã¢Å¡Â Ã¯Â¸Â Falha 'signup':", res.error.message);
         // 2. Tenta tipo 'email'
         console.log("   > Tentando tipo: 'email'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
       }
 
       if (res.error) {
-        console.warn("   âš ï¸  Falha 'email':", res.error.message);
+        console.warn("   Ã¢Å¡Â Ã¯Â¸  Falha 'email':", res.error.message);
         // 3. Tenta tipo 'magiclink'
         console.log("   > Tentando tipo: 'magiclink'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
@@ -629,18 +629,18 @@ if (verifyOtpBtn) {
       const { data, error } = res;
 
       if (error) {
-        console.error("❌ ERRO FINAL:", error);
-        let userMsg = "Código inválid✅";
-        if (error.message.includes("expired")) userMsg = "O código expirou ou é antig✅";
-        else if (error.message.includes("not found")) userMsg = "E-mail não encontrad✅";
+        console.error("ERRO FINAL:", error);
+        let userMsg = "CÃ³digo invÃ¡lido";
+        if (error.message.includes("expired")) userMsg = "O cÃ³digo expirou ou Ã© antigo.";
+        else if (error.message.includes("not found")) userMsg = "E-mail nÃ£o encontrado";
 
-        otpError.textContent = `❌ ${userMsg} (${error.message})`;
+        otpError.textContent = `${userMsg} (${error.message})`;
         otpError.style.display = "block";
         verifyOtpBtn.disabled = false;
-        verifyOtpBtn.textContent = "✅ Verificar e Entrar";
+        verifyOtpBtn.textContent = "Verificar e Entrar";
       } else {
         sessionStorage.removeItem("lastEmailRegistered");
-        // Forçar o Supabase a atualizar a sessão internamente antes do redirect
+        // ForÃ§ar o Supabase a atualizar a sessÃ£o internamente antes do redirect
         supaClient.auth.getSession().then(() => {
           setTimeout(() => {
             sessionStorage.setItem('freshLogin', 'true');
@@ -649,7 +649,7 @@ if (verifyOtpBtn) {
         });
       }
     } catch (err) {
-      otpError.textContent = "Erro inesperado na verificaçã✅";
+      otpError.textContent = "Erro inesperado na verificaÃ§Ã£o";
       otpError.style.display = "block";
       verifyOtpBtn.disabled = false;
     }
@@ -658,13 +658,13 @@ if (verifyOtpBtn) {
 
 // 5. Excluir Conta
 window.deleteUserAccount = async function () {
-  if (!supaClient) return { error: { message: 'Supabase não inicializad✅' } };
+  if (!supaClient) return { error: { message: 'Supabase nÃ£o inicializado' } };
 
   try {
     const { data: { user } } = await supaClient.auth.getUser();
-    if (!user) return { error: { message: 'Usuário não autenticad✅' } };
+    if (!user) return { error: { message: 'UsuÃ¡rio nÃ£o autenticado' } };
 
-    // Chama a função de segurança (Postgres RPC) no Supabase
+    // Chama a funÃ§Ã£o de seguranÃ§a (Postgres RPC) no Supabase
     const { error } = await supaClient.rpc('delete_user');
 
     if (error) {
@@ -678,7 +678,7 @@ window.deleteUserAccount = async function () {
     await supaClient.auth.signOut();
     return { success: true };
   } catch (e) {
-    return { error: { message: e.message || 'Erro inesperad✅' } };
+    return { error: { message: e.message || 'Erro inesperado' } };
   }
 };
 
@@ -687,27 +687,27 @@ window.loadBanners = async function () {
 
   if (window.supabaseClient) {
     try {
-      console.log("🛡️ Sincronizando com Storage do Supabase...");
+      console.log("ðŸ›¡ï¸ Sincronizando com Storage do Supabase...");
       const { data: supaBanners, error } = await window.supabaseClient
         .from("store_banners")
         .select("id, image_url");
 
       if (error) {
-        console.error("❌ Erro ao buscar banners do Supabase:", error);
+        console.error("Erro ao buscar banners do Supabase:", error);
         return;
       }
 
       console.log(
-        `📦 Banners carregados do Supabase: ${supaBanners?.length || 0} itens`,
+        `ðŸ“¦ Banners carregados do Supabase: ${supaBanners?.length || 0} itens`,
       );
-      console.log("⚡ Raw data do Supabase:", supaBanners);
+      console.log("âš¡ Raw data do Supabase:", supaBanners);
 
       if (supaBanners && supaBanners.length > 0) {
         supaBanners.forEach((b, index) => {
           const cleanId = b.id ? b.id.trim() : "sem-id";
           const hasUrl = !!b.image_url;
 
-          console.log(`📌 [${index}] ID="${cleanId}" | hasURL=${hasUrl}`);
+          console.log(`ðŸ“Œ [${index}] ID="${cleanId}" | hasURL=${hasUrl}`);
 
           if (b.image_url) {
             window.BANNER_MAP[cleanId] = b.image_url;
@@ -719,7 +719,7 @@ window.loadBanners = async function () {
             // Mapeamentos baseados no nome do arquivo na URL
             if (fileName.includes("cosmos")) {
               window.BANNER_MAP["banner_cosmos"] = b.image_url;
-              console.log(`✅ MAPEADO banner_cosmos via arquivo: ${fileName}`);
+              console.log(`MAPEADO banner_cosmos via arquivo: ${fileName}`);
             }
             if (fileName.includes("guts") || fileName.includes("berserk")) {
               window.BANNER_MAP["banner_berserk"] = b.image_url;
@@ -749,7 +749,7 @@ window.loadBanners = async function () {
             // Mapeamentos Inteligentes baseados no ID (fallback)
             if (cleanId.includes("cosmos")) {
               window.BANNER_MAP["banner_cosmos"] = b.image_url;
-              console.log(`✅ MAPEADO banner_cosmos via ID: ${cleanId}`);
+              console.log(`MAPEADO banner_cosmos via ID: ${cleanId}`);
             }
             if (cleanId.includes("guts"))
               window.BANNER_MAP["banner_berserk"] = b.image_url;
@@ -768,32 +768,32 @@ window.loadBanners = async function () {
             if (cleanId.includes("ragnarok"))
               window.BANNER_MAP["banner_ragnarok"] = b.image_url;
 
-            // Se o usuário subir com extensão, mapeia também
+            // Se o usuÃ¡rio subir com extensÃ£o, mapeia tambÃ©m
             const idNoExt = cleanId.replace(/\.[^/.]+$/, "");
             window.BANNER_MAP[idNoExt] = b.image_url;
           }
         });
 
-        console.log("⚙ BANNER_MAP final:", Object.keys(window.BANNER_MAP));
+        console.log("âš™ BANNER_MAP final:", Object.keys(window.BANNER_MAP));
 
         // Verifica especificamente o banner_cosmos
         if (window.BANNER_MAP["banner_cosmos"]) {
-          console.log("✅ banner_cosmos está disponível!");
+          console.log("banner_cosmos estÃ¡ disponÃ­vel!");
         } else {
           // Hard-fix para banner_cosmos
           window.BANNER_MAP["banner_cosmos"] = "https://bxifddhrbxbmimjkgwzr.supabase.co/storage/v1/object/public/banners/banner_cosmos.png";
-          console.log("🛠️ banner_cosmos mapeado via HARD-FIX");
+          console.log("ðŸ› ï¸ banner_cosmos mapeado via HARD-FIX");
         }
       } else {
-        console.warn("⚠️ Nenhum banner retornado do Supabase");
+        console.warn("Nenhum banner retornado do Supabase");
       }
       updateNavbarCosmetics();
     } catch (err) {
-      console.error("❌ Erro Banners:", err);
+      console.error("Erro Banners:", err);
       console.error(err.stack);
     }
   } else {
-    console.warn("⚠️ supabaseClient não disponível");
+    console.warn("supabaseClient nÃ£o disponÃ­vel");
   }
 };
 
@@ -804,7 +804,7 @@ window.updateNavbarCosmetics = function () {
   const navAvatar = document.getElementById("navAvatar");
   const burger = document.getElementById("navBurger");
 
-  // 💡 Cursor fixes
+  // ðŸ’¡ Cursor fixes
   if (burger) burger.style.cursor = "pointer";
   document
     .querySelectorAll(".navbar-links a")
@@ -812,7 +812,7 @@ window.updateNavbarCosmetics = function () {
 
 
 
-  // 💡 Se BANNER_MAP estiver vazio, tenta carregar banners primeiro
+  // ðŸ’¡ Se BANNER_MAP estiver vazio, tenta carregar banners primeiro
   if (!window.BANNER_MAP || Object.keys(window.BANNER_MAP).length === 0) {
     loadBanners().then(() => {
       // Recursively call after loading
@@ -821,11 +821,11 @@ window.updateNavbarCosmetics = function () {
     return;
   }
 
-  // 💡 Dados do Banco (Preferencial)
+  // ðŸ’¡ Dados do Banco (Preferencial)
   let sData = null;
   let userId = null;
   if (window.supabaseClient) {
-    // Tenta pegar o user ID de forma síncrona se possível ou via cache
+    // Tenta pegar o user ID de forma sÃ­ncrona se possÃ­vel ou via cache
     userId = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token") ?
       JSON.parse(localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token")).user?.id : null;
   }
@@ -833,36 +833,45 @@ window.updateNavbarCosmetics = function () {
   if (window.DB && window.DB._store && window.DB._store.profile) {
     sData = window.DB._store.profile.store_data || {};
   } else if (userId) {
-    // 💡 Tenta carregar da chave ISOLADA do usuário
+    // ðŸ’¡ Tenta carregar da chave ISOLADA do usuÃ¡rio
     try {
       const localStr = localStorage.getItem(`animehouse_store_${userId}`);
       if (localStr) sData = JSON.parse(localStr);
     } catch (e) { }
   }
 
-  // Chaves para cosméticos - agora SEMPRE priorizando o banco ou o userId
+  // Chaves para cosmÃ©ticos - agora SEMPRE priorizando o banco ou o userId
   const dbEquipped = sData?.equipped || {};
 
   const getCosmetic = (key, fallback = "none") => {
-    // 1. Prioridade: Objeto do Banco (chave curta)
+    const storageMapping = {
+      aura: "animehouse_customAura",
+      banner: "animehouse_customBanner",
+      titulo: "animehouse_customTitle",
+      crown: "animehouse_showCrown",
+      crownId: "animehouse_equippedCrownId",
+      crownIcon: "animehouse_equippedCrownIcon",
+      tema_cromatico: "animehouse_tema_cromatico",
+      tema_natal: "animehouse_tema_natal",
+      frame_dourado: "animehouse_frame_dourado",
+    };
+
+    // 1. LocalStorage isolado por usuÃ¡rio (estado mais recente apÃ³s equipar na loja/perfil)
+    if (userId) {
+      const storageKey = storageMapping[key] || key;
+      const userKey = `${storageKey}_${userId}`;
+      const scopedVal = localStorage.getItem(userKey);
+      if (scopedVal !== null && scopedVal !== "") return scopedVal;
+    }
+
+    // 2. Objeto do store (Supabase / cache)
     if (dbEquipped[key] !== undefined) return dbEquipped[key];
 
-    // 2. Fallback: LocalStorage (chave longa com prefixo)
+    // 3. Fallback legado sem sufixo de usuÃ¡rio
     if (userId) {
-      const mapping = {
-        aura: "animehouse_customAura",
-        banner: "animehouse_customBanner",
-        titulo: "animehouse_customTitle",
-        crown: "animehouse_showCrown",
-        crownId: "animehouse_equippedCrownId",
-        crownIcon: "animehouse_equippedCrownIcon",
-        tema_cromatico: "animehouse_tema_cromatico",
-        frame_dourado: "animehouse_frame_dourado"
-      };
-      const storageKey = mapping[key] || key;
-      const userKey = `${storageKey}_${userId}`;
-      const val = localStorage.getItem(userKey);
-      if (val) return val;
+      const storageKey = storageMapping[key] || key;
+      const val = localStorage.getItem(storageKey);
+      if (val !== null && val !== "") return val;
     }
     return fallback;
   };
@@ -871,15 +880,52 @@ window.updateNavbarCosmetics = function () {
   const savedAura = getCosmetic("aura", "none");
   const savedTitle = getCosmetic("titulo", "");
   const savedCrown = getCosmetic("crown", false) === true || getCosmetic("crown", false) === "true";
+  const savedCrownId = String(getCosmetic("crownId", "") || "").trim();
+  const savedCrownIcon = String(getCosmetic("crownIcon", "ðŸ‘‘") || "").trim();
   const hasFrame = getCosmetic("frame_dourado", false) === true || getCosmetic("frame_dourado", false) === "true";
   const hasTemaCromatico = getCosmetic("tema_cromatico", false) === true || getCosmetic("tema_cromatico", false) === "true";
+  const hasTemaNatal = getCosmetic("tema_natal", false) === true || getCosmetic("tema_natal", false) === "true";
 
-  // 🌈 TEMA CROMÁTICO — restaurar se estava equipado
-  if (hasTemaCromatico && window.setTheme) {
-    window.setTheme("theme-cromatico");
+  const buildCrownMarkup = (crownId, crownIcon) => {
+    const normalizedId = String(crownId || "").trim().toLowerCase();
+    const rawIcon = String(crownIcon || "").trim();
+
+    const isChristmasHat =
+      normalizedId === "coroa_gorro_natal" ||
+      /gorrodenatal\.png/i.test(rawIcon) ||
+      rawIcon === "ðŸŽ…" ||
+      /fa-(?:solid\s+)?fa-hat|fa-santa-claus|fa-hat-cowboy/i.test(rawIcon);
+
+    if (isChristmasHat) {
+      return `
+        <span class="crown-badge crown-badge--hat" aria-hidden="true">
+          <img src="assets/gorrodenatal.png" class="gorro-img-cosmetic crown-hat-img" alt="">
+        </span>
+      `;
+    }
+
+    const isSkull =
+      normalizedId === "coroa_tryhard" ||
+      /fa-skull|ðŸ’€/i.test(rawIcon);
+
+    if (isSkull) {
+      return `<span class="crown-badge crown-badge--skull" aria-hidden="true">💀</span>`;
+    }
+
+    const fallbackIcon = rawIcon && rawIcon !== "??" ? rawIcon : "👑";
+    return `<span class="crown-badge crown-badge--crown" aria-hidden="true">${fallbackIcon}</span>`;
+  };
+
+  // Temas especiais da loja â€” aplicar em tempo real ao equipar/desequipar
+  if (window.setTheme) {
+    if (hasTemaNatal) {
+      window.setTheme("theme-natal");
+    } else if (hasTemaCromatico) {
+      window.setTheme("theme-cromatico");
+    }
   }
 
-  // 📸 LÓGICA DE BANNER DA NAVBAR
+  // ðŸ“¸ LÃ“GICA DE BANNER DA NAVBAR
   if (bannerBg) {
     if (savedBanner !== "none" && window.BANNER_MAP) {
       const url = window.BANNER_MAP[savedBanner];
@@ -889,7 +935,7 @@ window.updateNavbarCosmetics = function () {
         bannerBg.style.opacity = "1";
       } else {
         console.warn(
-          `⚠️ Link do banner '${savedBanner}' não encontrado no BANNER_MAP.`,
+          `Link do banner '${savedBanner}' nÃ£o encontrado no BANNER_MAP.`,
         );
         bannerBg.style.display = "none";
       }
@@ -897,8 +943,8 @@ window.updateNavbarCosmetics = function () {
       bannerBg.style.display = "none";
     }
   } else {
-    // Só tenta novamente em páginas que realmente têm navbar de usuário (não login/registro)
-    const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registr✅html");
+    // SÃ³ tenta novamente em pÃ¡ginas que realmente tÃªm navbar de usuÃ¡rio (nÃ£o login/registro)
+    const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
     if (!isAuthPage) {
       if (!window._navbarCosmeticsRetries) window._navbarCosmeticsRetries = 0;
       if (window._navbarCosmeticsRetries < 20) {
@@ -909,13 +955,13 @@ window.updateNavbarCosmetics = function () {
   }
 
 
-  // 🎓 TÍTULO
+  // ðŸŽ“ TÃTULO
   if (titleEl) {
     titleEl.textContent = savedTitle;
     titleEl.style.display = savedTitle ? "block" : "none";
   }
 
-  // ✨ AURA & FRAME
+  // âœ¨ AURA & FRAME
   const auraClasses = [
     "aura-common-chama",
     "aura_chama",
@@ -938,6 +984,8 @@ window.updateNavbarCosmetics = function () {
     "aura_void_saitama",
     "aura-legendary-dragon",
     "aura_dragon",
+    "aura_saiyajin",
+    "aura_shinigami",
     "avatar-aura-fire",
     "avatar-aura-guardian",
     "avatar-aura-immortal",
@@ -949,7 +997,7 @@ window.updateNavbarCosmetics = function () {
     "frame-dourado",
   ];
 
-  // — Navbar avatar —
+  // â€” Navbar avatar â€”
   if (avatarBox) {
     avatarBox.classList.remove(...auraClasses);
     if (savedAura !== "none") {
@@ -962,7 +1010,7 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // — Sidebar avatar (abaixo do histórico no perfil) —
+  // â€” Sidebar avatar (abaixo do histÃ³rico no perfil) â€”
   const displayAvatarBox = document.getElementById("displayAvatarBox");
   if (displayAvatarBox) {
     displayAvatarBox.classList.remove(...auraClasses);
@@ -973,21 +1021,14 @@ window.updateNavbarCosmetics = function () {
     }
     if (hasFrame) {
       displayAvatarBox.classList.add("frame-dourado");
-    }
-    // Coroa do sidebar
+    }    // Coroa do sidebar
     const sbCrown = document.getElementById("sidebarCrown");
     if (sbCrown) {
-      sbCrown.style.display = savedCrown ? "block" : "none";
-      if (savedCrown) {
-        let crownIcon = getCosmetic("crownIcon", "👑");
-        if (crownIcon.includes("gorrodenatal.png") || crownIcon === "🎅" || crownIcon.includes("??")) {
-          crownIcon = "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>";
-        }
-        sbCrown.innerHTML = crownIcon;
-      }
+      sbCrown.classList.add("crown-badge-anchor", "crown-badge-anchor--sidebar");
+      sbCrown.style.display = savedCrown ? "flex" : "none";
+      sbCrown.innerHTML = savedCrown ? buildCrownMarkup(savedCrownId, savedCrownIcon) : "";
     }
   }
-
   // Garantir que a <img> nunca tenha borda ou sombra amarela
   if (navAvatar) {
     navAvatar.style.border = "none";
@@ -995,15 +1036,15 @@ window.updateNavbarCosmetics = function () {
     navAvatar.style.outline = "none";
   }
 
-  // 👑 COROA
+  // ðŸ‘‘ COROA
   if (avatarBox) {
     const existingCrown = avatarBox.querySelector(".crown-nav");
     if (existingCrown) existingCrown.remove();
     if (savedCrown) {
       const crown = document.createElement("div");
       crown.className = "crown-nav"; // Usar classe do style.css
-      let crownIcon = getCosmetic("crownIcon", "👑");
-      if (crownIcon.includes("gorrodenatal.png") || crownIcon === "🎅" || crownIcon.includes("??")) {
+      let crownIcon = getCosmetic("crownIcon", "ðŸ‘‘");
+      if (crownIcon.includes("gorrodenatal.png") || crownIcon === "ðŸŽ…" || crownIcon.includes("??")) {
         crownIcon = "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>";
       }
       crown.innerHTML = crownIcon;
@@ -1011,7 +1052,16 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
+  // ðŸ  APLICAR EM PÃGINAS ESPECÃFICAS (PERFIL / HISTÃ“RICO)
+  if (avatarBox && savedCrown) {
+    const crown = avatarBox.querySelector(".crown-nav");
+    if (crown) {
+      crown.classList.add("crown-badge-anchor", "crown-badge-anchor--nav");
+      crown.innerHTML = buildCrownMarkup(savedCrownId, savedCrownIcon);
+    }
+  }
+
+  // ðŸ  APLICAR EM PÃGINAS ESPECÃFICAS (PERFIL / HISTÃ“RICO)
   const isProfilePage = window.location.href.includes("perfil.html") || window.location.pathname.endsWith("/perfil") || window.location.pathname === "/perfil/";
   if (isProfilePage) {
     const sidebar =
@@ -1021,7 +1071,7 @@ window.updateNavbarCosmetics = function () {
     if (sidebar) {
       const bannerUrl = (savedBanner !== "none" && window.BANNER_MAP) ? window.BANNER_MAP[savedBanner] : null;
 
-      // Remover overlay antigo se existir (abordagem antiga com z-index:-1 que não funcionava)
+      // Remover overlay antigo se existir (abordagem antiga com z-index:-1 que nÃ£o funcionava)
       const oldOverlay = sidebar.querySelector(".sidebar-banner-overlay");
       if (oldOverlay) oldOverlay.remove();
 
@@ -1036,10 +1086,10 @@ window.updateNavbarCosmetics = function () {
         sidebar.style.backgroundPosition = "";
         sidebar.style.backgroundRepeat = "";
         
-        // Define a variável CSS que será usada pelo pseudo-elemento ::before (que tem inset: -12px para preencher as bordas)
+        // Define a variÃ¡vel CSS que serÃ¡ usada pelo pseudo-elemento ::before (que tem inset: -12px para preencher as bordas)
         sidebar.style.setProperty("--history-sidebar-banner", `url('${bannerUrl}')`);
       } else {
-        // Sem banner: restaurar background padrão do CSS
+        // Sem banner: restaurar background padrÃ£o do CSS
         const hideStyle = document.getElementById("hide-history-before");
         if (hideStyle) hideStyle.remove();
         
@@ -1077,7 +1127,7 @@ window.addEventListener("storage", (e) => {
   }
 });
 
-// 🚀 Rastreamento de Presença (Online Status)
+// ðŸš€ Rastreamento de PresenÃ§a (Online Status)
 window.startPresenceHeartbeat = async function() {
   if (!supaClient || window.presenceStarted) return;
   window.presenceStarted = true;
@@ -1088,7 +1138,7 @@ window.startPresenceHeartbeat = async function() {
     const { data: { session } } = await supaClient.auth.getSession();
     if (!session) return;
     
-    // Atualização de fallback no banco
+    // AtualizaÃ§Ã£o de fallback no banco
     const updateStatus = async () => {
       try {
         await supaClient.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', session.user.id);
@@ -1097,7 +1147,7 @@ window.startPresenceHeartbeat = async function() {
     updateStatus();
     setInterval(updateStatus, 120000);
 
-    // Canal global de presença em tempo real
+    // Canal global de presenÃ§a em tempo real
     const globalPresenceChannel = supaClient.channel('global_presence', {
       config: { presence: { key: session.user.id } }
     });
@@ -1119,7 +1169,7 @@ window.startPresenceHeartbeat = async function() {
       
     window.globalPresenceChannel = globalPresenceChannel;
 
-    // 🚚 Marcar mensagens pendentes como entregues (Funciona em todas as páginas)
+    // ðŸšš Marcar mensagens pendentes como entregues (Funciona em todas as pÃ¡ginas)
     const markAsDelivered = async () => {
       try {
         await supaClient
@@ -1130,7 +1180,7 @@ window.startPresenceHeartbeat = async function() {
       } catch (err) {}
     };
     
-    // Executa ao carregar qualquer página
+    // Executa ao carregar qualquer pÃ¡gina
     markAsDelivered();
     
     // Escuta novas mensagens para marcar como entregue em tempo real (mesmo fora da aba de chat)
@@ -1145,13 +1195,13 @@ window.startPresenceHeartbeat = async function() {
       .subscribe();
 
   } catch (e) {
-    console.error("Erro no heartbeat de presença:", e);
+    console.error("Erro no heartbeat de presenÃ§a:", e);
   }
 };
 
-// 🚀 Carregar banners automaticamente quando DOM estiver pronto
+// ðŸš€ Carregar banners automaticamente quando DOM estiver pronto
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🚀 DOM pronto - Iniciando carregamento de banners...");
+  console.log("ðŸš€ DOM pronto - Iniciando carregamento de banners...");
 
   const tryLoadBanners = (attempt = 1) => {
     if (window.supabaseClient && typeof window.loadBanners === "function") {
@@ -1159,19 +1209,19 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (attempt < 10) {
       setTimeout(() => tryLoadBanners(attempt + 1), 200);
     } else {
-      console.warn("⚠️ Supabase não disponível após 10 tentativas");
+      console.warn("Supabase nÃ£o disponÃ­vel apÃ³s 10 tentativas");
     }
   };
 
   tryLoadBanners();
 
-  // Mostrar email no OTP section se já estivermos no meio de um registro
+  // Mostrar email no OTP section se jÃ¡ estivermos no meio de um registro
   if (lastEmailRegistered) {
     const otpSection = document.getElementById("otpSection");
     if (otpSection) {
       const emailMsg = otpSection.querySelector("p");
       if (emailMsg) {
-        emailMsg.innerHTML = `<strong>🔑 Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
+        emailMsg.innerHTML = `<strong>ðŸ”‘ Digite o cÃ³digo de 6 dÃ­gitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
       }
     }
   }
@@ -1180,7 +1230,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (window.location.hash) {
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     if (hashParams.get("error_code") === "otp_expired" || hashParams.get("error_description")) {
-      console.warn("Autenticação Hash:", hashParams.get("error_description"));
+      console.warn("AutenticaÃ§Ã£o Hash:", hashParams.get("error_description"));
       window.history.replaceState(null, null, window.location.pathname);
     }
   }
@@ -1195,7 +1245,7 @@ window.checkAuthStatus = async function () {
   const currentPage = window.location.pathname.split("/").pop();
   const nav = document.querySelector(".navbar");
 
-  // Ocultar botões de login na home se estiver logado
+  // Ocultar botÃµes de login na home se estiver logado
   if ((currentPage === "index.html" || currentPage === "") && session) {
     const bannerActions =
       document.querySelector(".hero-buttons") ||
@@ -1238,7 +1288,7 @@ window.checkAuthStatus = async function () {
 
       authContainer.innerHTML = `
                 <div class="navbar-notification-wrapper">
-                  <button class="navbar-bell-trigger" id="navbarBellTrigger" aria-label="Notificações">
+                  <button class="navbar-bell-trigger" id="navbarBellTrigger" aria-label="NotificaÃ§Ãµes">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     <span class="navbar-badge-dot" id="navbarBellBadge" style="display: none;">0</span>
                   </button>
@@ -1255,18 +1305,18 @@ window.checkAuthStatus = async function () {
             `;
       nav.appendChild(authContainer);
 
-      // Iniciar Hub de Notificações
+      // Iniciar Hub de NotificaÃ§Ãµes
       initializeNotificationHub(session.user.id);
 
-      // Se estamos no perfil e não temos perfil no banco, não expulsar imediatamente
+      // Se estamos no perfil e nÃ£o temos perfil no banco, nÃ£o expulsar imediatamente
       if (!profile && currentPage === "perfil.html") {
-        console.warn("Perfil ainda não criado no banc✅ Aguardando sincronizaçã✅..");
+        console.warn("Perfil ainda nÃ£o criado no bancAguardando sincronizaÃ§Ã£..");
       }
 
       if (!window.BANNER_MAP) await loadBanners();
       else updateNavbarCosmetics();
 
-      // Iniciar batimento cardíaco de presença
+      // Iniciar batimento cardÃ­aco de presenÃ§a
       if (typeof window.startPresenceHeartbeat === "function") {
         window.startPresenceHeartbeat();
       }
@@ -1276,9 +1326,9 @@ window.checkAuthStatus = async function () {
     }
   }
 
-  // Proteção de rotas
+  // ProteÃ§Ã£o de rotas
   const protectedRoutes = [
-    "cadastr✅html",
+    "cadastrhtml",
     "cadastro-animes.html",
     "cadastro-filmes.html",
     "cadastro-youtube.html",
@@ -1288,25 +1338,25 @@ window.checkAuthStatus = async function () {
     window.location.href = "login.html";
 };
 
-// 🚀 Preencher links da Navbar automaticamente
+// ðŸš€ Preencher links da Navbar automaticamente
 function populateNavbarLinks() {
   const navLinks = document.getElementById("navLinks");
   if (!navLinks) return;
 
-  // Define os links padrão do site
+  // Define os links padrÃ£o do site
   const links = [
-    { name: "<i class='fa-solid fa-house'></i> Início", url: "index.html" },
+    { name: "<i class='fa-solid fa-house'></i> InÃ­cio", url: "index.html" },
     { name: "<i class='fa-solid fa-torii-gate'></i> Animes", url: "animes.html" },
     { name: "<i class='fa-solid fa-tv'></i> Desenhos", url: "desenhos.html" },
     { name: "<i class='fa-solid fa-clapperboard'></i> Filmes", url: "filmes.html" },
     { name: "<i class='fa-solid fa-pen-to-square'></i> Painel de Cadastros", url: "painel-cadastros.html" },
-    { name: "<i class='fa-solid fa-book'></i> Mangás", url: "mangas.html" },
+    { name: "<i class='fa-solid fa-book'></i> MangÃ¡s", url: "mangas.html" },
     { name: "<i class='fa-regular fa-comment-dots'></i> HQs", url: "hq.html" },
     { name: "<i class='fa-solid fa-play'></i> YouTube", url: "youtube.html" },
     { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
     { name: "<i class='fa-solid fa-robot'></i> Open AnIme", url: "open-anime.html" },
     { name: "<i class='fa-solid fa-users'></i> Equipe", url: "sobre.html" },
-    { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradeciment✅html" }
+    { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradecimento.html" }
   ];
 
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
@@ -1327,7 +1377,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function ensureOAuthClientReady() {
   if (!supaClient && !tryInit()) {
-    throw new Error("Supabase ainda não inicializou. Recarregue a página e tente novamente.");
+    throw new Error("Supabase ainda nÃ£o inicializou. Recarregue a pÃ¡gina e tente novamente.");
   }
   return supaClient;
 }
@@ -1337,7 +1387,7 @@ function showOAuthError(providerName, error) {
   const message = error?.message || "Falha ao autenticar.";
   console.error(`Erro ${providerLabel}:`, message);
   if (typeof showToast === "function") {
-    showToast(`❌ Erro ao entrar com ${providerLabel}: ${message}`, "danger");
+    showToast(`Erro ao entrar com ${providerLabel}: ${message}`, "danger");
   } else {
     alert(`Erro ao entrar com ${providerLabel}: ${message}`);
   }
@@ -1408,7 +1458,7 @@ window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
 
-// Adicionar listeners para os botões social se existirem
+// Adicionar listeners para os botÃµes social se existirem
 document.addEventListener("click", (e) => {
   if (e.target.closest("#githubLoginBtn") || e.target.closest("#githubRegBtn")) {
     signInWithGithub();
@@ -1421,9 +1471,9 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// â”€â”€â”€ Enter global para inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Permite concluir qualquer ação do site pressionando Enter em um campo de texto,
-// exceto no campo de exclusão de conta (para evitar acidentes).
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Enter global para inputs Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// Permite concluir qualquer aÃ§Ã£o do site pressionando Enter em um campo de texto,
+// exceto no campo de exclusÃ£o de conta (para evitar acidentes).
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
 
@@ -1433,11 +1483,11 @@ document.addEventListener("keydown", (e) => {
   // Permitir Shift+Enter livremente em Textareas para quebra de linha
   if (e.shiftKey && el.tagName === "TEXTAREA") return;
 
-  // Nunca ativar Enter em campos de exclusão de conta
+  // Nunca ativar Enter em campos de exclusÃ£o de conta
   const dangerIds = ["deleteConfirmEmail", "deleteConfirmPassword"];
   if (dangerIds.includes(el.id)) return;
 
-  // 1. Se já está dentro de um <form> com botão submit, deixar o comportamento nativo
+  // 1. Se jÃ¡ estÃ¡ dentro de um <form> com botÃ£o submit, deixar o comportamento nativo
   const parentForm = el.closest("form");
   if (parentForm) {
     const submitBtn = parentForm.querySelector('button[type="submit"]:not([disabled])');
@@ -1449,10 +1499,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   // 2. Para inputs fora de forms (OTP, modal de senha, etc.):
-  //    Procura o botão de ação primário mais próximo na mesma seção/container
+  //    Procura o botÃ£o de aÃ§Ã£o primÃ¡rio mais prÃ³ximo na mesma seÃ§Ã£o/container
   const EXCLUDED_BTN_IDS = ["deleteAccountBtn", "confirmDeleteBtn"];
 
-  // Mapa de input â†’ botão de ação
+  // Mapa de input Ã¢â€ â€™ botÃ£o de aÃ§Ã£o
   // op
   const inputToBtnMap = {
     "otpToken": "verifyOtpBtn",
@@ -1472,7 +1522,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 3. Fallback: procura o primeiro botão primário visível no mesmo container pai
+  // 3. Fallback: procura o primeiro botÃ£o primÃ¡rio visÃ­vel no mesmo container pai
   const container = el.closest("section, .auth-card, .modal, [id$='Section'], [id$='Container'], [id$='Card'], form") || el.parentElement;
   if (container) {
     const btn = container.querySelector('button.btn-primary:not([disabled]), button[type="submit"]:not([disabled])');
@@ -1502,7 +1552,7 @@ async function fetchNotificationCount() {
     const { count } = await supaClient
       .from('notifications')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', notificationState.userId)
+      .or(`user_id.eq.${notificationState.userId},user_id.is.null`)
       .eq('read', false);
     updateNotificationBadge(count || 0);
   } catch (e) {
@@ -1528,13 +1578,13 @@ function createNotificationCenterUI() {
   const adminPanelHtml = notificationState.isAdmin ? `
     <details class="notification-admin-panel" style="margin-bottom:1rem;">
       <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:8px 0;">
-        <i class="fa-solid fa-shield-halved"></i> Painel Admin - Enviar Notificação
+        <i class="fa-solid fa-shield-halved"></i> Painel Admin - Enviar NotificaÃ§Ã£o
       </summary>
       <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
-        <input id="adminNotifUserId" type="text" placeholder="User ID do destinatário (deixe vazio para todos)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
-        <input id="adminNotifTitle" type="text" placeholder="Título da notificação" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <input id="adminNotifUserId" type="text" placeholder="User ID do destinatÃ¡rio (deixe vazio para todos)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <small style="color:var(--text-muted); font-size:0.75rem; margin-top:-0.25rem; display:block;">Deixe vazio para enviar a todos os usuÃ¡rios.</small>
+        <input id="adminNotifTitle" type="text" placeholder="TÃ­tulo da notificaÃ§Ã£o" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
         <textarea id="adminNotifMessage" rows="2" placeholder="Mensagem..." style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem; resize:vertical;"></textarea>
-        <input id="adminNotifLink" type="text" placeholder="Link (opcional)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
         <button onclick="sendAdminNotification()" style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; font-weight:700;">
           <i class="fa-solid fa-paper-plane"></i> Enviar
         </button>
@@ -1545,7 +1595,7 @@ function createNotificationCenterUI() {
   center.innerHTML = `
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
       <h3 style="font-family:'Bangers'; font-size:1.4rem; color:var(--primary); letter-spacing:1px; margin:0;">
-        <i class="fa-solid fa-bell"></i> Notificações
+        <i class="fa-solid fa-bell"></i> NotificaÃ§Ãµes
       </h3>
       <button class="notification-center__close" onclick="toggleNotificationCenter()" title="Fechar">
         <i class="fa-solid fa-xmark"></i>
@@ -1560,7 +1610,7 @@ function createNotificationCenterUI() {
       </div>
       <div style="display:flex; align-items:center; gap:0.5rem; margin-left:auto;">
         <input type="checkbox" id="selectAllNotifs" title="Selecionar todas" style="cursor:pointer;">
-        <span style="font-size:0.8rem; color:var(--text-muted);">Selecionar todas</span>
+        <label for="selectAllNotifs" style="cursor:pointer; font-size:0.9rem;">Selecionar todas</label>
       </div>
     </div>
     <div id="notifCenterContent" class="notification-center__content">
@@ -1623,25 +1673,67 @@ window.switchNotifTab = function(tab, btnEl) {
 
 window.sendAdminNotification = async function() {
   if (!supaClient) return;
+  if (!notificationState.isAdmin) {
+    if (window.showToast) showToast('Apenas o administrador pode enviar notificaÃ§Ãµes.', 'error');
+    return;
+  }
+
   const userId = document.getElementById('adminNotifUserId')?.value.trim();
   const title = document.getElementById('adminNotifTitle')?.value.trim();
   const message = document.getElementById('adminNotifMessage')?.value.trim();
-  const link = document.getElementById('adminNotifLink')?.value.trim();
+
   if (!title || !message) {
-    if (window.showToast) showToast('Preencha título e mensagem.', 'error');
+    if (window.showToast) showToast('Preencha tÃ­tulo e mensagem.', 'error');
     return;
   }
-  const payload = { title, message, link: link || null, type: 'site', read: false };
-  if (userId) payload.user_id = userId;
-  const { error } = await supaClient.from('notifications').insert([payload]);
-  if (error) {
-    if (window.showToast) showToast('Erro ao enviar notificação.', 'error');
+
+  let notifications = [];
+
+  const notificationPayload = { title, message, type: 'site', read: false };
+
+  if (userId) {
+    notifications.push({ ...notificationPayload, user_id: userId });
   } else {
-    if (window.showToast) showToast('Notificação enviada!', 'success');
+    const { data: profiles, error: profileError } = await supaClient
+      .from('profiles')
+      .select('id');
+
+    if (profileError) {
+      console.error('Erro ao buscar usuÃ¡rios para envio global:', profileError);
+      if (window.showToast) showToast('Erro ao enviar notificaÃ§Ã£o global.', 'error');
+      return;
+    }
+
+    if (!profiles || profiles.length === 0) {
+      if (window.showToast) showToast('Nenhum usuÃ¡rio encontrado para envio.', 'error');
+      return;
+    }
+
+    notifications = profiles.map((profile) => ({
+      ...notificationPayload,
+      user_id: profile.id
+    }));
+  }
+
+  try {
+    const chunkSize = 150;
+    for (let i = 0; i < notifications.length; i += chunkSize) {
+      const chunk = notifications.slice(i, i + chunkSize);
+      const { error } = await supaClient.from('notifications').insert(chunk);
+      if (error) throw error;
+    }
+
+    if (window.showToast) showToast('NotificaÃ§Ã£o enviada!', 'success');
     document.getElementById('adminNotifTitle').value = '';
     document.getElementById('adminNotifMessage').value = '';
-    document.getElementById('adminNotifLink').value = '';
     document.getElementById('adminNotifUserId').value = '';
+    if (notificationState.isOpen) {
+      await loadNotificationsList(notificationState.activeFilter, true);
+    }
+    fetchNotificationCount();
+  } catch (err) {
+    console.error('Erro ao enviar notificaÃ§Ã£o:', err);
+    if (window.showToast) showToast('Erro ao enviar notificaÃ§Ã£o.', 'error');
   }
 };
 
@@ -1701,7 +1793,7 @@ function renderNotificationListFromState() {
     content.innerHTML = `
       <div class="notif-empty-state">
         <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
-        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'VocÃª nÃ£o tem notificaÃ§Ãµes.'}</p>
       </div>
     `;
     syncNotificationSelectionState();
@@ -1740,31 +1832,31 @@ function clearNotificationBatchSelection() {
   syncNotificationSelectionState();
 }
 
-async function loadNotificationsList(filter = 'all') {
+async function loadNotificationsList(filter = 'all', forceRefresh = false) {
   const content = document.getElementById('notifCenterContent');
   if (!content) return;
 
   notificationState.activeFilter = filter || 'all';
-  if (notificationState.notifications.length > 0) {
+  if (notificationState.notifications.length > 0 && !forceRefresh) {
     renderNotificationListFromState();
     return;
   }
 
-  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand✅..</div>';
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand..</div>';
   syncNotificationSelectionState();
 
   try {
     let query = supaClient
       .from('notifications')
       .select('*')
-      .eq('user_id', notificationState.userId)
+      .or(`user_id.eq.${notificationState.userId},user_id.is.null`)
       .order('created_at', { ascending: false })
       .limit(30);
 
     if (notificationState.activeFilter === 'chat') {
       query = query.eq('type', 'chat');
     } else if (notificationState.activeFilter === 'site') {
-      query = query.neq('type', 'chat');
+      query = query.eq('type', 'site');
     }
 
     const { data: notifs, error } = await query;
@@ -1775,7 +1867,7 @@ async function loadNotificationsList(filter = 'all') {
     renderNotificationListFromState();
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
   }
 }
 
@@ -1791,13 +1883,13 @@ async function handleBatchAction(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (!ids.length) {
-    alert("Selecione pelo menos uma notificação para realizar esta aÃ§Ã£✅");
+    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃƒÂ§ÃƒÂ£");
     return;
   }
 
   if (actionButton) {
     actionButton.disabled = true;
-    actionButton.textContent = action === 'delete' ? 'Excluind✅..' : 'Marcand✅..';
+    actionButton.textContent = action === 'delete' ? 'Excluind..' : 'Marcand..';
   }
 
   try {
@@ -1821,7 +1913,7 @@ async function markNotificationsRead(ids) {
     const { error } = await supaClient
       .from('notifications')
       .update({ read: true })
-      .eq('user_id', notificationState.userId)
+      .or(`user_id.eq.${notificationState.userId},user_id.is.null`)
       .in('id', ids);
 
     if (error) throw error;
@@ -1843,7 +1935,7 @@ async function deleteNotifications(ids) {
     const { error } = await supaClient
       .from('notifications')
       .delete()
-      .eq('user_id', notificationState.userId)
+      .or(`user_id.eq.${notificationState.userId},user_id.is.null`)
       .in('id', ids);
 
     if (error) throw error;
@@ -1852,7 +1944,7 @@ async function deleteNotifications(ids) {
     syncNotificationBadgeFromState();
     renderNotificationListFromState();
   } catch (err) {
-    console.error("Erro ao deletar notificações:", err);
+    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -1869,9 +1961,11 @@ function setupNotificationRealtime() {
     .on('postgres_changes', {
       event: '*',
       schema: 'public',
-      table: 'notifications',
-      filter: `user_id=eq.${notificationState.userId}`
+      table: 'notifications'
     }, (payload) => {
+      const relevantId = payload.new?.user_id ?? payload.old?.user_id ?? null;
+      if (relevantId !== notificationState.userId && relevantId !== null) return;
+
       if (payload.eventType === 'INSERT' && payload.new) {
         notificationState.notifications = notificationState.notifications
           .filter((item) => item.id !== payload.new.id);
@@ -1907,7 +2001,7 @@ function setupNotificationRealtime() {
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("âœ… Escutando notificações em tempo real");
+        console.log("Ã¢Å“â€¦ Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }
@@ -1947,13 +2041,13 @@ async function handleBatchActionLegacy(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (ids.length === 0) {
-    alert("Selecione pelo menos uma notificação para realizar esta aÃ§Ã£✅");
+    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃƒÂ§ÃƒÂ£");
     return;
   }
 
   if (actionButton) {
     actionButton.disabled = true;
-    actionButton.textContent = action === 'delete' ? 'Excluind✅..' : 'Marcand✅..';
+    actionButton.textContent = action === 'delete' ? 'Excluind..' : 'Marcand..';
   }
 
   try {
@@ -1989,7 +2083,7 @@ function toggleNotificationCenter() {
   if (notificationState.isOpen) {
     center.classList.add('active');
     overlay.classList.add('active');
-    loadNotificationsList(notificationState.activeFilter);
+    loadNotificationsList(notificationState.activeFilter, true);
     // Re-anexar listeners para garantir que funcionem
     attachNotificationListeners();
   } else {
@@ -2003,14 +2097,14 @@ async function loadNotificationsListLegacy(filter = 'all') {
   if (!content) return;
   notificationState.activeFilter = filter || 'all';
 
-  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand✅..</div>';
+  content.innerHTML = '<div style="text-align:center; padding:20px;"><span class="loader-ring"></span> Carregand..</div>';
   syncNotificationSelectionState();
 
   try {
     let query = supaClient
       .from('notifications')
       .select('*')
-      .eq('user_id', notificationState.userId)
+      .or(`user_id.eq.${notificationState.userId},user_id.is.null`)
       .order('created_at', { ascending: false })
       .limit(30);
 
@@ -2030,7 +2124,7 @@ async function loadNotificationsListLegacy(filter = 'all') {
 
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
   }
 }
 
@@ -2045,12 +2139,12 @@ function getNotifIcon(type) {
   const icons = {
     'system': 'âš™ï¸',
     'social': 'ðŸ‘¥',
-    'loja': 'ðŸŽŒ',
+    'loja': 'ðŸŽ¬',
     'xp': 'âœ¨',
     'medalha': 'ðŸ…',
     'chat': 'ðŸ’¬'
   };
-  return icons[type] || 'ðŸ””';
+  return icons[type] || '<i class="fa-solid fa-bell"></i>';
 }
 
 function formatNotifTime(dateStr) {
@@ -2060,10 +2154,10 @@ function formatNotifTime(dateStr) {
   const diffMins = Math.floor(diffMs / 60000);
   
   if (diffMins < 1) return 'Agora mesmo';
-  if (diffMins < 60) return `Há ${diffMins} min`;
+  if (diffMins < 60) return `HÃ¡ ${diffMins} min`;
   
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `Há ${diffHours}h`;
+  if (diffHours < 24) return `HÃ¡ ${diffHours}h`;
   
   return date.toLocaleDateString('pt-BR');
 }
@@ -2094,7 +2188,7 @@ async function deleteNotificationsLegacy(ids) {
   if (!ids || ids.length === 0) return;
   
   try {
-    console.log(`[NotificationHub] Excluindo ${ids.length} notificações...`);
+    console.log(`[NotificationHub] Excluindo ${ids.length} notificaÃ§Ãµes...`);
     const { error } = await supaClient
       .from('notifications')
       .delete()
@@ -2106,7 +2200,7 @@ async function deleteNotificationsLegacy(ids) {
     renderNotificationListFromState();
     return;
   } catch (err) {
-    console.error("Erro ao deletar notificações:", err);
+    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -2116,7 +2210,7 @@ async function markAsRead(id) {
 }
 
 async function markAllAsRead() {
-  // Mantendo para compatibilidade se necessário, mas agora usamos handleBatchAction
+  // Mantendo para compatibilidade se necessÃ¡rio, mas agora usamos handleBatchAction
   const allIds = Array.from(document.querySelectorAll('.notification-item')).map(el => el.dataset.id);
   if (allIds.length > 0) await markNotificationsRead(allIds);
 }
@@ -2129,7 +2223,7 @@ function setupNotificationRealtimeLegacy() {
     notificationState.realtimeChannel = null;
   }
 
-  // Canal para mudanças nas notificações do usuário
+  // Canal para mudanÃ§as nas notificaÃ§Ãµes do usuÃ¡rio
   notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
     .on('postgres_changes', {
       event: '*', // Ouvir TUDO (INSERT, UPDATE, DELETE)
@@ -2137,25 +2231,25 @@ function setupNotificationRealtimeLegacy() {
       table: 'notifications',
       filter: `user_id=eq.${notificationState.userId}`
     }, (payload) => {
-      console.log("Evento de notificação:", payload.eventType, payload);
+      console.log("Evento de notificaÃ§Ã£o:", payload.eventType, payload);
       
       // Atualizar contagem do badge sempre
       fetchNotificationCount();
 
-      // Se o painel estiver aberto, recarregar a lista para refletir a mudança
+      // Se o painel estiver aberto, recarregar a lista para refletir a mudanÃ§a
       if (notificationState.isOpen) {
         const activeTab = document.querySelector('.notif-tab.active')?.dataset.tab || 'all';
         loadNotificationsList(activeTab);
       }
       
-      // Se for uma inserção, mostrar um Toast
+      // Se for uma inserÃ§Ã£o, mostrar um Toast
       if (payload.eventType === 'INSERT' && window.showToast) {
         showToast(`ðŸ”” ${payload.new.title}`, "info");
       }
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("âœ… Escutando notificações em tempo real");
+        console.log("âœ“ Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }
@@ -2166,7 +2260,7 @@ window.updatePasswordStrength = function(password, fillId, textId) {
   if (!fill || !text) return;
   if (!password) {
     fill.style.width = '0%'; fill.style.backgroundColor = 'transparent';
-    text.textContent = 'Força: Muito Fraca'; text.style.color = 'var(--text-muted)';
+    text.textContent = 'ForÃ§a: Muito Fraca'; text.style.color = 'var(--text-muted)';
     return;
   }
   let score = 0;
@@ -2177,18 +2271,18 @@ window.updatePasswordStrength = function(password, fillId, textId) {
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
   if (score <= 2) {
     fill.style.width = '33%'; fill.style.backgroundColor = 'var(--danger)';
-    text.textContent = 'Força: Fraca'; text.style.color = 'var(--danger)';
+    text.textContent = 'ForÃ§a: Fraca'; text.style.color = 'var(--danger)';
   } else if (score === 3 || score === 4) {
     fill.style.width = '66%'; fill.style.backgroundColor = '#facc15';
-    text.textContent = 'Força: Média'; text.style.color = '#facc15';
+    text.textContent = 'ForÃ§a: MÃ©dia'; text.style.color = '#facc15';
   } else {
     fill.style.width = '100%'; fill.style.backgroundColor = 'var(--success)';
-    text.textContent = 'Força: Forte'; text.style.color = 'var(--success)';
+    text.textContent = 'ForÃ§a: Forte'; text.style.color = 'var(--success)';
   }
 };
 window.generateMD5Password = function(pwdId, confirmId) {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para força máxima
+  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para forÃ§a mÃ¡xima
   const array = new Uint32Array(28);
   window.crypto.getRandomValues(array);
   for (let i = 0; i < 28; i++) {
@@ -2226,4 +2320,5 @@ window.generateMD5Password = function(pwdId, confirmId) {
     alert('Senha ultra-segura gerada e preenchida!');
   }
 };
+
 
