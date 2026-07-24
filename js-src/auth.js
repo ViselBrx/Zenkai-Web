@@ -119,7 +119,7 @@ async function setupAuthLogic() {
               <div style="text-align:left; margin-bottom:1rem;">
                 <label style="display:block; margin-bottom:8px; color:var(--text-main); font-weight:600; font-size:0.9rem;">Nova Senha</label>
                 <div style="position:relative;">
-                  <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="MÃ­nimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
+          <input type="password" id="recoveryNewPassword" autocomplete="new-password" placeholder="Mínimo 6 caracteres" style="width:100%; padding:14px; padding-right:45px; background:var(--bg-surface); border:1px solid var(--border); border-radius:10px; color:var(--text-main); outline:none; font-size:1rem; transition:all 0.3s ease; box-sizing:border-box;" />
                   <button type="button" id="toggleRecPass" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; display:flex; align-items:center; justify-content:center;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                   </button>
@@ -192,7 +192,7 @@ async function setupAuthLogic() {
             return;
           }
           if (newPassword !== confirmPassword) {
-            errorDiv.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> As senhas nÃ£o coincidem.";
+            errorDiv.innerHTML = "<i class='fa-solid fa-circle-xmark'></i> As senhas não coincidem.";
             errorDiv.style.display = "block";
             return;
           }
@@ -215,7 +215,7 @@ async function setupAuthLogic() {
             btn.disabled = false;
           } else {
             sessionStorage.removeItem('is_recovering_password');
-            // Deslogar imediatamente para forÃ§ar o login manual e impedir que "entre na conta sozinho"
+            // Deslogar imediatamente para forçar o login manual e impedir que "entre na conta sozinho"
             await supaClient.auth.signOut();
 
             const card = document.getElementById('recoveryCard');
@@ -230,7 +230,7 @@ async function setupAuthLogic() {
                    </div>
                  </div>
                  <h2 style="color:#10b981; margin-bottom:1rem; font-family:'Bangers', cursive; font-size:2.5rem; letter-spacing:2px; text-shadow:0 0 15px rgba(16,185,129,0.3);">Sucesso!</h2>
-                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeiÃ§Ã£o! Por seguranÃ§a, vocÃª foi desconectado. FaÃ§a o login com sua nova senha.</p>
+                 <p style="color:var(--text-muted); margin-bottom:2rem; font-size:1rem; line-height:1.6;">Sua senha foi redefinida com perfeição! Por segurança, você foi desconectado. Faça o login com sua nova senha.</p>
                  <button id="recoveryCloseBtn" class="btn btn-primary" style="width:100%; padding:14px; font-size:1.1rem; border-radius:10px; font-weight:bold; letter-spacing:1px; background:#10b981; border-color:#10b981; box-shadow:0 0 15px rgba(16,185,129,0.4);">Fazer Login</button>
                `;
               card.style.borderColor = 'rgba(16,185,129,0.4)';
@@ -350,7 +350,7 @@ if (forgotPasswordLink) {
         errorDiv.style.display = "block";
       } else {
         if (successDiv) {
-          successDiv.innerHTML = "<i class='fa-solid fa-circle-check' style='color:var(--success);margin-right:6px;'></i><strong>E-mail de redefiniÃ§Ã£o enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'><i class='fa-solid fa-triangle-exclamation'></i> <strong>AtenÃ§Ã£o:</strong> NÃ£o encontrou? Verifique sua pasta de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>";
+          successDiv.innerHTML = "<i class='fa-solid fa-circle-check' style='color:var(--success);margin-right:6px;'></i><strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'><i class='fa-solid fa-triangle-exclamation'></i> <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
           successDiv.style.display = "block";
         }
       }
@@ -365,17 +365,17 @@ const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // Limpar qualquer flag de recuperaÃ§Ã£o de senha pendente
+    // Limpar qualquer flag de recuperação de senha pendente
     sessionStorage.removeItem('is_recovering_password');
 
     const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorDiv = document.getElementById("loginError");
 
-    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
+    // Validação básica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "E-mail invÃ¡lido ou mal formatado.";
+      errorDiv.textContent = "E-mail inválido ou mal formatado.";
       errorDiv.style.display = "block";
       return;
     }
@@ -406,7 +406,7 @@ if (loginForm) {
       }
 
       // Login bem sucedido
-      console.log("âœ… Login realizado com sucesso. Verificando sessÃ£o..");
+      console.log("✅ Login realizado com sucesso. Verificando sessão..");
       const { data: sessData } = await supaClient.auth.getSession();
       
       if (sessData && sessData.session) {
@@ -414,7 +414,7 @@ if (loginForm) {
         console.log("ðŸš€ Redirecionando para perfil...");
         window.location.href = "perfil.html";
       } else {
-        console.warn("âš ï¸ SessÃ£o nÃ£o encontrada apÃ³s login. Tentando redirecionar mesmo assim...");
+        console.warn("⚠️ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
         window.location.href = "perfil.html";
       }
     } catch (err) {
@@ -441,16 +441,16 @@ if (registerForm) {
     const successDiv = document.getElementById("registerSuccess");
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
-    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
+    // Validação básica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      errorDiv.textContent = "Digite um e-mail vÃ¡lido (ex: seu@email.com).";
+      errorDiv.textContent = "Digite um e-mail válido (ex: seu@email.com).";
       errorDiv.style.display = "block";
       return;
     }
 
     if (password !== confirmPassword) {
-      errorDiv.textContent = "As senhas nÃ£o coincidem.";
+      errorDiv.textContent = "As senhas não coincidem.";
       errorDiv.style.display = "block";
       return;
     }
@@ -474,11 +474,11 @@ if (registerForm) {
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many requests")) {
         msg = "âš ï¸ Limite de tentativas atingido. Por favor, aguarde alguns minutos.";
       } else if (msg.toLowerCase().includes("security purposes")) {
-        msg = "âš ï¸ VocÃª jÃ¡ solicitou um cÃ³digo para este e-mail. Aguarde 1 minuto para tentar novamente.";
+          msg = "⚠️ Você já solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
       } else if (msg.toLowerCase().includes("confirmation email") || msg.toLowerCase().includes("email send failed")) {
-        msg = "âš ï¸ Erro no servidor de e-mail (SMTP). Por favor, verifique as configuraÃ§Ãµes de SMTP no painel do Supabase.";
+          msg = "⚠️ Erro no servidor de e-mail (SMTP). Por favor, verifique as configurações de SMTP no painel do Supabase.";
       } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || error.status === 422) {
-        msg = "âŒ AlguÃ©m jÃ¡ estÃ¡ usando essa conta. Tente fazer login ou use outro e-mail.";
+          msg = "❌ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
       }
 
       errorDiv.textContent = msg;
@@ -502,10 +502,10 @@ if (registerForm) {
         // Atualizar texto do email na tela
         const emailDisplay = otpSection.querySelector("p");
         if (emailDisplay) {
-          emailDisplay.innerHTML = `Quase lÃ¡! Enviamos um cÃ³digo de seguranÃ§a de 6 dÃ­gitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;"><strong>AtenÃ§Ã£o:</strong> O e-mail pode demorar 1 minuto para chegar. Se nÃ£o encontrar, verifique sua caixa de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>`;
+          emailDisplay.innerHTML = `Quase lá! Enviamos um código de segurança de 6 dígitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;"><strong>Atenção:</strong> O e-mail pode demorar 1 minuto para chegar. Se não encontrar, verifique sua caixa de <strong>Spam ou Lixo Eletrônico</strong>.</span>`;
         }
       } else {
-        console.error("otpSection NÃƒO encontrado no DOM!");
+    console.error("otpSection NÃO encontrado no DOM!");
       }
 
       submitBtn.disabled = false;
@@ -537,15 +537,15 @@ if (resendBtn) {
     const resendEmailInput = document.getElementById("resendEmail");
     const emailToResend = (resendEmailInput?.value || lastEmailRegistered || "").trim().toLowerCase();
     if (!emailToResend) {
-      alert("Digite o e-mail para reenviar o cÃ³digo");
+      alert("Digite o e-mail para reenviar o código");
       return;
     }
     resendBtn.disabled = true;
-    resendBtn.textContent = "Ã°Å¸â€œÂ¨ Enviando..";
+    resendBtn.textContent = "📨 Enviando...";
     const client = window.supabaseClient;
     if (!client) {
-      resendBtn.textContent = "Ã¢ÂÅ’ Erro ao reenviar. Tente novamente.";
-      setTimeout(() => { resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 3000);
+      resendBtn.textContent = "❌ Erro ao reenviar. Tente novamente.";
+      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 3000);
       return;
     }
     const { error } = await client.auth.resend({ type: "signup", email: emailToResend });
@@ -554,19 +554,19 @@ if (resendBtn) {
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
         msg = "Aguarde 1 minuto antes de reenviar.";
       }
-      resendBtn.textContent = "Ã¢ÂÅ’ " + msg;
-      setTimeout(() => { resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo"; resendBtn.disabled = false; }, 5000);
+      resendBtn.textContent = "❌ " + msg;
+      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 5000);
     } else {
       resendCooldown = true;
       let seconds = 60;
-      resendBtn.textContent = `Ã¢Å“â€¦ CÃ³digo reenviado! Aguarde ${seconds}s`;
+      resendBtn.textContent = `✅ Código reenviado! Aguarde ${seconds}s`;
       const interval = setInterval(() => {
         seconds--;
         resendBtn.textContent = `<i class="fa-solid fa-hourglass-half"></i> Aguarde ${seconds}s para reenviar`;
         if (seconds <= 0) {
           clearInterval(interval);
           resendBtn.disabled = false;
-          resendBtn.textContent = "Ã°Å¸â€œÂ§ Reenviar CÃ³digo";
+          resendBtn.textContent = "📧 Reenviar Código";
           resendCooldown = false;
         }
       }, 1000);
@@ -588,22 +588,22 @@ if (verifyOtpBtn) {
     const otpError = document.getElementById("otpError");
 
     if (!email) {
-      otpError.textContent = "Erro: E-mail nÃ£o identificado";
+      otpError.textContent = "Erro: E-mail não identificado";
       otpError.style.display = "block";
       return;
     }
 
     if (!token || token.length < 6) {
-      otpError.textContent = "Digite o cÃ³digo completo recebido por e-mail.";
+      otpError.textContent = "Digite o código completo recebido por e-mail.";
       otpError.style.display = "block";
       return;
     }
 
     verifyOtpBtn.disabled = true;
-    verifyOtpBtn.textContent = "Ã°Å¸â€Å’ Verificando..";
+    verifyOtpBtn.textContent = "🔍 Verificando...";
     otpError.style.display = "none";
 
-    console.log("Ã°Å¸â€Â [DEBUG] Iniciando VerificaÃ§Ã£o OTP:");
+    console.log("🔍 [DEBUG] Iniciando Verificação OTP:");
     console.log("   > E-mail:", email);
     console.log("   > Token:", token);
 
@@ -613,14 +613,14 @@ if (verifyOtpBtn) {
       let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
 
       if (res.error) {
-        console.warn("   Ã¢Å¡Â Ã¯Â¸Â Falha 'signup':", res.error.message);
+        console.warn("   ⚠️ Falha 'signup':", res.error.message);
         // 2. Tenta tipo 'email'
         console.log("   > Tentando tipo: 'email'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
       }
 
       if (res.error) {
-        console.warn("   Ã¢Å¡Â Ã¯Â¸  Falha 'email':", res.error.message);
+        console.warn("   ⚠️ Falha 'email':", res.error.message);
         // 3. Tenta tipo 'magiclink'
         console.log("   > Tentando tipo: 'magiclink'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
@@ -630,9 +630,9 @@ if (verifyOtpBtn) {
 
       if (error) {
         console.error("ERRO FINAL:", error);
-        let userMsg = "CÃ³digo invÃ¡lido";
-        if (error.message.includes("expired")) userMsg = "O cÃ³digo expirou ou Ã© antigo.";
-        else if (error.message.includes("not found")) userMsg = "E-mail nÃ£o encontrado";
+        let userMsg = "Código inválido";
+        if (error.message.includes("expired")) userMsg = "O código expirou ou é antigo.";
+        else if (error.message.includes("not found")) userMsg = "E-mail não encontrado";
 
         otpError.textContent = `${userMsg} (${error.message})`;
         otpError.style.display = "block";
@@ -649,7 +649,7 @@ if (verifyOtpBtn) {
         });
       }
     } catch (err) {
-      otpError.textContent = "Erro inesperado na verificaÃ§Ã£o";
+      otpError.textContent = "Erro inesperado na verificação";
       otpError.style.display = "block";
       verifyOtpBtn.disabled = false;
     }
@@ -658,13 +658,13 @@ if (verifyOtpBtn) {
 
 // 5. Excluir Conta
 window.deleteUserAccount = async function () {
-  if (!supaClient) return { error: { message: 'Supabase nÃ£o inicializado' } };
+  if (!supaClient) return { error: { message: 'Supabase não inicializado' } };
 
   try {
     const { data: { user } } = await supaClient.auth.getUser();
-    if (!user) return { error: { message: 'UsuÃ¡rio nÃ£o autenticado' } };
+    if (!user) return { error: { message: 'Usuário não autenticado' } };
 
-    // Chama a funÃ§Ã£o de seguranÃ§a (Postgres RPC) no Supabase
+    // Chama a função de segurança (Postgres RPC) no Supabase
     const { error } = await supaClient.rpc('delete_user');
 
     if (error) {
@@ -1345,12 +1345,12 @@ function populateNavbarLinks() {
 
   // Define os links padrÃ£o do site
   const links = [
-    { name: "<i class='fa-solid fa-house'></i> InÃ­cio", url: "index.html" },
+    { name: "<i class='fa-solid fa-house'></i> Início", url: "index.html" },
     { name: "<i class='fa-solid fa-torii-gate'></i> Animes", url: "animes.html" },
     { name: "<i class='fa-solid fa-tv'></i> Desenhos", url: "desenhos.html" },
     { name: "<i class='fa-solid fa-clapperboard'></i> Filmes", url: "filmes.html" },
     { name: "<i class='fa-solid fa-pen-to-square'></i> Painel de Cadastros", url: "painel-cadastros.html" },
-    { name: "<i class='fa-solid fa-book'></i> MangÃ¡s", url: "mangas.html" },
+    { name: "<i class='fa-solid fa-book'></i> Mangás", url: "mangas.html" },
     { name: "<i class='fa-regular fa-comment-dots'></i> HQs", url: "hq.html" },
     { name: "<i class='fa-solid fa-play'></i> YouTube", url: "youtube.html" },
     { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
@@ -2260,7 +2260,7 @@ window.updatePasswordStrength = function(password, fillId, textId) {
   if (!fill || !text) return;
   if (!password) {
     fill.style.width = '0%'; fill.style.backgroundColor = 'transparent';
-    text.textContent = 'ForÃ§a: Muito Fraca'; text.style.color = 'var(--text-muted)';
+    text.textContent = 'Força: Muito Fraca'; text.style.color = 'var(--text-muted)';
     return;
   }
   let score = 0;
@@ -2271,18 +2271,18 @@ window.updatePasswordStrength = function(password, fillId, textId) {
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
   if (score <= 2) {
     fill.style.width = '33%'; fill.style.backgroundColor = 'var(--danger)';
-    text.textContent = 'ForÃ§a: Fraca'; text.style.color = 'var(--danger)';
+    text.textContent = 'Força: Fraca'; text.style.color = 'var(--danger)';
   } else if (score === 3 || score === 4) {
     fill.style.width = '66%'; fill.style.backgroundColor = '#facc15';
-    text.textContent = 'ForÃ§a: MÃ©dia'; text.style.color = '#facc15';
+    text.textContent = 'Força: Média'; text.style.color = '#facc15';
   } else {
     fill.style.width = '100%'; fill.style.backgroundColor = 'var(--success)';
-    text.textContent = 'ForÃ§a: Forte'; text.style.color = 'var(--success)';
+    text.textContent = 'Força: Forte'; text.style.color = 'var(--success)';
   }
 };
 window.generateMD5Password = function(pwdId, confirmId) {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para forÃ§a mÃ¡xima
+  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para força máxima
   const array = new Uint32Array(28);
   window.crypto.getRandomValues(array);
   for (let i = 0; i < 28; i++) {

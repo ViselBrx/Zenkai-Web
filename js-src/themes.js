@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const THEME_ALIASES = {
     "": "theme-ciano",
     "theme-default": "theme-ciano",
@@ -144,7 +144,7 @@
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
 
-    // Proteção para o tema cromático: isolamento por usuário
+    // ProteÃ§Ã£o para o tema cromÃ¡tico: isolamento por usuÃ¡rio
     if (rawTheme === "theme-cromatico") {
       let uid = null;
       try {
@@ -176,7 +176,7 @@
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
-  // Restaurar tema cromático de volta A  sessionStorage se estava equipado no localStorage (user-scoped)
+  // Restaurar tema cromÃ¡tico de volta AÂ  sessionStorage se estava equipado no localStorage (user-scoped)
   const syncChromaticTheme = () => {
     let uid = null;
     try {
@@ -336,7 +336,7 @@
       window.location.pathname.split("/").pop() || "index.html";
 
     const pages = [
-      { href: "index.html", label: " Inicio", icon: "<i class='fa-solid fa-house'></i>" },
+      { href: "index.html", label: " Início", icon: "<i class='fa-solid fa-house'></i>" },
       { href: "desenhos.html", label: " Desenhos", icon: "<i class='fa-solid fa-tv'></i>" },
       { href: "animes.html", label: " Animes", icon: "<i class='fa-solid fa-torii-gate'></i>" },
       { href: "youtube.html", label: " YouTube", icon: "<i class='fa-solid fa-play'></i>" },
@@ -345,7 +345,7 @@
       { href: "anime-episodios.html", label: " Eps. Animes", icon: "<i class='fa-solid fa-play'></i>" },
       { href: "youtube-videos.html", label: " Eps. YouTube", icon: "<i class='fa-solid fa-play'></i>" },
       { href: "painel-cadastros.html", label: " Painel de Cadastros", icon: "<i class='fa-solid fa-pen-to-square'></i>" },
-      { href: "mangas.html", label: " Mangas", icon: "<i class='fa-solid fa-book'></i>" },
+      { href: "mangas.html", label: " Mangás", icon: "<i class='fa-solid fa-book'></i>" },
       { href: "hq.html", label: " HQs", icon: "<i class='fa-regular fa-comment-dots'></i>" },
       { href: "loja.html", label: " SenseiMod Store", icon: "<i class='fa-solid fa-flag'></i>" },
       { href: "open-anime.html", label: " Open AnIme", icon: "<i class='fa-solid fa-robot'></i>" },
@@ -373,13 +373,13 @@
       links.appendChild(li);
     });
 
-    // Restaura a posiA§A£o do scroll da navbar salva no localStorage
+    // Restaura a posiAÂ§AÂ£o do scroll da navbar salva no localStorage
     const savedScroll = localStorage.getItem("navbarScrollPosition");
     if (savedScroll) {
       links.scrollLeft = parseInt(savedScroll);
     }
 
-    // Salva a posiA§A£o do scroll sempre que houver rolagem
+    // Salva a posiAÂ§AÂ£o do scroll sempre que houver rolagem
     links.addEventListener("scroll", () => {
       localStorage.setItem("navbarScrollPosition", links.scrollLeft.toString());
     });
@@ -460,7 +460,7 @@
         ctx.rotate(this.angle);
         ctx.fillStyle = '#ffffff';
         ctx.font = `${this.size}px Arial`;
-        ctx.fillText('❄', -this.size/2, this.size/2);
+        ctx.fillText('â„', -this.size/2, this.size/2);
       } else {
         // Glowing dot
         ctx.beginPath();
@@ -592,3 +592,4 @@
     // Wait a brief moment to ensure Supabase session is read
     setTimeout(window.updateCursorEffect, 300);
   });
+
