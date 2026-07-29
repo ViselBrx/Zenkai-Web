@@ -899,13 +899,26 @@ async function handlePasskeyRowAction(event) {
 }
 
 function injectPasskeyProfileSection() {
-  if (!window.location.pathname.includes("perfil.html")) return;
+  const isProfileRoute =
+    window.location.pathname.includes("perfil.html") ||
+    window.location.pathname.endsWith("/perfil") ||
+    window.location.pathname === "/perfil/" ||
+    window.location.pathname.includes("perfil");
+
+  if (!isProfileRoute) return;
   if (document.getElementById("passkeySection")) return;
 
   const anchor = document.getElementById("meusEspeciaisSection");
-  if (!anchor) return;
+  const fallbackContainer =
+    document.querySelector(".profile-main") ||
+    document.querySelector(".profile-shell");
 
-  anchor.insertAdjacentHTML("afterend", `
+  if (!anchor && !fallbackContainer) return;
+
+  const target = anchor || fallbackContainer;
+  const insertMethod = anchor ? "afterend" : "beforeend";
+
+  target.insertAdjacentHTML(insertMethod, `
     <section id="passkeySection" class="profile-dashboard" style="margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(var(--primary-rgb), 0.2);">
       <div class="main-head">
         <h2 style="font-family:'Bangers'; color: var(--primary); font-size: 1.8rem;">
@@ -963,6 +976,30 @@ function injectPasskeyProfileSection() {
   `);
 }
 
+function bindPasskeyProfileSection() {
+  const registerBtn = document.getElementById("passkeyRegisterBtn");
+  if (registerBtn && !registerBtn.dataset.bound) {
+    registerBtn.addEventListener("click", handlePasskeyRegister);
+    registerBtn.dataset.bound = "true";
+    if (!isPasskeySupported()) {
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Passkey não suportada";
+    }
+  }
+
+  const refreshBtn = document.getElementById("passkeyRefreshBtn");
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.addEventListener("click", renderPasskeyList);
+    refreshBtn.dataset.bound = "true";
+  }
+
+  const list = document.getElementById("passkeyList");
+  if (list && !list.dataset.bound) {
+    list.addEventListener("click", handlePasskeyRowAction);
+    list.dataset.bound = "true";
+  }
+}
+
 function injectPasskeyLoginButton() {
   const loginForm = document.getElementById("loginForm");
   if (!loginForm || document.getElementById("passkeyLoginBtn")) return;
@@ -981,6 +1018,7 @@ function setupPasskeyUI() {
   injectPasskeyStyles();
   injectPasskeyLoginButton();
   injectPasskeyProfileSection();
+  bindPasskeyProfileSection();
 
   const loginBtn = document.getElementById("passkeyLoginBtn");
   if (loginBtn) {
@@ -991,27 +1029,14 @@ function setupPasskeyUI() {
     }
   }
 
-  const registerBtn = document.getElementById("passkeyRegisterBtn");
-  if (registerBtn) {
-    registerBtn.addEventListener("click", handlePasskeyRegister);
-    if (!isPasskeySupported()) {
-      registerBtn.disabled = true;
-      registerBtn.textContent = "Passkey não suportada";
-    }
-  }
-
-  const refreshBtn = document.getElementById("passkeyRefreshBtn");
-  if (refreshBtn) {
-    refreshBtn.addEventListener("click", renderPasskeyList);
-  }
-
-  const list = document.getElementById("passkeyList");
-  if (list) {
-    list.addEventListener("click", handlePasskeyRowAction);
-  }
-
   if (document.getElementById("passkeySection")) {
     renderPasskeyList();
+  } else if (window.location.pathname.includes("perfil")) {
+    setTimeout(() => {
+      injectPasskeyProfileSection();
+      bindPasskeyProfileSection();
+      if (document.getElementById("passkeySection")) renderPasskeyList();
+    }, 250);
   }
 }
 
