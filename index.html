@@ -246,7 +246,7 @@
         <h3 style="color:var(--primary)">Desenhos Clássicos</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis
           ocidentais.</p>
-        <span class="btn btn-primary" style="margin-top:auto">Acessar CatÃ¡logo</span>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
       </a>
 
       <a href="youtube.html" class="home-card">
@@ -262,7 +262,7 @@
         <h3 style="color:var(--primary)">Universo Animes</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.
         </p>
-        <span class="btn btn-primary" style="margin-top:auto">Acessar CatÃ¡logo</span>
+        <span class="btn btn-primary" style="margin-top:auto">Acessar Catálogo</span>
       </a>
 
       <a href="mangas.html" class="home-card">
@@ -290,14 +290,14 @@
       <a href="loja.html" class="home-card">
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-flag'></i></div>
         <h3 style="color:var(--primary)">SenseiMod Store</h3>
-        <p style="color:var(--text-muted);font-size:0.9rem">Troque seu XP por fichas â€” e resgate banners, auras e itens
+        <p style="color:var(--text-muted);font-size:0.9rem">Troque seu XP por fichas — e resgate banners, auras e itens
           exclusivos.</p>
         <span class="btn btn-primary" style="margin-top:auto">Acessar Loja</span>
       </a>
 
       <a href="sobre.html" class="home-card">
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-users'></i></div>
-        <h3 style="color:var(--primary)">ConheÃ§a a Equipe</h3>
+        <h3 style="color:var(--primary)">Conheça a Equipe</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Saiba mais sobre os desenvolvedores e o propósito deste
           projeto.</p>
         <span class="btn btn-secondary" style="margin-top:auto">Ver Equipe</span>
@@ -322,7 +322,7 @@
   </main>
 
   <!-- SISTEMA DE FEEDBACK (FAB + MODAL) -->
-  <button id="feedbackFabBtn" class="feedback-fab" title="Enviar SugestÃ£o ou Reportar Bug">
+  <button id="feedbackFabBtn" class="feedback-fab" title="Enviar Sugestão ou Reportar Bug">
     <i class="fas fa-comment-dots"></i>
   </button>
 
@@ -330,17 +330,17 @@
     <div class="feedback-modal-card">
       <div class="feedback-modal-header">
         <h3><i class="fas fa-paper-plane"></i> Central de Mensagens</h3>
-        <button class="feedback-close-btn" id="feedbackCloseBtn">âœ•</button>
+        <button class="feedback-close-btn" id="feedbackCloseBtn">×</button>
       </div>
       <div class="feedback-modal-body">
-        <p class="feedback-desc">Ajude-nos a melhorar a Anime House! Envie sua sugestÃ£o, report de bug ou mensagem para
+        <p class="feedback-desc">Ajude-nos a melhorar a Anime House! Envie sua sugestão, report de bug ou mensagem para
           a equipe.</p>
 
         <form id="feedbackForm" autocomplete="off">
           <label class="feedback-label">Categoria</label>
           <div class="search-bar" style="margin-bottom: 20px;">
             <select id="feedbackCategory" class="feedback-input" style="width: 100%;">
-              <option value="sugestao" data-icon="fas fa-lightbulb">SugestÃ£o de Melhoria</option>
+              <option value="sugestao" data-icon="fas fa-lightbulb">Sugestão de Melhoria</option>
               <option value="bug" data-icon="fas fa-bug">Reportar um Bug</option>
               <option value="elogio" data-icon="fas fa-heart">Elogio</option>
               <option value="outro" data-icon="fas fa-envelope">Outro Assunto</option>
@@ -366,17 +366,17 @@
       <div class="modal-header">
         <h2 style="font-family: 'Bangers'; color: var(--primary);"><i class='fa-solid fa-mobile-screen-button'></i> App
           Mobile</h2>
-        <button class="modal-close" id="closeMobileModal">âœ•</button>
+        <button class="modal-close" id="closeMobileModal">×</button>
       </div>
       <div style="padding: 20px;">
-        <p style="color: var(--text-muted); margin-bottom: 20px;">Aponte a cÃ¢mera do seu celular para o QR Code abaixo
+        <p style="color: var(--text-muted); margin-bottom: 20px;">Aponte a câmera do seu celular para o QR Code abaixo
           para baixar o App.</p>
         <div
           style="background: #fff; padding: 15px; border-radius: 12px; display: inline-block; box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.2);">
           <img src="assets/qr_code_mobile.png" alt="QR Code Android"
             style="width: 100%; max-width: 250px; display: block;" />
         </div>
-        <p style="margin-top: 20px; font-weight: bold; color: var(--primary);">VersÃ£o 1.0.0 â€” Android</p>
+        <p style="margin-top: 20px; font-weight: bold; color: var(--primary);">Versão 1.0.0 — Android</p>
       </div>
     </div>
   </div>
@@ -427,7 +427,7 @@
       }
 
       if (feedbackForm) {
-        // Reseta o formulÃ¡rio e a caixa de seleÃ§Ã£o ao recarregar, trocar de pÃ¡gina ou sair da conta
+        // Reseta o formulário e a caixa de seleção ao recarregar, trocar de página ou sair da conta
         feedbackForm.reset();
         setTimeout(() => {
           const select = feedbackForm.querySelector('select');
@@ -464,7 +464,7 @@
               el.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.5)';
             }
 
-            const errorPrefix = isError ? 'âŒ ' : '';
+            const errorPrefix = isError ? '✖ ' : '';
             const progressStyle = isError
               ? `animation-duration:${ms}ms; background: var(--danger); box-shadow: 0 0 20px var(--danger);`
               : `animation-duration:${ms}ms;`;
@@ -503,11 +503,11 @@
               feedbackModal.classList.remove('active');
               feedbackForm.reset();
             } else {
-              showToast("Erro: " + (data.error || "NÃ£o foi possÃ­vel enviar a mensagem."), "error");
+              showToast("Erro: " + (data.error || "Não foi possível enviar a mensagem."), "error");
             }
           } catch (error) {
             console.error(error);
-            showToast("Erro de conexÃ£o ao tentar enviar a mensagem para o backend.", "error");
+            showToast("Erro de conexão ao tentar enviar a mensagem para o backend.", "error");
           } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -569,16 +569,16 @@
     <div class="footer-content">
       <p class="site-info">
         <span class="theme-text">ANIME HOUSE:</span> ANIMES,<br>
-        FILMES, MANGÃS E<br>
-        DESENHOS CLÃSSICOS ONLINE!<br>
+        FILMES, MANGÁS E<br>
+        DESENHOS CLÁSSICOS ONLINE!<br>
         TUDO SOBRE CULTURA POP<br>
-        E NIPÃ”NICA, SEU ACERVO<br>
-        DEFINITIVO, E O MELHOR, DE GRAÃ‡A!
+        E NIPÔNICA, SEU ACERVO<br>
+        DEFINITIVO, E O MELHOR, DE GRAÇA!
       </p>
     </div>
 
     <div class="footer-bottom">
-      &copy; 2026 <span class="theme-text">Anime House</span>: Animes, Filmes, MangÃ¡s, HQs e Desenhos Online!<br>
+      &copy; 2026 <span class="theme-text">Anime House</span>: Animes, Filmes, Mangás, HQs e Desenhos Online!<br>
       Desenvolvido por ViselBrx & DaviMoraes07
     </div>
   </footer>
