@@ -61,7 +61,8 @@ function renderCaptchaWidget(scope, containerId) {
   if (!container) return true;
 
   if (!HCAPTCHA_SITEKEY) {
-    container.innerHTML = '<small style="color:var(--text-muted);">Defina `HCAPTCHA_SITEKEY` no servidor para ativar o CAPTCHA.</small>';
+    container.innerHTML = "";
+    container.style.display = "none";
     return true;
   }
 
