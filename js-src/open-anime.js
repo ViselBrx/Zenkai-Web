@@ -17,6 +17,99 @@ document.addEventListener('DOMContentLoaded', async () => {
     `;
     document.head.appendChild(style);
   }
+  if (!document.getElementById('ai-response-styles')) {
+    const style = document.createElement('style');
+    style.id = 'ai-response-styles';
+    style.textContent = `
+      .msg-content {
+        line-height: 1.65;
+      }
+      .msg-content > :first-child {
+        margin-top: 0;
+      }
+      .msg-content > :last-child {
+        margin-bottom: 0;
+      }
+      .msg-content p {
+        margin: 0 0 0.85rem;
+      }
+      .msg-content h2,
+      .msg-content h3,
+      .msg-content h4,
+      .msg-content h5,
+      .msg-content h6 {
+        margin: 1rem 0 0.55rem;
+        line-height: 1.2;
+      }
+      .msg-content h2 {
+        font-size: 1.15rem;
+      }
+      .msg-content h3 {
+        font-size: 1.05rem;
+      }
+      .msg-content ul,
+      .msg-content ol {
+        margin: 0.35rem 0 0.9rem 1.25rem;
+        padding-left: 1rem;
+      }
+      .msg-content li {
+        margin: 0.2rem 0;
+      }
+      .msg-content blockquote {
+        margin: 0.75rem 0;
+        padding: 0.7rem 0.9rem;
+        border-left: 3px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 0 0.6rem 0.6rem 0;
+      }
+      .msg-content hr {
+        border: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        margin: 1rem 0;
+      }
+      .msg-content code {
+        padding: 0.15rem 0.35rem;
+        border-radius: 0.35rem;
+        background: rgba(255, 255, 255, 0.08);
+        font-size: 0.95em;
+      }
+      .msg-content pre {
+        margin: 0.9rem 0;
+        padding: 0.9rem 1rem;
+        border-radius: 0.85rem;
+        overflow-x: auto;
+        background: rgba(7, 14, 24, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .msg-content pre code {
+        display: block;
+        padding: 0;
+        background: transparent;
+        white-space: pre;
+      }
+      .msg-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.9rem 0;
+        overflow: hidden;
+        border-radius: 0.7rem;
+      }
+      .msg-content th,
+      .msg-content td {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.55rem 0.7rem;
+        vertical-align: top;
+      }
+      .msg-content th {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .msg-content a {
+        text-decoration: underline;
+        text-underline-offset: 0.15em;
+      }
+    `;
+    document.head.appendChild(style);
+  }
   await DB.init([]);
 
   const tabs = document.querySelectorAll('.ai-tab-v');
@@ -70,8 +163,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!text || !BROKEN_ENCODING_REGEX.test(text)) return text;
 
     try {
-      // Safe fallback for UTF-8 decoding
-      return decodeURIComponent(escape(text));
+      let decoded = text;
+      for (let i = 0; i < 2; i += 1) {
+        if (!BROKEN_ENCODING_REGEX.test(decoded) && !decoded.includes('\uFFFD')) break;
+        decoded = decodeURIComponent(escape(decoded));
+      }
+      return decoded.replace(/\uFFFD/g, '');
     } catch {
       return text;
     }
@@ -93,7 +190,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       .trim();
   }
 
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser EXTREMAMENTE coerentes, lógicas e baseadas em FATOS VERÍDICOS de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens, mas seja UM POUCO MAIS CONCISO E DIRETO, reduzindo um pouco o volume de texto sem perder a qualidade. Seja extremamente amigável, entusiasmado e coloque alguns (poucos e bem escolhidos) emojis ao longo do texto para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
+  const AI_RESPONSE_GUIDE = [
+    'Responda em pt-BR com UTF limpo e acentuação correta.',
+    'Use Markdown bonito, com títulos curtos, listas objetivas, negrito só quando ajudar e blocos de código apenas quando houver código.',
+    'Quando a análise for de comparação, cena, personagem ou imagem, aprofunde mais do que o normal e organize por tópicos claros.',
+    'Evite respostas genéricas, repetições e blocos enormes sem estrutura.',
+    'Se houver incerteza, diga isso de forma clara e continue a análise com o melhor raciocínio possível.',
+    'Não inclua metacomandos nem rótulos técnicos desnecessários na saída final.'
+  ].join('\n');
+  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser extremamente coerentes, lógicas e baseadas em fatos verídicos de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens. Seja extremamente amigável, entusiasmado e use alguns emojis pontuais para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
@@ -111,16 +216,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um detetive visual implacável e enciclopédia suprema de animes, desenhos, filmes, mangás e HQs. Sua ÚNICA missão é DESCOBRIR exatamente qual é a obra e o personagem da imagem.',
-    'PROIBIDO dar respostas genéricas! Você tem a OBRIGAÇÃO de dar o seu palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
+    'Atue como um detetive visual implacável e enciclopédia suprema de animes, desenhos, filmes, mangás e HQs. Sua única missão é descobrir exatamente qual é a obra e o personagem da imagem.',
+    'É proibido dar respostas genéricas. Você deve dar o palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
     '',
-    '### 🆔 Identificação Certeira (Obrigatório)',
-    '- **Obra/Franquia Exata:** DIGA O NOME da série, anime ou filme. (Ex: "Esta imagem é de Naruto Shippuden"). Se for impossível cravar 100%, dê o palpite com a maior probabilidade e justifique.',
-    '- **Personagem(ns):** Quem é? Se não souber o nome, compare com personagens parecidos da cultura pop.',
+    '### 🕵️ Identificação Certeira (Obrigatório)',
+    '- **Obra/Franquia Exata:** diga o nome da série, anime ou filme. Se for impossível cravar 100%, dê o palpite com a maior probabilidade e justifique.',
+    '- **Personagem(ns):** quem é? Se não souber o nome, compare com personagens parecidos da cultura pop.',
     '',
     '### 🔎 Evidências do Detetive',
-    '- **Traço e Estúdio:** Analise o formato dos olhos, contornos, iluminação e sombreamento. É estilo Ufotable, Toei, Cartoon Network, Pixar? Que década parece ser?',
-    '- **Detalhes Chave:** Quebras de quarta parede, símbolos em roupas, armas, tipo de magia/aura.',
+    '- **Traço e Estúdio:** analise o formato dos olhos, contornos, iluminação e sombreamento. É estilo Ufotable, Toei, Cartoon Network, Pixar? Que década parece ser?',
+    '- **Detalhes Chave:** quebras de quarta parede, símbolos em roupas, armas, tipo de magia ou aura.',
     '',
     '### 🎯 Veredito',
     '- Crave a sua resposta final em português do Brasil, usando Markdown. Se for fanart, diga de qual obra original é inspirada.'
@@ -622,8 +727,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const lines = String(text).replace(/\r\n/g, '\n').split('\n');
     const html = [];
+    let inCode = false;
+    let codeLines = [];
     let inUl = false;
     let inOl = false;
+    let inBlockquote = false;
+    let tableRows = [];
 
     const closeLists = () => {
       if (inUl) {
@@ -636,18 +745,117 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     };
 
+    const closeBlockquote = () => {
+      if (inBlockquote) {
+        html.push('</blockquote>');
+        inBlockquote = false;
+      }
+    };
+
+    const closeTable = () => {
+      if (!tableRows.length) return;
+
+      const rows = tableRows
+        .map((row) => row.split('|').map((cell) => cell.trim()).filter((cell) => cell.length > 0));
+
+      if (!rows.length) {
+        tableRows = [];
+        return;
+      }
+
+      const header = rows.shift();
+      if (!header || !header.length) {
+        tableRows = [];
+        return;
+      }
+
+      html.push('<table>');
+      html.push('<thead><tr>');
+      header.forEach((cell) => {
+        html.push(`<th>${formatInlineMarkdown(cell)}</th>`);
+      });
+      html.push('</tr></thead>');
+
+      if (rows.length) {
+        html.push('<tbody>');
+        rows.forEach((row) => {
+          if (!row.length) return;
+          html.push('<tr>');
+          row.forEach((cell) => {
+            html.push(`<td>${formatInlineMarkdown(cell)}</td>`);
+          });
+          html.push('</tr>');
+        });
+        html.push('</tbody>');
+      }
+
+      html.push('</table>');
+      tableRows = [];
+    };
+
+    const closeOpenBlocks = () => {
+      closeLists();
+      closeBlockquote();
+      closeTable();
+    };
+
     lines.forEach((line) => {
       const trimmed = line.trim();
 
+      if (trimmed.startsWith('```')) {
+        if (inCode) {
+          html.push(`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+          codeLines = [];
+          inCode = false;
+        } else {
+          closeOpenBlocks();
+          inCode = true;
+        }
+        return;
+      }
+
+      if (inCode) {
+        codeLines.push(line);
+        return;
+      }
+
       if (!trimmed) {
-        closeLists();
+        closeOpenBlocks();
         html.push('<br>');
         return;
       }
 
+      if (/^>\s?/.test(trimmed)) {
+        closeLists();
+        closeTable();
+        if (!inBlockquote) {
+          html.push('<blockquote>');
+          inBlockquote = true;
+        }
+        html.push(`<p>${formatInlineMarkdown(trimmed.replace(/^>\s?/, ''))}</p>`);
+        return;
+      }
+
+      if (/^([-*_])\1{2,}$/.test(trimmed)) {
+        closeOpenBlocks();
+        html.push('<hr>');
+        return;
+      }
+
+      if (trimmed.includes('|') && !/^[:\-\s|]+$/.test(trimmed)) {
+        closeLists();
+        closeBlockquote();
+        tableRows.push(trimmed);
+        return;
+      }
+
+      if (tableRows.length) {
+        closeTable();
+      }
+
       const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
       if (headingMatch) {
-        closeLists();
+        closeOpenBlocks();
         const level = Math.min(6, headingMatch[1].length + 2);
         html.push(`<h${level}>${formatInlineMarkdown(headingMatch[2])}</h${level}>`);
         return;
@@ -655,6 +863,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const ulMatch = trimmed.match(/^[-*]\s+(.+)$/);
       if (ulMatch) {
+        closeBlockquote();
         if (inOl) {
           html.push('</ol>');
           inOl = false;
@@ -669,6 +878,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const olMatch = trimmed.match(/^\d+\.\s+(.+)$/);
       if (olMatch) {
+        closeBlockquote();
         if (inUl) {
           html.push('</ul>');
           inUl = false;
@@ -681,12 +891,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      closeLists();
+      closeBlockquote();
       html.push(`<p>${formatInlineMarkdown(trimmed)}</p>`);
     });
 
-    closeLists();
+    if (inCode) {
+      html.push(`<pre><code>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+    }
+    closeOpenBlocks();
     return html.join('');
+  }
+
+  function trimAIRequestMessages(messages, maxNonSystemMessages = 18) {
+    const list = Array.isArray(messages) ? messages : [];
+    const systemMessages = [];
+    const otherMessages = [];
+
+    for (const message of list) {
+      if (!message || typeof message !== 'object') continue;
+      const role = String(message.role || '');
+      const content = normalizeBrokenEncoding(String(message.content || ''));
+      if (!content.trim()) continue;
+
+      const normalized = { role, content };
+      if (role === 'system') {
+        systemMessages.push(normalized);
+      } else {
+        otherMessages.push(normalized);
+      }
+    }
+
+    return [
+      ...systemMessages.slice(0, 1),
+      ...otherMessages.slice(Math.max(0, otherMessages.length - maxNonSystemMessages))
+    ];
   }
 
   function buildComparisonHistoryContentId(metadata = {}) {
@@ -1208,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modelQueue = context === 'compare'
       ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
       : [model];
-    const maxRetriesPerModel = 2;
+    const maxRetriesPerModel = 1;
 
     if (window.ENV && window.ENV.GEMINI_KEY_SET && target === 'openrouter') {
       target = 'gemini';
@@ -1634,6 +1872,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const context = options.context || 'chat';
     const metadata = { ...(options.metadata || {}) };
     const systemPrompt = options.systemPrompt || SYSTEM_PROMPT;
+    const enrichedSystemPrompt = `${systemPrompt}\n\n${AI_RESPONSE_GUIDE}`;
     let chatUserEntry = options.existingUserEntry || null;
     let chatAssistantEntry = null;
     let lastMsgElement = null;
@@ -1673,7 +1912,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       let requestMessages = useChatContext
         ? chatHistory.map(({ role, content }) => ({ role, content }))
-        : [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }];
+        : [{ role: 'system', content: enrichedSystemPrompt }, { role: 'user', content: prompt }];
 
       if (useChatContext && context === 'chat' && currentChatThreadId) {
         try {
@@ -1704,6 +1943,20 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.warn('Falha ao carregar histórico completo do chat:', historyError);
         }
       }
+
+      if (requestMessages.length) {
+        requestMessages = requestMessages.map((message, index) => {
+          if (index === 0 && message.role === 'system') {
+            return { role: 'system', content: enrichedSystemPrompt };
+          }
+          return {
+            role: message.role,
+            content: normalizeBrokenEncoding(message.content)
+          };
+        });
+      }
+
+      requestMessages = trimAIRequestMessages(requestMessages, useChatContext ? 18 : 8);
 
       chatAssistantEntry = null;
       lastMsgElement = null;
@@ -2071,7 +2324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const base64Image = await readFileAsDataUrl(file);
     const metadataWithPreview = { ...metadata, imageDataUrl: base64Image };
     const requestedModel = options.model || DEFAULT_VISION_MODEL;
-    const maxRetriesPerModel = 2;
+    const maxRetriesPerModel = 1;
     const visionRequestPlan = [
       {
         target: 'openrouter',
@@ -2188,9 +2441,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
       }
 
-      let finalPrompt = VISION_PROMPT;
+      let finalPrompt = `${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       if (options.customPrompt && options.customPrompt.trim()) {
-        finalPrompt = `[PERGUNTA DO USUÁRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}`;
+        finalPrompt = `[PERGUNTA DO USUÁRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       }
 
       let aiResponse = await requestVisionText(finalPrompt);

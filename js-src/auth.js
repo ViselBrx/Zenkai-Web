@@ -764,16 +764,7 @@ async function handlePasskeyLogin() {
   } catch (error) {
     console.error("Erro no login com passkey:", error);
     resetCaptcha("login");
-    const errorText = String(error?.message || "");
-    if (errorText.includes("RP ID") || errorText.includes("invalid for this domain")) {
-      setPasskeyMessage(
-        messageId,
-        "O administrador está editando o sistema de passkey do site no momento. Tente novamente mais tarde.",
-        "error"
-      );
-    } else {
-      setPasskeyMessage(messageId, `Não foi possível entrar com passkey: ${error?.message || "erro inesperado"}`, "error");
-    }
+    setPasskeyMessage(messageId, getPasskeyErrorMessage("login", error), "error");
   } finally {
     btn.disabled = false;
     btn.textContent = "Entrar com Passkey";
@@ -841,7 +832,7 @@ async function handlePasskeyRegister() {
         "error"
       );
     } else {
-      setPasskeyMessage(messageId, `Não foi possível cadastrar a passkey: ${error?.message || "erro inesperado"}`, "error");
+      setPasskeyMessage(messageId, getPasskeyErrorMessage("register", error), "error");
     }
   } finally {
     btn.disabled = false;
@@ -998,6 +989,32 @@ function bindPasskeyProfileSection() {
     list.addEventListener("click", handlePasskeyRowAction);
     list.dataset.bound = "true";
   }
+}
+
+function getPasskeyErrorMessage(action, error) {
+  const rawError = String(error?.message || error?.error_description || error || "").toLowerCase();
+  const rpIdMismatch =
+    rawError.includes("rp id") ||
+    rawError.includes("invalid for this domain");
+  const userAgentDenied =
+    rawError.includes("request is not allowed by the user agent") ||
+    rawError.includes("user denied permission") ||
+    rawError.includes("not allowed by the user agent") ||
+    rawError.includes("permission");
+
+  if (rpIdMismatch) {
+    return "O administrador alterou a URL/identificação da passkey do site. Tente novamente em instantes.";
+  }
+
+  if (userAgentDenied) {
+    return action === "login"
+      ? "Não foi possível entrar com passkey. O navegador ou o sistema não permitiu a autenticação agora. Tente novamente."
+      : "Não foi possível cadastrar a passkey. O navegador ou o sistema não permitiu a ação agora. Tente novamente.";
+  }
+
+  return action === "login"
+    ? `Não foi possível entrar com passkey: ${error?.message || "erro inesperado"}`
+    : `Não foi possível cadastrar a passkey: ${error?.message || "erro inesperado"}`;
 }
 
 function injectPasskeyLoginButton() {
