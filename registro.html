@@ -12,6 +12,10 @@
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+  <script>
+    window.ENV = window.ENV || {};
+    window.ENV.HCAPTCHA_SITEKEY = window.ENV.HCAPTCHA_SITEKEY || "d0f0d8a8-37aa-4d64-a768-4e7e7a121c86";
+  </script>
   <!-- Intl-tel-input (Bandeiras e DDD) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.3.4/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.3.4/build/js/intlTelInput.min.js"></script>

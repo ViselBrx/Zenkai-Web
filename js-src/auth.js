@@ -66,6 +66,8 @@ function renderCaptchaWidget(scope, containerId) {
     return true;
   }
 
+  container.style.display = "";
+
   if (!window.hcaptcha || typeof window.hcaptcha.render !== "function") return false;
   if (container.dataset.hcaptchaRendered === "true") return true;
 
