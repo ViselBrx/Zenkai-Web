@@ -1880,7 +1880,6 @@ const DB = {
 
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
-      console.log(`⭐ [Perk System] lista_destaque ativo: ${result}`);
       if (!result) {
         console.warn(`ðŸ“Œ [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
       }
@@ -1912,7 +1911,6 @@ const DB = {
       if (userId) {
         localStorage.setItem(`animehouse_store_${userId}`, JSON.stringify(storeWithUserId));
         localStorage.setItem('animehouse_store', JSON.stringify(storeWithUserId));
-        console.log('ðŸ’¾ [DB] Store salvo no localStorage (GARANTIDO):', storeWithUserId.purchased);
       } else {
         console.warn('[DB] Sem userId — não gravando animehouse_store (evita vazamento entre contas).');
       }
@@ -1940,7 +1938,6 @@ const DB = {
     });
 
     if (!rpcErr) {
-      console.log('âœ… [DB] Store persistido via RPC animehouse_save_store_data.');
       return;
     }
 
@@ -1966,7 +1963,6 @@ const DB = {
       const updateOk = !updateError && updatedRows && updatedRows.length > 0;
 
       if (updateOk) {
-        console.log('âœ… [DB] Store sincronizado com Supabase (update).');
         return;
       }
 
@@ -1989,7 +1985,6 @@ const DB = {
         console.error('[DB] Upsert store_data falhou:', upsertError.message);
         throw upsertError;
       }
-      console.log('âœ… [DB] Store salvo via upsert (fallback REST).');
     } catch (err) {
     }
   },

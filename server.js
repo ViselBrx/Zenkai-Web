@@ -548,6 +548,7 @@ const server = http.createServer(async (req, res) => {
       let responseContent = content.replace(/<head>/i, `<head>\n  <script>window.ENV = ${JSON.stringify({
         SUPABASE_URL: process.env.SUPABASE_URL || 'https://bxifddhrbxbmimjkgwzr.supabase.co',
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || 'sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol',
+        HCAPTCHA_SITEKEY: process.env.HCAPTCHA_SITEKEY || '',
         SUPPORT_API_URL: process.env.SUPPORT_API_URL || 'https://animehousesuporte.vercel.app/api/support',
         GEMINI_KEY_SET: !!(process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY)
       })};</script>`);

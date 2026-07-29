@@ -11,6 +11,7 @@
   <script src="js-ofuscado/themes.js"></script>
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
   <!-- Intl-tel-input (Bandeiras e DDD) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@24.3.4/build/css/intlTelInput.css">
   <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@24.3.4/build/js/intlTelInput.min.js"></script>
@@ -569,6 +570,7 @@
                 style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.2rem; padding:0; display:flex; align-items:center; justify-content:center;"></button>
             </div>
           </div>
+          <div id="loginCaptcha" style="margin: 8px 0 16px;"></div>
           <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1rem;">
             Entrar no Painel
           </button>

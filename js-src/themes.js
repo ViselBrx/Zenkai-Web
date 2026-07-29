@@ -426,13 +426,13 @@
       this.y = y;
       this.type = type;
       this.color = color;
-      this.size = type === 'gelo' ? Math.random() * 8 + 4 : Math.random() * 6 + 3;
+      this.size = type === 'gelo' ? Math.random() * 4 + 2.5 : Math.random() * 6 + 3;
       this.alpha = 1;
       
       if (type === 'gelo') {
-        this.vx = (Math.random() - 0.5) * 1.5;
-        this.vy = Math.random() * 1.2 + 0.8; // fall down
-        this.spin = Math.random() * 0.1 - 0.05;
+        this.vx = (Math.random() - 0.5) * 1.1;
+        this.vy = Math.random() * 0.9 + 0.45;
+        this.spin = Math.random() * 0.08 - 0.04;
         this.angle = Math.random() * Math.PI * 2;
         this.decay = Math.random() * 0.015 + 0.01;
       } else {
@@ -458,9 +458,39 @@
       if (this.type === 'gelo') {
         ctx.translate(this.x, this.y);
         ctx.rotate(this.angle);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = `${this.size}px Arial`;
-        ctx.fillText('â„', -this.size/2, this.size/2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1, this.size * 0.22);
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 0;
+
+        const r = this.size;
+        const arm = r * 1.2;
+        const cross = r * 0.52;
+
+        const drawLine = (x1, y1, x2, y2) => {
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        };
+
+        drawLine(0, -arm, 0, arm);
+        drawLine(-arm, 0, arm, 0);
+        drawLine(-cross, -cross, cross, cross);
+        drawLine(-cross, cross, cross, -cross);
+
+        const branch = r * 0.45;
+        const twig = r * 0.2;
+        [
+          [0, -branch, -twig, -branch - twig],
+          [0, -branch, twig, -branch - twig],
+          [branch, 0, branch + twig, -twig],
+          [branch, 0, branch + twig, twig],
+          [0, branch, -twig, branch + twig],
+          [0, branch, twig, branch + twig],
+          [-branch, 0, -branch - twig, -twig],
+          [-branch, 0, -branch - twig, twig]
+        ].forEach(([x1, y1, x2, y2]) => drawLine(x1, y1, x2, y2));
       } else {
         // Glowing dot
         ctx.beginPath();
@@ -569,11 +599,21 @@
   }
 
   window.updateCursorEffect = function() {
+    if (!window.AH_AUTH?.isAuthenticated) {
+      initCursorEffect(null);
+      return;
+    }
+
     let uid = null;
     try {
       const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
       uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
     } catch (e) { }
+
+    if (!uid) {
+      initCursorEffect(null);
+      return;
+    }
 
     const uKey = (base) => uid ? `${base}_${uid}` : base;
 

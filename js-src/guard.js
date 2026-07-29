@@ -7,12 +7,23 @@
 document.addEventListener("DOMContentLoaded", async () => {
     // Lista de páginas que DEVEM ser bloqueadas para não logados
     const protectedPages = [
+        "perfil.html",
+        "usuarios.html",
+        "compras.html",
+        "loja.html",
+        "painel-cadastros.html",
+        "cadastro.html",
+        "cadastro-animes.html",
+        "cadastro-filmes.html",
+        "cadastro-youtube.html",
+        "filmes.html",
+        "mangas.html",
+        "hq.html",
         "youtube.html",
         "youtube-videos.html",
-        "cadastro-youtube.html",
-        
         "anime-episodios.html",
         "episodios-desenhos.html",
+        "open-anime.html",
         // adicione outras páginas de conteúdo aqui se necessário
     ];
 
@@ -36,7 +47,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (client) {
             const { data: { session } } = await client.auth.getSession();
             if (!session) {
-                console.log("Acesso negado: Redirecionando para login.");
                 // Opcional: passar um parâmetro de retorno
                 window.location.href = `login.html?redirect=${encodeURIComponent(currentPath + window.location.search)}`;
             }

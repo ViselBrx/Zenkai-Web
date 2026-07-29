@@ -8,6 +8,7 @@ const SUPABASE_URL =
 const SUPABASE_ANON_KEY =
   window.ENV?.SUPABASE_ANON_KEY ||
   "sb_publishable_P2YveYtfG8469tWxpcR0ig_hZxLXIol";
+const HCAPTCHA_SITEKEY = window.ENV?.HCAPTCHA_SITEKEY || "";
 
 // --- NOTIFICATION HUB STATE ---
 const notificationState = {
@@ -25,6 +26,991 @@ const notificationState = {
 // 2. Inicializa o cliente
 let supaClient;
 let previousSessionId = null;
+window.AH_AUTH = window.AH_AUTH || { isAuthenticated: false, userId: null };
+
+const captchaState = {
+  login: { widgetId: null, token: "" },
+  register: { widgetId: null, token: "" }
+};
+
+function setCaptchaToken(scope, token) {
+  if (!captchaState[scope]) return;
+  captchaState[scope].token = token || "";
+}
+
+function getCaptchaToken(scope) {
+  return captchaState[scope]?.token || "";
+}
+
+function resetCaptcha(scope) {
+  const state = captchaState[scope];
+  if (!state) return;
+
+  state.token = "";
+  if (window.hcaptcha && state.widgetId !== null && typeof window.hcaptcha.reset === "function") {
+    try {
+      window.hcaptcha.reset(state.widgetId);
+    } catch (error) {
+      console.warn("Falha ao resetar hCaptcha:", error);
+    }
+  }
+}
+
+function renderCaptchaWidget(scope, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return true;
+
+  if (!HCAPTCHA_SITEKEY) {
+    container.innerHTML = '<small style="color:var(--text-muted);">Defina `HCAPTCHA_SITEKEY` no servidor para ativar o CAPTCHA.</small>';
+    return true;
+  }
+
+  if (!window.hcaptcha || typeof window.hcaptcha.render !== "function") return false;
+  if (container.dataset.hcaptchaRendered === "true") return true;
+
+  try {
+    const widgetId = window.hcaptcha.render(container, {
+      sitekey: HCAPTCHA_SITEKEY,
+      callback: (token) => setCaptchaToken(scope, token),
+      "expired-callback": () => setCaptchaToken(scope, ""),
+      "error-callback": () => setCaptchaToken(scope, "")
+    });
+
+    const state = captchaState[scope];
+    if (state) {
+      state.widgetId = widgetId;
+      state.token = "";
+    }
+    container.dataset.hcaptchaRendered = "true";
+    return true;
+  } catch (error) {
+    console.warn("Falha ao renderizar hCaptcha:", error);
+    return false;
+  }
+}
+
+function setupCaptchaWidgets() {
+  const hasLoginCaptcha = !!document.getElementById("loginCaptcha");
+  const hasRegisterCaptcha = !!document.getElementById("registerCaptcha");
+
+  if (!hasLoginCaptcha && !hasRegisterCaptcha) return;
+
+  let attempts = 0;
+  const maxAttempts = 80;
+  const timer = setInterval(() => {
+    const loginReady = renderCaptchaWidget("login", "loginCaptcha");
+    const registerReady = renderCaptchaWidget("register", "registerCaptcha");
+
+    attempts += 1;
+    if ((loginReady || !hasLoginCaptcha) && (registerReady || !hasRegisterCaptcha)) {
+      clearInterval(timer);
+    } else if (attempts >= maxAttempts) {
+      clearInterval(timer);
+    }
+  }, 250);
+}
+
+setupCaptchaWidgets();
+
+function syncAuthContext(session) {
+  const userId = session?.user?.id || null;
+  window.AH_AUTH = {
+    isAuthenticated: !!session,
+    userId
+  };
+  window.AH_SESSION_USER_ID = userId;
+
+  if (typeof window.updateNavbarCosmetics === "function") {
+    window.updateNavbarCosmetics();
+  }
+  if (typeof window.updateCursorEffect === "function") {
+    window.updateCursorEffect();
+  }
+}
+
+function isPasskeySupported() {
+  return !!(window.PublicKeyCredential && navigator.credentials);
+}
+
+function formatPasskeyDate(value) {
+  if (!value) return "nunca";
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(new Date(value));
+  } catch {
+    return String(value);
+  }
+}
+
+function ensurePasskeyFeedback(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return null;
+  return container;
+}
+
+function setPasskeyMessage(containerId, message, kind = "info") {
+  const box = ensurePasskeyFeedback(containerId);
+  if (!box) return;
+
+  const colors = {
+    info: "rgba(59, 130, 246, 0.12)",
+    success: "rgba(16, 185, 129, 0.12)",
+    error: "rgba(239, 68, 68, 0.12)"
+  };
+
+  box.innerHTML = message;
+  box.style.display = "block";
+  box.style.background = colors[kind] || colors.info;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function injectPasskeyStyles() {
+  if (document.getElementById("passkeyUiStyles")) return;
+
+  const style = document.createElement("style");
+  style.id = "passkeyUiStyles";
+  style.textContent = `
+    #passkeySection .passkey-shell {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid rgba(var(--primary-rgb), 0.22);
+      background:
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.22), transparent 32%),
+        linear-gradient(180deg, rgba(7, 18, 42, 0.98), rgba(4, 10, 24, 0.98));
+      box-shadow:
+        0 18px 50px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      padding: 22px;
+    }
+    #passkeySection .passkey-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, transparent 0%, rgba(var(--primary-rgb), 0.08) 25%, transparent 45%),
+        radial-gradient(circle at 20% 20%, rgba(0, 229, 255, 0.08), transparent 18%);
+      pointer-events: none;
+    }
+    #passkeySection .passkey-hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    #passkeySection .passkey-hero-copy,
+    #passkeySection .passkey-hero-panel {
+      border-radius: 20px;
+      border: 1px solid rgba(var(--primary-rgb), 0.16);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      padding: 18px;
+    }
+    #passkeySection .passkey-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(var(--primary-rgb), 0.12);
+      color: var(--primary);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.1px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    #passkeySection .passkey-copy-title {
+      margin: 0 0 10px;
+      font-family: 'Bangers';
+      font-size: 1.9rem;
+      line-height: 1;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+    #passkeySection .passkey-copy-text {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.7;
+      font-size: 0.96rem;
+    }
+    #passkeySection .passkey-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    #passkeySection .passkey-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.15);
+      color: var(--text-main);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    #passkeySection .passkey-hero-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    #passkeySection .passkey-hero-stat {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(var(--primary-rgb), 0.12);
+    }
+    #passkeySection .passkey-hero-stat i {
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+    #passkeySection .passkey-hero-stat strong {
+      display: block;
+      color: var(--text-main);
+      font-size: 0.96rem;
+    }
+    #passkeySection .passkey-hero-stat span {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+    #passkeySection .passkey-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 18px 0 16px;
+    }
+    #passkeySection .passkey-actions .btn {
+      min-width: 190px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+    #passkeySection .passkey-list-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 0 12px;
+      color: var(--text-main);
+    }
+    #passkeySection .passkey-list-title strong {
+      font-size: 1rem;
+      letter-spacing: 0.3px;
+    }
+    #passkeySection .passkey-list-title span {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    #passkeyList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #passkeyList .passkey-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(var(--primary-rgb), 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+    #passkeyList .passkey-item::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 18px 0 0 18px;
+      background: linear-gradient(180deg, rgba(var(--primary-rgb), 0.9), rgba(var(--primary-rgb), 0.25));
+    }
+    #passkeyList .passkey-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    #passkeyList .passkey-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      line-height: 1.5;
+    }
+    #passkeyList .passkey-meta span,
+    #passkeyList .passkey-id {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(var(--primary-rgb), 0.1);
+    }
+    #passkeyList .passkey-id {
+      margin-top: 10px;
+      word-break: break-all;
+      font-size: 0.72rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    #passkeyList .passkey-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-self: center;
+    }
+    #passkeyList .passkey-actions-row .btn {
+      min-width: 112px;
+      padding-inline: 14px;
+    }
+    #passkeyNameModal .modal {
+      max-width: 460px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.16), transparent 30%),
+        linear-gradient(180deg, rgba(10, 18, 34, 0.98), rgba(6, 12, 24, 0.98));
+      border: 1px solid rgba(var(--primary-rgb), 0.2);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
+    #passkeyNameModal .modal-header h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Bangers';
+      letter-spacing: 0.4px;
+    }
+    #passkeyNameModal .form-group {
+      margin-top: 16px;
+    }
+    #passkeyNameModal .form-control {
+      border-radius: 14px;
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    #passkeyNameModal .rename-help {
+      margin: 10px 0 0;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    #passkeyDeleteModal .modal {
+      max-width: 460px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top right, rgba(255, 74, 74, 0.18), transparent 30%),
+        linear-gradient(180deg, rgba(26, 10, 14, 0.98), rgba(12, 6, 10, 0.98));
+      border: 1px solid rgba(255, 92, 92, 0.24);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+    }
+    #passkeyDeleteModal .modal-header h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Bangers';
+      letter-spacing: 0.4px;
+      color: #ff7b7b;
+    }
+    #passkeyDeleteModal .delete-box {
+      margin-top: 16px;
+      padding: 16px 16px 14px;
+      border-radius: 16px;
+      background: rgba(255, 74, 74, 0.08);
+      border: 1px solid rgba(255, 92, 92, 0.18);
+      color: var(--text-main);
+      line-height: 1.65;
+    }
+    #passkeyDeleteModal .delete-box strong {
+      color: #ffd0d0;
+    }
+    #passkeyDeleteModal .delete-help {
+      margin: 12px 0 0;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      line-height: 1.6;
+    }
+    #passkeyDeleteModal .btn-danger {
+      box-shadow:
+        0 0 0 1px rgba(255, 92, 92, 0.2),
+        0 0 18px rgba(255, 92, 92, 0.32);
+    }
+    #passkeyDeleteModal .btn-danger:hover {
+      opacity: 1;
+      box-shadow:
+        0 0 0 1px rgba(255, 92, 92, 0.35),
+        0 0 26px rgba(255, 92, 92, 0.5);
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+let passkeyNameResolver = null;
+let passkeyNameModalBound = false;
+let passkeyDeleteResolver = null;
+let passkeyDeleteModalBound = false;
+
+function ensurePasskeyNameModal() {
+  let modal = document.getElementById("passkeyNameModal");
+  if (!modal) {
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="modal-overlay" id="passkeyNameModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2><i class='fa-solid fa-fingerprint'></i> Passkey</h2>
+            <button type="button" class="modal-close" id="passkeyNameModalClose">✕</button>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label id="passkeyNameLabel" for="passkeyNameInput">Nome da passkey</label>
+            <input
+              id="passkeyNameInput"
+              class="form-control"
+              type="text"
+              maxlength="120"
+              autocomplete="off"
+              placeholder="Meu dispositivo"
+            />
+            <p class="rename-help" id="passkeyNameHelp">
+              Dê um nome para reconhecer este dispositivo na sua conta.
+            </p>
+          </div>
+          <div class="form-actions" style="margin-top:18px;">
+            <button type="button" class="btn btn-ghost" id="passkeyNameCancelBtn">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="passkeyNameConfirmBtn">Salvar</button>
+          </div>
+        </div>
+      </div>
+    `);
+    modal = document.getElementById("passkeyNameModal");
+  }
+
+  if (!passkeyNameModalBound) {
+    passkeyNameModalBound = true;
+    const closeBtn = document.getElementById("passkeyNameModalClose");
+    const cancelBtn = document.getElementById("passkeyNameCancelBtn");
+    const confirmBtn = document.getElementById("passkeyNameConfirmBtn");
+    const input = document.getElementById("passkeyNameInput");
+
+    const cancel = () => closePasskeyNameModal(null);
+    const confirm = () => closePasskeyNameModal(String(input?.value || "").trim());
+
+    closeBtn?.addEventListener("click", cancel);
+    cancelBtn?.addEventListener("click", cancel);
+    confirmBtn?.addEventListener("click", confirm);
+    input?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        confirm();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        cancel();
+      }
+    });
+    modal?.addEventListener("click", (event) => {
+      if (event.target === modal) cancel();
+    });
+  }
+
+  return modal;
+}
+
+function closePasskeyNameModal(result = null) {
+  const modal = document.getElementById("passkeyNameModal");
+  const input = document.getElementById("passkeyNameInput");
+  if (modal) modal.classList.remove("open");
+  if (input) input.value = "";
+
+  if (typeof passkeyNameResolver === "function") {
+    const resolve = passkeyNameResolver;
+    passkeyNameResolver = null;
+    resolve(result);
+  }
+}
+
+function openPasskeyNameModal({
+  title = "Nome da passkey",
+  label = "Nome da passkey",
+  help = "Dê um nome para reconhecer este dispositivo na sua conta.",
+  placeholder = "Meu dispositivo",
+  value = "",
+  confirmText = "Salvar"
+} = {}) {
+  const modal = ensurePasskeyNameModal();
+  if (!modal) return Promise.resolve(null);
+
+  const titleEl = document.querySelector("#passkeyNameModal .modal-header h2");
+  const labelEl = document.getElementById("passkeyNameLabel");
+  const helpEl = document.getElementById("passkeyNameHelp");
+  const input = document.getElementById("passkeyNameInput");
+  const confirmBtn = document.getElementById("passkeyNameConfirmBtn");
+
+  if (titleEl) titleEl.innerHTML = `<i class='fa-solid fa-fingerprint'></i> ${escapeHtml(title)}`;
+  if (labelEl) labelEl.textContent = label;
+  if (helpEl) helpEl.textContent = help;
+  if (input) {
+    input.value = value;
+    input.placeholder = placeholder;
+  }
+  if (confirmBtn) confirmBtn.textContent = confirmText;
+
+  modal.classList.add("open");
+  input?.focus();
+  input?.select();
+
+  return new Promise((resolve) => {
+    passkeyNameResolver = resolve;
+  });
+}
+
+function ensurePasskeyDeleteModal() {
+  let modal = document.getElementById("passkeyDeleteModal");
+  if (!modal) {
+    document.body.insertAdjacentHTML("beforeend", `
+      <div class="modal-overlay" id="passkeyDeleteModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2><i class='fa-solid fa-triangle-exclamation'></i> Excluir passkey</h2>
+            <button type="button" class="modal-close" id="passkeyDeleteModalClose">✕</button>
+          </div>
+          <div class="delete-box">
+            <strong id="passkeyDeleteTitle">Tem certeza que deseja excluir esta passkey?</strong>
+            <p class="delete-help" id="passkeyDeleteHelp">
+              Essa ação remove a passkey selecionada da sua conta e não pode ser desfeita.
+            </p>
+          </div>
+          <div class="form-actions" style="margin-top:18px;">
+            <button type="button" class="btn btn-ghost" id="passkeyDeleteCancelBtn">Cancelar</button>
+            <button type="button" class="btn btn-danger" id="passkeyDeleteConfirmBtn">Excluir</button>
+          </div>
+        </div>
+      </div>
+    `);
+    modal = document.getElementById("passkeyDeleteModal");
+  }
+
+  if (!passkeyDeleteModalBound) {
+    passkeyDeleteModalBound = true;
+    const closeBtn = document.getElementById("passkeyDeleteModalClose");
+    const cancelBtn = document.getElementById("passkeyDeleteCancelBtn");
+    const confirmBtn = document.getElementById("passkeyDeleteConfirmBtn");
+
+    const cancel = () => closePasskeyDeleteModal(false);
+    const confirm = () => closePasskeyDeleteModal(true);
+
+    closeBtn?.addEventListener("click", cancel);
+    cancelBtn?.addEventListener("click", cancel);
+    confirmBtn?.addEventListener("click", confirm);
+    modal?.addEventListener("click", (event) => {
+      if (event.target === modal) cancel();
+    });
+    document.addEventListener("keydown", (event) => {
+      const activeModal = document.getElementById("passkeyDeleteModal");
+      if (!activeModal?.classList.contains("open")) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancel();
+      }
+    });
+  }
+
+  return modal;
+}
+
+function closePasskeyDeleteModal(result = false) {
+  const modal = document.getElementById("passkeyDeleteModal");
+  if (modal) modal.classList.remove("open");
+
+  if (typeof passkeyDeleteResolver === "function") {
+    const resolve = passkeyDeleteResolver;
+    passkeyDeleteResolver = null;
+    resolve(result);
+  }
+}
+
+function openPasskeyDeleteModal({
+  title = "Tem certeza que deseja excluir esta passkey?",
+  help = "Essa ação remove a passkey selecionada da sua conta e não pode ser desfeita.",
+  confirmText = "Excluir"
+} = {}) {
+  const modal = ensurePasskeyDeleteModal();
+  if (!modal) return Promise.resolve(false);
+
+  const titleEl = document.getElementById("passkeyDeleteTitle");
+  const helpEl = document.getElementById("passkeyDeleteHelp");
+  const confirmBtn = document.getElementById("passkeyDeleteConfirmBtn");
+
+  if (titleEl) titleEl.textContent = title;
+  if (helpEl) helpEl.textContent = help;
+  if (confirmBtn) confirmBtn.textContent = confirmText;
+
+  modal.classList.add("open");
+  confirmBtn?.focus();
+
+  return new Promise((resolve) => {
+    passkeyDeleteResolver = resolve;
+  });
+}
+
+async function renderPasskeyList() {
+  const list = document.getElementById("passkeyList");
+  if (!list || !window.supabaseClient?.auth?.passkey) return;
+
+  list.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Carregando passkeys...</div>';
+
+  try {
+    const { data, error } = await window.supabaseClient.auth.passkey.list();
+    if (error) throw error;
+
+    const passkeys = Array.isArray(data) ? data : (data?.passkeys || []);
+    if (!passkeys.length) {
+      list.innerHTML = `
+        <div style="padding:18px; border-radius:18px; border:1px dashed rgba(var(--primary-rgb),0.25); background:rgba(255,255,255,0.03); color:var(--text-muted); text-align:center; line-height:1.7;">
+          <i class='fa-solid fa-shield-halved' style="font-size:1.35rem; color:var(--primary); display:block; margin-bottom:8px;"></i>
+          Nenhuma passkey cadastrada ainda.<br>
+          Use o botão acima para registrar biometria ou uma chave física.
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = passkeys.map((item) => `
+      <div class="passkey-item">
+        <div style="min-width:0;">
+          <div class="passkey-name">
+            <i class='fa-solid fa-fingerprint' style="color:var(--primary);"></i>
+            <span>${escapeHtml(item.friendly_name || "Passkey")}</span>
+          </div>
+          <div class="passkey-meta">
+            <span><i class='fa-solid fa-calendar-plus'></i> Criada em ${formatPasskeyDate(item.created_at)}</span>
+            <span><i class='fa-solid fa-clock-rotate-left'></i> Último uso: ${formatPasskeyDate(item.last_used_at)}</span>
+          </div>
+          <div class="passkey-id">${escapeHtml(item.id)}</div>
+        </div>
+        <div class="passkey-actions-row">
+          <button type="button" class="btn btn-secondary" data-passkey-rename="${item.id}" data-passkey-current-name="${encodeURIComponent(item.friendly_name || "")}">
+            Renomear
+          </button>
+          <button type="button" class="btn btn-danger" data-passkey-delete="${item.id}">
+            Excluir
+          </button>
+        </div>
+      </div>
+    `).join("");
+  } catch (error) {
+    console.error("Erro ao listar passkeys:", error);
+    list.innerHTML = '<div style="color:var(--danger); font-size:0.9rem;">Não foi possível carregar suas passkeys.</div>';
+  }
+}
+
+async function handlePasskeyLogin() {
+  const btn = document.getElementById("passkeyLoginBtn");
+  if (!btn || !window.supabaseClient?.auth?.signInWithPasskey) return;
+  const messageId = "passkeyLoginMessage";
+
+  if (!isPasskeySupported()) {
+    setPasskeyMessage(messageId, "Seu navegador não suporta passkeys.", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Abrindo passkey...";
+  setPasskeyMessage(messageId, "Abra a janela do navegador para autenticar com sua passkey.", "info");
+
+  try {
+    const captchaToken = getCaptchaToken("login");
+    if (HCAPTCHA_SITEKEY && !captchaToken) {
+      setPasskeyMessage(messageId, "Resolva o CAPTCHA antes de entrar com passkey.", "error");
+      return;
+    }
+
+    const { data, error } = await window.supabaseClient.auth.signInWithPasskey({
+      options: { captchaToken }
+    });
+    if (error) throw error;
+    resetCaptcha("login");
+    setPasskeyMessage(messageId, `Autenticado com sucesso como <strong>${data?.user?.email || "usuário"}</strong>.`, "success");
+    window.location.href = "perfil.html";
+  } catch (error) {
+    console.error("Erro no login com passkey:", error);
+    resetCaptcha("login");
+    const errorText = String(error?.message || "");
+    if (errorText.includes("RP ID") || errorText.includes("invalid for this domain")) {
+      setPasskeyMessage(
+        messageId,
+        "O administrador está editando o sistema de passkey do site no momento. Tente novamente mais tarde.",
+        "error"
+      );
+    } else {
+      setPasskeyMessage(messageId, `Não foi possível entrar com passkey: ${error?.message || "erro inesperado"}`, "error");
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Entrar com Passkey";
+  }
+}
+
+async function handlePasskeyRegister() {
+  const btn = document.getElementById("passkeyRegisterBtn");
+  if (!btn || !window.supabaseClient?.auth?.registerPasskey) return;
+  const messageId = "passkeyProfileMessage";
+
+  if (!isPasskeySupported()) {
+    setPasskeyMessage(messageId, "Seu navegador não suporta passkeys.", "error");
+    return;
+  }
+
+  const { data: sessionData } = await window.supabaseClient.auth.getSession();
+  if (!sessionData?.session) {
+    setPasskeyMessage(messageId, "Faça login antes de cadastrar uma passkey.", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Registrando...";
+  setPasskeyMessage(messageId, "Siga a janela do navegador para cadastrar sua passkey.", "info");
+
+  try {
+    const { data, error } = await window.supabaseClient.auth.registerPasskey();
+    if (error) throw error;
+
+    const friendlyName = await openPasskeyNameModal({
+      title: "Nomeie sua passkey",
+      label: "Nome para esta passkey",
+      help: "Use um nome fácil de lembrar, como o nome do dispositivo ou da sua conta.",
+      placeholder: "Meu dispositivo",
+      value: "Meu dispositivo",
+      confirmText: "Salvar nome"
+    });
+    if (friendlyName && String(friendlyName).trim()) {
+      try {
+        await window.supabaseClient.auth.passkey.update({
+          passkeyId: data?.id,
+          friendlyName: String(friendlyName).trim().slice(0, 120)
+        });
+      } catch (renameError) {
+        console.warn("Passkey criada, mas não foi possível renomear:", renameError);
+      }
+    }
+
+    setPasskeyMessage(messageId, "Passkey cadastrada com sucesso.", "success");
+    await renderPasskeyList();
+  } catch (error) {
+    console.error("Erro ao registrar passkey:", error);
+    const rawError = String(error?.message || error?.error_description || error || "").toLowerCase();
+    const alreadyRegistered =
+      rawError.includes("previously registered") ||
+      rawError.includes("already registered") ||
+      rawError.includes("authenticator was previously registered") ||
+      rawError.includes("duplicate");
+
+    if (alreadyRegistered) {
+      setPasskeyMessage(
+        messageId,
+        "Esta conta já tem uma passkey registrada neste dispositivo ou navegador. Se quiser cadastrar uma nova, exclua a passkey antiga na lista acima ou remova-a do gerenciador de passkeys do seu sistema/navegador e tente novamente.",
+        "error"
+      );
+    } else {
+      setPasskeyMessage(messageId, `Não foi possível cadastrar a passkey: ${error?.message || "erro inesperado"}`, "error");
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Cadastrar Passkey";
+  }
+}
+
+async function handlePasskeyRowAction(event) {
+  const target = event.target.closest("[data-passkey-rename], [data-passkey-delete]");
+  if (!target || !window.supabaseClient?.auth?.passkey) return;
+
+  if (target.hasAttribute("data-passkey-rename")) {
+    const passkeyId = target.getAttribute("data-passkey-rename");
+    const currentName = decodeURIComponent(target.getAttribute("data-passkey-current-name") || "");
+    const friendlyName = await openPasskeyNameModal({
+      title: "Alterar nome da passkey",
+      label: "Novo nome para a passkey",
+      help: "Escolha um nome novo para identificar melhor este dispositivo ou chave.",
+      placeholder: "Novo nome",
+      value: currentName || "",
+      confirmText: "Atualizar nome"
+    });
+    if (!friendlyName || !friendlyName.trim()) return;
+
+    try {
+      await window.supabaseClient.auth.passkey.update({
+        passkeyId,
+        friendlyName: friendlyName.trim().slice(0, 120)
+      });
+      await renderPasskeyList();
+    } catch (error) {
+      console.error("Erro ao renomear passkey:", error);
+      setPasskeyMessage("passkeyProfileMessage", `Não foi possível renomear: ${error?.message || "erro inesperado"}`, "error");
+    }
+    return;
+  }
+
+  if (target.hasAttribute("data-passkey-delete")) {
+    const passkeyId = target.getAttribute("data-passkey-delete");
+    const confirmDelete = await openPasskeyDeleteModal({
+      title: "Excluir passkey?",
+      help: "Se você excluir agora, essa chave de acesso deixará de funcionar para entrar na conta."
+    });
+    if (!confirmDelete) return;
+
+    try {
+      await window.supabaseClient.auth.passkey.delete({ passkeyId });
+      setPasskeyMessage("passkeyProfileMessage", "Passkey excluída.", "success");
+      await renderPasskeyList();
+    } catch (error) {
+      console.error("Erro ao excluir passkey:", error);
+      setPasskeyMessage("passkeyProfileMessage", `Não foi possível excluir: ${error?.message || "erro inesperado"}`, "error");
+    }
+  }
+}
+
+function injectPasskeyProfileSection() {
+  if (!window.location.pathname.includes("perfil.html")) return;
+  if (document.getElementById("passkeySection")) return;
+
+  const anchor = document.getElementById("meusEspeciaisSection");
+  if (!anchor) return;
+
+  anchor.insertAdjacentHTML("afterend", `
+    <section id="passkeySection" class="profile-dashboard" style="margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(var(--primary-rgb), 0.2);">
+      <div class="main-head">
+        <h2 style="font-family:'Bangers'; color: var(--primary); font-size: 1.8rem;">
+          <i class='fa-solid fa-fingerprint'></i> Passkeys
+        </h2>
+        <p>Cadastre biometria ou chave de segurança para entrar sem senha.</p>
+      </div>
+      <div class="stat-card full-width passkey-shell">
+        <div class="passkey-hero">
+          <div class="passkey-hero-copy">
+            <div class="passkey-kicker"><i class='fa-solid fa-shield-heart'></i> Biometria e chave física</div>
+            <h3 class="passkey-copy-title">Login mais rápido, seguro e sem senha</h3>
+            <p class="passkey-copy-text">
+              Cadastre reconhecimento facial, Touch ID, Windows Hello, PIN do aparelho ou uma chave física para autenticar sua conta com um toque.
+            </p>
+            <div class="passkey-chip-row">
+              <span class="passkey-chip"><i class='fa-brands fa-windows'></i> Windows Hello</span>
+              <span class="passkey-chip"><i class='fa-solid fa-face-smile-beam'></i> Biometria</span>
+              <span class="passkey-chip"><i class='fa-solid fa-key'></i> Chave física</span>
+            </div>
+          </div>
+          <div class="passkey-hero-panel">
+            <div class="passkey-hero-stat">
+              <i class='fa-solid fa-fingerprint'></i>
+              <div>
+                <strong>Autenticação centralizada</strong>
+                <span>Gerencie seus dispositivos e renomeie cada passkey com clareza.</span>
+              </div>
+            </div>
+            <div class="passkey-hero-stat">
+              <i class='fa-solid fa-lock-open'></i>
+              <div>
+                <strong>Sem senha digitada</strong>
+                <span>Você entra mais rápido e reduz o risco de golpes de senha reutilizada.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="passkey-actions">
+          <button type="button" id="passkeyRegisterBtn" class="btn btn-primary">
+            <i class='fa-solid fa-key'></i> Cadastrar Passkey
+          </button>
+          <button type="button" id="passkeyRefreshBtn" class="btn btn-secondary">
+            <i class='fa-solid fa-rotate'></i> Atualizar Lista
+          </button>
+        </div>
+        <div id="passkeyProfileMessage" style="display:none; padding:12px 14px; border-radius:14px; color:var(--text-main); border:1px solid rgba(var(--primary-rgb),0.18);"></div>
+        <div class="passkey-list-title">
+          <strong>Passkeys registradas</strong>
+          <span>Renomeie ou remova quando quiser</span>
+        </div>
+        <div id="passkeyList" style="display:flex; flex-direction:column; gap:10px;"></div>
+      </div>
+    </section>
+  `);
+}
+
+function injectPasskeyLoginButton() {
+  const loginForm = document.getElementById("loginForm");
+  if (!loginForm || document.getElementById("passkeyLoginBtn")) return;
+
+  loginForm.insertAdjacentHTML("afterend", `
+    <div style="margin-top:12px; display:flex; flex-direction:column; gap:10px;">
+      <button type="button" id="passkeyLoginBtn" class="btn btn-secondary" style="width:100%; padding:14px; font-size:1rem;">
+        <i class='fa-solid fa-fingerprint'></i> Entrar com Passkey
+      </button>
+      <div id="passkeyLoginMessage" style="display:none; padding:10px 12px; border-radius:10px; color:var(--text-main);"></div>
+    </div>
+  `);
+}
+
+function setupPasskeyUI() {
+  injectPasskeyStyles();
+  injectPasskeyLoginButton();
+  injectPasskeyProfileSection();
+
+  const loginBtn = document.getElementById("passkeyLoginBtn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", handlePasskeyLogin);
+    if (!isPasskeySupported()) {
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Passkey não suportada";
+    }
+  }
+
+  const registerBtn = document.getElementById("passkeyRegisterBtn");
+  if (registerBtn) {
+    registerBtn.addEventListener("click", handlePasskeyRegister);
+    if (!isPasskeySupported()) {
+      registerBtn.disabled = true;
+      registerBtn.textContent = "Passkey não suportada";
+    }
+  }
+
+  const refreshBtn = document.getElementById("passkeyRefreshBtn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", renderPasskeyList);
+  }
+
+  const list = document.getElementById("passkeyList");
+  if (list) {
+    list.addEventListener("click", handlePasskeyRowAction);
+  }
+
+  if (document.getElementById("passkeySection")) {
+    renderPasskeyList();
+  }
+}
 
 const initSupa = () => {
   if (supaClient) return true; // JÃ¡ inicializado
@@ -34,11 +1020,13 @@ const initSupa = () => {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
-          detectSessionInUrl: true
+          detectSessionInUrl: true,
+          experimental: {
+            passkey: true
+          }
         }
       });
       window.supabaseClient = supaClient;
-      console.log("Ã°Å¸Å¡â‚¬ Supabase Client inicializado com sucesso");
       return true;
     } catch (e) {
       console.error("Erro ao inicializar Supabase:", e);
@@ -73,7 +1061,27 @@ async function setupAuthLogic() {
   try {
 
   const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
+  const currentPage = window.location.pathname.split('/').pop() || "index.html";
   const isRecovery = window.location.hash.includes("type=recovery");
+  const guestBlockedPages = new Set([
+    "anime-episodios.html",
+    "episodios-desenhos.html",
+    "filmes.html",
+    "mangas.html",
+    "hq.html",
+    "youtube.html",
+    "youtube-videos.html",
+    "open-anime.html",
+    "perfil.html",
+    "usuarios.html",
+    "compras.html",
+    "loja.html",
+    "painel-cadastros.html",
+    "cadastro.html",
+    "cadastro-animes.html",
+    "cadastro-filmes.html",
+    "cadastro-youtube.html"
+  ]);
 
   if (isRecovery) {
     sessionStorage.setItem('is_recovering_password', 'true');
@@ -87,13 +1095,16 @@ async function setupAuthLogic() {
     }
 
     const { data: { session } } = await supaClient.auth.getSession();
+    syncAuthContext(session);
     if (session) {
       window.location.href = "perfil.html";
+    } else if (guestBlockedPages.has(currentPage)) {
+      window.location.href = `login.html?redirect=${encodeURIComponent(currentPage + window.location.search)}`;
     }
   }
 
   supaClient.auth.onAuthStateChange((event, session) => {
-    console.log("Ã°Å¸â€â€ [Auth Event]:", event, session?.user?.email);
+    syncAuthContext(session);
     const currentSessionId = session?.user?.id || null;
 
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -254,7 +1265,6 @@ async function setupAuthLogic() {
       }
 
       if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
-        console.log("Ã°Å¸â€â€ž UsuÃ¡rio alterado Atualizando dados locais...");
         try {
           // Limpar chaves genÃ©ricas para evitar vazamento
           localStorage.removeItem("animehouse_store");
@@ -287,7 +1297,6 @@ async function setupAuthLogic() {
         
         // Evita reload infinito se estivermos na pÃ¡gina de login/registro
         if (!isAuthPage) {
-          console.log("Ã°Å¸â€â€ž Recarregando para aplicar novos dados de usuÃ¡rio");
           window.location.reload();
         }
       }
@@ -340,9 +1349,18 @@ if (forgotPasswordLink) {
 
     try {
       const redirectUrl = window.location.origin + window.location.pathname;
+      const captchaToken = getCaptchaToken("login");
+      if (HCAPTCHA_SITEKEY && !captchaToken) {
+        errorDiv.textContent = "Resolva o CAPTCHA antes de pedir a redefinição de senha.";
+        errorDiv.style.display = "block";
+        return;
+      }
+
       const { error } = await supaClient.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl
+        redirectTo: redirectUrl,
+        captchaToken
       });
+      resetCaptcha("login");
       if (error) {
         let msg = error.message;
         if (msg.includes("rate limit")) msg = "Limite de e-mails atingido.  Por favor, aguarde alguns minutos.";
@@ -387,10 +1405,21 @@ if (loginForm) {
     errorDiv.style.display = "none";
 
     try {
+      const captchaToken = getCaptchaToken("login");
+      if (HCAPTCHA_SITEKEY && !captchaToken) {
+        errorDiv.textContent = "Resolva o CAPTCHA antes de entrar.";
+        errorDiv.style.display = "block";
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Entrar";
+        return;
+      }
+
       const { data, error } = await supaClient.auth.signInWithPassword({
         email,
         password,
+        options: { captchaToken }
       });
+      resetCaptcha("login");
       if (error) {
         console.error("Erro Login:", error.message);
         let msg = error.message;
@@ -406,12 +1435,10 @@ if (loginForm) {
       }
 
       // Login bem sucedido
-      console.log("✅ Login realizado com sucesso. Verificando sessão..");
       const { data: sessData } = await supaClient.auth.getSession();
       
       if (sessData && sessData.session) {
         sessionStorage.setItem('freshLogin', 'true');
-        console.log("ðŸš€ Redirecionando para perfil...");
         window.location.href = "perfil.html";
       } else {
         console.warn("⚠️ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
@@ -466,7 +1493,21 @@ if (registerForm) {
     lastEmailRegistered = email;
     sessionStorage.setItem("lastEmailRegistered", email); // Persiste no navegador
 
-    const { data, error } = await supaClient.auth.signUp({ email, password });
+    const captchaToken = getCaptchaToken("register");
+    if (HCAPTCHA_SITEKEY && !captchaToken) {
+      errorDiv.textContent = "Resolva o CAPTCHA antes de criar a conta.";
+      errorDiv.style.display = "block";
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Criar Conta";
+      return;
+    }
+
+    const { data, error } = await supaClient.auth.signUp({
+      email,
+      password,
+      options: { captchaToken }
+    });
+    resetCaptcha("register");
 
     if (error) {
       let msg = error.message;
@@ -532,28 +1573,38 @@ if (cancelOtpBtn) {
 const resendBtn = document.getElementById("resendBtn");
 if (resendBtn) {
   let resendCooldown = false;
-  resendBtn.addEventListener("click", async () => {
-    if (resendCooldown) return;
-    const resendEmailInput = document.getElementById("resendEmail");
-    const emailToResend = (resendEmailInput?.value || lastEmailRegistered || "").trim().toLowerCase();
-    if (!emailToResend) {
-      alert("Digite o e-mail para reenviar o código");
-      return;
-    }
-    resendBtn.disabled = true;
-    resendBtn.textContent = "📨 Enviando...";
-    const client = window.supabaseClient;
-    if (!client) {
-      resendBtn.textContent = "❌ Erro ao reenviar. Tente novamente.";
-      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 3000);
-      return;
-    }
-    const { error } = await client.auth.resend({ type: "signup", email: emailToResend });
-    if (error) {
-      let msg = error.message;
-      if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
-        msg = "Aguarde 1 minuto antes de reenviar.";
+    resendBtn.addEventListener("click", async () => {
+      if (resendCooldown) return;
+      const resendEmailInput = document.getElementById("resendEmail");
+      const emailToResend = (resendEmailInput?.value || lastEmailRegistered || "").trim().toLowerCase();
+      if (!emailToResend) {
+        alert("Digite o e-mail para reenviar o código");
+        return;
       }
+      const captchaToken = getCaptchaToken("register");
+      if (HCAPTCHA_SITEKEY && !captchaToken) {
+        alert("Resolva o CAPTCHA antes de reenviar o código.");
+        return;
+      }
+      resendBtn.disabled = true;
+      resendBtn.textContent = "📨 Enviando...";
+      const client = window.supabaseClient;
+      if (!client) {
+        resendBtn.textContent = "❌ Erro ao reenviar. Tente novamente.";
+        setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 3000);
+        return;
+      }
+      const { error } = await client.auth.resend({
+        type: "signup",
+        email: emailToResend,
+        options: { captchaToken }
+      });
+      resetCaptcha("register");
+      if (error) {
+        let msg = error.message;
+        if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
+          msg = "Aguarde 1 minuto antes de reenviar.";
+        }
       resendBtn.textContent = "❌ " + msg;
       setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 5000);
     } else {
@@ -603,26 +1654,20 @@ if (verifyOtpBtn) {
     verifyOtpBtn.textContent = "🔍 Verificando...";
     otpError.style.display = "none";
 
-    console.log("🔍 [DEBUG] Iniciando Verificação OTP:");
-    console.log("   > E-mail:", email);
-    console.log("   > Token:", token);
 
     try {
       // 1. Tenta tipo 'signup'
-      console.log("   > Tentando tipo: 'signup'...");
       let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
 
       if (res.error) {
         console.warn("   ⚠️ Falha 'signup':", res.error.message);
         // 2. Tenta tipo 'email'
-        console.log("   > Tentando tipo: 'email'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
       }
 
       if (res.error) {
         console.warn("   ⚠️ Falha 'email':", res.error.message);
         // 3. Tenta tipo 'magiclink'
-        console.log("   > Tentando tipo: 'magiclink'...");
         res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
       }
 
@@ -687,7 +1732,6 @@ window.loadBanners = async function () {
 
   if (window.supabaseClient) {
     try {
-      console.log("ðŸ›¡ï¸ Sincronizando com Storage do Supabase...");
       const { data: supaBanners, error } = await window.supabaseClient
         .from("store_banners")
         .select("id, image_url");
@@ -697,17 +1741,12 @@ window.loadBanners = async function () {
         return;
       }
 
-      console.log(
-        `ðŸ“¦ Banners carregados do Supabase: ${supaBanners?.length || 0} itens`,
-      );
-      console.log("âš¡ Raw data do Supabase:", supaBanners);
 
       if (supaBanners && supaBanners.length > 0) {
         supaBanners.forEach((b, index) => {
           const cleanId = b.id ? b.id.trim() : "sem-id";
           const hasUrl = !!b.image_url;
 
-          console.log(`ðŸ“Œ [${index}] ID="${cleanId}" | hasURL=${hasUrl}`);
 
           if (b.image_url) {
             window.BANNER_MAP[cleanId] = b.image_url;
@@ -719,7 +1758,6 @@ window.loadBanners = async function () {
             // Mapeamentos baseados no nome do arquivo na URL
             if (fileName.includes("cosmos")) {
               window.BANNER_MAP["banner_cosmos"] = b.image_url;
-              console.log(`MAPEADO banner_cosmos via arquivo: ${fileName}`);
             }
             if (fileName.includes("guts") || fileName.includes("berserk")) {
               window.BANNER_MAP["banner_berserk"] = b.image_url;
@@ -749,7 +1787,6 @@ window.loadBanners = async function () {
             // Mapeamentos Inteligentes baseados no ID (fallback)
             if (cleanId.includes("cosmos")) {
               window.BANNER_MAP["banner_cosmos"] = b.image_url;
-              console.log(`MAPEADO banner_cosmos via ID: ${cleanId}`);
             }
             if (cleanId.includes("guts"))
               window.BANNER_MAP["banner_berserk"] = b.image_url;
@@ -774,15 +1811,12 @@ window.loadBanners = async function () {
           }
         });
 
-        console.log("âš™ BANNER_MAP final:", Object.keys(window.BANNER_MAP));
 
         // Verifica especificamente o banner_cosmos
         if (window.BANNER_MAP["banner_cosmos"]) {
-          console.log("banner_cosmos estÃ¡ disponÃ­vel!");
         } else {
           // Hard-fix para banner_cosmos
           window.BANNER_MAP["banner_cosmos"] = "https://bxifddhrbxbmimjkgwzr.supabase.co/storage/v1/object/public/banners/banner_cosmos.png";
-          console.log("ðŸ› ï¸ banner_cosmos mapeado via HARD-FIX");
         }
       } else {
         console.warn("Nenhum banner retornado do Supabase");
@@ -803,12 +1837,82 @@ window.updateNavbarCosmetics = function () {
   const avatarBox = document.querySelector(".user-nav-avatar-box");
   const navAvatar = document.getElementById("navAvatar");
   const burger = document.getElementById("navBurger");
+  const isAuthenticated = !!window.AH_AUTH?.isAuthenticated;
 
   // ðŸ’¡ Cursor fixes
   if (burger) burger.style.cursor = "pointer";
   document
     .querySelectorAll(".navbar-links a")
     .forEach((a) => (a.style.cursor = "pointer"));
+
+  if (!isAuthenticated) {
+    if (bannerBg) {
+      bannerBg.style.display = "none";
+      bannerBg.style.backgroundImage = "";
+    }
+    if (titleEl) {
+      titleEl.textContent = "";
+      titleEl.style.display = "none";
+    }
+    if (avatarBox) {
+      const auraClasses = [
+        "aura-common-chama",
+        "aura_chama",
+        "aura-common-naruto",
+        "aura_chama_naruto",
+        "aura-rare-ceifador",
+        "aura_ceifador",
+        "aura-rare-thunder",
+        "aura_thunder",
+        "aura-rare-susanoo",
+        "aura_susanoo",
+        "aura-rare-sakura",
+        "aura_sakura",
+        "aura-epic-gelo",
+        "aura_gelo",
+        "aura-epic-stands",
+        "aura_stands",
+        "avatar-aura-stands",
+        "aura-epic-void",
+        "aura_void_saitama",
+        "aura-legendary-dragon",
+        "aura_dragon",
+        "aura_saiyajin",
+        "aura_shinigami",
+        "avatar-aura-fire",
+        "avatar-aura-guardian",
+        "avatar-aura-immortal",
+        "avatar-aura-bronze",
+        "avatar-aura-prata",
+        "avatar-aura-ouro",
+        "avatar-aura-mestre",
+        "avatar-aura-lenda",
+        "frame-dourado"
+      ];
+      avatarBox.classList.remove(...auraClasses);
+      const crown = avatarBox.querySelector(".crown-nav");
+      if (crown) crown.remove();
+    }
+    const sidebarCrown = document.getElementById("sidebarCrown");
+    if (sidebarCrown) {
+      sidebarCrown.innerHTML = "";
+      sidebarCrown.style.display = "none";
+      sidebarCrown.classList.remove("crown-badge-anchor", "crown-badge-anchor--sidebar", "crown-badge-anchor--nav");
+    }
+    const displayAvatarBox = document.getElementById("displayAvatarBox");
+    if (displayAvatarBox) {
+      displayAvatarBox.className = displayAvatarBox.className
+        .split(" ")
+        .filter((cls) => !cls.startsWith("aura-") && !cls.startsWith("avatar-aura-") && cls !== "frame-dourado")
+        .join(" ");
+    }
+    if (navAvatar) {
+      navAvatar.style.border = "none";
+      navAvatar.style.boxShadow = "none";
+      navAvatar.style.outline = "none";
+    }
+    return;
+  }
 
 
 
@@ -1201,7 +2305,6 @@ window.startPresenceHeartbeat = async function() {
 
 // ðŸš€ Carregar banners automaticamente quando DOM estiver pronto
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("ðŸš€ DOM pronto - Iniciando carregamento de banners...");
 
   const tryLoadBanners = (attempt = 1) => {
     if (window.supabaseClient && typeof window.loadBanners === "function") {
@@ -1221,7 +2324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (otpSection) {
       const emailMsg = otpSection.querySelector("p");
       if (emailMsg) {
-        emailMsg.innerHTML = `<strong>ðŸ”‘ Digite o cÃ³digo de 6 dÃ­gitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
+        emailMsg.innerHTML = `<strong>🔑 Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
       }
     }
   }
@@ -1234,6 +2337,10 @@ document.addEventListener("DOMContentLoaded", () => {
       window.history.replaceState(null, null, window.location.pathname);
     }
   }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupPasskeyUI();
 });
 
 // 6. Auth Status & Navbar Injection
@@ -1288,7 +2395,7 @@ window.checkAuthStatus = async function () {
 
       authContainer.innerHTML = `
                 <div class="navbar-notification-wrapper">
-                  <button class="navbar-bell-trigger" id="navbarBellTrigger" aria-label="NotificaÃ§Ãµes">
+                  <button class="navbar-bell-trigger" id="navbarBellTrigger" aria-label="Notificações">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                     <span class="navbar-badge-dot" id="navbarBellBadge" style="display: none;">0</span>
                   </button>
@@ -1305,7 +2412,7 @@ window.checkAuthStatus = async function () {
             `;
       nav.appendChild(authContainer);
 
-      // Iniciar Hub de NotificaÃ§Ãµes
+      // Iniciar Hub de Notificações
       initializeNotificationHub(session.user.id);
 
       // Se estamos no perfil e nÃ£o temos perfil no banco, nÃ£o expulsar imediatamente
@@ -1578,14 +2685,14 @@ function createNotificationCenterUI() {
   const adminPanelHtml = notificationState.isAdmin ? `
     <details class="notification-admin-panel" style="margin-bottom:1rem;">
       <summary style="cursor:pointer; font-weight:700; color:var(--primary); padding:8px 0;">
-        <i class="fa-solid fa-shield-halved"></i> Painel Admin - Enviar NotificaÃ§Ã£o
+        <i class="fa-solid fa-shield-halved"></i> Painel Admin - Enviar Notificação
       </summary>
       <div style="margin-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
-        <input id="adminNotifUserId" type="text" placeholder="User ID do destinatÃ¡rio (deixe vazio para todos)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
-        <small style="color:var(--text-muted); font-size:0.75rem; margin-top:-0.25rem; display:block;">Deixe vazio para enviar a todos os usuÃ¡rios.</small>
-        <input id="adminNotifTitle" type="text" placeholder="TÃ­tulo da notificaÃ§Ã£o" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <input id="adminNotifUserId" type="text" placeholder="User ID do destinatário (deixe vazio para todos)" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
+        <small style="color:var(--text-muted); font-size:0.75rem; margin-top:-0.25rem; display:block;">Deixe vazio para enviar a todos os usuários.</small>
+        <input id="adminNotifTitle" type="text" placeholder="Título da notificação" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem;"/>
         <textarea id="adminNotifMessage" rows="2" placeholder="Mensagem..." style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:8px 12px; color:var(--text-main); font-size:0.85rem; resize:vertical;"></textarea>
-        <button onclick="sendAdminNotification()" style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:8px 16px; cursor:pointer; font-weight:700;">
+        <button type="button" class="btn btn-primary" onclick="sendAdminNotification()" style="width:100%;">
           <i class="fa-solid fa-paper-plane"></i> Enviar
         </button>
       </div>
@@ -1595,7 +2702,7 @@ function createNotificationCenterUI() {
   center.innerHTML = `
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
       <h3 style="font-family:'Bangers'; font-size:1.4rem; color:var(--primary); letter-spacing:1px; margin:0;">
-        <i class="fa-solid fa-bell"></i> NotificaÃ§Ãµes
+        <i class="fa-solid fa-bell"></i> Notificações
       </h3>
       <button class="notification-center__close" onclick="toggleNotificationCenter()" title="Fechar">
         <i class="fa-solid fa-xmark"></i>
@@ -1674,7 +2781,7 @@ window.switchNotifTab = function(tab, btnEl) {
 window.sendAdminNotification = async function() {
   if (!supaClient) return;
   if (!notificationState.isAdmin) {
-    if (window.showToast) showToast('Apenas o administrador pode enviar notificaÃ§Ãµes.', 'error');
+    if (window.showToast) showToast('Apenas o administrador pode enviar notificações.', 'error');
     return;
   }
 
@@ -1683,7 +2790,7 @@ window.sendAdminNotification = async function() {
   const message = document.getElementById('adminNotifMessage')?.value.trim();
 
   if (!title || !message) {
-    if (window.showToast) showToast('Preencha tÃ­tulo e mensagem.', 'error');
+    if (window.showToast) showToast('Preencha título e mensagem.', 'error');
     return;
   }
 
@@ -1699,13 +2806,13 @@ window.sendAdminNotification = async function() {
       .select('id');
 
     if (profileError) {
-      console.error('Erro ao buscar usuÃ¡rios para envio global:', profileError);
-      if (window.showToast) showToast('Erro ao enviar notificaÃ§Ã£o global.', 'error');
+      console.error('Erro ao buscar usuários para envio global:', profileError);
+      if (window.showToast) showToast('Erro ao enviar notificação global.', 'error');
       return;
     }
 
     if (!profiles || profiles.length === 0) {
-      if (window.showToast) showToast('Nenhum usuÃ¡rio encontrado para envio.', 'error');
+      if (window.showToast) showToast('Nenhum usuário encontrado para envio.', 'error');
       return;
     }
 
@@ -1723,7 +2830,7 @@ window.sendAdminNotification = async function() {
       if (error) throw error;
     }
 
-    if (window.showToast) showToast('NotificaÃ§Ã£o enviada!', 'success');
+    if (window.showToast) showToast('Notificação enviada!', 'success');
     document.getElementById('adminNotifTitle').value = '';
     document.getElementById('adminNotifMessage').value = '';
     document.getElementById('adminNotifUserId').value = '';
@@ -1732,8 +2839,8 @@ window.sendAdminNotification = async function() {
     }
     fetchNotificationCount();
   } catch (err) {
-    console.error('Erro ao enviar notificaÃ§Ã£o:', err);
-    if (window.showToast) showToast('Erro ao enviar notificaÃ§Ã£o.', 'error');
+    console.error('Erro ao enviar notificação:', err);
+    if (window.showToast) showToast('Erro ao enviar notificação.', 'error');
   }
 };
 
@@ -1793,7 +2900,7 @@ function renderNotificationListFromState() {
     content.innerHTML = `
       <div class="notif-empty-state">
         <div class="notif-empty-icon"><i class="fa-solid fa-envelope-open-text" style="font-size: 2.5rem; color: var(--primary);"></i></div>
-        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'VocÃª nÃ£o tem notificaÃ§Ãµes.'}</p>
+        <p>${notificationState.activeFilter === 'chat' ? 'Nenhuma mensagem recente.' : 'Você não tem notificações.'}</p>
       </div>
     `;
     syncNotificationSelectionState();
@@ -1867,7 +2974,7 @@ async function loadNotificationsList(filter = 'all', forceRefresh = false) {
     renderNotificationListFromState();
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
   }
 }
 
@@ -1883,7 +2990,7 @@ async function handleBatchAction(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (!ids.length) {
-    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃƒÂ§ÃƒÂ£");
+    alert("Selecione pelo menos uma notificação para realizar esta ação.");
     return;
   }
 
@@ -1944,7 +3051,7 @@ async function deleteNotifications(ids) {
     syncNotificationBadgeFromState();
     renderNotificationListFromState();
   } catch (err) {
-    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
+    console.error("Erro ao deletar notificações:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -1990,7 +3097,7 @@ function setupNotificationRealtime() {
       }
 
       if (payload.eventType === 'INSERT' && payload.new && window.showToast) {
-        showToast(`ðŸ”” ${payload.new.title}`, "info");
+        showToast(`🔔 ${payload.new.title}`, "info");
         const bell = document.getElementById('navbarBellTrigger');
         if (bell) {
           bell.classList.remove('ringing');
@@ -2001,7 +3108,6 @@ function setupNotificationRealtime() {
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("Ã¢Å“â€¦ Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }
@@ -2041,7 +3147,7 @@ async function handleBatchActionLegacy(action) {
   const originalActionText = actionButton?.textContent || '';
 
   if (ids.length === 0) {
-    alert("Selecione pelo menos uma notificaÃ§Ã£o para realizar esta aÃƒÂ§ÃƒÂ£");
+    alert("Selecione pelo menos uma notificação para realizar esta ação.");
     return;
   }
 
@@ -2124,7 +3230,7 @@ async function loadNotificationsListLegacy(filter = 'all') {
 
   } catch (err) {
     console.error("Erro ao carregar lista:", err);
-    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificaÃ§Ãµes.</p>`;
+    content.innerHTML = `<p style="color:var(--danger); padding:20px; text-align:center;">Erro ao carregar notificações.</p>`;
   }
 }
 
@@ -2154,10 +3260,10 @@ function formatNotifTime(dateStr) {
   const diffMins = Math.floor(diffMs / 60000);
   
   if (diffMins < 1) return 'Agora mesmo';
-  if (diffMins < 60) return `HÃ¡ ${diffMins} min`;
+  if (diffMins < 60) return `Há ${diffMins} min`;
   
   const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `HÃ¡ ${diffHours}h`;
+  if (diffHours < 24) return `Há ${diffHours}h`;
   
   return date.toLocaleDateString('pt-BR');
 }
@@ -2188,7 +3294,6 @@ async function deleteNotificationsLegacy(ids) {
   if (!ids || ids.length === 0) return;
   
   try {
-    console.log(`[NotificationHub] Excluindo ${ids.length} notificaÃ§Ãµes...`);
     const { error } = await supaClient
       .from('notifications')
       .delete()
@@ -2200,7 +3305,7 @@ async function deleteNotificationsLegacy(ids) {
     renderNotificationListFromState();
     return;
   } catch (err) {
-    console.error("Erro ao deletar notificaÃ§Ãµes:", err);
+    console.error("Erro ao deletar notificações:", err);
     alert("Erro ao excluir: " + err.message);
   }
 }
@@ -2210,7 +3315,7 @@ async function markAsRead(id) {
 }
 
 async function markAllAsRead() {
-  // Mantendo para compatibilidade se necessÃ¡rio, mas agora usamos handleBatchAction
+  // Mantendo para compatibilidade se necessário, mas agora usamos handleBatchAction
   const allIds = Array.from(document.querySelectorAll('.notification-item')).map(el => el.dataset.id);
   if (allIds.length > 0) await markNotificationsRead(allIds);
 }
@@ -2223,7 +3328,7 @@ function setupNotificationRealtimeLegacy() {
     notificationState.realtimeChannel = null;
   }
 
-  // Canal para mudanÃ§as nas notificaÃ§Ãµes do usuÃ¡rio
+  // Canal para mudanças nas notificações do usuário
   notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
     .on('postgres_changes', {
       event: '*', // Ouvir TUDO (INSERT, UPDATE, DELETE)
@@ -2231,12 +3336,11 @@ function setupNotificationRealtimeLegacy() {
       table: 'notifications',
       filter: `user_id=eq.${notificationState.userId}`
     }, (payload) => {
-      console.log("Evento de notificaÃ§Ã£o:", payload.eventType, payload);
       
       // Atualizar contagem do badge sempre
       fetchNotificationCount();
 
-      // Se o painel estiver aberto, recarregar a lista para refletir a mudanÃ§a
+      // Se o painel estiver aberto, recarregar a lista para refletir a mudança
       if (notificationState.isOpen) {
         const activeTab = document.querySelector('.notif-tab.active')?.dataset.tab || 'all';
         loadNotificationsList(activeTab);
@@ -2244,12 +3348,11 @@ function setupNotificationRealtimeLegacy() {
       
       // Se for uma inserÃ§Ã£o, mostrar um Toast
       if (payload.eventType === 'INSERT' && window.showToast) {
-        showToast(`ðŸ”” ${payload.new.title}`, "info");
+        showToast(`🔔 ${payload.new.title}`, "info");
       }
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
-        console.log("âœ“ Escutando notificaÃ§Ãµes em tempo real");
       }
     });
 }

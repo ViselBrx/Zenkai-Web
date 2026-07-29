@@ -449,7 +449,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     supa
       .channel('followers-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'followers' }, async (payload) => {
-        console.log('🔔 Mudança Realtime:', payload.eventType);
 
         if (payload.eventType === 'INSERT') {
           const exists = allFollowersData.some(item =>
