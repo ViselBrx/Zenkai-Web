@@ -187,6 +187,323 @@
     .feedback-submit-btn:hover i {
       transform: translateX(5px);
     }
+
+    body.site-guide-open {
+      overflow: hidden;
+    }
+
+    .home-card {
+      position: relative;
+    }
+
+    .home-card-guide-trigger {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(var(--primary-rgb), 0.26);
+      background: rgba(6, 12, 24, 0.72);
+      color: var(--primary);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+      box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.12);
+      transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+      cursor: pointer;
+    }
+
+    .home-card-guide-trigger:hover,
+    .home-card-guide-trigger:focus-visible {
+      box-shadow: 0 0 24px rgba(var(--primary-rgb), 0.24);
+      outline: none;
+    }
+
+    .home-card:hover .home-card-guide-trigger,
+    .home-card:focus-within .home-card-guide-trigger {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    @media (hover: none) {
+      .home-card-guide-trigger {
+        opacity: 0.78;
+        transform: none;
+      }
+    }
+
+    .site-guide-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 12000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top, rgba(var(--primary-rgb), 0.18), transparent 30%),
+        rgba(3, 8, 18, 0.82);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    .site-guide-overlay.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .site-guide-card {
+      width: min(980px, 100%);
+      border-radius: 28px;
+      border: 1px solid rgba(var(--primary-rgb), 0.24);
+      background:
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(10, 18, 34, 0.98), rgba(5, 10, 22, 0.99));
+      box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        0 0 42px rgba(var(--primary-rgb), 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .site-guide-card::before {
+      content: "";
+      position: absolute;
+      inset: auto -10% -36% auto;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--primary-rgb), 0.22), transparent 72%);
+      pointer-events: none;
+    }
+
+    .site-guide-header {
+      display: grid;
+      grid-template-columns: 128px minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: center;
+      padding: 24px 26px 18px;
+      border-bottom: 1px solid rgba(var(--primary-rgb), 0.16);
+    }
+
+    .site-guide-avatar {
+      width: 128px;
+      height: 128px;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--primary-rgb), 0.28);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 0 28px rgba(var(--primary-rgb), 0.22);
+      flex: none;
+    }
+
+    .site-guide-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .site-guide-kicker {
+      margin: 0 0 6px;
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .site-guide-title {
+      margin: 0;
+      font-family: 'Bangers', cursive;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 0.95;
+      color: var(--primary);
+      text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.45);
+    }
+
+    .site-guide-subtitle {
+      margin: 10px 0 0;
+      color: var(--text-muted);
+      line-height: 1.65;
+      max-width: 64ch;
+    }
+
+    .site-guide-close {
+      align-self: flex-start;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(var(--primary-rgb), 0.22);
+      background: rgba(var(--primary-rgb), 0.08);
+      color: var(--primary);
+      font-size: 1.3rem;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .site-guide-close:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.2);
+    }
+
+    .site-guide-body {
+      padding: 20px 26px 26px;
+    }
+
+    .site-guide-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .site-guide-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(var(--primary-rgb), 0.1);
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
+      color: var(--primary);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .site-guide-progress {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(var(--primary-rgb), 0.15);
+      margin-bottom: 16px;
+    }
+
+    .site-guide-progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--primary), rgba(var(--primary-rgb), 0.45));
+      box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.3);
+      transition: width 0.25s ease;
+    }
+
+    .site-guide-step {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.7fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .site-guide-copy {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(var(--primary-rgb), 0.12);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: inset 0 0 22px rgba(var(--primary-rgb), 0.05);
+    }
+
+    .site-guide-copy h4 {
+      margin: 0 0 10px;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .site-guide-copy p {
+      margin: 0 0 12px;
+      color: var(--text-main);
+      line-height: 1.65;
+    }
+
+    .site-guide-copy ul {
+      margin: 0;
+      padding-left: 1.15rem;
+      color: var(--text-main);
+    }
+
+    .site-guide-copy li {
+      margin: 0.45rem 0;
+      color: var(--text-main);
+    }
+
+    .site-guide-next {
+      background:
+        radial-gradient(circle at top, rgba(var(--primary-rgb), 0.14), transparent 34%),
+        rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(var(--primary-rgb), 0.18);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 0 24px rgba(var(--primary-rgb), 0.08);
+    }
+
+    .site-guide-next-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--primary);
+      font-size: 0.75rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .site-guide-next strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+      color: var(--text-main);
+    }
+
+    .site-guide-next p {
+      margin: 0;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .site-guide-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .site-guide-actions .btn {
+      min-height: 42px;
+    }
+
+    .site-guide-actions .btn-secondary {
+      border-color: rgba(var(--primary-rgb), 0.25);
+    }
+
+    @media (max-width: 860px) {
+      .site-guide-header,
+      .site-guide-step {
+        grid-template-columns: 1fr;
+      }
+
+      .site-guide-close {
+        justify-self: end;
+      }
+
+      .site-guide-avatar {
+        width: 104px;
+        height: 104px;
+      }
+    }
   </style>
 </head>
 
@@ -234,6 +551,7 @@
 
     <div class="home-grid">
       <a href="usuarios.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="4"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-users'></i></div>
         <h3 style="color:var(--primary)">Comunidade</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Conheça outros participantes da Anime House e veja quem está
@@ -242,6 +560,7 @@
       </a>
 
       <a href="desenhos.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="1"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-tv'></i></div>
         <h3 style="color:var(--primary)">Desenhos Clássicos</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Warner, Cartoon Network, Disney e mais séries incríveis
@@ -250,6 +569,7 @@
       </a>
 
       <a href="youtube.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="2"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-play'></i></div>
         <h3 style="color:var(--primary)">YouTube</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Organize e assista vídeos do YouTube em playlists
@@ -258,6 +578,7 @@
       </a>
 
       <a href="animes.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="1"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-torii-gate'></i></div>
         <h3 style="color:var(--primary)">Universo Animes</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Ação Shounen, Seinen, Isekais e toda biblioteca oriental.
@@ -266,6 +587,7 @@
       </a>
 
       <a href="mangas.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="2"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-book'></i></div>
         <h3 style="color:var(--primary)">Leitura de Mangás</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">PDFs, links de Drive e capítulos salvos para ler depois.</p>
@@ -273,6 +595,7 @@
       </a>
 
       <a href="hq.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="2"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-regular fa-comment-dots'></i></div>
         <h3 style="color:var(--primary)">HQs &amp; Quadrinhos</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Batman, Marvel, DC e seus quadrinhos favoritos organizados
@@ -281,6 +604,7 @@
       </a>
 
       <a href="jogos.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="5"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-gamepad'></i></div>
         <h3 style="color:var(--primary)">Hub de Jogos</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Jogue Gartic Anime ou Jogo da Velha com seus amigos e ganhe
@@ -289,6 +613,7 @@
       </a>
 
       <a href="loja.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="5"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-flag'></i></div>
         <h3 style="color:var(--primary)">SenseiMod Store</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Troque seu XP por fichas — e resgate banners, auras e itens
@@ -297,6 +622,7 @@
       </a>
 
       <a href="sobre.html" class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="5"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-users'></i></div>
         <h3 style="color:var(--primary)">Conheça a Equipe</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Saiba mais sobre os desenvolvedores e o propósito deste
@@ -304,8 +630,9 @@
         <span class="btn btn-secondary" style="margin-top:auto">Ver Equipe</span>
       </a>
 
-      <a href="https://github.com/ViselBrx/Como_Cadastrar.git" target="_blank" rel="noopener noreferrer"
+      <a href="https://github.com/ViselBrx/Como_Cadastrar" target="_blank" rel="noopener noreferrer"
         class="home-card">
+        <span class="home-card-guide-trigger" data-guide-step="6"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-book-open'></i></div>
         <h3 style="color:var(--primary)">Como Cadastrar</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Passo a passo de como cadastrar coisas no site.</p>
@@ -313,6 +640,7 @@
       </a>
 
       <a href="#" class="home-card" id="openMobileModal">
+        <span class="home-card-guide-trigger" data-guide-step="7"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-qrcode'></i></div>
         <h3 style="color:var(--primary)">App Mobile</h3>
         <p style="color:var(--text-muted);font-size:0.9rem">Baixe o app oficial da Anime House no seu celular.</p>
@@ -321,6 +649,57 @@
     </div>
 
   </main>
+
+  <div id="siteGuideOverlay" class="site-guide-overlay" hidden aria-hidden="true">
+    <div class="site-guide-card" role="dialog" aria-modal="true" aria-labelledby="siteGuideTitle">
+      <div class="site-guide-header">
+        <div class="site-guide-avatar">
+          <img src="assets/viselauraenorme.jpg" alt="Assistente do site">
+        </div>
+        <div>
+          <p class="site-guide-kicker" id="siteGuideKicker">Guia Interativo</p>
+          <h3 class="site-guide-title" id="siteGuideTitle">Bem-vindo(a) à Anime House</h3>
+          <p class="site-guide-subtitle" id="siteGuideSubtitle">
+            Eu vou te mostrar, passo a passo, como explorar o site, mudar de tema e encontrar cada área sem esforço.
+          </p>
+        </div>
+        <button class="site-guide-close" id="siteGuideCloseBtn" type="button" aria-label="Fechar guia">×</button>
+      </div>
+
+      <div class="site-guide-body">
+        <div class="site-guide-meta">
+          <span class="site-guide-pill" id="siteGuideStepCounter">Etapa 1 de 8</span>
+          <span class="site-guide-pill" id="siteGuideTopic">Visão geral</span>
+          <span class="site-guide-pill"><i class="fa-solid fa-sparkles"></i> Tema atual preservado</span>
+        </div>
+
+        <div class="site-guide-progress" aria-hidden="true">
+          <div class="site-guide-progress-bar" id="siteGuideProgressBar"></div>
+        </div>
+
+        <div class="site-guide-step">
+          <div class="site-guide-copy">
+            <h4 id="siteGuideStepTitle">Título da etapa</h4>
+            <p id="siteGuideStepLead">Conteúdo da etapa</p>
+            <ul id="siteGuideStepList"></ul>
+            <div class="site-guide-actions" id="siteGuideQuickActions"></div>
+          </div>
+
+          <div class="site-guide-next">
+            <span class="site-guide-next-label">Próxima parada</span>
+            <strong id="siteGuideNextTitle">Próxima etapa</strong>
+            <p id="siteGuideNextText">Descrição da próxima parada.</p>
+          </div>
+        </div>
+
+        <div class="site-guide-actions">
+          <button type="button" class="btn btn-secondary" id="siteGuidePrevBtn">Anterior</button>
+          <button type="button" class="btn btn-primary" id="siteGuideNextBtn">Próxima etapa</button>
+          <button type="button" class="btn btn-secondary" id="siteGuideFinishBtn">Encerrar tour</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- SISTEMA DE FEEDBACK (FAB + MODAL) -->
   <button id="feedbackFabBtn" class="feedback-fab" title="Enviar Sugestão ou Reportar Bug">
@@ -514,6 +893,337 @@
             submitBtn.disabled = false;
           }
         });
+      }
+
+      const siteGuideOverlay = document.getElementById('siteGuideOverlay');
+      const siteGuideCloseBtn = document.getElementById('siteGuideCloseBtn');
+      const siteGuidePrevBtn = document.getElementById('siteGuidePrevBtn');
+      const siteGuideNextBtn = document.getElementById('siteGuideNextBtn');
+      const siteGuideFinishBtn = document.getElementById('siteGuideFinishBtn');
+      const siteGuideStepCounter = document.getElementById('siteGuideStepCounter');
+      const siteGuideTopic = document.getElementById('siteGuideTopic');
+      const siteGuideProgressBar = document.getElementById('siteGuideProgressBar');
+      const siteGuideStepTitle = document.getElementById('siteGuideStepTitle');
+      const siteGuideStepLead = document.getElementById('siteGuideStepLead');
+      const siteGuideStepList = document.getElementById('siteGuideStepList');
+      const siteGuideNextTitle = document.getElementById('siteGuideNextTitle');
+      const siteGuideNextText = document.getElementById('siteGuideNextText');
+      const siteGuideQuickActions = document.getElementById('siteGuideQuickActions');
+      const siteGuideTitle = document.getElementById('siteGuideTitle');
+      const siteGuideSubtitle = document.getElementById('siteGuideSubtitle');
+
+      const SITE_GUIDE_PENDING_KEY = 'siteGuidePending';
+      const SITE_GUIDE_STEPS = [
+        {
+          topic: 'Apresentação',
+          title: 'Oi, eu sou seu assistente',
+          subtitle: 'Eu vou te acompanhar nas primeiras voltas pelo site.',
+          lead: 'Antes de começar, deixa eu me apresentar: eu sou o guia que vai te mostrar onde cada coisa fica e como usar o portal sem se perder.',
+          bullets: [
+            'Eu vou explicar as etapas principais do site de um jeito simples e direto.',
+            'Você pode abrir este guia de novo pelos cards escondidos na home.',
+            'O visual do tour acompanha o tema que você estiver usando.'
+          ],
+          preview: 'Depois da minha apresentação, eu te mostro a entrada principal do site.',
+          actions: [
+            { label: 'Começar tour', action: 'next-step' }
+          ]
+        },
+        {
+          topic: 'Começo rápido',
+          title: 'Boas-vindas à Anime House',
+          subtitle: 'Você acabou de chegar, então eu vou mostrar o mapa da casa sem complicar nada.',
+          lead: 'Esta é a porta de entrada do portal. Aqui você encontra os atalhos mais importantes, e o visual muda junto com o tema selecionado.',
+          bullets: [
+            'A home reúne os principais atalhos do site em cards grandes e fáceis de ler.',
+            'O assistente fica escondido nos cards para você abrir de novo quando quiser.',
+            'O tema escolhido, como cromático ou natalino, continua valendo em todo o passeio.'
+          ],
+          preview: 'Agora eu te mostro como usar a home e ir para os catálogos principais.',
+          actions: [
+            { label: 'Explorar a Home', href: 'index.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'Catálogos',
+          title: 'Desenhos, Animes e Filmes',
+          subtitle: 'Os catálogos principais ficam a um clique de distância.',
+          lead: 'Cada card leva para uma área diferente do acervo, com organização visual própria e navegação direta.',
+          bullets: [
+            'Abra Desenhos ou Animes para ver as listas por temporada e episódio.',
+            'Filmes aparece como conteúdo único, sem precisar passar por temporadas.',
+            'Use os cards como atalhos rápidos e o menu superior quando quiser ir mais fundo.'
+          ],
+          preview: 'Na próxima etapa eu te mostro os conteúdos em vídeo e leitura.',
+          actions: [
+            { label: 'Abrir Animes', href: 'animes.html', target: '_self' },
+            { label: 'Abrir Desenhos', href: 'desenhos.html', target: '_self' },
+            { label: 'Abrir Filmes', href: 'filmes.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'Vídeo e leitura',
+          title: 'YouTube, Mangás e HQs',
+          subtitle: 'Aqui entram as páginas que usam vídeo, PDF e link externo.',
+          lead: 'O portal também organiza vídeos do YouTube e materiais em PDF para leitura, tudo com uma estrutura que combina com o resto do site.',
+          bullets: [
+            'YouTube guarda playlists e vídeos individuais em uma área própria.',
+            'Mangás podem usar PDF direto ou link do Google Drive, dependendo do tamanho.',
+            'HQs seguem a mesma lógica dos mangás, com foco em volumes e edições.'
+          ],
+          preview: 'Depois disso vem a IA do site, que entende chat, imagem e comparação.',
+          actions: [
+            { label: 'Abrir YouTube', href: 'youtube.html', target: '_self' },
+            { label: 'Abrir Mangás', href: 'mangas.html', target: '_self' },
+            { label: 'Abrir HQs', href: 'hq.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'IA do portal',
+          title: 'Open AnIme',
+          subtitle: 'O cérebro do site também entra no tour.',
+          lead: 'No Open AnIme você conversa com a IA, analisa imagens e compara personagens com respostas em Markdown.',
+          bullets: [
+            'O chat responde em português e acompanha o contexto da conversa.',
+            'A visão analisa imagens e tenta identificar pistas visuais e texto na tela.',
+            'A comparação monta análises mais fortes e organizadas para duelos de personagens.'
+          ],
+          preview: 'Em seguida eu te mostro comunidade, perfil e seu progresso.',
+          actions: [
+            { label: 'Abrir Open AnIme', href: 'open-anime.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'Perfil e comunidade',
+          title: 'Comunidade, Perfil e Progresso',
+          subtitle: 'Seu perfil e sua presença no site também fazem parte da experiência.',
+          lead: 'A Anime House tem comunidade, ranking, cosméticos e histórico para deixar a navegação com cara de conta viva.',
+          bullets: [
+            'Comunidade mostra outros usuários e quem está online.',
+            'O perfil concentra nível, rank, avatar e cosméticos equipados.',
+            'O progresso acompanha o uso do site e pode mudar o visual da sua conta.'
+          ],
+          preview: 'Agora eu fecho com jogos, loja e a página da equipe.',
+          actions: [
+            { label: 'Ver Comunidade', href: 'usuarios.html', target: '_self' },
+            { label: 'Abrir Perfil', href: 'perfil.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'Jogos e recompensas',
+          title: 'Jogos, Loja e Equipe',
+          subtitle: 'Aqui entram diversão, troca de XP e transparência do projeto.',
+          lead: 'Essas páginas completam a parte social e de recompensa do portal.',
+          bullets: [
+            'Jogos dão um respiro entre um catálogo e outro, com recompensas de XP.',
+            'A loja troca XP por itens, banners e outros cosméticos.',
+            'A página da equipe apresenta os responsáveis pela Anime House.'
+          ],
+          preview: 'Se você for administrar conteúdo, o próximo passo é o manual de cadastro.',
+          actions: [
+            { label: 'Abrir Jogos', href: 'jogos.html', target: '_self' },
+            { label: 'Abrir Loja', href: 'loja.html', target: '_self' },
+            { label: 'Ver Equipe', href: 'sobre.html', target: '_self' }
+          ]
+        },
+        {
+          topic: 'Administração',
+          title: 'Como Cadastrar',
+          subtitle: 'Este é o manual oficial para publicar e padronizar conteúdo.',
+          lead: 'O guia de cadastro organiza o fluxo para desenhos, animes, filmes, mangás, HQs e YouTube com padrão consistente.',
+          bullets: [
+            'Desenhos, animes e filmes usam iframe do player para incorporar o vídeo.',
+            'Mangás e HQs podem usar PDF direto ou link do Google Drive, dependendo do caso.',
+            'O manual reforça revisão de títulos, capas, capítulos, links e nomenclatura.'
+          ],
+          preview: 'A última etapa é o app mobile, com QR Code para baixar no celular.',
+          actions: [
+            { label: 'Abrir Manual', href: 'https://github.com/ViselBrx/Como_Cadastrar', target: '_blank' }
+          ]
+        },
+        {
+          topic: 'Mobile',
+          title: 'App Mobile',
+          subtitle: 'O portal também tem caminho para o celular.',
+          lead: 'Se você estiver no telefone, o QR Code da home leva ao app oficial para continuar a experiência por lá.',
+          bullets: [
+            'O card de App Mobile abre o QR Code para baixar o aplicativo.',
+            'O visual do app e do site conversa com o tema escolhido.',
+            'Depois do tour, você pode voltar a qualquer card e abrir o guia escondido.'
+          ],
+          preview: 'Fim do tour. Se quiser, você pode recomeçar ou fechar o painel.',
+          actions: [
+            { label: 'Ver QR Code', action: 'open-mobile' }
+          ]
+        }
+      ];
+
+      let currentGuideStep = 0;
+      let guideAutoOpened = false;
+
+      function getGuideTriggerStep(value) {
+        const step = Number.parseInt(String(value || '0'), 10);
+        if (!Number.isFinite(step)) return 0;
+        return Math.min(Math.max(step, 0), SITE_GUIDE_STEPS.length - 1);
+      }
+
+      function buildGuideQuickActions(step) {
+        if (!siteGuideQuickActions) return;
+        siteGuideQuickActions.innerHTML = '';
+
+        (step.actions || []).forEach((action) => {
+          if (action.action === 'next-step') {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.textContent = action.label;
+            btn.addEventListener('click', () => {
+              renderGuideStep(Math.min(currentGuideStep + 1, SITE_GUIDE_STEPS.length - 1));
+            });
+            siteGuideQuickActions.appendChild(btn);
+            return;
+          }
+
+          if (action.action === 'open-mobile') {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-secondary';
+            btn.textContent = action.label;
+            btn.addEventListener('click', () => {
+              const mobileTrigger = document.getElementById('openMobileModal');
+              if (mobileTrigger) mobileTrigger.click();
+            });
+            siteGuideQuickActions.appendChild(btn);
+            return;
+          }
+
+          const link = document.createElement('a');
+          link.className = 'btn btn-secondary';
+          link.textContent = action.label;
+          link.href = action.href;
+          if (action.target) link.target = action.target;
+          if (action.target === '_blank') link.rel = 'noopener noreferrer';
+          siteGuideQuickActions.appendChild(link);
+        });
+      }
+
+      function renderGuideStep(stepIndex) {
+        if (!siteGuideOverlay) return;
+        const step = SITE_GUIDE_STEPS[stepIndex] || SITE_GUIDE_STEPS[0];
+        const nextStep = SITE_GUIDE_STEPS[stepIndex + 1] || null;
+
+        currentGuideStep = stepIndex;
+        if (siteGuideTitle) siteGuideTitle.textContent = step.title;
+        if (siteGuideSubtitle) siteGuideSubtitle.textContent = step.subtitle;
+        if (siteGuideStepCounter) siteGuideStepCounter.textContent = `Etapa ${stepIndex + 1} de ${SITE_GUIDE_STEPS.length}`;
+        if (siteGuideTopic) siteGuideTopic.textContent = step.topic;
+        if (siteGuideStepTitle) siteGuideStepTitle.textContent = step.title;
+        if (siteGuideStepLead) siteGuideStepLead.textContent = step.lead;
+        if (siteGuideStepList) {
+          siteGuideStepList.innerHTML = '';
+          step.bullets.forEach((item) => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            siteGuideStepList.appendChild(li);
+          });
+        }
+        if (siteGuideNextTitle) siteGuideNextTitle.textContent = nextStep ? nextStep.title : 'Tour concluído';
+        if (siteGuideNextText) siteGuideNextText.textContent = nextStep ? nextStep.preview : 'Você já percorreu todas as áreas principais.';
+        if (siteGuideProgressBar) {
+          const progress = ((stepIndex + 1) / SITE_GUIDE_STEPS.length) * 100;
+          siteGuideProgressBar.style.width = `${progress}%`;
+        }
+        if (siteGuidePrevBtn) siteGuidePrevBtn.disabled = stepIndex === 0;
+        if (siteGuideNextBtn) siteGuideNextBtn.textContent = stepIndex >= SITE_GUIDE_STEPS.length - 1 ? 'Recomeçar' : 'Próxima etapa';
+        buildGuideQuickActions(step);
+      }
+
+      function openSiteGuide(startStep = 0, isAuto = false) {
+        if (!siteGuideOverlay) return;
+        if (isAuto) {
+          sessionStorage.removeItem(SITE_GUIDE_PENDING_KEY);
+          guideAutoOpened = true;
+        }
+
+        renderGuideStep(getGuideTriggerStep(startStep));
+        siteGuideOverlay.hidden = false;
+        requestAnimationFrame(() => siteGuideOverlay.classList.add('is-open'));
+        document.body.classList.add('site-guide-open');
+        setTimeout(() => siteGuideCloseBtn?.focus(), 40);
+      }
+
+      function closeSiteGuide() {
+        if (!siteGuideOverlay) return;
+        siteGuideOverlay.classList.remove('is-open');
+        document.body.classList.remove('site-guide-open');
+        setTimeout(() => {
+          siteGuideOverlay.hidden = true;
+        }, 240);
+      }
+
+      function finishSiteGuide() {
+        closeSiteGuide();
+      }
+
+      document.querySelectorAll('.home-card-guide-trigger').forEach((trigger) => {
+        trigger.setAttribute('role', 'button');
+        trigger.setAttribute('tabindex', '0');
+
+        const openFromTrigger = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openSiteGuide(trigger.dataset.guideStep || 0, false);
+        };
+
+        trigger.addEventListener('click', openFromTrigger);
+        trigger.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            openFromTrigger(event);
+          }
+        });
+      });
+
+      siteGuideOverlay?.addEventListener('click', (event) => {
+        if (event.target === siteGuideOverlay) closeSiteGuide();
+      });
+
+      siteGuideCloseBtn?.addEventListener('click', closeSiteGuide);
+      siteGuideFinishBtn?.addEventListener('click', finishSiteGuide);
+
+      siteGuidePrevBtn?.addEventListener('click', () => {
+        if (currentGuideStep <= 0) {
+          renderGuideStep(0);
+          return;
+        }
+        renderGuideStep(currentGuideStep - 1);
+      });
+
+      siteGuideNextBtn?.addEventListener('click', () => {
+        if (currentGuideStep >= SITE_GUIDE_STEPS.length - 1) {
+          renderGuideStep(0);
+          return;
+        }
+        renderGuideStep(currentGuideStep + 1);
+      });
+
+      siteGuideQuickActions?.addEventListener('click', (event) => {
+        const mobileAction = event.target.closest('[data-guide-action="open-mobile"]');
+        if (mobileAction) {
+          event.preventDefault();
+          const mobileTrigger = document.getElementById('openMobileModal');
+          if (mobileTrigger) mobileTrigger.click();
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && siteGuideOverlay && !siteGuideOverlay.hidden) {
+          closeSiteGuide();
+        }
+      });
+
+      const shouldAutoOpenGuide = sessionStorage.getItem(SITE_GUIDE_PENDING_KEY) === 'true';
+      if (shouldAutoOpenGuide) {
+        setTimeout(() => openSiteGuide(0, true), 650);
       }
     });
   </script>

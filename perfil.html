@@ -6480,10 +6480,16 @@
 
         if (isSocialLogin || isFreshLogin) {
           // Mostrar a mensagem bonita
-          if (isSocialLogin) {
-            subtitle.innerText = "Autenticação concluída! Preparando seu perfil...";
-          } else {
-            subtitle.innerText = "Login realizado! Carregando seu painel...";
+        if (isSocialLogin) {
+          subtitle.innerText = "Autenticação concluída! Preparando seu perfil...";
+        } else {
+          subtitle.innerText = "Login realizado! Carregando seu painel...";
+        }
+
+          const isFreshSignup = sessionStorage.getItem('freshSignup') === 'true';
+          if (isFreshSignup) {
+            sessionStorage.setItem('siteGuidePending', 'true');
+            sessionStorage.removeItem('freshSignup');
           }
           
           // Limpar a flag para não aparecer no F5

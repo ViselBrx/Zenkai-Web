@@ -1739,10 +1739,12 @@ if (verifyOtpBtn) {
         verifyOtpBtn.textContent = "Verificar e Entrar";
       } else {
         sessionStorage.removeItem("lastEmailRegistered");
+        sessionStorage.setItem("freshSignup", "true");
         // ForÃ§ar o Supabase a atualizar a sessÃ£o internamente antes do redirect
         supaClient.auth.getSession().then(() => {
           setTimeout(() => {
             sessionStorage.setItem('freshLogin', 'true');
+            sessionStorage.setItem("freshSignup", "true");
             window.location.href = "perfil.html";
           }, 800);
         });
