@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+﻿document.addEventListener('DOMContentLoaded', async () => {
   if (!document.getElementById('ai-typing-styles')) {
     const style = document.createElement('style');
     style.id = 'ai-typing-styles';
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const visionChooseAnotherBtn = document.getElementById('visionChooseAnotherBtn');
   const visionClearBtn = document.getElementById('visionClearBtn');
 
-  const BROKEN_ENCODING_REGEX = /(?:Ã[\u0080-\u00BF]|Â[\u0080-\u00BF]|â[\u0080-\u00BF]{2}|ðŸ[\u0080-\u00BF]{2}|ï¸[\u0080-\u00BF])/
+  const BROKEN_ENCODING_REGEX = /(?:Ãƒ[\u0080-\u00BF]|Ã‚[\u0080-\u00BF]|Ã¢[\u0080-\u00BF]{2}|Ã°Å¸[\u0080-\u00BF]{2}|Ã¯Â¸[\u0080-\u00BF])/
 
   function normalizeBrokenEncoding(value) {
     const text = String(value ?? '');
@@ -190,15 +190,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       .trim();
   }
 
+  function sanitizeVisionResponseText(value) {
+    return sanitizeAIResponseText(value)
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^(#{1,6}\s*)[\p{Extended_Pictographic}\uFE0F\u200D\s]+/gu, '$1'))
+      .join('\n')
+      .trim();
+  }
+
   const AI_RESPONSE_GUIDE = [
-    'Responda em pt-BR com UTF limpo e acentuação correta.',
-    'Use Markdown bonito, com títulos curtos, listas objetivas, negrito só quando ajudar e blocos de código apenas quando houver código.',
-    'Quando a análise for de comparação, cena, personagem ou imagem, aprofunde mais do que o normal e organize por tópicos claros.',
-    'Evite respostas genéricas, repetições e blocos enormes sem estrutura.',
-    'Se houver incerteza, diga isso de forma clara e continue a análise com o melhor raciocínio possível.',
-    'Não inclua metacomandos nem rótulos técnicos desnecessários na saída final.'
+    'Responda em pt-BR com UTF limpo e acentuaÃ§Ã£o correta.',
+    'Use Markdown bonito, com tÃ­tulos curtos, listas objetivas, negrito sÃ³ quando ajudar e blocos de cÃ³digo apenas quando houver cÃ³digo.',
+    'Quando a anÃ¡lise for de comparaÃ§Ã£o, cena, personagem ou imagem, aprofunde mais do que o normal e organize por tÃ³picos claros.',
+    'Evite respostas genÃ©ricas, repetiÃ§Ãµes e blocos enormes sem estrutura.',
+    'Se houver incerteza, diga isso de forma clara e continue a anÃ¡lise com o melhor raciocÃ­nio possÃ­vel.',
+    'NÃ£o inclua metacomandos nem rÃ³tulos tÃ©cnicos desnecessÃ¡rios na saÃ­da final.'
   ].join('\n');
-  const SYSTEM_PROMPT = 'Você é o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser extremamente coerentes, lógicas e baseadas em fatos verídicos de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens. Seja extremamente amigável, entusiasmado e use alguns emojis pontuais para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
+  const SYSTEM_PROMPT = 'VocÃª Ã© o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da AnimaÃ§Ã£o", lar de todos os estilos: cartoon, 3D, ocidental e oriental, alÃ©m de mangÃ¡s e HQs). REGRA DE OURO: Suas respostas devem ser extremamente coerentes, lÃ³gicas e baseadas em fatos verÃ­dicos de todo o escopo de animaÃ§Ãµes, desenhos, filmes, mangÃ¡s e HQs mundiais. VocÃª Ã© um especialista dedicado a anÃ¡lises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cÃ¢nones. Ao responder, traga informaÃ§Ãµes extras genuÃ­nas, focando em curiosidades, lore, detalhes tÃ©cnicos de animaÃ§Ã£o/quadrinhos e desenvolvimento de personagens. Seja extremamente amigÃ¡vel, entusiasmado e use alguns emojis pontuais para dar vida Ã  conversa âœ¨. Use listas, tÃ³picos de Markdown em negrito/itÃ¡lico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
   const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
@@ -211,24 +219,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   const DEFAULT_GROQ_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
   const COMPARE_GROQ_MODEL = 'google/gemma-4-31b-it:free';
   const COMPARE_FALLBACK_GROQ_MODEL = DEFAULT_GROQ_MODEL;
-  const COMPARE_MAX_TOKENS = 1800;
+  const COMPARE_MAX_TOKENS = 3600;
+  const COMPARE_CONTINUATION_MAX_TOKENS = 1600;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
   const VISION_PROMPT = [
-    'Atue como um detetive visual implacável e enciclopédia suprema de animes, desenhos, filmes, mangás e HQs. Sua única missão é descobrir exatamente qual é a obra e o personagem da imagem.',
-    'É proibido dar respostas genéricas. Você deve dar o palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
+    'Atue como um detetive visual implacÃ¡vel e enciclopÃ©dia suprema de animes, desenhos, filmes, mangÃ¡s e HQs. Sua Ãºnica missÃ£o Ã© descobrir exatamente qual Ã© a obra e o personagem da imagem.',
+    'Ã‰ proibido dar respostas genÃ©ricas. VocÃª deve dar o palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estÃºdio, Ã©poca, roupas e cores.',
     '',
-    '### 🕵️ Identificação Certeira (Obrigatório)',
-    '- **Obra/Franquia Exata:** diga o nome da série, anime ou filme. Se for impossível cravar 100%, dê o palpite com a maior probabilidade e justifique.',
-    '- **Personagem(ns):** quem é? Se não souber o nome, compare com personagens parecidos da cultura pop.',
+    '### Identificação Certeira (Obrigatório)',
+    '- **Obra/Franquia Exata:** diga o nome da sÃ©rie, anime ou filme. Se for impossÃ­vel cravar 100%, dÃª o palpite com a maior probabilidade e justifique.',
+    '- **Personagem(ns):** quem Ã©? Se nÃ£o souber o nome, compare com personagens parecidos da cultura pop.',
     '',
-    '### 🔎 Evidências do Detetive',
-    '- **Traço e Estúdio:** analise o formato dos olhos, contornos, iluminação e sombreamento. É estilo Ufotable, Toei, Cartoon Network, Pixar? Que década parece ser?',
-    '- **Detalhes Chave:** quebras de quarta parede, símbolos em roupas, armas, tipo de magia ou aura.',
+    '### Evidências do Detetive',
+    '- **TraÃ§o e EstÃºdio:** analise o formato dos olhos, contornos, iluminaÃ§Ã£o e sombreamento. Ã‰ estilo Ufotable, Toei, Cartoon Network, Pixar? Que dÃ©cada parece ser?',
+    '- **Detalhes Chave:** quebras de quarta parede, sÃ­mbolos em roupas, armas, tipo de magia ou aura.',
     '',
-    '### 🎯 Veredito',
-    '- Crave a sua resposta final em português do Brasil, usando Markdown. Se for fanart, diga de qual obra original é inspirada.'
+    '### Veredito',
+    '- Crave a sua resposta final em portuguÃªs do Brasil, usando Markdown. Se for fanart, diga de qual obra original Ã© inspirada.'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
@@ -448,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (e.shiftKey) {
-          // Shift + Enter: Apenas permite a quebra de linha (padrão do textarea)
+          // Shift + Enter: Apenas permite a quebra de linha (padrÃ£o do textarea)
           e.stopPropagation();
           setTimeout(autoResize, 0);
           return;
@@ -544,16 +553,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     chatScrollFill.style.width = `${progress}%`;
 
     if (maxScroll <= 0) {
-      chatScrollStatus.textContent = 'Ainda não há histórico suficiente para rolar';
+      chatScrollStatus.textContent = 'Ainda nÃ£o hÃ¡ histÃ³rico suficiente para rolar';
       return;
     }
 
     if (progress <= 5) {
-      chatScrollStatus.textContent = 'No topo do histórico';
+      chatScrollStatus.textContent = 'No topo do histÃ³rico';
     } else if (progress >= 95) {
-      chatScrollStatus.textContent = 'No fim do histórico';
+      chatScrollStatus.textContent = 'No fim do histÃ³rico';
     } else {
-      chatScrollStatus.textContent = `Histórico percorrido: ${progress}%`;
+      chatScrollStatus.textContent = `HistÃ³rico percorrido: ${progress}%`;
     }
   }
 
@@ -612,8 +621,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (sendBtn) {
-      sendBtn.title = editing ? 'Salvar edição' : 'Enviar mensagem';
-      sendBtn.setAttribute('aria-label', editing ? 'Salvar edição' : 'Enviar mensagem');
+      sendBtn.title = editing ? 'Salvar ediÃ§Ã£o' : 'Enviar mensagem';
+      sendBtn.setAttribute('aria-label', editing ? 'Salvar ediÃ§Ã£o' : 'Enviar mensagem');
     }
 
   }
@@ -669,7 +678,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const copied = document.execCommand('copy');
         document.body.removeChild(textarea);
         if (!copied) {
-          reject(new Error('Comando de cópia indisponível.'));
+          reject(new Error('Comando de cÃ³pia indisponÃ­vel.'));
           return;
         }
         resolve();
@@ -693,7 +702,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       showFeedback(button?.dataset.feedbackMessage || 'Mensagem copiada');
     } catch (error) {
       console.error('Erro ao copiar mensagem:', error);
-      showFeedback('Não foi possível copiar a mensagem');
+      showFeedback('NÃ£o foi possÃ­vel copiar a mensagem');
     }
   }
 
@@ -994,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function renderVisionResult(text) {
     if (!visionOutput) return;
-    const normalizedText = sanitizeAIResponseText(text || 'Nenhum resultado retornado.');
+    const normalizedText = sanitizeVisionResponseText(text || 'Nenhum resultado retornado.');
     
     // Como a div output tem position relative, o botao de copy funcionara bem.
     visionOutput.innerHTML = `<div class="msg-content">${formatAIResponse(normalizedText)}</div>`;
@@ -1009,8 +1018,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     copyBtn.setAttribute('aria-label', 'Copiar análise');
     copyBtn.dataset.feedbackMessage = 'Análise copiada';
     copyBtn.dataset.rawText = normalizedText;
+    copyBtn.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
-    copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
+    copyBtn.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      copyText(copyBtn.rawText || copyBtn.dataset.rawText || normalizedText, copyBtn);
+    });
     visionOutput.appendChild(copyBtn);
   }
 
@@ -1030,9 +1044,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'msg-copy-btn';
     copyBtn.type = 'button';
-    copyBtn.title = 'Copiar análise';
-    copyBtn.setAttribute('aria-label', 'Copiar análise');
-    copyBtn.dataset.feedbackMessage = 'Análise copiada';
+    copyBtn.title = 'Copiar anÃ¡lise';
+    copyBtn.setAttribute('aria-label', 'Copiar anÃ¡lise');
+    copyBtn.dataset.feedbackMessage = 'AnÃ¡lise copiada';
     copyBtn.dataset.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
     copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
@@ -1121,8 +1135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       const editBtn = document.createElement('button');
       editBtn.className = 'msg-edit-btn';
       editBtn.type = 'button';
-      editBtn.title = options.isEditing ? 'Mensagem em edição' : 'Editar mensagem';
-      editBtn.setAttribute('aria-label', options.isEditing ? 'Mensagem em edição' : 'Editar mensagem');
+      editBtn.title = options.isEditing ? 'Mensagem em ediÃ§Ã£o' : 'Editar mensagem';
+      editBtn.setAttribute('aria-label', options.isEditing ? 'Mensagem em ediÃ§Ã£o' : 'Editar mensagem');
       editBtn.innerHTML = `${EDIT_ICON}<span>Editar</span>`;
       editBtn.disabled = !!options.isEditing;
       editBtn.addEventListener('click', () => {
@@ -1252,7 +1266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const turn = getLastUndoableChatTurn();
     if (!turn || turn.userIndex !== messageIndex) {
-      showFeedback('Só a última pergunta pode ser editada agora');
+      showFeedback('SÃ³ a Ãºltima pergunta pode ser editada agora');
       return;
     }
 
@@ -1350,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       return !error;
     } catch (err) {
-      console.error('Erro ao salvar histórico da IA:', err);
+      console.error('Erro ao salvar histÃ³rico da IA:', err);
       return false;
     }
   }
@@ -1386,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       return error ? null : (data || null);
     } catch (err) {
-      console.error('Erro ao salvar histórico detalhado da IA:', err);
+      console.error('Erro ao salvar histÃ³rico detalhado da IA:', err);
       return null;
     }
   }
@@ -1560,6 +1574,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     return aiResponse;
   }
 
+  function isComparisonAnalysisIncomplete(text) {
+    const content = normalizeBrokenEncoding(String(text || '')).trim();
+    if (!content) return true;
+    return !/##\s*Veredito final/i.test(content) || !/Fim da an(?:a|Ã¡|á)lise\./i.test(content);
+  }
+
+  async function completeComparisonAnalysisIfNeeded(partialText, requestMessages, options = {}) {
+    let completedText = normalizeBrokenEncoding(String(partialText || '')).trim();
+    if (!isComparisonAnalysisIncomplete(completedText)) return completedText;
+
+    for (let continuationAttempt = 0; continuationAttempt < 3; continuationAttempt += 1) {
+      const continuationMessages = [
+        ...requestMessages,
+        { role: 'assistant', content: completedText },
+        {
+          role: 'user',
+          content: [
+            'Sua resposta anterior ficou incompleta ou sem encerramento.',
+            'Continue exatamente de onde parou, sem repetir o que ja foi escrito.',
+            'Se a secao "## Veredito final" ainda nao foi concluida, priorize ela agora.',
+            'Finalize obrigatoriamente com a frase: Fim da analise.'
+          ].join('\n')
+        }
+      ];
+
+      try {
+        const continuation = await requestAIText(continuationMessages, {
+          ...options,
+          stream: false,
+          max_tokens: COMPARE_CONTINUATION_MAX_TOKENS
+        });
+        const normalizedContinuation = normalizeBrokenEncoding(String(continuation || '')).trim();
+        if (!normalizedContinuation) break;
+        completedText = `${completedText}\n\n${normalizedContinuation}`.trim();
+        if (!isComparisonAnalysisIncomplete(completedText)) return completedText;
+      } catch (error) {
+        console.warn('Falha ao completar analise de comparacao:', error);
+        break;
+      }
+    }
+
+    return completedText;
+  }
+
   async function loadAIHistoryMessages(options = {}) {
     const context = options.context || 'chat';
     const metadataContains = options.metadataContains && typeof options.metadataContains === 'object'
@@ -1605,7 +1663,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         ))
       ));
     } catch (err) {
-      console.error('Erro ao carregar histórico da IA:', err);
+      console.error('Erro ao carregar histÃ³rico da IA:', err);
       return [];
     }
   }
@@ -1734,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         size: Number(selectedAnalysis.metadata?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do histórico',
+        fileInfo: 'Resultado restaurado do histÃ³rico',
         previewUrl: selectedAnalysis?.metadata?.imageDataUrl || selectedUpload?.metadata?.imageDataUrl || ''
       }
     );
@@ -1939,7 +1997,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             requestMessages = merged;
           }
         } catch (historyError) {
-          console.warn('Falha ao carregar histórico completo do chat:', historyError);
+          console.warn('Falha ao carregar histÃ³rico completo do chat:', historyError);
         }
       }
 
@@ -1971,7 +2029,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
 
-      const aiResponse = await requestAIText(requestMessages, {
+      let aiResponse = await requestAIText(requestMessages, {
         target,
         model,
         context,
@@ -1995,6 +2053,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       });
+
+      if (context === 'compare') {
+        aiResponse = await completeComparisonAnalysisIfNeeded(aiResponse, requestMessages, {
+          target,
+          model,
+          context,
+          temperature: options.temperature,
+          max_tokens: options.max_tokens
+        });
+      }
 
       if (useChatContext && chatAssistantEntry) {
         chatAssistantEntry.content = sanitizeAIResponseText(aiResponse);
@@ -2031,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             contentId: isCompare ? metadata.historyContentId : currentChatThreadId,
             contentType: isCompare ? 'ai_compare' : 'ai_chat',
             title: isCompare
-              ? `Comparação IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
+              ? `ComparaÃ§Ã£o IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
               : buildAIThreadHistoryTitle(prompt),
             subtitle: aiResponse.slice(0, 120),
             route: 'open-anime.html',
@@ -2394,7 +2462,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (res.ok) {
               const text = sanitizeAIResponseText(extractVisionText(result));
               if (!text) {
-                lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
+                lastError = new Error('A IA nÃ£o retornou uma descriÃ§Ã£o utilizÃ¡vel para esta imagem.');
               } else {
                 return text;
               }
@@ -2408,7 +2476,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
-              console.error(`[Vision AI] O provedor '${target}' retornou um erro e não pôde concluir:`, lastError);
+              console.error(`[Vision AI] O provedor '${target}' retornou um erro e nÃ£o pÃ´de concluir:`, lastError);
               break;
             }
 
@@ -2442,7 +2510,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       let finalPrompt = `${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       if (options.customPrompt && options.customPrompt.trim()) {
-        finalPrompt = `[PERGUNTA DO USUÁRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
+        finalPrompt = `[PERGUNTA DO USUÃRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       }
 
       let aiResponse = await requestVisionText(finalPrompt);
@@ -2453,14 +2521,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             finalPrompt,
             '',
             'A resposta anterior ficou curta.',
-            'Refaça com mais profundidade, cobrindo todos os tópicos com mais detalhes e sem resumir demais.'
+            'RefaÃ§a com mais profundidade, cobrindo todos os tÃ³picos com mais detalhes e sem resumir demais.'
           ].join('\n');
           const refined = await requestVisionText(refinementPrompt);
           if (refined && refined.length > aiResponse.length) {
             aiResponse = refined;
           }
         } catch (refinementError) {
-          console.warn('Refinamento de visão não aplicado:', refinementError?.message || refinementError);
+          console.warn('Refinamento de visÃ£o nÃ£o aplicado:', refinementError?.message || refinementError);
         }
       }
 
@@ -2522,7 +2590,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const currentDisplay = window.getComputedStyle(infoCard).display;
       if (currentDisplay === 'none') {
         infoCard.style.display = 'block';
-        // Scroll suave para mostrar o conteúdo expandido se necessário
+        // Scroll suave para mostrar o conteÃºdo expandido se necessÃ¡rio
         infoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         infoCard.style.display = 'none';
@@ -2536,21 +2604,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   window.addEventListener('storage', updateThemeInfo);
   
-  // Listener direto para clique em opções de tema
+  // Listener direto para clique em opÃ§Ãµes de tema
   document.addEventListener('click', (event) => {
     if (event.target.closest('.theme-opt-btn')) {
       updateThemeInfo();
     }
   });
 
-  // Listener para mudança de tema via data attribute ou outras formas
+  // Listener para mudanÃ§a de tema via data attribute ou outras formas
   document.addEventListener('change', (event) => {
     if (event.target.closest('[data-theme]') || event.target.classList.contains('theme-opt-btn')) {
       updateThemeInfo();
     }
   });
 
-  // Monitorar mudanças de classe no document para capturar mudanças de tema em tempo real
+  // Monitorar mudanÃ§as de classe no document para capturar mudanÃ§as de tema em tempo real
   if (typeof MutationObserver !== 'undefined') {
     const themeObserver = new MutationObserver(() => {
       updateThemeInfo();
@@ -2659,7 +2727,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       previewUrl,
       fileInfo: `${file.type || 'image/*'} - ${formatFileSize(file.size)}`
     });
-    renderVisionResult('Imagem pronta para análise. Clique em "Analisar imagem".');
+    renderVisionResult('Imagem pronta para anÃ¡lise. Clique em "Analisar imagem".');
   }
 
   if (visionUpload) {
@@ -2800,36 +2868,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre personagens de animes, desenhos, filmes, mangás e HQs. Responda exclusivamente em português do Brasil. Faça uma análise justa, técnica e precisa, respeitando lógica, lore, feitos e limitações de cada universo. Use Markdown de forma clara e organizada, com títulos, listas, negrito e tabela quando ajudar. Cubra todas as seções exigidas sem pular nenhuma. Se o espaço ficar apertado, seja mais conciso em cada seção, mas não omita blocos inteiros. Evite enrolação, repetições e textos longos desnecessários.';
+    const compareSystemPrompt = 'VocÃª Ã© um analista especialista em batalhas entre personagens de animes, desenhos, filmes, mangÃ¡s e HQs. Responda exclusivamente em portuguÃªs do Brasil. FaÃ§a uma anÃ¡lise justa, tÃ©cnica e precisa, respeitando lÃ³gica, lore, feitos e limitaÃ§Ãµes de cada universo. Use Markdown de forma clara e organizada, com tÃ­tulos, listas, negrito e tabela quando ajudar. Cubra todas as seÃ§Ãµes exigidas sem pular nenhuma. Se o espaÃ§o ficar apertado, seja mais conciso em cada seÃ§Ã£o, mas nÃ£o omita blocos inteiros. Evite enrolaÃ§Ã£o, repetiÃ§Ãµes e textos longos desnecessÃ¡rios.';
+    const compareCompletionRules = [
+      'Regra de conclusao obrigatoria:',
+      '- Prioridade absoluta: concluir a secao "## Veredito final".',
+      '- Se precisar economizar espaco, reduza detalhes nas secoes anteriores, mas nunca corte o final.',
+      '- A ultima linha da resposta deve ser exatamente: Fim da analise.'
+    ].join('\n');
     const prompt = [
-      `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
-      'Formato obrigatório da resposta em Markdown:',
-      '## Resumo rápido',
+      compareCompletionRules,
+      `FaÃ§a uma anÃ¡lise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
+      'Formato obrigatÃ³rio da resposta em Markdown:',
+      '## Resumo rÃ¡pido',
       '- Apresente os dois personagens em 1-2 linhas cada.',
-      '- Diga em poucas linhas quem tem vantagem inicial e por quê.',
+      '- Diga em poucas linhas quem tem vantagem inicial e por quÃª.',
       '## Tabela comparativa',
       '- Use uma tabela Markdown com as colunas: `Atributo`, `Personagem 1`, `Personagem 2`, `Vantagem`.',
-      '- Compare, no mínimo, força, velocidade, resistência, tática, habilidades especiais e controle emocional.',
-      '## Análise detalhada',
-      '- **Força física**: cite 1-2 feitos canônicos.',
-      '- **Velocidade e reflexos**: cite 1-2 feitos ou reações.',
-      '- **Inteligência tática**: como cada um age sob pressão.',
-      '- **Resistência e durabilidade**: como absorvem dano e seguem lutando.',
-      '- **Habilidades especiais e técnicas únicas**: liste as principais de forma breve.',
-      '- **Controle emocional**: como as emoções afetam o combate.',
-      '## Cenários de batalha',
+      '- Compare, no mÃ­nimo, forÃ§a, velocidade, resistÃªncia, tÃ¡tica, habilidades especiais e controle emocional.',
+      '## AnÃ¡lise detalhada',
+      '- **ForÃ§a fÃ­sica**: cite 1-2 feitos canÃ´nicos.',
+      '- **Velocidade e reflexos**: cite 1-2 feitos ou reaÃ§Ãµes.',
+      '- **InteligÃªncia tÃ¡tica**: como cada um age sob pressÃ£o.',
+      '- **ResistÃªncia e durabilidade**: como absorvem dano e seguem lutando.',
+      '- **Habilidades especiais e tÃ©cnicas Ãºnicas**: liste as principais de forma breve.',
+      '- **Controle emocional**: como as emoÃ§Ãµes afetam o combate.',
+      '## CenÃ¡rios de batalha',
       '1. **Duelo direto sem preparo** - quem leva vantagem?',
       '2. **Duelo com 24h de preparo** - o que muda?',
       '3. **Campo neutro com civis ao redor** - como isso afeta o resultado?',
       '## Pontos fracos e vulnerabilidades',
       '- Liste os principais pontos fracos de cada personagem.',
       '## Veredito final',
-      '- **Vencedor mais provável** com argumentação sólida.',
-      '- **Condições em que o azarão pode virar o jogo**.',
-      '- **Nível de confiança no veredito (%)**.',
-      '- **Curiosidade bônus**: algo interessante sobre a rivalidade ou universo dos dois.',
-      'Regra: se faltar dado canônico, diga "informação insuficiente" e continue a análise. Nunca deixe uma seção em branco.',
-      'Prioridade máxima: entregar a resposta completa, mesmo que isso signifique reduzir um pouco o tamanho de cada item.'
+      '- **Vencedor mais provÃ¡vel** com argumentaÃ§Ã£o sÃ³lida.',
+      '- **CondiÃ§Ãµes em que o azarÃ£o pode virar o jogo**.',
+      '- **NÃ­vel de confianÃ§a no veredito (%)**.',
+      '- **Curiosidade bÃ´nus**: algo interessante sobre a rivalidade ou universo dos dois.',
+      'Regra: se faltar dado canÃ´nico, diga "informaÃ§Ã£o insuficiente" e continue a anÃ¡lise. Nunca deixe uma seÃ§Ã£o em branco.',
+      'Prioridade mÃ¡xima: entregar a resposta completa, mesmo que isso signifique reduzir um pouco o tamanho de cada item.'
     ].join('\n');
 
     try {
