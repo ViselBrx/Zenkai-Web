@@ -192,8 +192,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         closeDelete();
         const idToHide = deletingId;
         showUndoToast(`Excluindo "${name}"...`,
-          () => { DB.deleteYoutubePlaylist(idToHide); renderTable(); },
-          () => {}
+          async () => { await DB.deleteYoutubePlaylist(idToHide); window.clearPendingDeletion?.(idToHide); renderTable(); },
+          () => { window.clearPendingDeletion?.(idToHide); renderTable(); },
+          () => { window.markPendingDeletion?.(idToHide); renderTable(); }
         );
       }
     });

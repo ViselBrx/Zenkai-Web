@@ -32,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/ViselBrx/Anime-House-Web/issues"
   },
-  "homepage": "https://github.com/ViselBrx/Anime-House-Web#readme"
+  "homepage": "https://github.com/ViselBrx/Anime-House-Web#readme",
+  "devDependencies": {
+    "supabase": "^2.111.0"
+  }
 }

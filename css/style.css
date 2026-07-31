@@ -1741,14 +1741,14 @@ svg {
 /* Navbar links should also be chromatic when active or hovered */
 .theme-cromatico .navbar-links a:hover,
 .theme-cromatico .navbar-links a.active {
-  background: linear-gradient(90deg,
-      hsl(var(--chromatic-hue), 90%, 70%),
-      hsl(calc(var(--chromatic-hue) + 40deg), 90%, 70%));
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.62) !important;
-  box-shadow: 0 0 8px hsla(var(--chromatic-hue), 88%, 58%, 0.18) !important;
+  color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.08);
+  border: 1px solid var(--primary);
+  box-shadow:
+    0 0 28px var(--primary),
+    0 0 15px rgba(var(--primary-rgb), 0.5),
+    inset 0 0 10px rgba(var(--primary-rgb), 0.2);
+  text-shadow: 0 0 12px rgba(var(--primary-rgb), 0.7);
 }
 
 /* Overrides para remover o branco de elementos especÃƒÆ’Ã‚Â­ficos */
@@ -1888,20 +1888,17 @@ svg {
 .theme-cromatico .ai-scroll-panel,
 .theme-cromatico .vision-preview,
 .theme-cromatico .compare-history-item {
-  background: linear-gradient(180deg,
-      hsla(var(--chromatic-hue), 88%, 58%, 0.08),
-      rgba(3, 3, 12, 0.45)) !important;
-  border: 2px solid hsla(var(--chromatic-hue), 88%, 62%, 0.5) !important;
-  box-shadow: 0 0 6px hsla(var(--chromatic-hue), 88%, 58%, 0.08) !important;
+  background: rgba(var(--bg-card), 0.5) !important;
+  border: 1px solid rgba(var(--primary-rgb), 0.15) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .theme-cromatico .ai-tab-v.active,
 .theme-cromatico .ai-tab.active {
-  background: linear-gradient(160deg,
-      hsla(var(--chromatic-hue), 88%, 58%, 0.2),
-      hsla(var(--chromatic-hue), 88%, 58%, 0.08)) !important;
+  background: rgba(var(--primary-rgb), 0.08) !important;
   border-color: var(--primary) !important;
   color: var(--text-main) !important;
+  box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.12) !important;
 }
 
 .theme-cromatico .ai-input-wrapper input {
@@ -3054,19 +3051,370 @@ body {
 }
 
 .btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.08),
+      rgba(8, 14, 26, 0.88));
+  border: 1px solid rgba(var(--primary-rgb), 0.22);
+  color: var(--text-main);
+  box-shadow:
+    0 0 0 1px rgba(var(--primary-rgb), 0.06),
+    0 8px 20px rgba(0, 0, 0, 0.18),
+    inset 0 0 10px rgba(var(--primary-rgb), 0.06);
+  font-weight: 700;
 }
 
 .btn-ghost:hover {
-  border-color: var(--primary);
+  border-color: rgba(var(--primary-rgb), 0.5);
   color: var(--primary);
-  background: rgba(var(--primary-rgb), 0.05);
-  transform: translateX(2px);
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.16),
+      rgba(10, 18, 34, 0.96));
+  transform: translateY(-2px);
   box-shadow:
-    0 0 20px rgba(var(--primary-rgb), 0.4),
-    inset 0 0 10px rgba(var(--primary-rgb), 0.15);
+    0 0 0 1px rgba(var(--primary-rgb), 0.12),
+    0 12px 28px rgba(0, 0, 0, 0.24),
+    0 0 20px rgba(var(--primary-rgb), 0.18),
+    inset 0 0 12px rgba(var(--primary-rgb), 0.1);
+}
+
+:is(
+  .btn-ghost,
+  .chat-action-cancel,
+  .chat-confirm-btn:not(.danger),
+  #cancelBtn,
+  #cancelEditBtn,
+  #cancelVideoBtn,
+  #renameCancelBtn,
+  #cropCancelBtn,
+  #cancelDeleteAccountBtn,
+  #passkeyNameCancelBtn,
+  #passkeyDeleteCancelBtn,
+  #chatDeleteConfirmCancel,
+  #chatActionCancel,
+  #chatCancelSelectionBtn
+) {
+  border-radius: 14px;
+}
+
+:is(
+  .btn-ghost,
+  .chat-action-cancel,
+  .chat-confirm-btn:not(.danger),
+  #cancelBtn,
+  #cancelEditBtn,
+  #cancelVideoBtn,
+  #renameCancelBtn,
+  #cropCancelBtn,
+  #cancelDeleteAccountBtn,
+  #passkeyNameCancelBtn,
+  #passkeyDeleteCancelBtn,
+  #chatDeleteConfirmCancel,
+  #chatActionCancel,
+  #chatCancelSelectionBtn
+):hover {
+  transform: translateY(-2px);
+}
+
+:is(
+  #deleteModal .modal,
+  #passkeyDeleteModal .modal,
+  #deleteAccountModal .modal
+) {
+  background:
+    radial-gradient(circle at top right,
+      rgba(var(--primary-rgb), 0.18),
+      transparent 34%),
+    radial-gradient(circle at bottom left,
+      rgba(239, 68, 68, 0.12),
+      transparent 30%),
+    linear-gradient(180deg,
+      rgba(7, 12, 24, 0.98),
+      rgba(4, 8, 16, 0.98)) !important;
+  border: 1px solid rgba(var(--primary-rgb), 0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--primary-rgb), 0.05),
+    0 28px 80px rgba(0, 0, 0, 0.6),
+    0 0 35px rgba(var(--primary-rgb), 0.12),
+    0 0 26px rgba(239, 68, 68, 0.1) !important;
+  overflow: hidden;
+}
+
+:is(
+  #deleteModal .modal,
+  #passkeyDeleteModal .modal,
+  #deleteAccountModal .modal
+)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.08),
+      transparent 28%,
+      rgba(239, 68, 68, 0.05) 100%);
+  opacity: 0.95;
+}
+
+:is(
+  #deleteModal .modal-header h2,
+  #passkeyDeleteModal .modal-header h2,
+  #deleteAccountModal .modal-header h2
+) {
+  color: var(--primary) !important;
+}
+
+:is(
+  #deleteModal .modal-header,
+  #passkeyDeleteModal .modal-header,
+  #deleteAccountModal .modal-header
+) {
+  border-bottom: 1px solid rgba(var(--primary-rgb), 0.14);
+}
+
+#deleteModal .modal > p,
+#passkeyDeleteModal .delete-box,
+#deleteAccountModal .delete-account-intro,
+#deleteAccountModal .delete-account-warning,
+#deleteAccountModal .delete-account-confirmation,
+#deleteAccountModal .delete-account-error {
+  position: relative;
+  z-index: 1;
+}
+
+#deleteModal .modal > p {
+  padding: 1rem 1.05rem;
+  margin: 0 0 0.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(var(--primary-rgb), 0.12);
+  background: rgba(var(--primary-rgb), 0.06);
+  color: var(--text-main);
+  line-height: 1.75;
+}
+
+#deleteModal .modal > p strong {
+  color: #ffd3d3;
+}
+
+#deleteModal .modal > p::before {
+  content: "Atenção";
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.18rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.14);
+  color: #ffbebe;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#passkeyDeleteModal .delete-box {
+  margin-top: 16px;
+  padding: 16px 16px 14px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.08),
+      rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(var(--primary-rgb), 0.16);
+  color: var(--text-main);
+  line-height: 1.65;
+}
+
+#passkeyDeleteModal .delete-box strong {
+  color: #ffdcdc;
+}
+
+#deleteAccountModal .modal {
+  padding: 0 !important;
+}
+
+#deleteAccountModal .modal-header h2 {
+  font-family: "Nunito", sans-serif !important;
+  font-size: 1.55rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+  text-shadow: none !important;
+  color: var(--text-main) !important;
+}
+
+#deleteAccountModal .modal-header {
+  padding: 24px 24px 0 24px;
+}
+
+#deleteAccountModal .modal-header h2 i {
+  color: var(--primary);
+}
+
+#deleteAccountModal .modal-header h2,
+#deleteAccountModal .modal-close {
+  margin-top: 0;
+}
+
+#deleteAccountModal .delete-account-card {
+  position: relative;
+  z-index: 1;
+  padding: 24px;
+}
+
+#deleteAccountModal .delete-account-intro {
+  margin: 0 0 15px;
+  color: var(--text-main);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+#deleteAccountModal .delete-account-intro strong {
+  color: #ff9f9f !important;
+}
+
+#deleteAccountModal .delete-account-warning {
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.08),
+      rgba(239, 68, 68, 0.06));
+  border: 1px solid rgba(var(--primary-rgb), 0.16);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+#deleteAccountModal .delete-account-warning label {
+  display: flex;
+  gap: 10px;
+  cursor: pointer;
+  align-items: flex-start;
+}
+
+#deleteAccountModal .delete-account-warning input[type="checkbox"] {
+  margin-top: 4px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
+#deleteAccountModal .delete-account-warning span {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+#deleteAccountModal .delete-account-confirmation {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+#deleteAccountModal .delete-account-confirmation strong {
+  color: #ff9f9f;
+}
+
+#deleteAccountModal .delete-account-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(var(--primary-rgb), 0.16);
+  border-radius: 14px;
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+#deleteAccountModal .delete-account-input:focus {
+  border-color: rgba(var(--primary-rgb), 0.5);
+  box-shadow:
+    0 0 0 3px rgba(var(--primary-rgb), 0.12),
+    inset 0 0 0 1px rgba(var(--primary-rgb), 0.08);
+}
+
+#deleteAccountModal .delete-account-actions {
+  display: flex;
+  gap: 10px;
+}
+
+#deleteAccountModal .delete-account-actions .btn {
+  flex: 1;
+}
+
+#deleteAccountModal .delete-account-actions .btn.btn-danger {
+  flex: 2;
+}
+
+#deleteAccountModal .delete-account-error {
+  display: none;
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 14px;
+  color: #ff9c9c;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+#chatDeleteConfirmModal .chat-confirm-dialog {
+  background:
+    radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.18), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(239, 68, 68, 0.12), transparent 36%),
+    linear-gradient(180deg, rgba(8, 14, 26, 0.98), rgba(4, 8, 16, 0.98));
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  box-shadow:
+    0 0 0 1px rgba(var(--primary-rgb), 0.05),
+    0 28px 72px rgba(0, 0, 0, 0.58),
+    0 0 28px rgba(var(--primary-rgb), 0.12),
+    0 0 18px rgba(239, 68, 68, 0.08);
+}
+
+#chatDeleteConfirmModal .chat-confirm-icon {
+  background:
+    linear-gradient(135deg, rgba(var(--primary-rgb), 0.14), rgba(239, 68, 68, 0.14));
+  color: #ffd5d5;
+  box-shadow:
+    0 0 0 1px rgba(var(--primary-rgb), 0.1),
+    0 0 20px rgba(239, 68, 68, 0.16);
+}
+
+#chatDeleteConfirmModal .chat-confirm-copy h4 {
+  color: var(--primary);
+}
+
+#chatDeleteConfirmModal .chat-confirm-copy p {
+  color: var(--text-muted);
+}
+
+#chatDeleteConfirmModal .chat-confirm-btn:not(.danger) {
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.08),
+      rgba(8, 14, 26, 0.92));
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  color: var(--text-main);
+}
+
+#chatDeleteConfirmModal .chat-confirm-btn:not(.danger):hover {
+  background:
+    linear-gradient(135deg,
+      rgba(var(--primary-rgb), 0.14),
+      rgba(12, 20, 34, 0.96));
+  border-color: rgba(var(--primary-rgb), 0.48);
+  color: var(--primary);
+}
+
+#chatDeleteConfirmModal .chat-confirm-btn.danger {
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.1),
+    0 10px 22px rgba(0, 0, 0, 0.2),
+    0 0 18px rgba(239, 68, 68, 0.18);
 }
 
 .note-clear-btn {

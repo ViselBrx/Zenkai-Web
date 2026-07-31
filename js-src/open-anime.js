@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const DEFAULT_GROQ_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
   const COMPARE_GROQ_MODEL = 'google/gemma-4-31b-it:free';
   const COMPARE_FALLBACK_GROQ_MODEL = DEFAULT_GROQ_MODEL;
-  const COMPARE_MAX_TOKENS = 1100;
+  const COMPARE_MAX_TOKENS = 1800;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
   const VISION_MIN_COMPLETION_CHARS = 1000;
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     compareResult.style.display = 'block';
-    compareResult.innerHTML = `<div class="msg-content"><strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
+    compareResult.innerHTML = `<div class="msg-content"><strong>Análise Comparativa:</strong><br><br>${formatAIResponse(normalizedText)}</div>`;
 
     const existingCopyBtn = compareResult.querySelector('.msg-copy-btn');
     if (existingCopyBtn) existingCopyBtn.remove();
@@ -1689,8 +1689,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (char1Inp) char1Inp.value = selectedComparison.metadata?.char1 || resume?.char1 || '';
     if (char2Inp) char2Inp.value = selectedComparison.metadata?.char2 || resume?.char2 || '';
-    compareResult.style.display = 'block';
-    compareResult.innerHTML = `<strong>Análise de Combate:</strong><br><br>${formatAIResponse(normalizeBrokenEncoding(selectedComparison.content || ''))}`;
+    renderComparisonResult(selectedComparison.content || '');
   }
 
   async function initializeVisionView(options = {}) {
@@ -2801,32 +2800,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre todos os personagens do mundo do entretenimento (Animes, Desenhos, Filmes, Mangás e HQs em geral). Sua missão é fazer análises precisas, detalhadas e justas, respeitando as lógicas, níveis de poder, lore e cânones dos universos ocidentais e orientais, incluindo páginas de mangás e HQs. Faça comparações profundas de habilidades, intelecto e feitos. Seja um pouco mais direto e conciso na escrita para DIMINUIR A QUANTIDADE DE CONTEÚDO, mas MANTENHA EXATAMENTE TODA A ESTRUTURA MARKDOWN OBRIGATÓRIA solicitada. Seja vibrante, técnico e enxuto nas explicações.';
+    const compareSystemPrompt = 'Você é um analista especialista em batalhas entre personagens de animes, desenhos, filmes, mangás e HQs. Responda exclusivamente em português do Brasil. Faça uma análise justa, técnica e precisa, respeitando lógica, lore, feitos e limitações de cada universo. Use Markdown de forma clara e organizada, com títulos, listas, negrito e tabela quando ajudar. Cubra todas as seções exigidas sem pular nenhuma. Se o espaço ficar apertado, seja mais conciso em cada seção, mas não omita blocos inteiros. Evite enrolação, repetições e textos longos desnecessários.';
     const prompt = [
       `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
-      'Formato obrigatório da resposta (Markdown):',
-      '## Panorama geral',
-      '- Apresente brevemente os dois personagens (origem, universo, nível de poder geral).',
-      '- Explique em 3-4 linhas quem tem vantagem inicial e por quê.',
-      '## Atributos detalhados (nota de 0 a 10 com justificativa)',
-      '- **Força física**: cite exemplos canônicos de feitos de força.',
-      '- **Velocidade e reflexos**: cite exemplos de movimentos ou reações notáveis.',
-      '- **Inteligência tática**: como cada um age sob pressão e em batalha.',
-      '- **Resistência e durabilidade**: capacidade de absorver dano e continuar lutando.',
-      '- **Habilidades especiais e técnicas únicas**: liste as principais com breve descrição.',
-      '- **Controle emocional**: como as emoções afetam o desempenho em combate.',
+      'Formato obrigatório da resposta em Markdown:',
+      '## Resumo rápido',
+      '- Apresente os dois personagens em 1-2 linhas cada.',
+      '- Diga em poucas linhas quem tem vantagem inicial e por quê.',
+      '## Tabela comparativa',
+      '- Use uma tabela Markdown com as colunas: `Atributo`, `Personagem 1`, `Personagem 2`, `Vantagem`.',
+      '- Compare, no mínimo, força, velocidade, resistência, tática, habilidades especiais e controle emocional.',
+      '## Análise detalhada',
+      '- **Força física**: cite 1-2 feitos canônicos.',
+      '- **Velocidade e reflexos**: cite 1-2 feitos ou reações.',
+      '- **Inteligência tática**: como cada um age sob pressão.',
+      '- **Resistência e durabilidade**: como absorvem dano e seguem lutando.',
+      '- **Habilidades especiais e técnicas únicas**: liste as principais de forma breve.',
+      '- **Controle emocional**: como as emoções afetam o combate.',
       '## Cenários de batalha',
-      '1. **Duelo direto sem preparo** — quem leva vantagem no impulso inicial?',
-      '2. **Duelo com 24h de preparo** — como cada um se prepararia e o que mudaria?',
-      '3. **Campo neutro com civis ao redor** — como as limitações morais/táticas afetam o resultado?',
+      '1. **Duelo direto sem preparo** - quem leva vantagem?',
+      '2. **Duelo com 24h de preparo** - o que muda?',
+      '3. **Campo neutro com civis ao redor** - como isso afeta o resultado?',
       '## Pontos fracos e vulnerabilidades',
-      '- Liste os principais pontos fracos de cada personagem com exemplos.',
+      '- Liste os principais pontos fracos de cada personagem.',
       '## Veredito final',
-      '- **Vencedor mais provável** e argumentação sólida.',
-      '- **Condições em que o azarão pode virar o jogo.**',
-      '- **Nível de confiança no veredito (%)** e grau de incerteza.',
+      '- **Vencedor mais provável** com argumentação sólida.',
+      '- **Condições em que o azarão pode virar o jogo**.',
+      '- **Nível de confiança no veredito (%)**.',
       '- **Curiosidade bônus**: algo interessante sobre a rivalidade ou universo dos dois.',
-      'Regra: se faltar dado canônico, diga "informação insuficiente" e continue a análise. Nunca deixe uma seção em branco.'
+      'Regra: se faltar dado canônico, diga "informação insuficiente" e continue a análise. Nunca deixe uma seção em branco.',
+      'Prioridade máxima: entregar a resposta completa, mesmo que isso signifique reduzir um pouco o tamanho de cada item.'
     ].join('\n');
 
     try {

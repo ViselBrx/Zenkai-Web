@@ -52,13 +52,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderVolumes();
 
     showUndoToast(`Excluindo coleção "${mangaName}"...`,
-      () => {
-        DB.deleteManga(idToHide);
+      async () => {`r`n        await DB.deleteManga(idToHide);
+        window.clearPendingDeletion?.(idToHide);
         renderMangaPills();
         renderVolumes();
       },
       () => {
-        // Não faz nada
+        window.clearPendingDeletion?.(idToHide);
+        renderMangaPills();
+        renderVolumes();
+      },
+      () => {
+        window.markPendingDeletion?.(idToHide);
+        renderMangaPills();
+        renderVolumes();
       }
     );
   }
@@ -317,10 +324,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         showUndoToast(`Excluindo Volume ${v.volume_number}...`, 
             () => {
               DB.deleteMangaVolume(activeMangaId, idToHide);
+              window.clearPendingDeletion?.(idToHide);
               renderVolumes();
             },
             () => {
-              // Não faz nada
+              window.clearPendingDeletion?.(idToHide);
+              renderVolumes();
+            },
+            () => {
+              window.markPendingDeletion?.(idToHide);
+              renderVolumes();
             }
         );
       });

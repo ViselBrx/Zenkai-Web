@@ -430,10 +430,14 @@ function injectPasskeyStyles() {
       max-width: 460px;
       border-radius: 22px;
       background:
-        radial-gradient(circle at top right, rgba(255, 74, 74, 0.18), transparent 30%),
-        linear-gradient(180deg, rgba(26, 10, 14, 0.98), rgba(12, 6, 10, 0.98));
-      border: 1px solid rgba(255, 92, 92, 0.24);
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+        radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.18), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(255, 92, 92, 0.08), transparent 34%),
+        linear-gradient(180deg, rgba(8, 14, 26, 0.98), rgba(4, 8, 16, 0.98));
+      border: 1px solid rgba(var(--primary-rgb), 0.22);
+      box-shadow:
+        0 0 0 1px rgba(var(--primary-rgb), 0.05),
+        0 24px 70px rgba(0, 0, 0, 0.45),
+        0 0 26px rgba(var(--primary-rgb), 0.14);
     }
     #passkeyDeleteModal .modal-header h2 {
       display: flex;
@@ -441,19 +445,22 @@ function injectPasskeyStyles() {
       gap: 10px;
       font-family: 'Bangers';
       letter-spacing: 0.4px;
-      color: #ff7b7b;
+      color: var(--primary);
     }
     #passkeyDeleteModal .delete-box {
       margin-top: 16px;
       padding: 16px 16px 14px;
       border-radius: 16px;
-      background: rgba(255, 74, 74, 0.08);
-      border: 1px solid rgba(255, 92, 92, 0.18);
+      background:
+        linear-gradient(135deg,
+          rgba(var(--primary-rgb), 0.08),
+          rgba(255, 92, 92, 0.06));
+      border: 1px solid rgba(var(--primary-rgb), 0.16);
       color: var(--text-main);
       line-height: 1.65;
     }
     #passkeyDeleteModal .delete-box strong {
-      color: #ffd0d0;
+      color: #ffdcdc;
     }
     #passkeyDeleteModal .delete-help {
       margin: 12px 0 0;
@@ -463,14 +470,14 @@ function injectPasskeyStyles() {
     }
     #passkeyDeleteModal .btn-danger {
       box-shadow:
-        0 0 0 1px rgba(255, 92, 92, 0.2),
-        0 0 18px rgba(255, 92, 92, 0.32);
+        0 0 0 1px rgba(255, 92, 92, 0.16),
+        0 0 18px rgba(255, 92, 92, 0.22);
     }
     #passkeyDeleteModal .btn-danger:hover {
       opacity: 1;
       box-shadow:
-        0 0 0 1px rgba(255, 92, 92, 0.35),
-        0 0 26px rgba(255, 92, 92, 0.5);
+        0 0 0 1px rgba(255, 92, 92, 0.3),
+        0 0 26px rgba(255, 92, 92, 0.36);
     }
   `;
   document.head.appendChild(style);
@@ -1132,9 +1139,10 @@ async function setupAuthLogic() {
     sessionStorage.setItem('is_recovering_password', 'true');
   }
 
-  if (isAuthPage && !isRecovery) {
+    if (isAuthPage && !isRecovery) {
     if (sessionStorage.getItem('is_recovering_password') === 'true') {
       sessionStorage.removeItem('is_recovering_password');
+      sessionStorage.removeItem('theme');
       await supaClient.auth.signOut();
       return;
     }
@@ -1272,6 +1280,7 @@ async function setupAuthLogic() {
           } else {
             sessionStorage.removeItem('is_recovering_password');
             // Deslogar imediatamente para forçar o login manual e impedir que "entre na conta sozinho"
+            sessionStorage.removeItem('theme');
             await supaClient.auth.signOut();
 
             const card = document.getElementById('recoveryCard');
@@ -1765,6 +1774,7 @@ window.deleteUserAccount = async function () {
     try { localStorage.clear(); } catch (_) { }
     try { sessionStorage.clear(); } catch (_) { }
 
+    sessionStorage.removeItem('theme');
     await supaClient.auth.signOut();
     return { success: true };
   } catch (e) {

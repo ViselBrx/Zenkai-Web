@@ -64,6 +64,18 @@
   let chromaticHue = CHROMATIC_HUE_START;
   let chromaticTimer = null;
 
+  function getAuthenticatedUserId() {
+    if (window.AH_AUTH?.isAuthenticated === false) return null;
+
+    try {
+      const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
+      const parsed = sessionToken ? JSON.parse(sessionToken) : null;
+      return parsed?.user?.id || window.AH_AUTH?.userId || null;
+    } catch (e) {
+      return window.AH_AUTH?.userId || null;
+    }
+  }
+
   function setChromaticHue(hue) {
     chromaticHue = ((Number(hue) % 360) + 360) % 360;
     const hueValue = `${chromaticHue}deg`;
@@ -144,31 +156,19 @@
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
 
-    // ProteÃ§Ã£o para o tema cromÃ¡tico: isolamento por usuÃ¡rio
-    if (rawTheme === "theme-cromatico") {
-      let uid = null;
-      try {
-        const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
-        uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
-      } catch (e) { }
+    if (rawTheme === "theme-cromatico" || rawTheme === "theme-natal") {
+      const uid = getAuthenticatedUserId();
+      if (!uid) return "theme-ciano";
 
-      const userKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
-      const isEquipped = localStorage.getItem(userKey) === "true" ||
-        (window.DB?._store?.profile?.store_data?.equipped?.tema_cromatico === true);
-
-      if (!isEquipped) return "theme-ciano";
-    }
-
-    if (rawTheme === "theme-natal") {
-      let uid = null;
-      try {
-        const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
-        uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
-      } catch (e) { }
-
-      const userKey = uid ? `animehouse_tema_natal_${uid}` : "animehouse_tema_natal";
-      const isEquipped = localStorage.getItem(userKey) === "true" ||
-        (window.DB?._store?.profile?.store_data?.equipped?.tema_natal === true);
+      const userKey =
+        rawTheme === "theme-cromatico"
+          ? `animehouse_tema_cromatico_${uid}`
+          : `animehouse_tema_natal_${uid}`;
+      const isEquipped =
+        localStorage.getItem(userKey) === "true" ||
+        (window.DB?._store?.profile?.store_data?.equipped?.[
+          rawTheme === "theme-cromatico" ? "tema_cromatico" : "tema_natal"
+        ] === true);
 
       if (!isEquipped) return "theme-ciano";
     }
@@ -178,11 +178,8 @@
 
   // Restaurar tema cromÃ¡tico de volta AÂ  sessionStorage se estava equipado no localStorage (user-scoped)
   const syncChromaticTheme = () => {
-    let uid = null;
-    try {
-      const sessionToken = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token");
-      uid = sessionToken ? JSON.parse(sessionToken).user?.id : null;
-    } catch (e) { }
+    const uid = getAuthenticatedUserId();
+    if (!uid) return;
 
     const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
     if (
@@ -237,6 +234,11 @@
 
   function applyTheme(theme) {
     const themeToApply = normalizeTheme(theme);
+    const isProtectedTheme =
+      themeToApply === "theme-cromatico" || themeToApply === "theme-natal";
+    if (isProtectedTheme && !getAuthenticatedUserId()) {
+      return applyTheme("theme-ciano");
+    }
 
     document.documentElement.classList.add("theme-switching");
 

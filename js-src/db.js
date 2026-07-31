@@ -1038,7 +1038,7 @@ const DB = {
         ...seasonEntries.map(ep => ep.id),
         ...movieEntries.map(movie => movie.id)
     ]);
-    _store.cartoons = _store.cartoons.filter(c => c.id !== id);
+    _store.cartoons = _store.cartoons.filter(c => String(c.id) !== String(id));
     delete _store.episodes[id];
     delete _store.movies[id];
   },
@@ -1105,7 +1105,7 @@ const DB = {
 
     clearWatchedItems([epId]);
     if (_store.episodes[cId]?.[season]) {
-      _store.episodes[cId][season] = _store.episodes[cId][season].filter(e => e.id !== epId);
+      _store.episodes[cId][season] = _store.episodes[cId][season].filter(e => String(e.id) !== String(epId));
     }
   },
   
@@ -1156,7 +1156,7 @@ const DB = {
     const { error } = await getSupa().from('movies').delete().eq('id', mId);
     if (error) throw new Error(error.message);
     clearWatchedItems([mId]);
-    if (_store.movies[cId]) _store.movies[cId] = _store.movies[cId].filter(m => m.id !== mId);
+    if (_store.movies[cId]) _store.movies[cId] = _store.movies[cId].filter(m => String(m.id) !== String(mId));
   },
 
   /* Animes */
@@ -1195,7 +1195,7 @@ const DB = {
       .flatMap(audioGroup => Object.values(audioGroup || {}).flat().map(ep => ep.id));
     const animeMovieIds = (_store.animeMovies[id] || []).map(movie => movie.id);
     clearWatchedItems([...animeEpisodeIds, ...animeMovieIds]);
-    _store.animes = _store.animes.filter(a => a.id !== id);
+    _store.animes = _store.animes.filter(a => String(a.id) !== String(id));
     delete _store.animeEpisodes[id];
     delete _store.animeMovies[id];
   },
@@ -1268,7 +1268,7 @@ const DB = {
 
     clearWatchedItems([epId]);
     if (_store.animeEpisodes[aId]?.[audio]?.[season]) {
-      _store.animeEpisodes[aId][audio][season] = _store.animeEpisodes[aId][audio][season].filter(e => e.id !== epId);
+      _store.animeEpisodes[aId][audio][season] = _store.animeEpisodes[aId][audio][season].filter(e => String(e.id) !== String(epId));
     }
   },
 
@@ -1322,7 +1322,7 @@ const DB = {
 
     clearWatchedItems([mId]);
     if (_store.animeMovies[aId]) {
-      _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => m.id !== mId);
+      _store.animeMovies[aId] = _store.animeMovies[aId].filter(m => String(m.id) !== String(mId));
     }
   },
 
@@ -1359,7 +1359,7 @@ const DB = {
     const { error } = await getSupa().from('mangas').delete().eq('id', id);
     if (error) throw new Error(error.message);
     clearWatchedItems((_store.mangaVolumes[id] || []).map(v => v.id));
-    _store.mangas = _store.mangas.filter(m => m.id !== id);
+    _store.mangas = _store.mangas.filter(m => String(m.id) !== String(id));
     delete _store.mangaVolumes[id];
   },
 
@@ -1407,7 +1407,7 @@ const DB = {
     
     clearWatchedItems([volId]);
     if (_store.mangaVolumes[mangaId]) {
-        _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].filter(v => v.id !== volId);
+        _store.mangaVolumes[mangaId] = _store.mangaVolumes[mangaId].filter(v => String(v.id) !== String(volId));
     }
   },
   async updateMangaVolume(mangaId, volId, file, urlExterna, volumeData) {
@@ -1496,7 +1496,7 @@ const DB = {
     const { error } = await getSupa().from('hqs').delete().eq('id', id);
     if (error) throw new Error(error.message);
     clearWatchedItems((_store.hqEditions[id] || []).map(v => v.id));
-    _store.hqs = _store.hqs.filter(h => h.id !== id);
+    _store.hqs = _store.hqs.filter(h => String(h.id) !== String(id));
     delete _store.hqEditions[id];
   },
 
@@ -1536,7 +1536,7 @@ const DB = {
     if (error) throw new Error(error.message);
     clearWatchedItems([edId]);
     if (_store.hqEditions[hqId]) {
-        _store.hqEditions[hqId] = _store.hqEditions[hqId].filter(v => v.id !== edId);
+        _store.hqEditions[hqId] = _store.hqEditions[hqId].filter(v => String(v.id) !== String(edId));
     }
   },
   async updateHQEdition(hqId, edId, file, urlExterna, editionData) {
@@ -1625,7 +1625,7 @@ const DB = {
     const { error } = await getSupa().from('filmes').delete().eq('id', id);
     if (error) throw new Error(error.message);
     clearWatchedItems([id]);
-    _store.filmes = _store.filmes.filter(f => f.id !== id);
+    _store.filmes = _store.filmes.filter(f => String(f.id) !== String(id));
   },
 
   /* Checklist Permanente */
@@ -2016,7 +2016,7 @@ const DB = {
     if (error) throw new Error(error.message);
     const videoIds = (_store.youtube_videos[id] || []).map(v => v.id);
     clearWatchedItems([...videoIds]);
-    _store.youtube_playlists = _store.youtube_playlists.filter(p => p.id !== id);
+    _store.youtube_playlists = _store.youtube_playlists.filter(p => String(p.id) !== String(id));
     delete _store.youtube_videos[id];
   },
 
@@ -2055,13 +2055,30 @@ const DB = {
     if (error) throw new Error(error.message);
     clearWatchedItems([vId]);
     if (_store.youtube_videos[plId]) {
-      _store.youtube_videos[plId] = _store.youtube_videos[plId].filter(v => v.id !== vId);
+      _store.youtube_videos[plId] = _store.youtube_videos[plId].filter(v => String(v.id) !== String(vId));
     }
   }
 };
 
 if (typeof window !== 'undefined') {
   window.DB = DB;
+  window.pendingDeletions = window.pendingDeletions instanceof Set ? window.pendingDeletions : new Set();
+  window.markPendingDeletion = function markPendingDeletion(ids = []) {
+    const list = Array.isArray(ids) ? ids : [ids];
+    list.forEach((id) => {
+      if (id !== null && id !== undefined && String(id).trim()) {
+        window.pendingDeletions.add(String(id));
+      }
+    });
+  };
+  window.clearPendingDeletion = function clearPendingDeletion(ids = []) {
+    const list = Array.isArray(ids) ? ids : [ids];
+    list.forEach((id) => {
+      if (id !== null && id !== undefined && String(id).trim()) {
+        window.pendingDeletions.delete(String(id));
+      }
+    });
+  };
 }
 
 
@@ -2125,7 +2142,7 @@ function showDarkToast(msg, ms = 7000) {
   }, ms);
 }
 
-function showUndoToast(msg, onComplete, onUndo) {
+function showUndoToast(msg, onComplete, onUndo, onStart) {
   const container = document.getElementById('toast');
   if (!container) return;
 
@@ -2140,6 +2157,14 @@ function showUndoToast(msg, onComplete, onUndo) {
   `;
   container.appendChild(el);
 
+  if (typeof onStart === 'function') {
+    try {
+      onStart();
+    } catch (err) {
+      console.warn('Falha na remoção otimista:', err);
+    }
+  }
+
   let timeLeft = 7;
   const btn = el.querySelector('.btn-undo');
   const timer = setInterval(() => {
@@ -2149,7 +2174,9 @@ function showUndoToast(msg, onComplete, onUndo) {
       clearInterval(timer);
       el.classList.add('fade-out');
       setTimeout(() => el.remove(), 500);
-      onComplete();
+      Promise.resolve(onComplete?.()).catch((error) => {
+        console.error('Falha ao concluir exclusão:', error);
+      });
     }
   }, 1000);
 
@@ -2162,7 +2189,7 @@ function showUndoToast(msg, onComplete, onUndo) {
   };
 }
 
-function showUndoToast(msg, onComplete, onUndo) {
+function showUndoToast(msg, onComplete, onUndo, onStart) {
   const container = document.getElementById('toast');
   if (!container) return;
 
@@ -2177,6 +2204,14 @@ function showUndoToast(msg, onComplete, onUndo) {
   `;
   container.appendChild(el);
 
+  if (typeof onStart === 'function') {
+    try {
+      onStart();
+    } catch (err) {
+      console.warn('Falha na remoção otimista:', err);
+    }
+  }
+
   let timeLeft = 7;
   const btn = el.querySelector('.btn-undo');
   const timer = setInterval(() => {
@@ -2186,7 +2221,9 @@ function showUndoToast(msg, onComplete, onUndo) {
       clearInterval(timer);
       el.classList.add('fade-out');
       setTimeout(() => el.remove(), 500);
-      onComplete();
+      Promise.resolve(onComplete?.()).catch((error) => {
+        console.error('Falha ao concluir exclusão:', error);
+      });
     }
   }, 1000);
 

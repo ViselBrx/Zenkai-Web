@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
@@ -787,76 +787,240 @@
 
       /* Patents / Badges */
       .patents-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 30px 20px; /* Aumentado o gap: 30px vertical (para o texto não sobrepor) e 20px horizontal */
-        padding-bottom: 10px; /* Um espaço extra embaixo caso precise */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+        gap: 14px;
+        align-items: stretch;
+        padding: 4px 2px 12px;
       }
 
       .patent-badge {
-        width: 60px;
-        height: 60px;
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.3);
-        border: 2px solid rgba(var(--primary-rgb), 0.1);
+        width: 100%;
+        min-height: 112px;
+        padding: 13px 10px 16px;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 34%),
+          linear-gradient(180deg, rgba(7, 14, 29, 0.98), rgba(2, 8, 18, 0.99));
+        border: 1px solid rgba(var(--primary-rgb), 0.22);
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-size: 1.5rem;
+        gap: 12px;
+        font-size: 1.45rem;
         position: relative;
         filter: grayscale(1);
-        opacity: 0.3;
-        transition: all 0.4s ease;
-      }
-
-      .badge-bronze { --badge-color: #cd7f32; }
-      .badge-prata { --badge-color: #e2e8f0; }
-      .badge-ouro { --badge-color: #ffd700; }
-      .badge-mestre { --badge-color: #ff3366; }
-      .badge-lenda { --badge-color: #9d4edd; }
-      .badge-hokage { --badge-color: #ff5400; }
-      .badge-guardiao { --badge-color: #00bbf9; }
-      .badge-imortal { --badge-color: #00f5d4; }
-
-      .patent-badge.unlocked {
-        filter: grayscale(0);
-        opacity: 1;
-        border-color: var(--badge-color, var(--primary));
-        color: var(--badge-color, var(--primary));
-        box-shadow: 0 0 15px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.8);
-        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.5));
-        text-shadow: 0 0 10px var(--badge-color, var(--primary));
-        cursor: pointer;
-      }
-
-      .patent-badge.unlocked::before {
-        content: '';
+        opacity: 0.28;
+        overflow: hidden;
+        isolation: isolate;
+        box-shadow:
+          0 12px 26px rgba(0, 0, 0, 0.34),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        transition:
+          transform 0.28s ease,
+          box-shadow 0.28s ease,
+          border-color 0.28s ease,
+          opacity 0.28s ease,
+          filter 0.28s ease;
+      }      .patent-badge::before {
+        content: "";
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        box-shadow: 0 0 20px var(--badge-color, var(--primary));
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.035), transparent 42%);
         opacity: 0;
-        transition: opacity 0.3s;
+        transition: opacity 0.28s ease;
+        pointer-events: none;
       }
 
-      .patent-badge.unlocked:hover::before {
-        opacity: 0.5;
-      }
-
-      .patent-badge.unlocked:hover {
-        transform: scale(1.15) translateY(-5px);
-        z-index: 10;
+      .patent-badge i {
+        position: relative;
+        z-index: 1;
+        font-size: 1.6rem;
+        line-height: 1;
+        text-shadow: 0 0 14px rgba(255, 255, 255, 0.14);
       }
 
       .patent-badge::after {
         content: attr(data-label);
-        position: absolute;
-        bottom: -15px;
-        font-size: 0.6rem;
+        position: relative;
+        z-index: 1;
+        inset: auto;
+        bottom: auto;
+        font-size: 0.66rem;
+        line-height: 1.1;
+        text-align: center;
         white-space: nowrap;
-        color: var(--text-muted);
-        font-weight: bold;
+        color: rgba(237, 244, 255, 0.72);
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.11em;
+      }
+
+      .badge-bronze {
+        --badge-color: #cd7f32;
+        --badge-color-rgb: 205, 127, 50;
+      }
+      .badge-prata {
+        --badge-color: #e2e8f0;
+        --badge-color-rgb: 226, 232, 240;
+      }
+      .badge-ouro {
+        --badge-color: #ffd700;
+        --badge-color-rgb: 255, 215, 0;
+      }
+      .badge-mestre {
+        --badge-color: #ff3366;
+        --badge-color-rgb: 255, 51, 102;
+      }
+      .badge-lenda {
+        --badge-color: #9d4edd;
+        --badge-color-rgb: 157, 78, 221;
+      }
+      .badge-hokage {
+        --badge-color: #ff5400;
+        --badge-color-rgb: 255, 84, 0;
+      }
+      .badge-guardiao {
+        --badge-color: #00bbf9;
+        --badge-color-rgb: 0, 187, 249;
+      }
+      .badge-imortal {
+        --badge-color: #00f5d4;
+        --badge-color-rgb: 0, 245, 212;
+      }
+
+      .patent-badge.unlocked {
+        filter: grayscale(0);
+        opacity: 1;
+        border-color: rgba(var(--badge-color-rgb, var(--primary-rgb)), 0.8);
+        color: var(--badge-color, var(--primary));
+        box-shadow:
+          0 12px 28px rgba(0, 0, 0, 0.36),
+          0 0 28px rgba(var(--badge-color-rgb, var(--primary-rgb)), 0.24),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        text-shadow: 0 0 16px rgba(var(--badge-color-rgb, var(--primary-rgb)), 0.6);
+        cursor: pointer;
+      }
+
+            .patent-badge.unlocked::before {
+        opacity: 0;
+      }
+
+      .patent-badge.unlocked:hover::before {
+        opacity: 0;
+      }
+
+      .patent-badge.unlocked:hover {
+        transform: translateY(-5px) scale(1.04);
+        z-index: 10;
+        box-shadow:
+          0 18px 38px rgba(0, 0, 0, 0.42),
+          0 0 30px rgba(var(--badge-color-rgb, var(--primary-rgb)), 0.28),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+
+      .patent-badge.unlocked i {
+        transform: scale(1.1);
+      }
+
+      .patent-badge.unlocked::after {
+        color: var(--badge-color, var(--primary));
+      }
+
+      .patents-list:hover .patent-badge:not(.unlocked) {
+        opacity: 0.18;
+      }
+
+      .patent-badge:not(.unlocked) {
+        border-style: dashed;
+        box-shadow:
+          0 6px 16px rgba(0, 0, 0, 0.18),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      }
+
+      .patent-badge:not(.unlocked)::after {
+        color: rgba(180, 194, 223, 0.75);
+      }
+
+      .patent-badge:not(.unlocked) i {
+        color: rgba(255, 255, 255, 0.28);
+      }
+
+      .patent-badge.unlocked::after,
+      .patent-badge::after {
+        margin-top: auto;
+      }
+
+      .patents-list::before {
+        content: "";
+        grid-column: 1 / -1;
+        height: 1px;
+        margin-bottom: 2px;
+        background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.18), transparent);
+      }
+
+      #patentModal .modal {
+        background:
+          radial-gradient(circle at top, rgba(var(--primary-rgb), 0.2), transparent 34%),
+          linear-gradient(180deg, rgba(5, 11, 24, 0.99), rgba(2, 6, 15, 0.99));
+        border: 1px solid rgba(var(--primary-rgb), 0.26);
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.52),
+          0 0 28px rgba(var(--primary-rgb), 0.18);
+      }
+
+      #patentModal .modal-header {
+        border-bottom: 1px solid rgba(var(--primary-rgb), 0.14);
+        padding-bottom: 12px;
+      }
+
+      #patentTitle {
+        font-family: "Bangers", cursive;
+        letter-spacing: 1px;
+      }
+
+      #patentIcon {
+        width: 128px;
+        height: 128px;
+        margin: 0 auto 18px;
+        border-radius: 30px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.1), transparent 34%),
+          linear-gradient(180deg, rgba(var(--primary-rgb), 0.12), rgba(255, 255, 255, 0.02));
+        border: 1px solid rgba(var(--primary-rgb), 0.18);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+          0 0 28px rgba(var(--primary-rgb), 0.16);
+      }
+
+      #patentIcon i {
+        font-size: 4.2rem;
+        line-height: 1;
+        text-shadow: 0 0 22px rgba(var(--primary-rgb), 0.55);
+      }
+
+      #patentDesc {
+        font-size: 0.95rem;
+      }
+
+      #patentStatus {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(var(--primary-rgb), 0.1);
+        border: 1px solid rgba(var(--primary-rgb), 0.22);
+        min-width: 180px;
+        margin-inline: auto;
+        box-shadow:
+          0 0 18px rgba(var(--primary-rgb), 0.12),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02);
       }
 
       /* Donut Chart Custom */
@@ -911,6 +1075,248 @@
         width: 10px;
         height: 10px;
         border-radius: 2px;
+      }
+
+      .balance-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top left, rgba(var(--primary-rgb), 0.16), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(var(--accent2-rgb, var(--primary-rgb)), 0.12), transparent 28%),
+          linear-gradient(180deg, rgba(7, 14, 29, 0.95), rgba(var(--bg-card), 0.88));
+        border: 1px solid rgba(var(--primary-rgb), 0.22);
+        box-shadow:
+          0 20px 45px rgba(0, 0, 0, 0.3),
+          0 0 28px rgba(var(--primary-rgb), 0.14),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      }
+
+      .balance-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(120deg, rgba(255, 255, 255, 0.04), transparent 28%, transparent 72%, rgba(255, 255, 255, 0.03)),
+          radial-gradient(circle at 50% 0%, rgba(var(--primary-rgb), 0.1), transparent 42%);
+        pointer-events: none;
+        opacity: 0.8;
+      }
+
+      .balance-card > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .balance-card-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .balance-card-head .stat-header {
+        margin-right: auto;
+      }
+
+      .balance-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        min-width: 220px;
+      }
+
+      .balance-metric {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(var(--primary-rgb), 0.15);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      }
+
+      .balance-metric-label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.11em;
+        color: var(--text-muted);
+      }
+
+      .balance-metric-value {
+        display: block;
+        font-family: "Bangers", cursive;
+        font-size: 1.15rem;
+        line-height: 1;
+        letter-spacing: 0.8px;
+        color: var(--text-main);
+      }
+
+      .balance-metric-value[data-accent="primary"] { color: var(--primary); }
+      .balance-metric-value[data-accent="accent"] { color: var(--accent); }
+
+      .balance-card-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+        gap: 14px;
+        align-items: center;
+      }
+
+      .balance-chart-panel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .balance-chart-shell {
+        position: relative;
+        width: min(100%, 320px);
+        aspect-ratio: 1 / 1;
+        padding: 12px;
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at center, rgba(var(--primary-rgb), 0.08), transparent 42%),
+          rgba(2, 10, 24, 0.55);
+        border: 1px solid rgba(var(--primary-rgb), 0.16);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+          0 0 24px rgba(var(--primary-rgb), 0.1);
+      }
+
+      .balance-chart-shell::before {
+        content: "";
+        position: absolute;
+        inset: 14px;
+        border-radius: 999px;
+        border: 1px dashed rgba(var(--primary-rgb), 0.16);
+        pointer-events: none;
+      }
+
+      .balance-chart-shell canvas {
+        width: 100% !important;
+        height: 100% !important;
+      }
+
+      .balance-chart-center {
+        position: absolute;
+        inset: 50% auto auto 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 118px;
+        height: 118px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.06), rgba(4, 10, 24, 0.9) 64%);
+        border: 1px solid rgba(var(--primary-rgb), 0.18);
+        box-shadow:
+          0 0 0 10px rgba(4, 10, 24, 0.35),
+          0 0 24px rgba(var(--primary-rgb), 0.12),
+          inset 0 0 20px rgba(255, 255, 255, 0.03);
+        text-align: center;
+      }
+
+      .balance-chart-total {
+        font-family: "Bangers", cursive;
+        font-size: 2.6rem;
+        line-height: 0.95;
+        color: var(--primary);
+        text-shadow: 0 0 16px rgba(var(--primary-rgb), 0.5);
+      }
+
+      .balance-chart-subtitle {
+        margin-top: 4px;
+        font-size: 0.72rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .balance-chart-foot {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .balance-foot-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(var(--primary-rgb), 0.11);
+        border: 1px solid rgba(var(--primary-rgb), 0.2);
+        color: var(--primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .balance-foot-note {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+
+      .balance-legend {
+        display: grid;
+        gap: 10px;
+        align-content: center;
+      }
+
+      .balance-legend-item {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+        border: 1px solid rgba(var(--primary-rgb), 0.12);
+      }
+
+      .balance-legend-swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        box-shadow: 0 0 12px currentColor;
+      }
+
+      .balance-legend-name {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .balance-legend-value {
+        font-family: "Bangers", cursive;
+        font-size: 1.05rem;
+        color: var(--text-muted);
+        letter-spacing: 0.6px;
+      }
+
+      .balance-legend-item.is-top {
+        border-color: rgba(var(--primary-rgb), 0.28);
+        background: linear-gradient(90deg, rgba(var(--primary-rgb), 0.12), rgba(255, 255, 255, 0.02));
+      }
+
+      .balance-legend-item.is-top .balance-legend-name {
+        color: var(--primary);
+      }
+
+      .balance-legend-empty {
+        min-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        border: 1px dashed rgba(var(--primary-rgb), 0.2);
+        color: var(--text-muted);
+        font-size: 0.8rem;
       }
 
       /* Animated Avatar Auras */
@@ -1685,10 +2091,7 @@
 
       .chart-box {
         position: relative;
-        height: 180px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        height: auto;
       }
 
       @media (max-width: 768px) {
@@ -1697,6 +2100,24 @@
         }
         .stat-card.full-width {
           grid-column: span 1;
+        }
+        .balance-card-head,
+        .balance-card-body {
+          grid-template-columns: 1fr;
+        }
+        .balance-card-head {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .balance-metrics {
+          min-width: 0;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .balance-card-body {
+          gap: 16px;
+        }
+        .balance-chart-shell {
+          width: min(100%, 280px);
         }
       }
       /* ── Overlay de Boas-vindas (Pós-Login) ── */
@@ -2304,12 +2725,37 @@
               </div>
 
               <!-- Gráfico de Pizza Circular -->
-              <div class="stat-card">
-                <div class="stat-header">
-                  <span><i class='fa-solid fa-chart-line'></i></span> Balanço de Assistidos
+              <div class="stat-card balance-card">
+                <div class="balance-card-head">
+                  <div class="stat-header">
+                    <span><i class='fa-solid fa-chart-line'></i></span> Balanço de Assistidos
+                  </div>
+                  <div class="balance-metrics">
+                    <div class="balance-metric">
+                      <span class="balance-metric-label">Total visto</span>
+                      <span class="balance-metric-value" id="balanceTotalMetric">0</span>
+                    </div>
+                    <div class="balance-metric">
+                      <span class="balance-metric-label">Categoria líder</span>
+                      <span class="balance-metric-value" id="balanceLeaderMetric" data-accent="accent">--</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="chart-box">
-                  <canvas id="balanceChart"></canvas>
+                <div class="balance-card-body">
+                  <div class="balance-chart-panel">
+                    <div class="balance-chart-shell">
+                      <canvas id="balanceChart"></canvas>
+                      <div class="balance-chart-center" aria-hidden="true">
+                        <span class="balance-chart-total" id="balanceChartTotal">0</span>
+                        <span class="balance-chart-subtitle">assistidos</span>
+                      </div>
+                    </div>
+                    <div class="balance-chart-foot">
+                      <span class="balance-foot-chip" id="balanceChartPercent">0%</span>
+                      <span class="balance-foot-note">Distribuição por categoria no projeto</span>
+                    </div>
+                  </div>
+                  <div class="balance-legend" id="balanceLegend"></div>
                 </div>
               </div>
 
@@ -2693,76 +3139,44 @@
 
     <!-- MODAL: CONFIRMAR EXCLUSÃO DE CONTA -->
     <div class="modal-overlay" id="deleteAccountModal" style="z-index: 20000">
-      <div
-        class="modal"
-        style="
-          max-width: 460px;
-          border: 1px solid rgba(239, 68, 68, 0.5);
-          box-shadow: 0 0 60px rgba(239, 68, 68, 0.3);
-        "
-      >
-        <div
-          class="modal-header"
-          style="border-bottom-color: rgba(239, 68, 68, 0.3)"
-        >
-          <h2 style="color: #ef4444"><i class="fa-solid fa-triangle-exclamation"></i> Excluir Conta</h2>
+      <div class="modal delete-account-modal-card" style="max-width: 460px;">
+        <div class="modal-header">
+          <h2><i class="fa-solid fa-triangle-exclamation"></i> Excluir Conta</h2>
           <button class="modal-close" id="deleteAccountModalClose">✕</button>
         </div>
-        <div style="padding: 24px">
-          <p
-            style="margin: 0 0 15px; color: var(--text-main); line-height: 1.6; font-size: 0.95rem;"
-          >
+        <div class="delete-account-card">
+          <p class="delete-account-intro">
             Isso apagará
-            <strong style="color: #ef4444">permanentemente</strong> sua conta,
+            <strong>permanentemente</strong> sua conta,
             histórico de visualização, itens comprados, saldo de ouro/diamante e conquistas. <br /><strong style="color: #ef4444"
               >ESTA AÇÃO É IRREVERSÍVEL.</strong
             >
           </p>
           
-          <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
-            <label style="display: flex; gap: 10px; cursor: pointer; align-items: flex-start;">
-              <input type="checkbox" id="deleteConfirmCheckbox" style="margin-top: 4px; width: 18px; height: 18px; accent-color: #ef4444;">
-              <span style="font-size: 0.85rem; color: var(--text-main); line-height: 1.4;">
+          <div class="delete-account-warning">
+            <label>
+              <input type="checkbox" id="deleteConfirmCheckbox">
+              <span>
                 Eu compreendo que ao confirmar a exclusão, todos os meus dados serão removidos e <strong>não poderei recuperá-los</strong> futuramente.
               </span>
             </label>
           </div>
 
-          <p
-            style="
-              font-size: 0.85rem;
-              color: var(--text-muted);
-              margin-bottom: 10px;
-            "
-          >
-            Para prosseguir, digite <strong style="color: #ef4444">EXCLUIR MINHA CONTA</strong>:
+          <p class="delete-account-confirmation">
+            Para prosseguir, digite <strong>EXCLUIR MINHA CONTA</strong>:
           </p>
           <input
             type="text"
             id="deleteConfirmInput"
+            class="delete-account-input"
             placeholder="Digite aqui..."
             autocomplete="off"
-            style="
-              width: 100%;
-              padding: 12px;
-              background: rgba(0, 0, 0, 0.2);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 8px;
-              color: var(--text-main);
-              font-size: 1rem;
-              outline: none;
-              margin-bottom: 20px;
-              text-align: center;
-              font-weight: bold;
-              letter-spacing: 1px;
-            "
           />
-          <div style="display: flex; gap: 10px">
+          <div class="delete-account-actions">
             <button
               type="button"
               id="cancelDeleteAccountBtn"
               class="btn btn-ghost"
-              style="flex: 1"
             >
               Cancelar
             </button>
@@ -2770,7 +3184,6 @@
               type="button"
               id="confirmDeleteAccountBtn"
               class="btn btn-danger"
-              style="flex: 2; position: relative;"
               disabled
             >
               <span id="deleteBtnText">Excluir minha conta</span>
@@ -2779,17 +3192,7 @@
           </div>
           <div
             id="deleteAccountError"
-            style="
-              display: none;
-              margin-top: 14px;
-              padding: 10px;
-              background: rgba(239, 68, 68, 0.1);
-              border: 1px solid var(--danger);
-              border-radius: 8px;
-              color: var(--danger);
-              font-size: 0.85rem;
-              text-align: center;
-            "
+            class="delete-account-error"
           ></div>
         </div>
       </div>
@@ -4609,7 +5012,9 @@
               "animehouse_equippedCrownId",
               "animehouse_equippedCrownIcon",
               "animehouse_tema_cromatico",
+              "animehouse_tema_natal",
               "equipped_tema_cromatico",
+              "equipped_tema_natal",
               "equipped_frame_dourado",
               "animehouse_store",
               "animehouse_userLevel",
@@ -4624,6 +5029,7 @@
               "currency_esmeralda"
             ];
             keysToClear.forEach(k => localStorage.removeItem(k));
+            sessionStorage.removeItem("theme");
             
             const dynamicKeys = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -4785,9 +5191,149 @@
 
           // --- CHART JS SETUP ---
           let balanceChartInstance = null;
+          const balanceChartLabels = [
+            "Animes",
+            "Desenhos",
+            "Mangás",
+            "HQs",
+            "Filmes",
+            "YouTube",
+          ];
+
+          function formatBalancePercent(value, total) {
+            if (!total) return "0%";
+            return `${Math.round((value / total) * 100)}%`;
+          }
+
+          function syncBalanceMetrics(labels, dataValues) {
+            const total = dataValues.reduce((sum, value) => sum + value, 0);
+            const maxValue = Math.max(...dataValues, 0);
+            const leaderIndex = dataValues.findIndex(
+              (value) => value === maxValue && value > 0
+            );
+            const leaderLabel = leaderIndex >= 0 ? labels[leaderIndex] : "--";
+            const leaderPercent =
+              leaderIndex >= 0 ? formatBalancePercent(maxValue, total) : "0%";
+
+            const totalMetric = document.getElementById("balanceTotalMetric");
+            const leaderMetric = document.getElementById("balanceLeaderMetric");
+            const chartTotal = document.getElementById("balanceChartTotal");
+            const chartPercent = document.getElementById("balanceChartPercent");
+
+            if (totalMetric) totalMetric.textContent = total.toLocaleString("pt-BR");
+            if (chartTotal) chartTotal.textContent = total.toLocaleString("pt-BR");
+            if (leaderMetric) leaderMetric.textContent = leaderLabel;
+            if (chartPercent) chartPercent.textContent = leaderPercent;
+          }
+
+          function renderBalanceLegend(labels, dataValues, bgColors) {
+            const legend = document.getElementById("balanceLegend");
+            if (!legend) return;
+
+            const total = dataValues.reduce((sum, value) => sum + value, 0);
+            if (!total) {
+              legend.innerHTML =
+                '<div class="balance-legend-empty">Sem dados suficientes para montar a distribuição.</div>';
+              return;
+            }
+
+            const topValue = Math.max(...dataValues);
+            legend.innerHTML = labels
+              .map((label, index) => {
+                const value = dataValues[index] || 0;
+                const percent = formatBalancePercent(value, total);
+                const isTop = value === topValue && value > 0 ? " is-top" : "";
+                return `
+                  <div class="balance-legend-item${isTop}">
+                    <span class="balance-legend-swatch" style="background:${bgColors[index]}; color:${bgColors[index]}"></span>
+                    <span class="balance-legend-name">${label}</span>
+                    <span class="balance-legend-value">${value} · ${percent}</span>
+                  </div>
+                `;
+              })
+              .join("");
+          }
           function updateBalanceChart(dataValues) {
             const ctx = document.getElementById("balanceChart");
             if (!ctx) return;
+
+            {
+              const rootStyles2 = getComputedStyle(document.body);
+              const colorPrimary2 =
+                rootStyles2.getPropertyValue("--primary").trim() || "#72FFFF";
+              const colorAccent2 =
+                rootStyles2.getPropertyValue("--accent").trim() || "#7fffd4";
+              const colorAccent22 =
+                rootStyles2.getPropertyValue("--accent2").trim() || "#00ced1";
+
+              const bgColors2 = [
+                colorPrimary2,
+                colorAccent22,
+                colorAccent2,
+                "#3b82f6",
+                "#ffcc00",
+                "#ff0000",
+              ];
+
+              const chartData2 = {
+                labels: balanceChartLabels,
+                datasets: [
+                  {
+                    data: dataValues,
+                    backgroundColor: bgColors2,
+                    borderColor: "rgba(5, 10, 22, 0.95)",
+                    borderWidth: 3,
+                    borderRadius: 10,
+                    hoverOffset: 10,
+                    spacing: 2,
+                  },
+                ],
+              };
+
+              syncBalanceMetrics(balanceChartLabels, dataValues);
+              renderBalanceLegend(balanceChartLabels, dataValues, bgColors2);
+
+              if (balanceChartInstance) {
+                balanceChartInstance.data.labels = balanceChartLabels;
+                balanceChartInstance.data.datasets[0].data = dataValues;
+                balanceChartInstance.data.datasets[0].backgroundColor = bgColors2;
+                balanceChartInstance.update();
+              } else {
+                balanceChartInstance = new Chart(ctx, {
+                  type: "doughnut",
+                  data: chartData2,
+                  options: {
+                    cutout: "68%",
+                    rotation: -90,
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: {
+                      padding: 10,
+                    },
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        backgroundColor: "rgba(5, 10, 22, 0.95)",
+                        titleColor: "#fff",
+                        bodyColor: "#e2e8f0",
+                        borderColor: "rgba(var(--primary-rgb), 0.25)",
+                        borderWidth: 1,
+                        padding: 12,
+                        usePointStyle: true,
+                      },
+                    },
+                    animation: {
+                      animateRotate: true,
+                      animateScale: true,
+                    },
+                  },
+                });
+              }
+
+              return;
+            }
 
             const rootStyles = getComputedStyle(document.body);
             const colorPrimary =
@@ -4796,9 +5342,6 @@
               rootStyles.getPropertyValue("--accent").trim() || "#7fffd4";
             const colorAccent2 =
               rootStyles.getPropertyValue("--accent2").trim() || "#00ced1";
-            const colorDanger =
-              rootStyles.getPropertyValue("--danger").trim() || "#ef4444";
-
             const bgColors = [
               colorPrimary,
               colorAccent2,
@@ -5961,4 +6504,5 @@
     </script>
   </body>
 </html>
+
 

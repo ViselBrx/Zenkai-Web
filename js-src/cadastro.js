@@ -134,14 +134,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       showUndoToast(`Excluindo "${cartoonName}"...`, 
         // onComplete: Excluir de verdade
-        () => {
-          DB.deleteCartoon(idToHide);
+        async () => {
+          await DB.deleteCartoon(idToHide);
+          window.clearPendingDeletion?.(idToHide);
           initFilters();
           renderTable();
         },
         // onUndo: Restaurar
         () => {
-          // Não faz nada
+          window.clearPendingDeletion?.(idToHide);
+          initFilters();
+          renderTable();
+        },
+        () => {
+          window.markPendingDeletion?.(idToHide);
+          renderTable();
         }
       );
     }

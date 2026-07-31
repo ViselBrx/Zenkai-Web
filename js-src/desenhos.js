@@ -544,6 +544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       async () => {
         try {
           await DB.deleteSeason(activeCartoonId, seasonNum);
+          window.clearPendingDeletion?.(seasonKey);
           if (editingSeason === seasonNum) resetEpForm();
           renderContent();
         } catch (err) {
@@ -551,7 +552,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       },
       () => {
-        // Não faz nada se desfeito
+        window.clearPendingDeletion?.(seasonKey);
+        renderContent();
+      },
+      () => {
+        window.markPendingDeletion?.(seasonKey);
+        renderContent();
       }
     );
   };
@@ -733,13 +739,19 @@ document.addEventListener('DOMContentLoaded', async () => {
           } else {
             await DB.deleteEpisode(activeCartoonId, activeSeasonForWatch, id);
           }
+          window.clearPendingDeletion?.(id);
           renderContent();
         } catch (err) {
           showToast(err.message || 'Erro ao excluir!', 'error');
         }
       },
       () => {
-        // Não faz nada se desfeito
+        window.clearPendingDeletion?.(id);
+        renderContent();
+      },
+      () => {
+        window.markPendingDeletion?.(id);
+        renderContent();
       }
     );
   };

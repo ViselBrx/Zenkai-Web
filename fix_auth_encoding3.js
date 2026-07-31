@@ -59,7 +59,7 @@ replace('otpSection N\u00c2O encontrado no DOM!', 'otpSection NÃO encontrado no
 
 // Usar regex para limpar emojis garbled dentro de strings de código
 // O padrão: caracteres >= 0x80 fora de contexto de texto normal
-content = content.replace(/"[^"]*?(?:ðŸ|ð|âœ|â |âš|Ã)[^"]*?"/g, function(match) {
+content = content.replace(/"[^"]*?(?:ðŸ|ð|âœ|â |âš|Ã)[^"]*?"/g, function (match) {
   // Limpar o emoji corrompido do interior da string
   return match
     .replace(/ðŸ[^\s"'`,;)]+/g, '')
@@ -67,8 +67,8 @@ content = content.replace(/"[^"]*?(?:ðŸ|ð|âœ|â |âš|Ã)[^"]*?"/g, functio
     .replace(/âœ[^\s"'`,;)]+/g, '')
     .replace(/â [^\s"'`,;)]+/g, '')
     .replace(/âš[^\s"'`,;)]+/g, '')
-    .replace(/Ã[³§©¢]/g, function(m) {
-      const map = {'Ã³': 'ó', 'Ã§': 'ç', 'Ã©': 'é', 'Ã¢': 'â'};
+    .replace(/Ã[³§©¢]/g, function (m) {
+      const map = { 'Ã³': 'ó', 'Ã§': 'ç', 'Ã©': 'é', 'Ã¢': 'â' };
       return map[m] || m;
     })
     .replace(/\s+/g, ' ')
@@ -76,7 +76,7 @@ content = content.replace(/"[^"]*?(?:ðŸ|ð|âœ|â |âš|Ã)[^"]*?"/g, functio
 });
 
 // Mesma coisa com aspas simples
-content = content.replace(/'[^']*?(?:ðŸ|ð|âœ|â |âš)[^']*?'/g, function(match) {
+content = content.replace(/'[^']*?(?:ðŸ|ð|âœ|â |âš)[^']*?'/g, function (match) {
   return match
     .replace(/ðŸ[^\s"'`,;)]+/g, '')
     .replace(/ð[^\s"'`,;)]+/g, '')
@@ -86,7 +86,7 @@ content = content.replace(/'[^']*?(?:ðŸ|ð|âœ|â |âš)[^']*?'/g, function(m
 });
 
 // Mesma coisa com template literals
-content = content.replace(/`[^`]*?(?:ðŸ|ð|âœ|â |âš)[^`]*?`/g, function(match) {
+content = content.replace(/`[^`]*?(?:ðŸ|ð|âœ|â |âš)[^`]*?`/g, function (match) {
   return match
     .replace(/ðŸ[^\s`]+/g, '')
     .replace(/ð[^\s`]+/g, '')

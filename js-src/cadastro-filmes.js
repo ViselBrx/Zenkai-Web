@@ -135,13 +135,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const idToHide = deletingId;
       showUndoToast(`Excluindo "${name}"...`,
-        () => {
-          DB.deleteFilme(idToHide);
+        async () => {
+          await DB.deleteFilme(idToHide);
+          window.clearPendingDeletion?.(idToHide);
           initFilters();
           renderTable();
         },
         () => {
-          // Não faz nada
+          window.clearPendingDeletion?.(idToHide);
+          initFilters();
+          renderTable();
+        },
+        () => {
+          window.markPendingDeletion?.(idToHide);
+          renderTable();
         }
       );
     }

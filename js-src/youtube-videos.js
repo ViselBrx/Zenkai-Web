@@ -398,9 +398,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('watchModal').classList.remove('open');
         showUndoToast('Excluindo vídeo...', () => {
             DB.deleteYoutubeVideo(activePlaylistId, id);
+            window.clearPendingDeletion?.(id);
             renderVideos();
             if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
-        }, () => {});
+        }, () => {
+            window.clearPendingDeletion?.(id);
+            renderVideos();
+            if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
+        }, () => {
+            window.markPendingDeletion?.(id);
+            renderVideos();
+            if (typeof StatsManager !== 'undefined') StatsManager.render('youtube');
+        });
     };
 
     document.getElementById('watchClose').onclick = () => {

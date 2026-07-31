@@ -49,12 +49,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderEditions();
 
     showUndoToast(`Excluindo coleção "${hqName}"...`,
-      () => {
-        DB.deleteHQ(idToHide);
+      async () => {`r`n        await DB.deleteHQ(idToHide);
+        window.clearPendingDeletion?.(idToHide);
         renderHQPills();
         renderEditions();
       },
-      () => {}
+      () => {
+        window.clearPendingDeletion?.(idToHide);
+        renderHQPills();
+        renderEditions();
+      },
+      () => {
+        window.markPendingDeletion?.(idToHide);
+        renderHQPills();
+        renderEditions();
+      }
     );
   }
 
@@ -291,9 +300,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         showUndoToast(`Excluindo Edição ${v.edition_number}...`,
           () => {
             DB.deleteHQEdition(activeHQId, idToHide);
+            window.clearPendingDeletion?.(idToHide);
             renderEditions();
           },
-          () => {}
+          () => {
+            window.clearPendingDeletion?.(idToHide);
+            renderEditions();
+          },
+          () => {
+            window.markPendingDeletion?.(idToHide);
+            renderEditions();
+          }
         );
       });
 

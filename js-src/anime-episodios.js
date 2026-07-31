@@ -647,11 +647,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     showUndoToast(`Excluindo Temporada ${seasonNum} e episódios...`, 
       () => {
         DB.deleteAnimeSeason(activeAnimeId, activeAudio, seasonNum);
+        window.clearPendingDeletion?.(seasonKey);
         if(editingSeason === seasonNum) resetEpForm();
         renderContent();
       },
       () => {
-        // Não faz nada
+        window.clearPendingDeletion?.(seasonKey);
+        renderContent();
+      },
+      () => {
+        window.markPendingDeletion?.(seasonKey);
+        renderContent();
       }
     );
   };
@@ -792,17 +798,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (ep) itemName = `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}`;
     }
 
-    showUndoToast(`Excluindo "${itemName}"...`, 
-      () => {
-        if (activeTypeForWatch === 'movie') {
-          DB.deleteAnimeMovie(activeAnimeId, id);
+    showUndoToast(`Excluindo "${itemName}"...`, `r`n      async () => {`r`n        if (activeTypeForWatch === 'movie') {`r`n          await DB.deleteAnimeMovie(activeAnimeId, id);
         } else {
           DB.deleteAnimeEpisode(activeAnimeId, activeAudio, activeSeasonForWatch, id);
         }
+        window.clearPendingDeletion?.(id);
         renderContent();
       },
       () => {
-        // Não faz nada
+        window.clearPendingDeletion?.(id);
+        renderContent();
+      },
+      () => {
+        window.markPendingDeletion?.(id);
+        renderContent();
       }
     );
   });
