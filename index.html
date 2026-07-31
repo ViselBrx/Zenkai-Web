@@ -246,9 +246,9 @@
       inset: 0;
       z-index: 12000;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 18px;
+      padding: clamp(10px, 2vh, 18px);
       background:
         radial-gradient(circle at top, rgba(var(--primary-rgb), 0.18), transparent 30%),
         rgba(3, 8, 18, 0.82);
@@ -266,7 +266,8 @@
 
     .site-guide-card {
       width: min(980px, 100%);
-      border-radius: 28px;
+      max-height: calc(100vh - clamp(20px, 4vh, 36px));
+      border-radius: 22px;
       border: 1px solid rgba(var(--primary-rgb), 0.24);
       background:
         radial-gradient(circle at top right, rgba(var(--primary-rgb), 0.16), transparent 28%),
@@ -277,6 +278,8 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.04);
       overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .site-guide-card::before {
@@ -292,17 +295,18 @@
 
     .site-guide-header {
       display: grid;
-      grid-template-columns: 128px minmax(0, 1fr) auto;
-      gap: 18px;
+      grid-template-columns: 112px minmax(0, 1fr) auto;
+      gap: 16px;
       align-items: center;
-      padding: 24px 26px 18px;
+      padding: 18px 24px 16px;
       border-bottom: 1px solid rgba(var(--primary-rgb), 0.16);
+      flex: none;
     }
 
     .site-guide-avatar {
-      width: 128px;
-      height: 128px;
-      border-radius: 26px;
+      width: 112px;
+      height: 112px;
+      border-radius: 22px;
       overflow: hidden;
       border: 1px solid rgba(var(--primary-rgb), 0.28);
       background: rgba(255, 255, 255, 0.04);
@@ -329,16 +333,16 @@
     .site-guide-title {
       margin: 0;
       font-family: 'Bangers', cursive;
-      font-size: clamp(2rem, 4vw, 3rem);
+      font-size: clamp(1.85rem, 3.4vw, 2.75rem);
       line-height: 0.95;
       color: var(--primary);
       text-shadow: 0 0 20px rgba(var(--primary-rgb), 0.45);
     }
 
     .site-guide-subtitle {
-      margin: 10px 0 0;
+      margin: 8px 0 0;
       color: var(--text-muted);
-      line-height: 1.65;
+      line-height: 1.5;
       max-width: 64ch;
     }
 
@@ -361,14 +365,16 @@
     }
 
     .site-guide-body {
-      padding: 20px 26px 26px;
+      padding: 18px 24px 22px;
+      overflow-y: auto;
+      min-height: 0;
     }
 
     .site-guide-meta {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .site-guide-pill {
@@ -391,7 +397,7 @@
       overflow: hidden;
       background: rgba(255, 255, 255, 0.06);
       border: 1px solid rgba(var(--primary-rgb), 0.15);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .site-guide-progress-bar {
@@ -406,15 +412,15 @@
     .site-guide-step {
       display: grid;
       grid-template-columns: minmax(0, 1.3fr) minmax(240px, 0.7fr);
-      gap: 18px;
+      gap: 16px;
       align-items: start;
     }
 
     .site-guide-copy {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(var(--primary-rgb), 0.12);
-      border-radius: 22px;
-      padding: 18px;
+      border-radius: 18px;
+      padding: 16px 18px;
       box-shadow: inset 0 0 22px rgba(var(--primary-rgb), 0.05);
     }
 
@@ -427,7 +433,7 @@
     .site-guide-copy p {
       margin: 0 0 12px;
       color: var(--text-main);
-      line-height: 1.65;
+      line-height: 1.55;
     }
 
     .site-guide-copy ul {
@@ -438,6 +444,7 @@
 
     .site-guide-copy li {
       margin: 0.45rem 0;
+      line-height: 1.45;
       color: var(--text-main);
     }
 
@@ -446,8 +453,8 @@
         radial-gradient(circle at top, rgba(var(--primary-rgb), 0.14), transparent 34%),
         rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(var(--primary-rgb), 0.18);
-      border-radius: 22px;
-      padding: 18px;
+      border-radius: 18px;
+      padding: 16px 18px;
       box-shadow: 0 0 24px rgba(var(--primary-rgb), 0.08);
     }
 
@@ -478,7 +485,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-top: 18px;
+      margin-top: 16px;
     }
 
     .site-guide-actions .btn {
@@ -495,13 +502,82 @@
         grid-template-columns: 1fr;
       }
 
+      .site-guide-header {
+        position: relative;
+        padding-right: 72px;
+      }
+
       .site-guide-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
         justify-self: end;
       }
 
       .site-guide-avatar {
-        width: 104px;
-        height: 104px;
+        width: 96px;
+        height: 96px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .site-guide-overlay {
+        padding: 8px;
+      }
+
+      .site-guide-card {
+        border-radius: 18px;
+        max-height: calc(100vh - 16px);
+      }
+
+      .site-guide-header {
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 12px;
+        padding: 14px 60px 14px 14px;
+      }
+
+      .site-guide-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+      }
+
+      .site-guide-kicker {
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+      }
+
+      .site-guide-title {
+        font-size: 1.65rem;
+      }
+
+      .site-guide-subtitle {
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .site-guide-body {
+        padding: 14px;
+      }
+
+      .site-guide-pill {
+        padding: 7px 10px;
+        font-size: 0.72rem;
+      }
+
+      .site-guide-copy,
+      .site-guide-next {
+        padding: 14px;
+      }
+
+      .site-guide-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .site-guide-actions .btn {
+        width: 100%;
+        justify-content: center;
       }
     }
   </style>
@@ -654,7 +730,7 @@
     <div class="site-guide-card" role="dialog" aria-modal="true" aria-labelledby="siteGuideTitle">
       <div class="site-guide-header">
         <div class="site-guide-avatar">
-          <img src="assets/viselauraenorme.jpg" alt="Assistente do site">
+          <img src="assets/levi.jpg" alt="Assistente do site">
         </div>
         <div>
           <p class="site-guide-kicker" id="siteGuideKicker">Guia Interativo</p>
@@ -700,6 +776,11 @@
       </div>
     </div>
   </div>
+
+  <button id="siteGuideFabBtn" class="site-guide-fab" type="button" aria-label="Abrir guia interativo">
+    <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+    <span>Guia</span>
+  </button>
 
   <!-- SISTEMA DE FEEDBACK (FAB + MODAL) -->
   <button id="feedbackFabBtn" class="feedback-fab" title="Enviar Sugestão ou Reportar Bug">
@@ -916,13 +997,13 @@
       const SITE_GUIDE_STEPS = [
         {
           topic: 'Apresentação',
-          title: 'Oi, eu sou seu assistente',
-          subtitle: 'Eu vou te acompanhar nas primeiras voltas pelo site.',
-          lead: 'Antes de começar, deixa eu me apresentar: eu sou o guia que vai te mostrar onde cada coisa fica e como usar o portal sem se perder.',
+          title: 'Oi, eu sou o Levi',
+          subtitle: 'Eu vou ser seu guia pelas primeiras voltas na Anime House.',
+          lead: 'Prazer, eu sou o Levi. Fui chamado para te acompanhar pelo site, mostrar onde cada coisa fica e deixar esse começo mais direto, sem você precisar descobrir tudo no chute.',
           bullets: [
             'Eu vou explicar as etapas principais do site de um jeito simples e direto.',
             'Você pode abrir este guia de novo pelos cards escondidos na home.',
-            'O visual do tour acompanha o tema que você estiver usando.'
+            'Se bater dúvida em qualquer página, aperta o botão Guia que eu volto desde o começo.'
           ],
           preview: 'Depois da minha apresentação, eu te mostro a entrada principal do site.',
           actions: [
@@ -1151,6 +1232,11 @@
         document.body.classList.add('site-guide-open');
         setTimeout(() => siteGuideCloseBtn?.focus(), 40);
       }
+      window.openSiteGuide = openSiteGuide;
+
+      document.getElementById('siteGuideFabBtn')?.addEventListener('click', () => {
+        openSiteGuide(0, false);
+      });
 
       function closeSiteGuide() {
         if (!siteGuideOverlay) return;
