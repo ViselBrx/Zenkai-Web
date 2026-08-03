@@ -296,6 +296,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.scrollTo(0, scrollY);
   }
 
+  function restartSectionAnimation(container) {
+    if (!container) return;
+    container.classList.remove('content-animate');
+    requestAnimationFrame(() => {
+      container.classList.add('content-animate');
+    });
+  }
+
   function renderMovies() {
     if (!moviesContainer) return;
     moviesContainer.innerHTML = '';
@@ -372,9 +380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!activeAnimeId) return;
 
     // Animação de entrada
-    seasonsContainer.classList.remove('content-animate');
-    void seasonsContainer.offsetWidth; // Trigger reflow
-    seasonsContainer.classList.add('content-animate');
+    restartSectionAnimation(seasonsContainer);
 
     const allEps = DB.getAnimeEpisodesFor(activeAnimeId, activeAudio);
     const seasons = Object.keys(allEps).map(Number).sort((a,b) => a-b);
@@ -798,7 +804,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (ep) itemName = `Ep ${ep.epNumber} - ${ep.title || 'Sem título'}`;
     }
 
-    showUndoToast(`Excluindo "${itemName}"...`, `r`n      async () => {`r`n        if (activeTypeForWatch === 'movie') {`r`n          await DB.deleteAnimeMovie(activeAnimeId, id);
+    showUndoToast(
+      `Excluindo "${itemName}"...`,
+      async () => {
+        if (activeTypeForWatch === 'movie') {
+          await DB.deleteAnimeMovie(activeAnimeId, id);
         } else {
           DB.deleteAnimeEpisode(activeAnimeId, activeAudio, activeSeasonForWatch, id);
         }

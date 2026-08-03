@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (c.id === activeCartoonId) btn.classList.add('active');
       
       const thumb = c.capa 
-        ? `<img src="${c.capa}" onerror="this.src='';this.style.background='var(--primary)'">`
+        ? `<img src="${c.capa}" loading="lazy" decoding="async" onerror="this.src='';this.style.background='var(--primary)'">`
         : `<div style="width:26px;height:26px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;">🎬</div>`;
       
       btn.innerHTML = `${thumb} ${c.nome}`;
@@ -257,6 +257,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.scrollTo(0, scrollY);
   }
 
+  function restartSectionAnimation(container) {
+    if (!container) return;
+    container.classList.remove('content-animate');
+    requestAnimationFrame(() => {
+      container.classList.add('content-animate');
+    });
+  }
+
   function renderMovies() {
     if (!moviesContainer) return;
     moviesContainer.innerHTML = '';
@@ -332,10 +340,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     seasonsContainer.innerHTML = '';
     if (!activeCartoonId) return;
 
-    // Animação de entrada
-    seasonsContainer.classList.remove('content-animate');
-    void seasonsContainer.offsetWidth; // Trigger reflow
-    seasonsContainer.classList.add('content-animate');
+    // Animação de entrada mais leve
+    restartSectionAnimation(seasonsContainer);
 
     const allEps = DB.getEpisodesFor(activeCartoonId);
     const seasons = Object.keys(allEps).map(Number).sort((a,b) => a-b);

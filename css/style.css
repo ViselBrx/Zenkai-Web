@@ -4008,6 +4008,7 @@ body:has(.modal-overlay.open) {
       rgba(var(--primary-rgb), 0.03) 0%,
       rgba(var(--primary-rgb), 0.01) 100%);
   border-radius: var(--radius);
+  contain: layout paint style;
 }
 
 .episodes-grid.open {
@@ -4021,27 +4022,34 @@ body:has(.modal-overlay.open) {
   border: 1px solid rgba(var(--primary-rgb), 0.2);
   border-radius: var(--radius);
   overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.22s ease,
+    border-color 0.2s ease,
+    opacity 0.2s ease;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(var(--primary-rgb), 0.3);
-  animation: floatCard 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    0 3px 14px rgba(0, 0, 0, 0.24),
+    0 0 12px rgba(var(--primary-rgb), 0.16);
+  animation: none;
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 320px 270px;
 }
 
 .episode-card:hover {
   border-color: var(--primary);
   border-width: 1.5px;
   box-shadow:
-    0 8px 35px rgba(0, 0, 0, 0.4),
-    0 0 38px rgba(var(--primary-rgb), 0.5),
-    0 0 50px rgba(var(--primary-rgb), 0.3);
-  transform: translateY(-10px) scale(1.02);
+    0 6px 24px rgba(0, 0, 0, 0.32),
+    0 0 22px rgba(var(--primary-rgb), 0.35),
+    0 0 30px rgba(var(--primary-rgb), 0.18);
+  transform: translateY(-6px) scale(1.01);
   animation: none;
 }
 
 .episode-card:hover iframe {
-  filter: brightness(1.08);
-  transition: filter 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: brightness(1.03);
+  transition: filter 0.2s ease;
 }
 
 .episode-card iframe {
@@ -4049,6 +4057,19 @@ body:has(.modal-overlay.open) {
   aspect-ratio: 16/9;
   border: none;
   display: block;
+}
+
+body.anime-context .cartoon-pill,
+body.anime-context .episode-card {
+  transform: none;
+  will-change: auto;
+  backface-visibility: visible;
+  perspective: none;
+}
+
+body.anime-context .episodes-grid,
+body.anime-context .episode-card {
+  scroll-margin-top: 80px;
 }
 
 .episode-label {
