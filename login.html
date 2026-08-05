@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Login</title>
+  <title>Anime House — Sistema de Login</title>
   <meta name="description" content="Faça login para acessar o painel de administração." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
@@ -125,7 +125,7 @@
       border: 1px solid var(--danger);
     }
 
-    /* ── Seletor de método de login ── */
+    /* ââ€â‚¬ââ€â‚¬ Seletor de método de login ââ€â‚¬ââ€â‚¬ */
     .auth-method-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -165,7 +165,7 @@
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(120deg, transparent 15%, rgba(255,255,255,0.12), transparent 85%);
+      background: linear-gradient(120deg, transparent 15%, rgba(255, 255, 255, 0.12), transparent 85%);
       transform: translateX(-120%);
       transition: transform 0.34s ease;
       z-index: -1;
@@ -198,7 +198,7 @@
     .github-btn,
     .google-btn,
     .discord-btn,
-    .twitter-btn,
+    .facebook-btn,
     .twitch-btn {
       position: relative;
       overflow: hidden;
@@ -210,12 +210,12 @@
     .github-btn::before,
     .google-btn::before,
     .discord-btn::before,
-    .twitter-btn::before,
+    .facebook-btn::before,
     .twitch-btn::before {
       content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.18), transparent 82%);
+      background: linear-gradient(115deg, transparent 18%, rgba(255, 255, 255, 0.18), transparent 82%);
       transform: translateX(-125%);
       transition: transform 0.38s ease;
       z-index: -1;
@@ -225,7 +225,7 @@
     .github-btn:hover,
     .google-btn:hover,
     .discord-btn:hover,
-    .twitter-btn:hover,
+    .facebook-btn:hover,
     .twitch-btn:hover {
       transform: translateY(-2px) scale(1.01);
     }
@@ -234,7 +234,7 @@
     .github-btn:hover::before,
     .google-btn:hover::before,
     .discord-btn:hover::before,
-    .twitter-btn:hover::before,
+    .facebook-btn:hover::before,
     .twitch-btn:hover::before {
       transform: translateX(0);
     }
@@ -270,7 +270,7 @@
     .github-btn:hover {
       background: #383f47;
       border-color: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), 0 0 18px rgba(255,255,255,0.08);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), 0 0 18px rgba(255, 255, 255, 0.08);
     }
 
     .github-btn:active {
@@ -283,40 +283,40 @@
       flex-shrink: 0;
     }
 
-      .google-btn {
-        width: 100%;
-        padding: 14px;
-        font-size: 1rem;
-        font-weight: 700;
-        background: #ffffff;
-        color: #3c4043;
-        border: 1px solid #dadce0;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        transition: all 0.2s ease;
-        font-family: inherit;
-        margin-bottom: 0.5rem;
-      }
+    .google-btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      background: #ffffff;
+      color: #3c4043;
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      margin-bottom: 0.5rem;
+    }
 
-      .google-btn:hover {
-        background: #f8f9fa;
-        border-color: #d2e3fc;
-        box-shadow: 0 12px 26px rgba(66, 133, 244, 0.18);
-      }
+    .google-btn:hover {
+      background: #f8f9fa;
+      border-color: #d2e3fc;
+      box-shadow: 0 12px 26px rgba(66, 133, 244, 0.18);
+    }
 
-      .google-btn:active {
-        transform: translateY(0);
-      }
+    .google-btn:active {
+      transform: translateY(0);
+    }
 
-      .google-btn svg {
-        width: 20px;
-        height: 20px;
-        flex-shrink: 0;
-      }
+    .google-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
 
     .discord-btn {
       box-shadow: 0 10px 22px rgba(88, 101, 242, 0.22);
@@ -328,12 +328,12 @@
       filter: saturate(1.08);
     }
 
-    .twitter-btn {
+    .facebook-btn {
       width: 100%;
       padding: 14px;
       font-size: 1rem;
       font-weight: 700;
-      background: #000000;
+      background: #1877F2;
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
@@ -348,13 +348,14 @@
       box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
     }
 
-    .twitter-btn:hover {
-      background: #1a1a1a !important;
-      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.6), 0 0 18px rgba(255,255,255,0.1);
-      border-color: rgba(255, 255, 255, 0.4);
+    .facebook-btn:hover {
+      background: #1a8cff !important;
+      box-shadow: 0 14px 28px rgba(24, 119, 242, 0.45), 0 0 18px rgba(24, 119, 242, 0.2);
+      border-color: rgba(255, 255, 255, 0.35);
+      filter: saturate(1.08);
     }
-    
-    .twitter-btn svg {
+
+    .facebook-btn svg {
       width: 20px;
       height: 20px;
       flex-shrink: 0;
@@ -385,13 +386,14 @@
       box-shadow: 0 14px 28px rgba(145, 70, 255, 0.5);
       filter: saturate(1.08);
     }
-    
+
     .twitch-btn svg {
       width: 20px;
       height: 20px;
       flex-shrink: 0;
     }
-    /* ── Overlay de Carregamento Social ── */
+
+    /* ââ€â‚¬ââ€â‚¬ Overlay de Carregamento Social ââ€â‚¬ââ€â‚¬ */
     #socialLoadingOverlay {
       position: fixed;
       top: 0;
@@ -424,32 +426,47 @@
       font-size: 1.1rem;
       font-weight: 600;
       letter-spacing: 0.5px;
-      text-shadow: 0 0 10px rgba(255,255,255,0.1);
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     /* Ajustes para o intl-tel-input no tema escuro */
-    .iti { width: 100%; }
+    .iti {
+      width: 100%;
+    }
+
     .iti__country-list {
       background-color: var(--bg-card) !important;
       border: 1px solid var(--border) !important;
       color: var(--text-main) !important;
       border-radius: 8px !important;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
     }
-    .iti__country:hover, .iti__country.iti__highlight {
+
+    .iti__country:hover,
+    .iti__country.iti__highlight {
       background-color: rgba(var(--primary-rgb), 0.15) !important;
     }
+
     .iti__search-input {
       background-color: var(--bg-surface) !important;
       color: var(--text-main) !important;
       border: 1px solid var(--border) !important;
     }
-    .iti__selected-dial-code { color: var(--text-main) !important; margin-left: 6px; }
+
+    .iti__selected-dial-code {
+      color: var(--text-main) !important;
+      margin-left: 6px;
+    }
   </style>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -520,21 +537,23 @@
         <button class="auth-method-tab" id="tabDiscord" onclick="switchLoginTab('discord')">
           <!-- Discord icon -->
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
           </svg>
           Discord
         </button>
-        <button class="auth-method-tab" id="tabTwitter" onclick="switchLoginTab('twitter')">
-          <!-- X / Twitter icon -->
+        <button class="auth-method-tab" id="tabFacebook" onclick="switchLoginTab('facebook')">
+          <!-- Facebook icon -->
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-          </svg>
-          X / Twitter
+            <path
+              d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z" />
+          </svg>Facebook
         </button>
         <button class="auth-method-tab" id="tabTwitch" onclick="switchLoginTab('twitch')">
           <!-- Twitch icon -->
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+            <path
+              d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
           </svg>
           Twitch
         </button>
@@ -630,9 +649,11 @@
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Entre instantaneamente com sua conta do Discord.
         </p>
-        <button class="discord-btn" id="discordLoginBtn" style="background: #5865F2; color: white; width: 100%; border: none; padding: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; cursor: pointer; transition: filter 0.2s;">
+        <button class="discord-btn" id="discordLoginBtn"
+          style="background: #5865F2; color: white; width: 100%; border: none; padding: 14px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; cursor: pointer; transition: filter 0.2s;">
           <svg viewBox="0 0 24 24" fill="currentColor" style="width: 20px; height: 20px;">
-            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+            <path
+              d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.23 10.23 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.06.06 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
           </svg>
           Entrar com Discord
         </button>
@@ -641,16 +662,17 @@
         </p>
       </div>
 
-      <!-- Seção X / Twitter -->
-      <div id="loginTwitterSection" style="display:none; padding: 8px 0 4px;">
+      <!-- Seção Facebook -->
+      <div id="loginFacebookSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
-          Entre instantaneamente com sua conta do X / Twitter.
+          Entre instantaneamente com sua conta do Facebook.
         </p>
-        <button class="twitter-btn" id="twitterLoginBtn">
+        <button class="facebook-btn" id="facebookLoginBtn">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            <path
+              d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z" />
           </svg>
-          Entrar com X / Twitter
+          Entrar com Facebook
         </button>
         <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
           Você será redirecionado para autorizar o acesso.
@@ -664,7 +686,8 @@
         </p>
         <button class="twitch-btn" id="twitchLoginBtn">
           <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+            <path
+              d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
           </svg>
           Entrar com Twitch
         </button>
@@ -711,30 +734,30 @@
       const githubSection = document.getElementById('loginGithubSection');
       const googleSection = document.getElementById('loginGoogleSection');
       const discordSection = document.getElementById('loginDiscordSection');
-      const twitterSection = document.getElementById('loginTwitterSection');
+      const facebookSection = document.getElementById('loginFacebookSection');
       const twitchSection = document.getElementById('loginTwitchSection');
       const microsoftSection = document.getElementById('loginMicrosoftSection');
       const tabEmail = document.getElementById('tabEmail');
       const tabGithub = document.getElementById('tabGithub');
       const tabGoogle = document.getElementById('tabGoogle');
       const tabDiscord = document.getElementById('tabDiscord');
-      const tabTwitter = document.getElementById('tabTwitter');
+      const tabFacebook = document.getElementById('tabFacebook');
       const tabTwitch = document.getElementById('tabTwitch');
       const tabMicrosoft = document.getElementById('tabMicrosoft');
-      
+
       // Hide all
       emailSection.style.display = 'none';
       githubSection.style.display = 'none';
       googleSection.style.display = 'none';
       discordSection.style.display = 'none';
-      if (twitterSection) twitterSection.style.display = 'none';
+      if (facebookSection) facebookSection.style.display = 'none';
       if (twitchSection) twitchSection.style.display = 'none';
       if (microsoftSection) microsoftSection.style.display = 'none';
       tabEmail.classList.remove('active');
       tabGithub.classList.remove('active');
       tabGoogle.classList.remove('active');
       tabDiscord.classList.remove('active');
-      if (tabTwitter) tabTwitter.classList.remove('active');
+      if (tabFacebook) tabFacebook.classList.remove('active');
       if (tabTwitch) tabTwitch.classList.remove('active');
       if (tabMicrosoft) tabMicrosoft.classList.remove('active');
 
@@ -750,9 +773,9 @@
       } else if (tab === 'discord') {
         discordSection.style.display = '';
         tabDiscord.classList.add('active');
-      } else if (tab === 'twitter' && twitterSection && tabTwitter) {
-        twitterSection.style.display = '';
-        tabTwitter.classList.add('active');
+      } else if (tab === 'facebook' && facebookSection && tabFacebook) {
+        facebookSection.style.display = '';
+        tabFacebook.classList.add('active');
       } else if (tab === 'twitch' && twitchSection && tabTwitch) {
         twitchSection.style.display = '';
         tabTwitch.classList.add('active');
@@ -767,7 +790,7 @@
       if (e.target.closest('#githubLoginBtn')) showSocialLoading('GitHub');
       if (e.target.closest('#googleLoginBtn')) showSocialLoading('Google');
       if (e.target.closest('#discordLoginBtn')) showSocialLoading('Discord');
-      if (e.target.closest('#twitterLoginBtn')) showSocialLoading('X / Twitter');
+      if (e.target.closest('#facebookLoginBtn')) showSocialLoading('Facebook');
       if (e.target.closest('#twitchLoginBtn')) showSocialLoading('Twitch');
       if (e.target.closest('#microsoftLoginBtn')) showSocialLoading('Microsoft');
     });
@@ -776,4 +799,3 @@
 </body>
 
 </html>
-
