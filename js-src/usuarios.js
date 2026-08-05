@@ -564,6 +564,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return rawName.length > 20 ? rawName.substring(0, 20) + '...' : rawName;
   }
 
+  function getUserHandle(user) {
+    if (user?.username) return '@' + user.username;
+    return '@' + ('membro_' + String(user?.id || '').substring(0, 5));
+  }
+
   function getUserAvatar(user) {
     return user?.avatar_url || 'assets/tryhard.png';
   }
@@ -3253,6 +3258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const xp = progress.totalXp;
       const avatar = getUserAvatar(user);
       const name = getUserDisplayName(user);
+      const handle = getUserHandle(user);
       const isVip = progress.isVip;
       const statusText = isUserOnline(user) ? 'Online' : 'Offline';
       const statusClass = isUserOnline(user) ? 'online' : 'offline';
@@ -3318,6 +3324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         <div class="user-info-section">
           <span class="user-name" onclick="openProfileModal('${user.id}')" style="cursor:pointer;">${escapeHtml(name)} ${isMe ? '<small>(Você)</small>' : ''}</span>
+          <div class="user-handle" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">${escapeHtml(handle)}</div>
           <div class="user-level-row">
             <div class="user-level">LVL ${level}</div>
             ${equippedIcons.length > 0 ? `

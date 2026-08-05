@@ -2329,7 +2329,8 @@
                 id="displayUsername"
                 style="display: flex; flex-direction: column"
               >
-                <span style="font-size: 1.15rem">Carregando...</span>
+                <span id="displayFullNameText" style="font-size: 1.15rem">Carregando...</span>
+                <span id="displayUserHandle" style="font-size: 0.9rem; color: var(--text-muted); font-weight: normal; margin-top: 2px;">@carregando</span>
                 <span
                   id="displayCustomTitle"
                   style="
@@ -2365,17 +2366,35 @@
           <form id="profileForm">
             <div class="form-group">
               <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px;">
-                <label for="username" style="margin-bottom: 0;">Nome de Exibição</label>
-                <span id="usernameCounter" style="font-size: 0.8rem; color: var(--text-muted);">0/20</span>
+                <label for="fullName" style="margin-bottom: 0;">Nome de Exibição</label>
+                <span id="fullNameCounter" style="font-size: 0.8rem; color: var(--text-muted);">0/20</span>
+              </div>
+              <input
+                type="text"
+                id="fullName"
+                placeholder="Seu nome"
+                required
+                maxlength="20"
+                oninput="document.getElementById('fullNameCounter').textContent = this.value.length + '/20';"
+              />
+            </div>
+
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px;">
+                <label for="username" style="margin-bottom: 0;">@ Nome de Usuário (Único)</label>
               </div>
               <input
                 type="text"
                 id="username"
-                placeholder="Seu nome"
+                placeholder="seu_arroba"
                 required
-                maxlength="20"
-                oninput="document.getElementById('usernameCounter').textContent = this.value.length + '/20';"
+                minlength="3"
+                maxlength="15"
+                pattern="^[a-zA-Z][a-zA-Z0-9_]{2,14}$"
+                title="Deve começar com letra, ter entre 3 e 15 caracteres (apenas letras, números e underscore)"
+                oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, ''); if(this.value.length > 0 && /^[0-9_]/.test(this.value)) this.value = this.value.substring(1);"
               />
+              <p id="usernameCooldownMsg" style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; display: none;">Você só pode alterar seu username a cada 48 horas.</p>
             </div>
 
             <div class="form-group">
@@ -4756,19 +4775,47 @@
           const fallbackName = user.email
             ? user.email.split("@")[0]
             : "Usuário";
+          const fullNameValue = profile?.full_name || profile?.username || fallbackName;
           const usernameValue = profile?.username || fallbackName;
           const avatarValue =
             profile?.avatar_url ||
             "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
+          const fullNameInput = document.getElementById("fullName");
+          const truncatedFullName = fullNameValue.length > 20 ? fullNameValue.substring(0, 20) : fullNameValue;
+          fullNameInput.value = truncatedFullName;
+          document.getElementById("fullNameCounter").textContent = truncatedFullName.length + "/20";
+          
           const usernameInput = document.getElementById("username");
-          const truncatedUsername = usernameValue.length > 20 ? usernameValue.substring(0, 20) : usernameValue;
-          usernameInput.value = truncatedUsername;
-          document.getElementById("usernameCounter").textContent = truncatedUsername.length + "/20";
+          usernameInput.value = usernameValue;
+          const usernameCooldownMsg = document.getElementById("usernameCooldownMsg");
+          
+          if (profile?.last_username_update) {
+            const lastUpdate = new Date(profile.last_username_update);
+            const now = new Date();
+            const diffHours = Math.abs(now - lastUpdate) / 36e5;
+            
+            if (diffHours < 48) {
+              usernameInput.disabled = true;
+              usernameInput.style.cursor = "not-allowed";
+              const hoursLeft = Math.ceil(48 - diffHours);
+              usernameCooldownMsg.style.display = "block";
+              usernameCooldownMsg.textContent = `Você só pode alterar seu username novamente em ${hoursLeft} horas.`;
+            } else {
+              usernameInput.disabled = false;
+              usernameInput.style.cursor = "text";
+              usernameCooldownMsg.style.display = "none";
+            }
+          } else {
+            usernameInput.disabled = false;
+            usernameInput.style.cursor = "text";
+            usernameCooldownMsg.style.display = "none";
+          }
+          
           document.getElementById("avatarUrl").value =
             profile?.avatar_url || "";
-          document.getElementById("displayUsername").textContent =
-            usernameValue;
+          document.getElementById("displayFullNameText").textContent = fullNameValue;
+          document.getElementById("displayUserHandle").textContent = "@" + usernameValue;
           document.getElementById("displayAvatar").src = avatarValue;
           document.getElementById("displayEmail").textContent =
             user.email || "";
@@ -4960,10 +5007,26 @@
 
           document.getElementById("profileForm").onsubmit = async (e) => {
             e.preventDefault();
-            const username = document.getElementById("username").value.trim();
+            const fullName = document.getElementById("fullName").value.trim();
+            const username = document.getElementById("username").value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
             const avatar_url = document.getElementById("avatarUrl").value;
 
-            if (username) {
+            let hasUsernameChanged = false;
+
+            if (username && username !== profile?.username) {
+              if (username.length < 3 || username.length > 15 || !/^[a-zA-Z][a-zA-Z0-9_]{2,14}$/.test(username)) {
+                showToast("O username deve começar com uma letra e ter entre 3 a 15 caracteres (apenas letras, números e _).", "error", 7000);
+                return;
+              }
+              
+              if (profile?.last_username_update) {
+                const diffHours = Math.abs(new Date() - new Date(profile.last_username_update)) / 36e5;
+                if (diffHours < 48) {
+                  showToast("Você deve esperar 48 horas para alterar o username novamente.", "error", 7000);
+                  return;
+                }
+              }
+
               const { data: existing } = await supabase
                 .from("profiles")
                 .select("id")
@@ -4975,16 +5038,25 @@
                 showToast("Esse nome de usuário já está em uso.", "error", 7000);
                 return;
               }
+              
+              hasUsernameChanged = true;
+            }
+            
+            const updatePayload = {
+              id: user.id,
+              username,
+              full_name: fullName,
+              avatar_url,
+              updated_at: new Date(),
+            };
+            
+            if (hasUsernameChanged) {
+              updatePayload.last_username_update = new Date();
             }
 
             const { error: updateError } = await supabase
               .from("profiles")
-              .upsert({
-                id: user.id,
-                username,
-                avatar_url,
-                updated_at: new Date(),
-              });
+              .upsert(updatePayload);
 
             if (updateError) {
               showToast(
@@ -4994,8 +5066,11 @@
               );
             } else {
               showToast("Perfil atualizado com sucesso.", "success", 7000);
-              document.getElementById("displayUsername").textContent =
-                username || fallbackName;
+              // Update local profile object so next saves don't falsely fail uniqueness check
+              if (profile) profile.username = username;
+              
+              document.getElementById("displayFullNameText").textContent = fullName || fallbackName;
+              document.getElementById("displayUserHandle").textContent = "@" + (username || fallbackName);
               document.getElementById("displayAvatar").src =
                 avatar_url ||
                 "https://cdn-icons-png.flaticon.com/512/149/149071.png";
