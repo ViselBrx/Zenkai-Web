@@ -2617,10 +2617,30 @@ async function signInWithDiscord() {
   if (error) showOAuthError("Discord", error);
 }
 
+// --- LOGIN COM FACEBOOK ---
+async function signInWithFacebook() {
+  try {
+    await ensureOAuthClientReady();
+  } catch (error) {
+    showOAuthError("Facebook", error);
+    return;
+  }
+
+  const { data, error } = await supaClient.auth.signInWithOAuth({
+    provider: 'facebook',
+    options: {
+      redirectTo: window.location.origin + '/perfil.html'
+    }
+  });
+
+  if (error) showOAuthError("Facebook", error);
+}
+
 // Expor para o HTML
 window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
+window.signInWithFacebook = signInWithFacebook;
 
 // Adicionar listeners para os botÃƒÂµes social se existirem
 document.addEventListener("click", (e) => {
@@ -2632,6 +2652,9 @@ document.addEventListener("click", (e) => {
   }
   if (e.target.closest("#discordLoginBtn") || e.target.closest("#discordRegBtn")) {
     signInWithDiscord();
+  }
+  if (e.target.closest("#facebookLoginBtn") || e.target.closest("#facebookRegBtn")) {
+    signInWithFacebook();
   }
 });
 
