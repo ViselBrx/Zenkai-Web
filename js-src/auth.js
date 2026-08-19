@@ -1327,6 +1327,9 @@ async function setupAuthLogic() {
           localStorage.removeItem("animehouse_customTitle");
           localStorage.removeItem("animehouse_showCrown");
           localStorage.removeItem("animehouse_tema_cromatico");
+          localStorage.removeItem("animehouse_tema_natal");
+          localStorage.removeItem("animehouse_tema_abismo_estelar");
+          localStorage.removeItem("animehouse_tema_abismo");
           localStorage.removeItem("animehouse_userLevel");
           localStorage.removeItem("animehouse_userRank");
           localStorage.removeItem("animehouse_prevLevel");
@@ -2014,6 +2017,7 @@ window.updateNavbarCosmetics = function () {
       crownIcon: "animehouse_equippedCrownIcon",
       tema_cromatico: "animehouse_tema_cromatico",
       tema_natal: "animehouse_tema_natal",
+      tema_abismo_estelar: "animehouse_tema_abismo_estelar",
       frame_dourado: "animehouse_frame_dourado",
     };
 
@@ -2046,6 +2050,7 @@ window.updateNavbarCosmetics = function () {
   const hasFrame = getCosmetic("frame_dourado", false) === true || getCosmetic("frame_dourado", false) === "true";
   const hasTemaCromatico = getCosmetic("tema_cromatico", false) === true || getCosmetic("tema_cromatico", false) === "true";
   const hasTemaNatal = getCosmetic("tema_natal", false) === true || getCosmetic("tema_natal", false) === "true";
+  const hasTemaAbismo = getCosmetic("tema_abismo_estelar", false) === true || getCosmetic("tema_abismo_estelar", false) === "true";
 
   const buildCrownMarkup = (crownId, crownIcon) => {
     const normalizedId = String(crownId || "").trim().toLowerCase();
@@ -2081,6 +2086,8 @@ window.updateNavbarCosmetics = function () {
   if (window.setTheme) {
     if (hasTemaNatal) {
       window.setTheme("theme-natal");
+    } else if (hasTemaAbismo) {
+      window.setTheme("theme-abismo");
     } else if (hasTemaCromatico) {
       window.setTheme("theme-cromatico");
     }

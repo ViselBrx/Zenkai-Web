@@ -12,6 +12,7 @@
     "theme-vagabond": "theme-branco",
     tema_cromatico: "theme-cromatico",
     tema_natal: "theme-natal",
+    tema_abismo_estelar: "theme-abismo",
   };
   const AVAILABLE_THEMES = new Set([
     "theme-ciano",
@@ -26,6 +27,7 @@
     "theme-aqua-verde",
     "theme-cromatico",
     "theme-natal",
+    "theme-abismo",
   ]);
 
   const ALL_THEME_CLASSES = [
@@ -50,11 +52,14 @@
     "theme-aqua-verde",
     "theme-cromatico",
     "theme-natal",
+    "theme-abismo",
   ];
 
   const CHROMATIC_THEME = "theme-cromatico";
   const CHROMATIC_LITE_CLASS = "theme-cromatico-lite";
   const CHROMATIC_PAUSED_CLASS = "theme-cromatico-paused";
+  const ABYSS_THEME = "theme-abismo";
+  const ABYSS_DECOR_ID = "abismo-decorations";
   const CHROMATIC_HUE_START = 210;
   const CHROMATIC_HUE_STEP = 10;
   const CHROMATIC_TICK_MS = 450;
@@ -152,22 +157,86 @@
     }
   }
 
+  function syncAbismoDecorations(theme) {
+    const isAbismo = normalizeTheme(theme) === ABYSS_THEME;
+    const existingDecor = document.getElementById(ABYSS_DECOR_ID);
+
+    if (!isAbismo) {
+      if (existingDecor) existingDecor.remove();
+      return;
+    }
+
+    if (!existingDecor && document.body) {
+      const decorContainer = document.createElement("div");
+      decorContainer.id = ABYSS_DECOR_ID;
+      const stars = Array.from({ length: 120 }, () => {
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        const size = Math.random() * 2 + 0.7;
+        const opacity = Math.random() * 0.55 + 0.18;
+        const duration = Math.random() * 5 + 4;
+        const delay = -(Math.random() * 10);
+        const drift = (Math.random() * 2 - 1) * 34;
+        const sway = (Math.random() * 2 - 1) * 14;
+        return `<span class="abismo-star" style="left:${left}%;top:${top}%;width:${size}px;height:${size}px;opacity:${opacity};animation-duration:${duration}s;animation-delay:${delay}s;--abismo-drift:${drift}px;--abismo-sway:${sway}px"></span>`;
+      }).join("");
+      const wanderers = Array.from({ length: 14 }, () => {
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        const size = Math.random() * 3.5 + 2.2;
+        const opacity = Math.random() * 0.5 + 0.55;
+        const duration = Math.random() * 14 + 12;
+        const delay = -(Math.random() * 16);
+        const drift = (Math.random() * 2 - 1) * 150;
+        const sway = (Math.random() * 2 - 1) * 45;
+        return `<span class="abismo-star abismo-star--wanderer" style="left:${left}%;top:${top}%;width:${size}px;height:${size}px;opacity:${opacity};animation-duration:${duration}s;animation-delay:${delay}s;--abismo-drift:${drift}px;--abismo-sway:${sway}px"></span>`;
+      }).join("");
+
+      decorContainer.innerHTML = `
+        <div class="abismo-glow abismo-glow-left"></div>
+        <div class="abismo-glow abismo-glow-right"></div>
+        <div class="abismo-stars">${stars}${wanderers}</div>
+      `;
+      document.body.appendChild(decorContainer);
+    }
+  }
+
+  function readThemeStorage(keys) {
+    for (const key of keys) {
+      const value = localStorage.getItem(key);
+      if (value !== null && value !== "") return value;
+    }
+    return null;
+  }
+
   function normalizeTheme(theme) {
     const rawTheme = String(theme || "").trim();
     if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
 
-    if (rawTheme === "theme-cromatico" || rawTheme === "theme-natal") {
+    if (rawTheme === "theme-cromatico" || rawTheme === "theme-natal" || rawTheme === ABYSS_THEME) {
       const uid = getAuthenticatedUserId();
       if (!uid) return "theme-ciano";
 
       const userKey =
         rawTheme === "theme-cromatico"
           ? `animehouse_tema_cromatico_${uid}`
-          : `animehouse_tema_natal_${uid}`;
+          : rawTheme === "theme-natal"
+            ? `animehouse_tema_natal_${uid}`
+            : `animehouse_tema_abismo_estelar_${uid}`;
       const isEquipped =
-        localStorage.getItem(userKey) === "true" ||
+        readThemeStorage(
+          rawTheme === "theme-cromatico"
+            ? [userKey]
+            : rawTheme === "theme-natal"
+              ? [userKey]
+              : [userKey, `animehouse_tema_abismo_${uid}`],
+        ) === "true" ||
         (window.DB?._store?.profile?.store_data?.equipped?.[
-          rawTheme === "theme-cromatico" ? "tema_cromatico" : "tema_natal"
+          rawTheme === "theme-cromatico"
+            ? "tema_cromatico"
+            : rawTheme === "theme-natal"
+              ? "tema_natal"
+              : "tema_abismo_estelar"
         ] === true);
 
       if (!isEquipped) return "theme-ciano";
@@ -196,6 +265,14 @@
     ) {
       sessionStorage.setItem("theme", "theme-natal");
     }
+
+    const abismoKey = uid ? `animehouse_tema_abismo_estelar_${uid}` : "animehouse_tema_abismo_estelar";
+    if (
+      readThemeStorage([abismoKey, uid ? `animehouse_tema_abismo_${uid}` : "animehouse_tema_abismo"]) === "true" &&
+      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
+    ) {
+      sessionStorage.setItem("theme", "theme-abismo");
+    }
   };
   syncChromaticTheme();
 
@@ -205,6 +282,7 @@
   sessionStorage.setItem("theme", savedTheme);
   syncChromaticRuntimeClasses(savedTheme);
   syncNatalDecorations(savedTheme);
+  syncAbismoDecorations(savedTheme);
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!document.body) return;
@@ -214,15 +292,18 @@
     document.body.classList.add(currentTheme);
     syncChromaticRuntimeClasses(currentTheme);
     syncNatalDecorations(currentTheme);
+    syncAbismoDecorations(currentTheme);
   });
 
   document.addEventListener("visibilitychange", () => {
     syncChromaticRuntimeClasses(sessionStorage.getItem("theme"));
+    syncAbismoDecorations(sessionStorage.getItem("theme"));
   });
 
   if (chromaticMotionQuery) {
     const handleChromaticMotionChange = () => {
       syncChromaticRuntimeClasses(sessionStorage.getItem("theme"));
+      syncAbismoDecorations(sessionStorage.getItem("theme"));
     };
 
     if (typeof chromaticMotionQuery.addEventListener === "function") {
@@ -235,7 +316,7 @@
   function applyTheme(theme) {
     const themeToApply = normalizeTheme(theme);
     const isProtectedTheme =
-      themeToApply === "theme-cromatico" || themeToApply === "theme-natal";
+      themeToApply === "theme-cromatico" || themeToApply === "theme-natal" || themeToApply === ABYSS_THEME;
     if (isProtectedTheme && !getAuthenticatedUserId()) {
       return applyTheme("theme-ciano");
     }
@@ -254,6 +335,7 @@
 
     syncChromaticRuntimeClasses(themeToApply);
     syncNatalDecorations(themeToApply);
+    syncAbismoDecorations(themeToApply);
 
     sessionStorage.setItem("theme", themeToApply);
 

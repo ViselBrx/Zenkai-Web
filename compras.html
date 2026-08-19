@@ -720,6 +720,14 @@
                     currency: "esmeralda",
                     price: 7,
                 },
+                {
+                    id: "tema_abismo_estelar",
+                    name: "Tema Abismo Estelar",
+                    icon: "<i class='fa-solid fa-star'></i>",
+                    category: "tema",
+                    currency: "diamante",
+                    price: 7,
+                },
 
                 {
                     id: "cursor_camaleao",
@@ -971,6 +979,10 @@
                                 store.equipped.crown = false;
                             if (id === "tema_cromatico")
                                 store.equipped.tema_cromatico = false;
+                            if (id === "tema_natal")
+                                store.equipped.tema_natal = false;
+                            if (id === "tema_abismo_estelar")
+                                store.equipped.tema_abismo_estelar = false;
                             if (store.equipped[id]) delete store.equipped[id];
                         }
 
@@ -1011,6 +1023,10 @@
                         if (item.category === "tema" || item.category === "cursor") {
                             localStorage.removeItem(userKey("animehouse_" + id));
                             if (id === "tema_cromatico" && window.setTheme) {
+                                window.setTheme("theme-ciano");
+                            } else if (id === "tema_natal" && window.setTheme) {
+                                window.setTheme("theme-ciano");
+                            } else if (id === "tema_abismo_estelar" && window.setTheme) {
                                 window.setTheme("theme-ciano");
                             }
                         }
@@ -1087,7 +1103,7 @@
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
                     } else if (type === "tema" || type === "cursor") {
-                        if (id === "tema_cromatico" || id === "tema_natal") {
+                        if (id === "tema_cromatico" || id === "tema_natal" || id === "tema_abismo_estelar") {
                             if (window.setTheme) window.setTheme("theme-ciano");
                         }
                         store.equipped[id] = false;
@@ -1117,6 +1133,8 @@
                             if (window.setTheme) window.setTheme("theme-cromatico");
                         } else if (id === "tema_natal") {
                             if (window.setTheme) window.setTheme("theme-natal");
+                        } else if (id === "tema_abismo_estelar") {
+                            if (window.setTheme) window.setTheme("theme-abismo");
                         }
                         store.equipped[id] = true;
                         localStorage.setItem(userKey("animehouse_" + id), "true");

@@ -1420,6 +1420,27 @@
   --shadow-neon-h: var(--natal-shadow-neon-h);
 }
 
+.theme-abismo {
+  --primary: #a7ccff;
+  --primary-rgb: 167, 204, 255;
+  --primary-hover: #d3e6ff;
+  --hover-color: #eef6ff;
+  --hover-glow: rgba(167, 204, 255, 0.36);
+  --accent: #162040;
+  --accent2: #070b17;
+  --text-main: #fbfcff;
+  --text-muted: #b6c3df;
+  --border: #344265;
+  --bg-dark: #01030a;
+  --bg-surface: #050914;
+  --bg-card: #0a1020;
+  --shadow-neon: 0 0 10px rgba(167, 204, 255, 0.28);
+  --shadow-neon-h:
+    0 0 18px rgba(167, 204, 255, 0.46),
+    0 0 34px rgba(167, 204, 255, 0.18);
+  --scrollbar: #a7ccff;
+}
+
 .theme-ciano,
 .theme-default {
   scrollbar-color: var(--default-scrollbar) #050f1f;
@@ -1471,6 +1492,10 @@
 
 .theme-natal {
   scrollbar-color: var(--natal-scrollbar) #050f1f;
+}
+
+.theme-abismo {
+  scrollbar-color: var(--scrollbar) #02040b;
 }
 
 /* ===================================================== */
@@ -1628,6 +1653,16 @@
 
 .theme-natal ::-moz-selection {
   background: rgba(var(--natal-primary-rgb), 0.28);
+  color: #050f1f;
+}
+
+.theme-abismo ::selection {
+  background: rgba(167, 204, 255, 0.34);
+  color: #050f1f;
+}
+
+.theme-abismo ::-moz-selection {
+  background: rgba(167, 204, 255, 0.34);
   color: #050f1f;
 }
 
@@ -6313,6 +6348,10 @@ body:hover .watermark {
   --title-font: "Righteous", cursive;
 }
 
+.theme-abismo {
+  --title-font: "Black Ops One", cursive;
+}
+
 .header-main h1 {
   font-family: var(--title-font, "Bangers");
 }
@@ -7204,6 +7243,111 @@ input[type="number"]::-webkit-outer-spin-button:hover {
   display: none !important;
 }
 
+/* ===================================================== */
+/* ===== DECORAÇÕES DO TEMA ABISMO ESTELAR              ===== */
+/* ===================================================== */
+#abismo-decorations {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  opacity: 0.72;
+}
+
+.abismo-stars {
+  position: absolute;
+  inset: 0;
+}
+
+.abismo-star {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 4px rgba(255, 255, 255, 0.85),
+    0 0 10px rgba(180, 210, 255, 0.18);
+  animation:
+    abismo-twinkle ease-in-out infinite,
+    abismo-drift ease-in-out infinite alternate;
+  transform: translate3d(0, 0, 0);
+}
+
+.abismo-star::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: inherit;
+  filter: blur(1px);
+  opacity: 0.85;
+}
+
+.abismo-star--wanderer {
+  background: radial-gradient(circle,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(220, 235, 255, 0.95) 35%,
+    rgba(150, 180, 255, 0.72) 60%,
+    rgba(150, 180, 255, 0) 100%);
+  box-shadow:
+    0 0 10px rgba(255, 255, 255, 0.95),
+    0 0 22px rgba(170, 205, 255, 0.75),
+    0 0 42px rgba(120, 150, 255, 0.35);
+  filter: blur(0.15px);
+}
+
+.abismo-star--wanderer::before {
+  inset: -3px;
+  filter: blur(2px);
+  opacity: 0.95;
+}
+
+.abismo-glow {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 50%;
+  filter: blur(28px);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+.abismo-glow-left {
+  top: -12vw;
+  left: -10vw;
+  background: radial-gradient(circle,
+    rgba(85, 112, 210, 0.38) 0%,
+    rgba(34, 48, 104, 0.2) 36%,
+    transparent 70%);
+}
+
+.abismo-glow-right {
+  right: -14vw;
+  bottom: -16vw;
+  background: radial-gradient(circle,
+    rgba(138, 175, 255, 0.22) 0%,
+    rgba(42, 58, 120, 0.14) 38%,
+    transparent 72%);
+}
+
+@keyframes abismo-twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.35); }
+}
+
+@keyframes abismo-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(var(--abismo-drift, 10px), var(--abismo-sway, -18px), 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .abismo-star {
+    animation: none !important;
+  }
+}
+
 /* --- DIAGONAIS DE NATAL --- */
 .corner-decor {
   position: absolute;
@@ -7588,5 +7732,199 @@ body.site-guide-open {
   .site-guide-actions .btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* ======================================================== */
+/* MOBILE APP LAYOUT OVERRIDES                              */
+/* ======================================================== */
+@media (max-width: 768px) {
+  html,
+  body {
+    width: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .navbar {
+    height: 72px !important;
+    padding: 0 12px !important;
+  }
+
+  .navbar-brand {
+    gap: 8px !important;
+  }
+
+  .navbar-brand img {
+    height: 40px !important;
+  }
+
+  .container,
+  .profile-shell {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 10px !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.45rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .page-header p {
+    font-size: 0.92rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .search-bar,
+  .page-header .search-bar {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 0 !important;
+  }
+
+  .search-bar input,
+  .search-bar select,
+  .search-bar button {
+    width: 100% !important;
+  }
+
+  .cards-grid,
+  .reader-grid,
+  .items-grid,
+  .anime-list-grid,
+  .catalog-grid,
+  .manga-grid,
+  .episodes-grid,
+  .store-grid,
+  .loja-grid,
+  .users-grid,
+  .inventory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .card,
+  .episode-card,
+  .manga-item,
+  .volume-card,
+  .edition-card,
+  .store-card,
+  .loja-item,
+  .user-card {
+    border-radius: 14px !important;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-ghost {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+  }
+
+  .profile-shell {
+    min-height: calc(100dvh - 72px) !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .profile-layout {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .profile-main {
+    padding: 16px !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+  }
+
+  .history-sidebar {
+    padding: 12px !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+
+  .history-list {
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+    padding-right: 6px !important;
+  }
+
+  .history-item {
+    padding: 10px !important;
+    gap: 10px !important;
+  }
+
+  .history-item-actions {
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .history-action-btn {
+    min-height: 42px !important;
+    padding: 8px 10px !important;
+  }
+
+  .sidebar-footer {
+    padding-top: 12px !important;
+    margin-top: 12px !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  }
+
+  #readerModal .modal,
+  .site-fullscreen {
+    width: 100vw !important;
+    max-width: none !important;
+  }
+
+  #readerModal .modal {
+    height: 100dvh !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #readerModal .modal-header,
+  .site-fullscreen .modal-header {
+    padding: 10px 12px !important;
+    gap: 8px !important;
+  }
+
+  #readerTitle,
+  .site-fullscreen #readerTitle {
+    font-size: 1rem !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+  }
+
+  #readerFrame,
+  .site-fullscreen iframe {
+    height: calc(100dvh - 92px) !important;
+    min-height: 0 !important;
   }
 }

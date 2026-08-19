@@ -518,7 +518,8 @@
     'theme-demon-slayer': 'Verde escuro',
     'theme-branco': 'Branco',
     'theme-vagabond': 'Branco',
-    'theme-aqua-verde': 'Aqua verde'
+    'theme-aqua-verde': 'Aqua verde',
+    'theme-abismo': 'Abismo Estelar'
   };
 
   function updateThemeInfo() {

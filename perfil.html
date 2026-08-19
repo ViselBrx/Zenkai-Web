@@ -5088,8 +5088,11 @@
               "animehouse_equippedCrownIcon",
               "animehouse_tema_cromatico",
               "animehouse_tema_natal",
+              "animehouse_tema_abismo_estelar",
+              "animehouse_tema_abismo",
               "equipped_tema_cromatico",
               "equipped_tema_natal",
+              "equipped_tema_abismo_estelar",
               "equipped_frame_dourado",
               "animehouse_store",
               "animehouse_userLevel",
@@ -6021,6 +6024,11 @@
               if (localStorage.getItem(themeKey) === "true" && window.setTheme) {
                 window.setTheme("theme-cromatico");
               }
+              const abismoKey = uid ? `animehouse_tema_abismo_estelar_${uid}` : "animehouse_tema_abismo_estelar";
+              const abismoLegacyKey = uid ? `animehouse_tema_abismo_${uid}` : "animehouse_tema_abismo";
+              if ((localStorage.getItem(abismoKey) === "true" || localStorage.getItem(abismoLegacyKey) === "true") && window.setTheme) {
+                window.setTheme("theme-abismo");
+              }
           };
           checkInitialTheme();
 
@@ -6158,14 +6166,14 @@
                   console.log(`✓ Coroa ${item.id} encontrada em store.equipped`);
                   return true;
                 }
-                if (item.category === "tema" && item.id === "tema_cromatico" && store.equipped.tema_cromatico === true) {
+                if (item.category === "tema" && (item.id === "tema_cromatico" || item.id === "tema_natal" || item.id === "tema_abismo_estelar") && store.equipped[item.id] === true) {
                   console.log(`✓ Tema cromático encontrado em store.equipped`);
                   return true;
                 }
                 if (item.category === "cursor" && store.equipped[item.id] === true) {
                   return true;
                 }
-                if ((item.category === "tema" || item.id === "tema_cromatico") && store.equipped[item.id] === true) {
+                if ((item.category === "tema" || item.id === "tema_cromatico" || item.id === "tema_natal" || item.id === "tema_abismo_estelar") && store.equipped[item.id] === true) {
                   console.log(`✓ Item ${item.id} encontrado em store.equipped`);
                   return true;
                 }
@@ -6341,13 +6349,14 @@
                 store.equipped.crownIcon = icon;
               } else if (type === "tema") {
                 // Desequipar outros temas primeiro
-                ["tema_cromatico", "tema_natal"].forEach(t => {
+                ["tema_cromatico", "tema_natal", "tema_abismo_estelar"].forEach(t => {
                   store.equipped[t] = false;
                   localStorage.removeItem(userKey(`animehouse_${t}`));
                 });
                 
                 const themeAlias = id === "tema_cromatico" ? "theme-cromatico" : 
-                                  id === "tema_natal" ? "theme-natal" : "theme-ciano";
+                                  id === "tema_natal" ? "theme-natal" :
+                                  id === "tema_abismo_estelar" ? "theme-abismo" : "theme-ciano";
                 if (window.setTheme) window.setTheme(themeAlias);
                 store.equipped[id] = true;
                 localStorage.setItem(userKey(`animehouse_${id}`), "true");
@@ -6486,7 +6495,7 @@
               if (coroa) equippedItems.push({ ...coroa, type: "Decoração" });
             }
             
-            ["tema_cromatico", "tema_natal"].forEach(t => {
+            ["tema_cromatico", "tema_natal", "tema_abismo_estelar"].forEach(t => {
               if (localStorage.getItem(userKey(`animehouse_${t}`)) === "true") {
                 const tema = ALL_ITEMS.find((i) => i.id === t);
                 if (tema) equippedItems.push({ ...tema, type: "Tema" });

@@ -245,6 +245,14 @@ const ALL_ITEMS = [
       currency: "esmeralda",
       price: 7,
     },
+    {
+      id: "tema_abismo_estelar",
+      name: "Tema Abismo Estelar",
+      icon: "✨",
+      category: "tema",
+      currency: "diamante",
+      price: 7,
+    },
 
     {
       id: "cursor_camaleao",
@@ -730,6 +738,19 @@ const DB = {
                     } else if (mergedStore.equipped.tema_natal === false) {
                         localStorage.removeItem('equipped_tema_natal');
                         localStorage.removeItem('animehouse_tema_natal');
+                    }
+
+                    if (mergedStore.equipped.tema_abismo_estelar === true) {
+                        localStorage.setItem('equipped_tema_abismo_estelar', 'true');
+                        localStorage.setItem('animehouse_tema_abismo_estelar', 'true');
+                        localStorage.setItem('animehouse_tema_abismo', 'true');
+                        if (sessionStorage.getItem('theme') !== 'theme-abismo' && window.setTheme) {
+                            window.setTheme('theme-abismo');
+                        }
+                    } else if (mergedStore.equipped.tema_abismo_estelar === false) {
+                        localStorage.removeItem('equipped_tema_abismo_estelar');
+                        localStorage.removeItem('animehouse_tema_abismo_estelar');
+                        localStorage.removeItem('animehouse_tema_abismo');
                     }
 
 
