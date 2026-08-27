@@ -13,6 +13,7 @@
     tema_cromatico: "theme-cromatico",
     tema_natal: "theme-natal",
     tema_abismo_estelar: "theme-abismo",
+    tema_zenkai: "theme-zenkai",
   };
   const AVAILABLE_THEMES = new Set([
     "theme-ciano",
@@ -28,6 +29,7 @@
     "theme-cromatico",
     "theme-natal",
     "theme-abismo",
+    "theme-zenkai",
   ]);
 
   const ALL_THEME_CLASSES = [
@@ -53,15 +55,36 @@
     "theme-cromatico",
     "theme-natal",
     "theme-abismo",
+    "theme-zenkai",
   ];
 
   const CHROMATIC_THEME = "theme-cromatico";
   const CHROMATIC_LITE_CLASS = "theme-cromatico-lite";
   const CHROMATIC_PAUSED_CLASS = "theme-cromatico-paused";
   const ABYSS_THEME = "theme-abismo";
+  const ZENKAI_THEME = "theme-zenkai";
   const ABYSS_DECOR_ID = "abismo-decorations";
   // Mantém o tema decorado sem uma centena de camadas animadas na tela.
   const ABYSS_STAR_COUNT = 36;
+  const STORE_THEME_CONFIG = {
+    [CHROMATIC_THEME]: {
+      storageKey: "animehouse_tema_cromatico",
+      equippedKey: "tema_cromatico",
+    },
+    "theme-natal": {
+      storageKey: "animehouse_tema_natal",
+      equippedKey: "tema_natal",
+    },
+    [ABYSS_THEME]: {
+      storageKey: "animehouse_tema_abismo_estelar",
+      legacyStorageKey: "animehouse_tema_abismo",
+      equippedKey: "tema_abismo_estelar",
+    },
+    [ZENKAI_THEME]: {
+      storageKey: "animehouse_tema_zenkai",
+      equippedKey: "tema_zenkai",
+    },
+  };
   const CHROMATIC_HUE_START = 210;
   const CHROMATIC_HUE_STEP = 10;
   const CHROMATIC_TICK_MS = 450;
@@ -196,34 +219,25 @@
   }
 
   function normalizeTheme(theme) {
-    const rawTheme = String(theme || "").trim();
-    if (THEME_ALIASES[rawTheme]) return THEME_ALIASES[rawTheme];
+    const requestedTheme = String(theme || "").trim();
+    const rawTheme = THEME_ALIASES[requestedTheme] || requestedTheme;
+    const storeTheme = STORE_THEME_CONFIG[rawTheme];
 
-    if (rawTheme === "theme-cromatico" || rawTheme === "theme-natal" || rawTheme === ABYSS_THEME) {
+    if (storeTheme) {
       const uid = getAuthenticatedUserId();
       if (!uid) return "theme-ciano";
 
-      const userKey =
-        rawTheme === "theme-cromatico"
-          ? `animehouse_tema_cromatico_${uid}`
-          : rawTheme === "theme-natal"
-            ? `animehouse_tema_natal_${uid}`
-            : `animehouse_tema_abismo_estelar_${uid}`;
+      const userKeys = [`${storeTheme.storageKey}_${uid}`];
+      if (storeTheme.legacyStorageKey) {
+        userKeys.push(`${storeTheme.legacyStorageKey}_${uid}`);
+      }
+      const dbValue = window.DB?._store?.profile?.store_data?.equipped?.[
+        storeTheme.equippedKey
+      ];
       const isEquipped =
-        readThemeStorage(
-          rawTheme === "theme-cromatico"
-            ? [userKey]
-            : rawTheme === "theme-natal"
-              ? [userKey]
-              : [userKey, `animehouse_tema_abismo_${uid}`],
-        ) === "true" ||
-        (window.DB?._store?.profile?.store_data?.equipped?.[
-          rawTheme === "theme-cromatico"
-            ? "tema_cromatico"
-            : rawTheme === "theme-natal"
-              ? "tema_natal"
-              : "tema_abismo_estelar"
-        ] === true);
+        readThemeStorage(userKeys) === "true" ||
+        dbValue === true ||
+        dbValue === "true";
 
       if (!isEquipped) return "theme-ciano";
     }
@@ -231,33 +245,24 @@
     return AVAILABLE_THEMES.has(rawTheme) ? rawTheme : "theme-ciano";
   }
 
-  // Restaurar tema cromático de volta A  sessionStorage se estava equipado no localStorage (user-scoped)
+  // Restaurar temas especiais no sessionStorage se estavam equipados no localStorage.
   const syncChromaticTheme = () => {
     const uid = getAuthenticatedUserId();
     if (!uid) return;
 
-    const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
-    if (
-      localStorage.getItem(themeKey) === "true" &&
-      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
-    ) {
-      sessionStorage.setItem("theme", "theme-cromatico");
-    }
+    const currentTheme = sessionStorage.getItem("theme");
+    if (currentTheme && currentTheme !== "theme-ciano") return;
 
-    const natalKey = uid ? `animehouse_tema_natal_${uid}` : "animehouse_tema_natal";
-    if (
-      localStorage.getItem(natalKey) === "true" &&
-      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
-    ) {
-      sessionStorage.setItem("theme", "theme-natal");
-    }
-
-    const abismoKey = uid ? `animehouse_tema_abismo_estelar_${uid}` : "animehouse_tema_abismo_estelar";
-    if (
-      readThemeStorage([abismoKey, uid ? `animehouse_tema_abismo_${uid}` : "animehouse_tema_abismo"]) === "true" &&
-      (!sessionStorage.getItem("theme") || sessionStorage.getItem("theme") === "theme-ciano")
-    ) {
-      sessionStorage.setItem("theme", "theme-abismo");
+    // A ordem mantém um único tema especial ativo caso haja dados antigos duplicados.
+    const specialThemePriority = [ZENKAI_THEME, "theme-natal", ABYSS_THEME, CHROMATIC_THEME];
+    for (const theme of specialThemePriority) {
+      const config = STORE_THEME_CONFIG[theme];
+      const keys = [`${config.storageKey}_${uid}`];
+      if (config.legacyStorageKey) keys.push(`${config.legacyStorageKey}_${uid}`);
+      if (readThemeStorage(keys) === "true") {
+        sessionStorage.setItem("theme", theme);
+        break;
+      }
     }
   };
   syncChromaticTheme();
@@ -301,8 +306,7 @@
 
   function applyTheme(theme) {
     const themeToApply = normalizeTheme(theme);
-    const isProtectedTheme =
-      themeToApply === "theme-cromatico" || themeToApply === "theme-natal" || themeToApply === ABYSS_THEME;
+    const isProtectedTheme = Boolean(STORE_THEME_CONFIG[themeToApply]);
     if (isProtectedTheme && !getAuthenticatedUserId()) {
       return applyTheme("theme-ciano");
     }
@@ -407,18 +411,16 @@
 
     const pages = [
       { href: "index.html", label: " Início", icon: "<i class='fa-solid fa-house'></i>" },
-      { href: "desenhos.html", label: " Desenhos", icon: "<i class='fa-solid fa-tv'></i>" },
       { href: "animes.html", label: " Animes", icon: "<i class='fa-solid fa-torii-gate'></i>" },
-      { href: "youtube.html", label: " YouTube", icon: "<i class='fa-solid fa-play'></i>" },
+      { href: "desenhos.html", label: " Desenhos", icon: "<i class='fa-solid fa-tv'></i>" },
       { href: "filmes.html", label: " Filmes", icon: "<i class='fa-solid fa-clapperboard'></i>" },
-      { href: "episodios-desenhos.html", label: " Eps. Desenhos", icon: "<i class='fa-solid fa-play'></i>" },
-      { href: "anime-episodios.html", label: " Eps. Animes", icon: "<i class='fa-solid fa-play'></i>" },
-      { href: "youtube-videos.html", label: " Eps. YouTube", icon: "<i class='fa-solid fa-play'></i>" },
       { href: "painel-cadastros.html", label: " Painel de Cadastros", icon: "<i class='fa-solid fa-pen-to-square'></i>" },
       { href: "mangas.html", label: " Mangás", icon: "<i class='fa-solid fa-book'></i>" },
       { href: "hq.html", label: " HQs", icon: "<i class='fa-regular fa-comment-dots'></i>" },
+      { href: "youtube.html", label: " YouTube", icon: "<i class='fa-solid fa-play'></i>" },
       { href: "loja.html", label: " SenseiMod Store", icon: "<i class='fa-solid fa-flag'></i>" },
       { href: "zenkai.html", label: " ZenkAI", icon: "<i class='fa-solid fa-robot'></i>" },
+      { href: "sobre.html", label: " Equipe", icon: "<i class='fa-solid fa-users'></i>" },
       { href: "agradecimento.html", label: " Agradecimento", icon: "<i class='fa-solid fa-heart'></i>" },
     ];
 
@@ -443,16 +445,21 @@
       links.appendChild(li);
     });
 
-    // Restaura a posiA§A£o do scroll da navbar salva no localStorage
-    const savedScroll = localStorage.getItem("navbarScrollPosition");
-    if (savedScroll) {
-      links.scrollLeft = parseInt(savedScroll);
-    }
+    // Começa no ponto correto em cada página, sem herdar a posição de outra rota.
+    const revealActiveLink = () => {
+      const activeLink = links.querySelector("a.active");
+      if (!activeLink) return;
+      const maxScroll = Math.max(0, links.scrollWidth - links.clientWidth);
+      const targetScroll = activeLink.offsetLeft - (links.clientWidth - activeLink.offsetWidth) / 2;
+      links.scrollLeft = Math.min(maxScroll, Math.max(0, targetScroll));
+    };
+    window.requestAnimationFrame(revealActiveLink);
 
-    // Salva a posiA§A£o do scroll sempre que houver rolagem
-    links.addEventListener("scroll", () => {
-      localStorage.setItem("navbarScrollPosition", links.scrollLeft.toString());
-    });
+    // O auth.js reconstrói os links em algumas páginas; mantém o item ativo visível depois disso.
+    if ("MutationObserver" in window) {
+      const navObserver = new MutationObserver(() => window.requestAnimationFrame(revealActiveLink));
+      navObserver.observe(links, { childList: true });
+    }
 
     const onWheel = (e) => {
       const maxScroll = links.scrollWidth - links.clientWidth;
@@ -496,7 +503,7 @@
       this.y = y;
       this.type = type;
       this.color = color;
-      this.size = type === 'gelo' ? Math.random() * 4 + 2.5 : Math.random() * 6 + 3;
+      this.size = type === 'gelo' ? Math.random() * 4 + 2.5 : Math.random() * 4 + 2;
       this.alpha = 1;
       
       if (type === 'gelo') {

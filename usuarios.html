@@ -722,6 +722,22 @@
       -webkit-box-orient: vertical;
     }
 
+    .conversation-search-jump {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 2px;
+      color: var(--primary);
+      font-size: 0.62rem;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .conversation-search-jump i {
+      font-size: 0.58rem;
+    }
+
     .conversation-unread {
       min-width: 20px;
       height: 20px;
@@ -873,6 +889,34 @@
     .chat-bubble.is-deleted {
       background: rgba(255, 255, 255, 0.045);
       border-style: dashed;
+    }
+
+    .chat-bubble.chat-message-search-target {
+      animation: chat-message-search-target 1.8s ease both;
+      z-index: 1;
+    }
+
+    @keyframes chat-message-search-target {
+      0%, 100% {
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+      }
+      18%, 62% {
+        border-color: var(--primary);
+        background: rgba(var(--primary-rgb), 0.32);
+        box-shadow:
+          0 0 0 3px rgba(var(--primary-rgb), 0.12),
+          0 0 28px rgba(var(--primary-rgb), 0.42),
+          0 12px 28px rgba(0, 0, 0, 0.14);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .chat-bubble.chat-message-search-target {
+        animation: none;
+        border-color: var(--primary);
+        background: rgba(var(--primary-rgb), 0.28);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
+      }
     }
 
     .chat-bubble-head {
@@ -2745,7 +2789,7 @@
 
   <script src="js-ofuscado/db.js"></script>
   <script src="js-ofuscado/auth.js"></script>
-  <script src="js-ofuscado/usuarios.js"></script>
+  <script src="js-ofuscado/usuarios.js?v=chat-search-2"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const overlay = document.getElementById('avatarViewOverlay');
@@ -2823,7 +2867,7 @@
             <div class="social-toolbar">
               <div class="social-search-inline">
                 <i class="fas fa-search"></i>
-                <input id="conversationSearch" type="text" placeholder="Buscar conversa...">
+                <input id="conversationSearch" type="text" placeholder="Buscar conversa ou mensagem...">
               </div>
             </div>
             <div id="conversationList" class="conversation-list">

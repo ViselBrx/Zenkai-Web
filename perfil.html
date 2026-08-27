@@ -357,6 +357,148 @@
         justify-content: center;
       }
 
+      /* Ações do histórico: layout único, compacto e compatível com todos os cards */
+      .history-item-actions {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        min-width: 0;
+        width: 100%;
+      }
+
+      .history-item-tools {
+        display: contents;
+      }
+
+      .history-item-actions [data-favorite-id] {
+        order: 1;
+        flex: 0 0 34px;
+        width: 34px;
+        min-width: 34px;
+        padding: 8px 4px;
+      }
+
+      .history-item-actions [data-open-id] {
+        order: 2;
+      }
+
+      .history-item-actions [data-rename-id] {
+        order: 3;
+      }
+
+      .history-item-actions [data-delete-id] {
+        order: 4;
+      }
+
+      .history-item-actions [data-open-id],
+      .history-item-actions [data-rename-id],
+      .history-item-actions [data-delete-id] {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+        max-width: none;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 8px 6px;
+        font-size: 0.73rem;
+      }
+
+      .history-item-actions .history-action-btn,
+      .history-item-actions [data-open-id],
+      .history-item-actions [data-rename-id],
+      .history-item-actions [data-delete-id] {
+        background: rgba(var(--primary-rgb), 0.06) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.3) !important;
+        color: var(--primary) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--primary-rgb), 0.05),
+          inset 0 0 12px rgba(var(--primary-rgb), 0.05) !important;
+        backdrop-filter: blur(10px) saturate(125%);
+        -webkit-backdrop-filter: blur(10px) saturate(125%);
+      }
+
+      .history-item-actions .history-action-btn:hover,
+      .history-item-actions [data-open-id]:hover,
+      .history-item-actions [data-rename-id]:hover {
+        background: rgba(var(--primary-rgb), 0.14) !important;
+        border-color: rgba(var(--primary-rgb), 0.68) !important;
+        color: var(--text-main) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--primary-rgb), 0.12),
+          0 0 18px rgba(var(--primary-rgb), 0.18),
+          inset 0 0 12px rgba(var(--primary-rgb), 0.08) !important;
+        transform: translateY(-1px);
+      }
+
+      .history-item-actions [data-delete-id] {
+        background: rgba(239, 68, 68, 0.06) !important;
+        border-color: rgba(239, 68, 68, 0.42) !important;
+        color: #ff9b9b !important;
+      }
+
+      .history-item-actions [data-delete-id]:hover {
+        background: rgba(239, 68, 68, 0.14) !important;
+        border-color: rgba(255, 112, 112, 0.82) !important;
+        color: #ffdada !important;
+        box-shadow:
+          0 0 0 1px rgba(239, 68, 68, 0.14),
+          0 0 18px rgba(239, 68, 68, 0.2),
+          inset 0 0 12px rgba(239, 68, 68, 0.08) !important;
+      }
+
+      .history-item-actions .history-favorite-btn .history-action-symbol,
+      .history-item-actions .history-favorite-btn i {
+        color: var(--primary) !important;
+      }
+
+      .history-item-actions .history-favorite-btn.active {
+        background: rgba(var(--primary-rgb), 0.14) !important;
+        border-color: rgba(var(--primary-rgb), 0.68) !important;
+      }
+
+      .theme-zenkai .history-item-actions .history-action-btn,
+      .theme-zenkai .history-item-actions [data-open-id],
+      .theme-zenkai .history-item-actions [data-rename-id],
+      .theme-zenkai .history-item-actions [data-delete-id] {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--zenkai-accent-rgb), 0.18),
+            rgba(9, 18, 34, 0.94)
+          ) !important;
+        border-color: var(--zenkai-accent) !important;
+        color: var(--text-main) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.08),
+          0 10px 28px rgba(0, 0, 0, 0.24),
+          0 0 22px rgba(var(--zenkai-accent-rgb), 0.22) !important;
+      }
+
+      .theme-zenkai .history-item-actions .history-action-btn:hover,
+      .theme-zenkai .history-item-actions [data-open-id]:hover,
+      .theme-zenkai .history-item-actions [data-rename-id]:hover,
+      .theme-zenkai .history-item-actions [data-delete-id]:hover {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--zenkai-accent-rgb), 0.26),
+            rgba(12, 22, 40, 0.98)
+          ) !important;
+        border-color: var(--zenkai-accent) !important;
+        color: var(--text-main) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.16),
+          0 14px 34px rgba(0, 0, 0, 0.3),
+          0 0 30px rgba(var(--zenkai-accent-rgb), 0.32),
+          inset 0 0 12px rgba(var(--zenkai-accent-rgb), 0.08) !important;
+      }
+
+      .theme-zenkai .history-item-actions .history-favorite-btn .history-action-symbol,
+      .theme-zenkai .history-item-actions .history-favorite-btn i {
+        color: var(--zenkai-accent) !important;
+      }
+
       .rename-help {
         margin: 8px 0 0;
         font-size: 0.78rem;
@@ -1940,6 +2082,210 @@
 
       .equipped-indicator {
         animation: fadeIn 0.3s ease;
+      }
+
+      /* Meus especiais no Zenkai: inventário limpo, sem efeitos de raridade */
+      .theme-zenkai #inventoryDisplay .inventory-item-card,
+      .theme-zenkai #inventoryDisplay .item-card-emerald {
+        background: rgba(15, 15, 30, 0.4) !important;
+        background-image: none !important;
+        background-clip: border-box !important;
+        background-origin: border-box !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.24) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2) !important;
+        animation: none !important;
+        transform: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card:hover,
+      .theme-zenkai #inventoryDisplay .item-card-emerald:hover {
+        border-color: rgba(var(--primary-rgb), 0.52) !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card::before,
+      .theme-zenkai #inventoryDisplay .inventory-item-card::after,
+      .theme-zenkai #inventoryDisplay .item-card-emerald::before,
+      .theme-zenkai #inventoryDisplay .item-card-emerald::after {
+        display: none !important;
+        animation: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card.equipped {
+        border-color: rgba(var(--primary-rgb), 0.62) !important;
+        box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.18) !important;
+        animation: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .item-icon,
+      .theme-zenkai #inventoryDisplay .item-rarity {
+        animation: none !important;
+        filter: none !important;
+        text-shadow: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .item-rarity {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: var(--text-main) !important;
+        color: var(--text-main) !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card .equipped-indicator {
+        background: #22c55e !important;
+        box-shadow: none !important;
+        animation: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip,
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip.ouro,
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip.diamante,
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip.esmeralda,
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip.equipped {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--zenkai-accent-rgb), 0.18),
+            rgba(9, 18, 34, 0.94)
+          ) !important;
+        background-size: auto !important;
+        border: 1px solid var(--zenkai-accent) !important;
+        color: var(--text-main) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.08),
+          0 0 16px rgba(var(--zenkai-accent-rgb), 0.16) !important;
+        animation: none !important;
+        text-shadow: none !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip:hover,
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip.equipped:hover {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--zenkai-accent-rgb), 0.26),
+            rgba(12, 22, 40, 0.98)
+          ) !important;
+        border-color: var(--zenkai-accent) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.16),
+          0 0 22px rgba(var(--zenkai-accent-rgb), 0.24) !important;
+      }
+
+      .theme-zenkai #inventoryDisplay .inventory-item-card .btn-equip::after {
+        display: none !important;
+      }
+
+      /* Meus especiais: apresentação limpa e consistente em todos os temas */
+      #inventoryDisplay {
+        --inventory-action-color: var(--primary);
+        --inventory-action-rgb: var(--primary-rgb);
+      }
+
+      #inventoryDisplay .inventory-item-card,
+      #inventoryDisplay .item-card-emerald {
+        background: rgba(15, 15, 30, 0.4) !important;
+        background-image: none !important;
+        background-clip: border-box !important;
+        background-origin: border-box !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.24) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2) !important;
+        animation: none !important;
+        transform: none !important;
+      }
+
+      #inventoryDisplay .inventory-item-card:hover,
+      #inventoryDisplay .item-card-emerald:hover {
+        border-color: rgba(var(--primary-rgb), 0.52) !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
+        transform: translateY(-2px) !important;
+      }
+
+      #inventoryDisplay .inventory-item-card::before,
+      #inventoryDisplay .inventory-item-card::after,
+      #inventoryDisplay .item-card-emerald::before,
+      #inventoryDisplay .item-card-emerald::after {
+        display: none !important;
+        animation: none !important;
+      }
+
+      #inventoryDisplay .inventory-item-card.equipped {
+        border-color: rgba(var(--primary-rgb), 0.62) !important;
+        box-shadow: 0 0 16px rgba(var(--primary-rgb), 0.18) !important;
+        animation: none !important;
+      }
+
+      #inventoryDisplay .item-icon,
+      #inventoryDisplay .item-rarity {
+        animation: none !important;
+        filter: none !important;
+        text-shadow: none !important;
+      }
+
+      #inventoryDisplay .item-rarity {
+        background: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: var(--text-main) !important;
+        color: var(--text-main) !important;
+      }
+
+      #inventoryDisplay .inventory-item-card .equipped-indicator {
+        background: #22c55e !important;
+        box-shadow: none !important;
+        animation: none !important;
+      }
+
+      #inventoryDisplay .inventory-item-card .btn-equip,
+      #inventoryDisplay .inventory-item-card .btn-equip.ouro,
+      #inventoryDisplay .inventory-item-card .btn-equip.diamante,
+      #inventoryDisplay .inventory-item-card .btn-equip.esmeralda,
+      #inventoryDisplay .inventory-item-card .btn-equip.equipped,
+      #inventoryDisplay .inventory-item-card .btn-equip-chromatic {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--inventory-action-rgb), 0.18),
+            rgba(9, 18, 34, 0.94)
+          ) !important;
+        background-size: auto !important;
+        border: 1px solid var(--inventory-action-color) !important;
+        color: var(--text-main) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--inventory-action-rgb), 0.08),
+          0 0 16px rgba(var(--inventory-action-rgb), 0.16) !important;
+        animation: none !important;
+        text-shadow: none !important;
+      }
+
+      #inventoryDisplay .inventory-item-card .btn-equip:hover,
+      #inventoryDisplay .inventory-item-card .btn-equip.equipped:hover,
+      #inventoryDisplay .inventory-item-card .btn-equip-chromatic:hover {
+        background:
+          linear-gradient(
+            135deg,
+            rgba(var(--inventory-action-rgb), 0.26),
+            rgba(12, 22, 40, 0.98)
+          ) !important;
+        border-color: var(--inventory-action-color) !important;
+        box-shadow:
+          0 0 0 1px rgba(var(--inventory-action-rgb), 0.16),
+          0 0 22px rgba(var(--inventory-action-rgb), 0.24) !important;
+      }
+
+      .theme-zenkai #inventoryDisplay {
+        --inventory-action-color: var(--zenkai-accent);
+        --inventory-action-rgb: var(--zenkai-accent-rgb);
+      }
+
+      .theme-zenkai #equippedItemsDisplay .simple-equipped-badge {
+        background: rgba(var(--primary-rgb), 0.06) !important;
+        border: 1px solid rgba(var(--primary-rgb), 0.28) !important;
+        box-shadow: none !important;
       }
 
       /* ===== LEVEL UP TOAST ===== */
@@ -5184,9 +5530,11 @@
               "animehouse_tema_natal",
               "animehouse_tema_abismo_estelar",
               "animehouse_tema_abismo",
+              "animehouse_tema_zenkai",
               "equipped_tema_cromatico",
               "equipped_tema_natal",
               "equipped_tema_abismo_estelar",
+              "equipped_tema_zenkai",
               "equipped_frame_dourado",
               "animehouse_store",
               "animehouse_userLevel",
@@ -6114,15 +6462,17 @@
                   uid = user?.id;
                 }
               } catch (e) {}
-              const themeKey = uid ? `animehouse_tema_cromatico_${uid}` : "animehouse_tema_cromatico";
-              if (localStorage.getItem(themeKey) === "true" && window.setTheme) {
-                window.setTheme("theme-cromatico");
-              }
-              const abismoKey = uid ? `animehouse_tema_abismo_estelar_${uid}` : "animehouse_tema_abismo_estelar";
-              const abismoLegacyKey = uid ? `animehouse_tema_abismo_${uid}` : "animehouse_tema_abismo";
-              if ((localStorage.getItem(abismoKey) === "true" || localStorage.getItem(abismoLegacyKey) === "true") && window.setTheme) {
-                window.setTheme("theme-abismo");
-              }
+              const keyForUser = (base) => uid ? `${base}_${uid}` : base;
+              const specialThemes = [
+                { css: "theme-zenkai", keys: ["animehouse_tema_zenkai"] },
+                { css: "theme-natal", keys: ["animehouse_tema_natal"] },
+                { css: "theme-abismo", keys: ["animehouse_tema_abismo_estelar", "animehouse_tema_abismo"] },
+                { css: "theme-cromatico", keys: ["animehouse_tema_cromatico"] },
+              ];
+              const activeTheme = specialThemes.find((theme) =>
+                theme.keys.some((key) => localStorage.getItem(keyForUser(key)) === "true")
+              );
+              if (activeTheme && window.setTheme) window.setTheme(activeTheme.css);
           };
           checkInitialTheme();
 
@@ -6260,14 +6610,14 @@
                   console.log(`✓ Coroa ${item.id} encontrada em store.equipped`);
                   return true;
                 }
-                if (item.category === "tema" && (item.id === "tema_cromatico" || item.id === "tema_natal" || item.id === "tema_abismo_estelar") && store.equipped[item.id] === true) {
-                  console.log(`✓ Tema cromático encontrado em store.equipped`);
+                if (item.category === "tema" && ["tema_cromatico", "tema_natal", "tema_abismo_estelar", "tema_zenkai"].includes(item.id) && (store.equipped[item.id] === true || store.equipped[item.id] === "true")) {
+                  console.log(`✓ Tema ${item.id} encontrado em store.equipped`);
                   return true;
                 }
                 if (item.category === "cursor" && store.equipped[item.id] === true) {
                   return true;
                 }
-                if ((item.category === "tema" || item.id === "tema_cromatico" || item.id === "tema_natal" || item.id === "tema_abismo_estelar") && store.equipped[item.id] === true) {
+                if ((item.category === "tema" || item.id === "tema_cromatico" || item.id === "tema_natal" || item.id === "tema_abismo_estelar" || item.id === "tema_zenkai") && (store.equipped[item.id] === true || store.equipped[item.id] === "true")) {
                   console.log(`✓ Item ${item.id} encontrado em store.equipped`);
                   return true;
                 }
@@ -6443,17 +6793,18 @@
                 store.equipped.crownIcon = icon;
               } else if (type === "tema") {
                 // Desequipar outros temas primeiro
-                ["tema_cromatico", "tema_natal", "tema_abismo_estelar"].forEach(t => {
+                ["tema_cromatico", "tema_natal", "tema_abismo_estelar", "tema_zenkai"].forEach(t => {
                   store.equipped[t] = false;
                   localStorage.removeItem(userKey(`animehouse_${t}`));
                 });
                 
                 const themeAlias = id === "tema_cromatico" ? "theme-cromatico" : 
                                   id === "tema_natal" ? "theme-natal" :
-                                  id === "tema_abismo_estelar" ? "theme-abismo" : "theme-ciano";
-                if (window.setTheme) window.setTheme(themeAlias);
+                                  id === "tema_abismo_estelar" ? "theme-abismo" :
+                                  id === "tema_zenkai" ? "theme-zenkai" : "theme-ciano";
                 store.equipped[id] = true;
                 localStorage.setItem(userKey(`animehouse_${id}`), "true");
+                if (window.setTheme) window.setTheme(themeAlias);
               } else if (type === "cursor") {
                 // Desequipar outros cursores primeiro
                 ["cursor_camaleao", "cursor_gelo", "cursor_rgb"].forEach(c => {
@@ -6589,7 +6940,7 @@
               if (coroa) equippedItems.push({ ...coroa, type: "Decoração" });
             }
             
-            ["tema_cromatico", "tema_natal", "tema_abismo_estelar"].forEach(t => {
+            ["tema_cromatico", "tema_natal", "tema_abismo_estelar", "tema_zenkai"].forEach(t => {
               if (localStorage.getItem(userKey(`animehouse_${t}`)) === "true") {
                 const tema = ALL_ITEMS.find((i) => i.id === t);
                 if (tema) equippedItems.push({ ...tema, type: "Tema" });

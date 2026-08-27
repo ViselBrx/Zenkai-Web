@@ -253,6 +253,14 @@ const ALL_ITEMS = [
       currency: "diamante",
       price: 7,
     },
+    {
+      id: "tema_zenkai",
+      name: "Zenkai Theme",
+      icon: "🪄",
+      category: "tema",
+      currency: "diamante",
+      price: 4,
+    },
 
     {
       id: "cursor_camaleao",
@@ -670,8 +678,8 @@ const DB = {
                 const mergedStore = JSON.parse(JSON.stringify(dbStore));
                 mergedStore.purchased = [...new Set([...dbP, ...localP])];
                 mergedStore.equipped = {
-                    ...(localParsed?.equipped && typeof localParsed.equipped === 'object' ? localParsed.equipped : {}),
-                    ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {})
+                    ...(dbStore.equipped && typeof dbStore.equipped === 'object' ? dbStore.equipped : {}),
+                    ...(localParsed?.equipped && typeof localParsed.equipped === 'object' ? localParsed.equipped : {})
                 };
 
                 mergedStore._userId = userId;
@@ -717,40 +725,49 @@ const DB = {
                     }
 
                     // Sincronizar Tema Cromático
-                    if (mergedStore.equipped.tema_cromatico === true) {
-                        localStorage.setItem('equipped_tema_cromatico', 'true');
-                        localStorage.setItem('animehouse_tema_cromatico', 'true');
-                        // Se o tema atual não for o cromático, aplicar agora que sabemos que o usuário possui
-                        if (sessionStorage.getItem('theme') !== 'theme-cromatico' && window.setTheme) {
-                            window.setTheme('theme-cromatico');
-                        }
-                    } else if (mergedStore.equipped.tema_cromatico === false) {
-                        localStorage.removeItem('equipped_tema_cromatico');
-                        localStorage.removeItem('animehouse_tema_cromatico');
+                    const specialThemes = [
+                        { id: 'tema_zenkai', css: 'theme-zenkai', storage: 'animehouse_tema_zenkai' },
+                        { id: 'tema_natal', css: 'theme-natal', storage: 'animehouse_tema_natal' },
+                        { id: 'tema_abismo_estelar', css: 'theme-abismo', storage: 'animehouse_tema_abismo_estelar', legacyStorage: 'animehouse_tema_abismo' },
+                        { id: 'tema_cromatico', css: 'theme-cromatico', storage: 'animehouse_tema_cromatico' },
+                    ];
+                    const specialStorageKeys = (key) => [key, `${key}_${userId}`];
+                    const setSpecialStorage = (key) => {
+                        specialStorageKeys(key).forEach((storageKey) => localStorage.setItem(storageKey, 'true'));
+                    };
+                    const clearSpecialStorage = (key) => {
+                        specialStorageKeys(key).forEach((storageKey) => localStorage.removeItem(storageKey));
+                    };
+                    const activeSpecialTheme = specialThemes.find((theme) =>
+                        mergedStore.equipped?.[theme.id] === true ||
+                        mergedStore.equipped?.[theme.id] === 'true'
+                    );
+
+                    if (activeSpecialTheme) {
+                        specialThemes.forEach((theme) => {
+                            mergedStore.equipped[theme.id] = theme.id === activeSpecialTheme.id;
+                        });
                     }
 
-                    if (mergedStore.equipped.tema_natal === true) {
-                        localStorage.setItem('equipped_tema_natal', 'true');
-                        localStorage.setItem('animehouse_tema_natal', 'true');
-                        if (sessionStorage.getItem('theme') !== 'theme-natal' && window.setTheme) {
-                            window.setTheme('theme-natal');
-                        }
-                    } else if (mergedStore.equipped.tema_natal === false) {
-                        localStorage.removeItem('equipped_tema_natal');
-                        localStorage.removeItem('animehouse_tema_natal');
-                    }
+                    specialThemes.forEach((theme) => {
+                        const isActive = activeSpecialTheme?.id === theme.id;
+                        const isExplicitlyDisabled =
+                            mergedStore.equipped?.[theme.id] === false ||
+                            mergedStore.equipped?.[theme.id] === 'false';
 
-                    if (mergedStore.equipped.tema_abismo_estelar === true) {
-                        localStorage.setItem('equipped_tema_abismo_estelar', 'true');
-                        localStorage.setItem('animehouse_tema_abismo_estelar', 'true');
-                        localStorage.setItem('animehouse_tema_abismo', 'true');
-                        if (sessionStorage.getItem('theme') !== 'theme-abismo' && window.setTheme) {
-                            window.setTheme('theme-abismo');
+                        if (isActive && !isExplicitlyDisabled) {
+                            setSpecialStorage(`equipped_${theme.id}`);
+                            setSpecialStorage(theme.storage);
+                            if (theme.legacyStorage) setSpecialStorage(theme.legacyStorage);
+                        } else if (isExplicitlyDisabled || activeSpecialTheme) {
+                            clearSpecialStorage(`equipped_${theme.id}`);
+                            clearSpecialStorage(theme.storage);
+                            if (theme.legacyStorage) clearSpecialStorage(theme.legacyStorage);
                         }
-                    } else if (mergedStore.equipped.tema_abismo_estelar === false) {
-                        localStorage.removeItem('equipped_tema_abismo_estelar');
-                        localStorage.removeItem('animehouse_tema_abismo_estelar');
-                        localStorage.removeItem('animehouse_tema_abismo');
+                    });
+
+                    if (activeSpecialTheme && sessionStorage.getItem('theme') !== activeSpecialTheme.css && window.setTheme) {
+                        window.setTheme(activeSpecialTheme.css);
                     }
 
 

@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let isChatSelectionMode = false;
   let selectedChatMessages = new Set();
   let pendingChatScrollToMessageId = null;
+  let chatMessageHighlightTimer = null;
   let activeTypingUsers = new Set();
   let typingTimeoutMap = new Map();
   let myTypingTimeout = null;
@@ -334,15 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const replyScrollTrigger = event.target.closest('[data-chat-scroll-to]');
         if (replyScrollTrigger) {
           const targetId = replyScrollTrigger.getAttribute('data-chat-scroll-to');
-          if (targetId) {
-            const targetBubble = chatMessages.querySelector(`[data-message-id="${targetId}"]`);
-            if (targetBubble) {
-              targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              targetBubble.style.transition = 'background-color 0.5s ease';
-              targetBubble.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
-              setTimeout(() => targetBubble.style.backgroundColor = '', 1500);
-            }
-          }
+          if (targetId) scrollToChatMessage(targetId);
           return;
         }
 
@@ -875,6 +868,66 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getChatMessageById(messageId) {
     return directMessages.find((message) => String(message.id) === String(messageId)) || null;
+  }
+
+  function getChatBubbleByMessageId(messageId) {
+    if (!chatMessages || messageId === null || messageId === undefined) return null;
+
+    const normalizedId = String(messageId);
+    return Array.from(chatMessages.querySelectorAll('[data-message-id]'))
+      .find((bubble) => bubble.getAttribute('data-message-id') === normalizedId) || null;
+  }
+
+  function highlightChatMessage(targetBubble) {
+    if (!targetBubble) return;
+
+    if (chatMessageHighlightTimer) {
+      clearTimeout(chatMessageHighlightTimer);
+      chatMessageHighlightTimer = null;
+    }
+
+    targetBubble.classList.remove('chat-message-search-target');
+    void targetBubble.offsetWidth;
+    targetBubble.classList.add('chat-message-search-target');
+
+    chatMessageHighlightTimer = setTimeout(() => {
+      if (targetBubble.isConnected) {
+        targetBubble.classList.remove('chat-message-search-target');
+      }
+      chatMessageHighlightTimer = null;
+    }, 1900);
+  }
+
+  function scrollToChatMessage(messageId, options = {}) {
+    if (!chatMessages || messageId === null || messageId === undefined) return false;
+
+    const alignTarget = () => {
+      const targetBubble = getChatBubbleByMessageId(messageId);
+      if (!targetBubble) return false;
+
+      const containerRect = chatMessages.getBoundingClientRect();
+      const targetRect = targetBubble.getBoundingClientRect();
+      const targetOffset = chatMessages.scrollTop
+        + targetRect.top
+        - containerRect.top
+        - ((chatMessages.clientHeight - targetRect.height) / 2);
+      const maxScrollTop = Math.max(chatMessages.scrollHeight - chatMessages.clientHeight, 0);
+
+      chatMessages.scrollTo({
+        top: Math.min(Math.max(targetOffset, 0), maxScrollTop),
+        behavior: options.behavior || 'smooth'
+      });
+      highlightChatMessage(targetBubble);
+      return true;
+    };
+
+    if (!chatMessages.clientHeight) {
+      requestAnimationFrame(alignTarget);
+    } else {
+      alignTarget();
+    }
+
+    return true;
   }
 
   function getChatMessageActions(message) {
@@ -2000,6 +2053,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               <div class="conversation-preview-copy">
                 ${previewLabel ? `<span class="conversation-preview-label">${previewLabel}</span>` : ''}
                 <span class="conversation-preview">${escapeHtml(preview)}</span>
+                ${hasSearchPreview ? '<span class="conversation-search-jump"><i class="fas fa-location-arrow"></i> Abrir mensagem encontrada</span>' : ''}
               </div>
               ${summary.unreadCount > 0 ? `<span class="conversation-unread">${summary.unreadCount}</span>` : ''}
             </div>
@@ -2033,6 +2087,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const delBtn = item.querySelector('[data-delete-conv-id]');
 
       if (openBtn) {
+        openBtn.title = hasSearchPreview
+          ? 'Abrir conversa na mensagem encontrada'
+          : 'Abrir conversa';
+        openBtn.setAttribute(
+          'aria-label',
+          hasSearchPreview
+            ? `Abrir conversa na mensagem encontrada de ${getUserDisplayName(otherUser)}`
+            : `Abrir conversa com ${getUserDisplayName(otherUser)}`
+        );
         openBtn.addEventListener('click', () => {
           const matchMessageId = hasSearchPreview && searchEntry ? searchEntry.matchMessageId : null;
           window.openChatWithUser(summary.otherUserId, matchMessageId);
@@ -2168,17 +2231,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (pendingChatScrollToMessageId) {
-      const targetBubble = chatMessages.querySelector(`[data-message-id="${pendingChatScrollToMessageId}"]`);
-      if (targetBubble) {
-        targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        targetBubble.style.transition = 'background-color 0.5s ease';
-        targetBubble.style.backgroundColor = 'rgba(var(--primary-rgb), 0.3)';
-        setTimeout(() => targetBubble.style.backgroundColor = '', 1500);
-      } else {
+    if (pendingChatScrollToMessageId !== null && pendingChatScrollToMessageId !== undefined) {
+      const targetMessageId = pendingChatScrollToMessageId;
+      pendingChatScrollToMessageId = null;
+      if (!scrollToChatMessage(targetMessageId, { behavior: 'auto' })) {
         chatMessages.scrollTop = chatMessages.scrollHeight;
       }
-      pendingChatScrollToMessageId = null;
     } else if (shouldForceBottom || shouldAutoStickBottom) {
       chatMessages.scrollTop = chatMessages.scrollHeight;
     } else {
@@ -2825,7 +2883,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     activeChatUserId = userId;
-    if (targetMessageId) pendingChatScrollToMessageId = targetMessageId;
+    pendingChatScrollToMessageId = null;
+    if (targetMessageId !== null && targetMessageId !== undefined) {
+      const targetExists = getConversationMessages(userId)
+        .some((message) => String(message.id) === String(targetMessageId));
+      if (targetExists) pendingChatScrollToMessageId = String(targetMessageId);
+    }
     selectSidebarTab('chat');
     persistSidebarState();
     if (profileModal) profileModal.classList.remove('active');

@@ -728,6 +728,14 @@
                     currency: "diamante",
                     price: 7,
                 },
+                {
+                    id: "tema_zenkai",
+                    name: "Zenkai Theme",
+                    icon: "<i class='fa-solid fa-wand-magic-sparkles'></i>",
+                    category: "tema",
+                    currency: "diamante",
+                    price: 4,
+                },
 
                 {
                     id: "cursor_camaleao",
@@ -983,6 +991,8 @@
                                 store.equipped.tema_natal = false;
                             if (id === "tema_abismo_estelar")
                                 store.equipped.tema_abismo_estelar = false;
+                            if (id === "tema_zenkai")
+                                store.equipped.tema_zenkai = false;
                             if (store.equipped[id]) delete store.equipped[id];
                         }
 
@@ -1027,6 +1037,8 @@
                             } else if (id === "tema_natal" && window.setTheme) {
                                 window.setTheme("theme-ciano");
                             } else if (id === "tema_abismo_estelar" && window.setTheme) {
+                                window.setTheme("theme-ciano");
+                            } else if (id === "tema_zenkai" && window.setTheme) {
                                 window.setTheme("theme-ciano");
                             }
                         }
@@ -1103,7 +1115,7 @@
                         store.equipped.crownId = "";
                         store.equipped.crownIcon = "";
                     } else if (type === "tema" || type === "cursor") {
-                        if (id === "tema_cromatico" || id === "tema_natal" || id === "tema_abismo_estelar") {
+                        if (id === "tema_cromatico" || id === "tema_natal" || id === "tema_abismo_estelar" || id === "tema_zenkai") {
                             if (window.setTheme) window.setTheme("theme-ciano");
                         }
                         store.equipped[id] = false;
@@ -1128,14 +1140,21 @@
                         store.equipped.crown = true;
                         store.equipped.crownId = id;
                         store.equipped.crownIcon = item?.icon || "<i class='fa-solid fa-crown'></i>";
-                    } else if (type === "tema" || type === "cursor") {
-                        if (id === "tema_cromatico") {
-                            if (window.setTheme) window.setTheme("theme-cromatico");
-                        } else if (id === "tema_natal") {
-                            if (window.setTheme) window.setTheme("theme-natal");
-                        } else if (id === "tema_abismo_estelar") {
-                            if (window.setTheme) window.setTheme("theme-abismo");
-                        }
+                    } else if (type === "tema") {
+                        const themeAliases = {
+                            tema_cromatico: "theme-cromatico",
+                            tema_natal: "theme-natal",
+                            tema_abismo_estelar: "theme-abismo",
+                            tema_zenkai: "theme-zenkai",
+                        };
+                        Object.keys(themeAliases).forEach((themeId) => {
+                            store.equipped[themeId] = false;
+                            localStorage.removeItem(userKey("animehouse_" + themeId));
+                        });
+                        store.equipped[id] = true;
+                        localStorage.setItem(userKey("animehouse_" + id), "true");
+                        if (window.setTheme) window.setTheme(themeAliases[id] || "theme-ciano");
+                    } else if (type === "cursor") {
                         store.equipped[id] = true;
                         localStorage.setItem(userKey("animehouse_" + id), "true");
                     }

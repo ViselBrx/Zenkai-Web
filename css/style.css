@@ -1242,6 +1242,25 @@
     0 0 55px rgba(248, 178, 41, 0.8), 0 0 28px rgba(212, 36, 38, 0.5);
   --natal-scrollbar: #d42426;
 
+  /* TEMA - ZENKAI */
+  --zenkai-primary: #373efa;
+  --zenkai-primary-rgb: 55, 62, 250;
+  --zenkai-primary-hover: #6970ff;
+  --zenkai-accent: #fb324e;
+  --zenkai-accent-rgb: 251, 50, 78;
+  --zenkai-accent2: #8b5cf6;
+  --zenkai-accent2-rgb: 139, 92, 246;
+  --zenkai-text-main: #fff7fa;
+  --zenkai-text-muted: #c7c9ef;
+  --zenkai-border: #6d62ff;
+  --zenkai-shadow-neon:
+    0 0 28px rgba(55, 62, 250, 0.42),
+    0 0 18px rgba(251, 50, 78, 0.2);
+  --zenkai-shadow-neon-h:
+    0 0 52px rgba(55, 62, 250, 0.64),
+    0 0 32px rgba(251, 50, 78, 0.34);
+  --zenkai-scrollbar: #373efa;
+
   /* VARIÃƒÆ’Ã‚ÂVEIS ATIVAS (padrÃƒÆ’Ã‚Â£o = tema default) */
   --primary: var(--default-primary);
   --primary-rgb: var(--default-primary-rgb);
@@ -1420,6 +1439,27 @@
   --shadow-neon-h: var(--natal-shadow-neon-h);
 }
 
+.theme-zenkai {
+  --primary: var(--zenkai-primary);
+  --primary-rgb: var(--zenkai-primary-rgb);
+  --primary-hover: var(--zenkai-primary-hover);
+  --accent: var(--zenkai-accent);
+  --accent-rgb: var(--zenkai-accent-rgb);
+  --accent2: var(--zenkai-accent2);
+  --accent2-rgb: var(--zenkai-accent2-rgb);
+  --text-main: var(--zenkai-text-main);
+  --text-muted: var(--zenkai-text-muted);
+  --border: var(--zenkai-border);
+  --shadow-neon: var(--zenkai-shadow-neon);
+  --shadow-neon-h: var(--zenkai-shadow-neon-h);
+  --hover-color: var(--zenkai-accent);
+  --hover-glow: rgba(251, 50, 78, 0.28);
+  --scrollbar: var(--zenkai-scrollbar);
+  --bg-dark: #08070f;
+  --bg-surface: #0f0c24;
+  --bg-card: #151237;
+}
+
 .theme-abismo {
   --primary: #a7ccff;
   --primary-rgb: 167, 204, 255;
@@ -1496,6 +1536,180 @@
 
 .theme-abismo {
   scrollbar-color: var(--scrollbar) #02040b;
+}
+
+.theme-zenkai {
+  scrollbar-color: var(--zenkai-scrollbar) #0b0713;
+  background: #08070f;
+}
+
+body.theme-zenkai {
+  background: var(--bg-dark);
+}
+
+.theme-zenkai .navbar {
+  background: rgba(12, 10, 29, 0.96) !important;
+  border-bottom-color: rgba(55, 62, 250, 0.58);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.72),
+    0 0 24px rgba(55, 62, 250, 0.22);
+}
+
+.theme-zenkai .page-header h1,
+.theme-zenkai .loja-hero-title,
+.theme-zenkai .loja-hero-title span,
+.theme-zenkai .section-title,
+.theme-zenkai .home-card h3,
+.theme-zenkai .navbar-brand {
+  color: #aeb3ff !important;
+  text-shadow: 0 0 18px rgba(55, 62, 250, 0.36);
+}
+
+.theme-zenkai .navbar-brand span {
+  color: #fb324e !important;
+  -webkit-text-fill-color: #fb324e !important;
+}
+
+.theme-zenkai :is(
+    .btn,
+    .btn-action,
+    .btn-primary,
+    .btn-success,
+    .btn-secondary,
+    .btn-accent,
+    .ai-btn-send,
+    .home-cta-button,
+    .about-button,
+    .site-guide-actions .btn
+  ) {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.18),
+      rgba(9, 18, 34, 0.94)
+    ) !important;
+  border: 1px solid var(--zenkai-accent) !important;
+  color: var(--text-main) !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.08),
+    0 10px 28px rgba(0, 0, 0, 0.24),
+    0 0 22px rgba(var(--zenkai-accent-rgb), 0.22) !important;
+  text-shadow: 0 0 10px rgba(var(--zenkai-accent-rgb), 0.2);
+  backdrop-filter: blur(10px) saturate(135%);
+  -webkit-backdrop-filter: blur(10px) saturate(135%);
+}
+
+.theme-zenkai :is(
+    .btn,
+    .btn-action,
+    .btn-primary,
+    .btn-success,
+    .btn-secondary,
+    .btn-accent,
+    .ai-btn-send,
+    .home-cta-button,
+    .about-button,
+    .site-guide-actions .btn
+  ):hover {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.26),
+      rgba(12, 22, 40, 0.98)
+    ) !important;
+  color: var(--text-main) !important;
+  border-color: var(--zenkai-accent) !important;
+  transform: translateY(-3px);
+  box-shadow:
+    0 0 0 1px rgba(var(--zenkai-accent-rgb), 0.16),
+    0 14px 34px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(var(--zenkai-accent-rgb), 0.32),
+    inset 0 0 12px rgba(var(--zenkai-accent-rgb), 0.08) !important;
+}
+
+.theme-zenkai .inventory-item-card .btn-equip {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.18),
+      rgba(9, 18, 34, 0.94)
+    ) !important;
+  border: 1px solid var(--zenkai-accent) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-zenkai .inventory-item-card .btn-equip.equipped {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.18),
+      rgba(9, 18, 34, 0.94)
+    ) !important;
+  border: 1px solid var(--zenkai-accent) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-zenkai .inventory-item-card .btn-equip:hover {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.26),
+      rgba(12, 22, 40, 0.98)
+    ) !important;
+  border-color: var(--zenkai-accent) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-zenkai .inventory-item-card .btn-equip.equipped:hover {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(var(--zenkai-accent-rgb), 0.26),
+      rgba(12, 22, 40, 0.98)
+    ) !important;
+  border-color: var(--zenkai-accent) !important;
+  color: var(--text-main) !important;
+}
+
+.theme-zenkai .card,
+.theme-zenkai .episode-card,
+.theme-zenkai .manga-item,
+.theme-zenkai .season-section,
+.theme-zenkai .purchased-card,
+.theme-zenkai .inventory-item-card {
+  border-color: rgba(55, 62, 250, 0.42) !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.3),
+    0 0 16px rgba(55, 62, 250, 0.1);
+}
+
+.theme-zenkai .card:hover,
+.theme-zenkai .episode-card:hover,
+.theme-zenkai .manga-item:hover,
+.theme-zenkai .purchased-card:hover,
+.theme-zenkai .inventory-item-card:hover {
+  border-color: rgba(251, 50, 78, 0.72) !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.38),
+    0 0 24px rgba(251, 50, 78, 0.2),
+    0 0 32px rgba(55, 62, 250, 0.16);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-zenkai :is(
+      .btn,
+      .btn-action,
+      .btn-primary,
+      .btn-success,
+      .btn-secondary,
+      .btn-accent,
+    .ai-btn-send,
+    .home-cta-button,
+    .about-button,
+    .site-guide-actions .btn
+    ):hover {
+    transform: none;
+  }
 }
 
 /* ===================================================== */
@@ -2269,22 +2483,22 @@ body.modal-open {
 /* Scrollbar da Navbar - VISÃƒÆ’Ã‚ÂVEL E TEMATIZADA */
 .navbar-links::-webkit-scrollbar {
   display: block !important;
-  height: 10px !important;
-  width: 10px !important;
+  height: 5px !important;
+  width: 0 !important;
 }
 
 .navbar-links::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
   border-radius: 10px;
 }
 
 .navbar-links::-webkit-scrollbar-thumb {
   background: var(--primary) !important;
   border-radius: 50px;
-  border: 2px solid var(--bg-dark) !important;
+  border: 1px solid var(--bg-dark) !important;
   box-shadow:
-    0 0 18px var(--primary),
-    inset 0 0 6px rgba(var(--primary-rgb), 0.2) !important;
+    0 0 10px rgba(var(--primary-rgb), 0.7),
+    inset 0 0 4px rgba(var(--primary-rgb), 0.2) !important;
 }
 
 /* Scrollbar Firefox - Global */
@@ -2309,6 +2523,7 @@ body {
   position: sticky;
   top: 0;
   width: 100%;
+  min-width: 0;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -2512,8 +2727,10 @@ body {
   flex: 1;
   min-width: 0;
   scrollbar-width: thin;
-  scrollbar-color: var(--primary) transparent;
+  scrollbar-color: var(--primary) rgba(255, 255, 255, 0.08);
   scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .navbar-links li {
@@ -6310,7 +6527,8 @@ body:hover .watermark {
 
 .theme-dourado,
 .theme-vinland,
-.theme-natal {
+.theme-natal,
+.theme-zenkai {
   --title-font: "Righteous", cursive;
 }
 

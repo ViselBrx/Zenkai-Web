@@ -1341,6 +1341,7 @@ async function setupAuthLogic() {
           localStorage.removeItem("animehouse_tema_natal");
           localStorage.removeItem("animehouse_tema_abismo_estelar");
           localStorage.removeItem("animehouse_tema_abismo");
+          localStorage.removeItem("animehouse_tema_zenkai");
           localStorage.removeItem("animehouse_userLevel");
           localStorage.removeItem("animehouse_userRank");
           localStorage.removeItem("animehouse_prevLevel");
@@ -2029,6 +2030,7 @@ window.updateNavbarCosmetics = function () {
       tema_cromatico: "animehouse_tema_cromatico",
       tema_natal: "animehouse_tema_natal",
       tema_abismo_estelar: "animehouse_tema_abismo_estelar",
+      tema_zenkai: "animehouse_tema_zenkai",
       frame_dourado: "animehouse_frame_dourado",
     };
 
@@ -2062,6 +2064,7 @@ window.updateNavbarCosmetics = function () {
   const hasTemaCromatico = getCosmetic("tema_cromatico", false) === true || getCosmetic("tema_cromatico", false) === "true";
   const hasTemaNatal = getCosmetic("tema_natal", false) === true || getCosmetic("tema_natal", false) === "true";
   const hasTemaAbismo = getCosmetic("tema_abismo_estelar", false) === true || getCosmetic("tema_abismo_estelar", false) === "true";
+  const hasTemaZenkai = getCosmetic("tema_zenkai", false) === true || getCosmetic("tema_zenkai", false) === "true";
 
   const buildCrownMarkup = (crownId, crownIcon) => {
     const normalizedId = String(crownId || "").trim().toLowerCase();
@@ -2095,7 +2098,9 @@ window.updateNavbarCosmetics = function () {
 
   // Temas especiais da loja — aplicar em tempo real ao equipar/desequipar
   if (window.setTheme) {
-    if (hasTemaNatal) {
+    if (hasTemaZenkai) {
+      window.setTheme("theme-zenkai");
+    } else if (hasTemaNatal) {
       window.setTheme("theme-natal");
     } else if (hasTemaAbismo) {
       window.setTheme("theme-abismo");
