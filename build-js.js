@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
@@ -22,7 +22,7 @@ const obfuscationOptions = {
     identifierNamesGenerator: 'hexadecimal',
     log: false,
     numbersToExpressions: true,
-    renameGlobals: false, // Do not rename globals, Anime House uses window.var globally
+    renameGlobals: false, // Do not rename globals, Zenkai uses window.var globally
     rotateStringArray: true,
     selfDefending: true,
     shuffleStringArray: true,
@@ -49,11 +49,11 @@ files.forEach(file => {
             const obfuscationResult = JavaScriptObfuscator.obfuscate(fileContent, obfuscationOptions);
             
             fs.writeFileSync(outPath, obfuscationResult.getObfuscatedCode(), 'utf8');
-            console.log(`✅ Sucesso: ${file}`);
+            console.log(`âœ… Sucesso: ${file}`);
         } catch (error) {
-            console.error(`❌ Erro ao ofuscar ${file}:`, error);
+            console.error(`âŒ Erro ao ofuscar ${file}:`, error);
         }
     }
 });
 
-console.log('🎉 Todos os arquivos foram ofuscados com sucesso!');
+console.log('ðŸŽ‰ Todos os arquivos foram ofuscados com sucesso!');

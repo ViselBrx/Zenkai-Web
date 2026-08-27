@@ -228,6 +228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ── Globals para onclick inline no HTML ───────────────────────────────────
     window.openWatchModal = (id) => {
+        if (typeof window.requireContentAccess === 'function' && !window.requireContentAccess()) return;
         const v = _findVideo(id);
         if (!v) return;
 

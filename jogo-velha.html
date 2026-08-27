@@ -134,7 +134,7 @@
   <nav class="navbar">
     <a href="index.html" class="navbar-brand">
       <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
-      <span>Anime</span>House
+      <span>Zen</span>kai
     </a>
   </nav>
 
@@ -150,11 +150,11 @@
 
       <div class="player-indicator">
         <div id="p1Card" class="player-card active">
-          <div id="p1Icon" class="player-icon">⚔️</div>
+          <div id="p1Icon" class="player-icon"><i class="fa-solid fa-khanda"></i></div>
           <div id="p1Name">Jogador 1</div>
         </div>
         <div id="p2Card" class="player-card">
-          <div id="p2Icon" class="player-icon">🛡️</div>
+          <div id="p2Icon" class="player-icon"><i class="fa-solid fa-shield-halved"></i></div>
           <div id="p2Name">Aguardando...</div>
         </div>
       </div>
@@ -178,6 +178,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js-ofuscado/db.js"></script>
   <script src="js-ofuscado/auth.js"></script>
+  <script src="js-ofuscado/guard.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);

@@ -4,6 +4,26 @@
  * Caso não tenha, ele bloqueia o acesso a páginas restritas redirecionando para login.html.
  */
 
+window.requireContentAccess = function () {
+    if (window.AH_AUTH?.isAuthenticated) return true;
+    const currentPath = window.location.pathname.split('/').pop() || "index.html";
+    window.location.href = `login.html?redirect=${encodeURIComponent(currentPath + window.location.search)}`;
+    return false;
+};
+
+window.resetGuestProfileState = function () {
+    if (window.AH_AUTH?.isAuthenticated) return;
+    window.AH_GUEST_PROFILE = { id: null, name: "Visitante", xp: 0, total_xp: 0, level: 0, rank: "" };
+    document.documentElement.classList.add("guest-session");
+
+    const homeStatus = document.getElementById("homeUserStatus");
+    if (homeStatus) homeStatus.style.display = "none";
+    const homeRank = document.getElementById("homeUserRank");
+    if (homeRank) homeRank.textContent = "";
+    const homeLevel = document.getElementById("homeUserLevel");
+    if (homeLevel) homeLevel.textContent = "LVL 0";
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
     // Lista de páginas que DEVEM ser bloqueadas para não logados
     const protectedPages = [
@@ -16,14 +36,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         "cadastro-animes.html",
         "cadastro-filmes.html",
         "cadastro-youtube.html",
-        "filmes.html",
-        "mangas.html",
-        "hq.html",
-        "youtube.html",
-        "youtube-videos.html",
-        "anime-episodios.html",
-        "episodios-desenhos.html",
-        "open-anime.html",
+        "jogo-gartic.html",
+        "jogo-velha.html",
+        "lobby.html",
         // adicione outras páginas de conteúdo aqui se necessário
     ];
 
@@ -54,5 +69,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Se falhou ao carregar o Supabase, por segurança redireciona
             window.location.href = "login.html";
         }
+    } else {
+        window.resetGuestProfileState();
     }
 });
+
+document.addEventListener("click", (event) => {
+    if (window.AH_AUTH?.isAuthenticated) return;
+    const protectedAction = event.target.closest(".fav-star, .watched-modal-badge, #saveTimeNoteBtn, [data-requires-auth]");
+    if (!protectedAction) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.requireContentAccess();
+}, true);

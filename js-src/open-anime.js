@@ -199,45 +199,41 @@
   }
 
   const AI_RESPONSE_GUIDE = [
-    'Responda em pt-BR com UTF limpo e acentuaÃ§Ã£o correta.',
-    'Use Markdown bonito, com tÃ­tulos curtos, listas objetivas, negrito sÃ³ quando ajudar e blocos de cÃ³digo apenas quando houver cÃ³digo.',
-    'Quando a anÃ¡lise for de comparaÃ§Ã£o, cena, personagem ou imagem, aprofunde mais do que o normal e organize por tÃ³picos claros.',
-    'Evite respostas genÃ©ricas, repetiÃ§Ãµes e blocos enormes sem estrutura.',
-    'Se houver incerteza, diga isso de forma clara e continue a anÃ¡lise com o melhor raciocÃ­nio possÃ­vel.',
-    'NÃ£o inclua metacomandos nem rÃ³tulos tÃ©cnicos desnecessÃ¡rios na saÃ­da final.'
+    'IDIOMA OBRIGATÓRIO: responda sempre em português brasileiro (pt-BR), inclusive na primeira mensagem e em todas as ferramentas. Ignore o idioma do modelo, do histórico ou de nomes próprios. Só use outro idioma se o usuário pedir explicitamente.',
+    'Use UTF limpo e acentuação correta.',
+    'Use Markdown bonito, com títulos curtos, listas objetivas, negrito só quando ajudar e blocos de código apenas quando houver código.',
+    'Quando a análise for de comparação, cena, personagem ou imagem, aprofunde mais do que o normal e organize por tópicos claros.',
+    'Evite respostas genéricas, repetições e blocos enormes sem estrutura.',
+    'Se houver incerteza, diga isso de forma clara e continue a análise com o melhor raciocínio possível.',
+    'Não inclua metacomandos nem rótulos técnicos desnecessários na saída final.'
   ].join('\n');
-  const SYSTEM_PROMPT = 'VocÃª Ã© o Open AnIme, o assistente virtual super inteligente do Anime House (que significa "Casa da AnimaÃ§Ã£o", lar de todos os estilos: cartoon, 3D, ocidental e oriental, alÃ©m de mangÃ¡s e HQs). REGRA DE OURO: Suas respostas devem ser extremamente coerentes, lÃ³gicas e baseadas em fatos verÃ­dicos de todo o escopo de animaÃ§Ãµes, desenhos, filmes, mangÃ¡s e HQs mundiais. VocÃª Ã© um especialista dedicado a anÃ¡lises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cÃ¢nones. Ao responder, traga informaÃ§Ãµes extras genuÃ­nas, focando em curiosidades, lore, detalhes tÃ©cnicos de animaÃ§Ã£o/quadrinhos e desenvolvimento de personagens. Seja extremamente amigÃ¡vel, entusiasmado e use alguns emojis pontuais para dar vida Ã  conversa âœ¨. Use listas, tÃ³picos de Markdown em negrito/itÃ¡lico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
-  const GREETING_MESSAGE = 'Olá! Eu sou o **Open AnIme** 🎬 — seu assistente especialista do Anime House! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
+  const SYSTEM_PROMPT = 'Você é o ZenkAI, o assistente virtual super inteligente da Zenkai (que significa "Casa da Animação", lar de todos os estilos: cartoon, 3D, ocidental e oriental, além de mangás e HQs). REGRA DE OURO: Suas respostas devem ser extremamente coerentes, lógicas e baseadas em fatos verídicos de todo o escopo de animações, desenhos, filmes, mangás e HQs mundiais. Você é um especialista dedicado a análises profundas sobre esses temas e tudo relacionado a eles. Nunca alucine ou invente cânones. Ao responder, traga informações extras genuínas, focando em curiosidades, lore, detalhes técnicos de animação/quadrinhos e desenvolvimento de personagens. Seja extremamente amigável, entusiasmado e use alguns emojis pontuais para dar vida à conversa ✨. Use listas, tópicos de Markdown em negrito/itálico e estruture tudo para ficar gostoso de ler, sem blocos de texto gigantescos.';
+  const GREETING_MESSAGE = 'Olá! Eu sou o **ZenkAI** 🎬 — seu assistente especialista da Zenkai! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const DEFAULT_GEMINI_MODEL = 'gemini-1.5-flash';
-  const DEFAULT_VISION_MODEL = '@cf/meta/llama-3.2-11b-vision-instruct';
-  const DEFAULT_GEMINI_VISION_MODEL = 'gemini-1.5-flash';
-  const GEMINI_VISION_MODEL_FALLBACKS = ['gemini-1.5-flash', 'gemini-2.0-flash'];
-  const COMPARE_GEMINI_MODEL = 'gemini-2.0-flash';
-  const COMPARE_FALLBACK_GEMINI_MODEL = 'gemini-2.0-flash';
   const DEFAULT_GROQ_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
-  const COMPARE_GROQ_MODEL = 'google/gemma-4-31b-it:free';
+  const COMPARE_GROQ_MODEL = 'openrouter/free';
   const COMPARE_FALLBACK_GROQ_MODEL = DEFAULT_GROQ_MODEL;
+  const CHAT_MAX_TOKENS = 2400;
   const COMPARE_MAX_TOKENS = 3600;
   const COMPARE_CONTINUATION_MAX_TOKENS = 1600;
   const COMPARE_TEMPERATURE = 0.35;
   const VISION_MAX_TOKENS = 2500;
-  const VISION_MIN_COMPLETION_CHARS = 1000;
+  const AI_EMPTY_RESPONSE_MESSAGE = 'A IA não retornou uma resposta utilizável.';
   const VISION_PROMPT = [
-    'Atue como um detetive visual implacÃ¡vel e enciclopÃ©dia suprema de animes, desenhos, filmes, mangÃ¡s e HQs. Sua Ãºnica missÃ£o Ã© descobrir exatamente qual Ã© a obra e o personagem da imagem.',
-    'Ã‰ proibido dar respostas genÃ©ricas. VocÃª deve dar o palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estÃºdio, Ã©poca, roupas e cores.',
+    'Atue como um detetive visual implacável e enciclopédia suprema de animes, desenhos, filmes, mangás e HQs. Sua única missão é descobrir exatamente qual é a obra e o personagem da imagem.',
+    'É proibido dar respostas genéricas. Você deve dar o palpite mais forte e certeiro sobre o nome da obra, cruzando detalhes como estilo do estúdio, época, roupas e cores.',
     '',
     '### Identificação Certeira (Obrigatório)',
-    '- **Obra/Franquia Exata:** diga o nome da sÃ©rie, anime ou filme. Se for impossÃ­vel cravar 100%, dÃª o palpite com a maior probabilidade e justifique.',
-    '- **Personagem(ns):** quem Ã©? Se nÃ£o souber o nome, compare com personagens parecidos da cultura pop.',
+    '- **Obra/Franquia Exata:** diga o nome da série, anime ou filme. Se for impossível cravar 100%, dê o palpite com a maior probabilidade e justifique.',
+    '- **Personagem(ns):** quem é? Se não souber o nome, compare com personagens parecidos da cultura pop.',
     '',
     '### Evidências do Detetive',
-    '- **TraÃ§o e EstÃºdio:** analise o formato dos olhos, contornos, iluminaÃ§Ã£o e sombreamento. Ã‰ estilo Ufotable, Toei, Cartoon Network, Pixar? Que dÃ©cada parece ser?',
-    '- **Detalhes Chave:** quebras de quarta parede, sÃ­mbolos em roupas, armas, tipo de magia ou aura.',
+    '- **Traço e Estúdio:** analise o formato dos olhos, contornos, iluminação e sombreamento. É estilo Ufotable, Toei, Cartoon Network, Pixar? Que década parece ser?',
+    '- **Detalhes Chave:** quebras de quarta parede, símbolos em roupas, armas, tipo de magia ou aura.',
     '',
     '### Veredito',
-    '- Crave a sua resposta final em portuguÃªs do Brasil, usando Markdown. Se for fanart, diga de qual obra original Ã© inspirada.'
+    '- Crave a sua resposta final em português do Brasil, usando Markdown. Se for fanart, diga de qual obra original é inspirada.'
   ].join('\n');
   const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"></rect><rect x="5" y="5" width="10" height="10" rx="2"></rect></svg>';
   const COPIED_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"></path></svg>';
@@ -262,7 +258,7 @@
 
   let resumeData = null;
   if (typeof HistoryTracker !== 'undefined') {
-    resumeData = HistoryTracker.consumeResumeFromUrl('open-anime.html');
+    resumeData = HistoryTracker.consumeResumeFromUrl('zenkai.html');
   }
 
   function buildUniqueId(prefix) {
@@ -457,7 +453,7 @@
     chatInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         if (e.shiftKey) {
-          // Shift + Enter: Apenas permite a quebra de linha (padrÃ£o do textarea)
+          // Shift + Enter: Apenas permite a quebra de linha (padrão do textarea)
           e.stopPropagation();
           setTimeout(autoResize, 0);
           return;
@@ -554,16 +550,16 @@
     chatScrollFill.style.width = `${progress}%`;
 
     if (maxScroll <= 0) {
-      chatScrollStatus.textContent = 'Ainda nÃ£o hÃ¡ histÃ³rico suficiente para rolar';
+      chatScrollStatus.textContent = 'Ainda não há histórico suficiente para rolar';
       return;
     }
 
     if (progress <= 5) {
-      chatScrollStatus.textContent = 'No topo do histÃ³rico';
+      chatScrollStatus.textContent = 'No topo do histórico';
     } else if (progress >= 95) {
-      chatScrollStatus.textContent = 'No fim do histÃ³rico';
+      chatScrollStatus.textContent = 'No fim do histórico';
     } else {
-      chatScrollStatus.textContent = `HistÃ³rico percorrido: ${progress}%`;
+      chatScrollStatus.textContent = `Histórico percorrido: ${progress}%`;
     }
   }
 
@@ -622,8 +618,8 @@
     }
 
     if (sendBtn) {
-      sendBtn.title = editing ? 'Salvar ediÃ§Ã£o' : 'Enviar mensagem';
-      sendBtn.setAttribute('aria-label', editing ? 'Salvar ediÃ§Ã£o' : 'Enviar mensagem');
+      sendBtn.title = editing ? 'Salvar edição' : 'Enviar mensagem';
+      sendBtn.setAttribute('aria-label', editing ? 'Salvar edição' : 'Enviar mensagem');
     }
 
   }
@@ -679,7 +675,7 @@
         const copied = document.execCommand('copy');
         document.body.removeChild(textarea);
         if (!copied) {
-          reject(new Error('Comando de cÃ³pia indisponÃ­vel.'));
+          reject(new Error('Comando de cópia indisponível.'));
           return;
         }
         resolve();
@@ -703,7 +699,7 @@
       showFeedback(button?.dataset.feedbackMessage || 'Mensagem copiada');
     } catch (error) {
       console.error('Erro ao copiar mensagem:', error);
-      showFeedback('NÃ£o foi possÃ­vel copiar a mensagem');
+      showFeedback('Não foi possível copiar a mensagem');
     }
   }
 
@@ -912,7 +908,7 @@
     return html.join('');
   }
 
-  function trimAIRequestMessages(messages, maxNonSystemMessages = 18) {
+  function trimAIRequestMessages(messages, maxNonSystemMessages = 12) {
     const list = Array.isArray(messages) ? messages : [];
     const systemMessages = [];
     const otherMessages = [];
@@ -920,6 +916,7 @@
     for (const message of list) {
       if (!message || typeof message !== 'object') continue;
       const role = String(message.role || '');
+      if (!['system', 'user', 'assistant'].includes(role)) continue;
       const content = normalizeBrokenEncoding(String(message.content || ''));
       if (!content.trim()) continue;
 
@@ -980,26 +977,103 @@
     });
   }
 
+  function historySummary(value, maxLength = 160) {
+    const text = normalizeBrokenEncoding(String(value ?? ''))
+      .replace(/```[\s\S]*?```/g, ' ')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/(^|\s)#{1,6}\s*/g, '$1')
+      .replace(/(\*\*|__|\*|_|~~)/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+  }
+
+  async function optimizeVisionImage(file) {
+    const originalDataUrl = await readFileAsDataUrl(file);
+    if (!String(file?.type || '').startsWith('image/') || Number(file?.size || 0) <= 900 * 1024) {
+      return originalDataUrl;
+    }
+
+    try {
+      const image = new Image();
+      image.src = originalDataUrl;
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = reject;
+      });
+
+      const maxDimension = 1280;
+      const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d', { alpha: false }).drawImage(image, 0, 0, canvas.width, canvas.height);
+
+      const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      return optimizedDataUrl.length < originalDataUrl.length ? optimizedDataUrl : originalDataUrl;
+    } catch {
+      return originalDataUrl;
+    }
+  }
+
   function extractVisionText(result) {
-    if (typeof result?.choices?.[0]?.message?.content === 'string') {
-      return result.choices[0].message.content.trim();
+    return extractAIText(result);
+  }
+
+  function extractAIText(result) {
+    const readText = (value) => {
+      if (typeof value === 'string') return value;
+      if (Array.isArray(value)) {
+        return value.map((item) => readText(item)).filter(Boolean).join('');
+      }
+      if (value && typeof value === 'object') {
+        return readText(value.text || value.content || value.value || '');
+      }
+      return '';
+    };
+
+    const candidates = [
+      result?.choices?.[0]?.message?.content,
+      result?.choices?.[0]?.text,
+      result?.candidates?.[0]?.content?.parts,
+      result?.output_text,
+      result?.response,
+      result?.result?.response,
+      result?.result?.description,
+      result?.description,
+      Array.isArray(result?.result) ? JSON.stringify(result.result, null, 2) : ''
+    ];
+
+    for (const candidate of candidates) {
+      const text = readText(candidate).trim();
+      if (text) return text;
     }
-    if (typeof result?.candidates?.[0]?.content?.parts?.[0]?.text === 'string') {
-      return result.candidates[0].content.parts[0].text.trim();
-    }
-    if (typeof result?.result?.description === 'string' && result.result.description.trim()) {
-      return result.result.description.trim();
-    }
-    if (typeof result?.description === 'string' && result.description.trim()) {
-      return result.description.trim();
-    }
-    if (typeof result?.result?.response === 'string' && result.result.response.trim()) {
-      return result.result.response.trim();
-    }
-    if (Array.isArray(result?.result) && result.result.length > 0) {
-      return JSON.stringify(result.result, null, 2);
-    }
+
     return '';
+  }
+
+  function responseNeedsPortugueseRetry(value) {
+    const text = normalizeBrokenEncoding(String(value || ''))
+      .toLowerCase()
+      .replace(/https?:\/\/\S+/g, ' ');
+    if (text.length < 18) return false;
+
+    const englishWords = text.match(/\b(?:the|and|you|your|this|that|with|from|what|why|how|is|are|can|will|here|about|answer|sure|based|versus|winner|fight|battle)\b/g) || [];
+    const portugueseWords = text.match(/\b(?:o|a|os|as|um|uma|e|de|do|da|dos|das|que|com|para|por|em|no|na|nos|nas|sobre|como|quem|vence|vencedor|luta|batalha|resposta|porque|será)\b/g) || [];
+
+    return englishWords.length >= 3 && englishWords.length > portugueseWords.length + 1;
+  }
+
+  function buildPortugueseCorrectionMessage() {
+    return [
+      'A resposta anterior não atende ao idioma solicitado.',
+      'Reescreva a resposta completa agora, exclusivamente em português brasileiro (pt-BR).',
+      'Não explique a correção, não use inglês e preserve o conteúdo útil da pergunta.'
+    ].join('\n');
   }
 
   function renderVisionResult(text) {
@@ -1045,9 +1119,9 @@
     const copyBtn = document.createElement('button');
     copyBtn.className = 'msg-copy-btn';
     copyBtn.type = 'button';
-    copyBtn.title = 'Copiar anÃ¡lise';
-    copyBtn.setAttribute('aria-label', 'Copiar anÃ¡lise');
-    copyBtn.dataset.feedbackMessage = 'AnÃ¡lise copiada';
+    copyBtn.title = 'Copiar análise';
+    copyBtn.setAttribute('aria-label', 'Copiar análise');
+    copyBtn.dataset.feedbackMessage = 'Análise copiada';
     copyBtn.dataset.rawText = normalizedText;
     updateCopyButton(copyBtn, false);
     copyBtn.addEventListener('click', () => copyText(copyBtn.dataset.rawText, copyBtn));
@@ -1136,8 +1210,8 @@
       const editBtn = document.createElement('button');
       editBtn.className = 'msg-edit-btn';
       editBtn.type = 'button';
-      editBtn.title = options.isEditing ? 'Mensagem em ediÃ§Ã£o' : 'Editar mensagem';
-      editBtn.setAttribute('aria-label', options.isEditing ? 'Mensagem em ediÃ§Ã£o' : 'Editar mensagem');
+      editBtn.title = options.isEditing ? 'Mensagem em edição' : 'Editar mensagem';
+      editBtn.setAttribute('aria-label', options.isEditing ? 'Mensagem em edição' : 'Editar mensagem');
       editBtn.innerHTML = `${EDIT_ICON}<span>Editar</span>`;
       editBtn.disabled = !!options.isEditing;
       editBtn.addEventListener('click', () => {
@@ -1267,7 +1341,7 @@
 
     const turn = getLastUndoableChatTurn();
     if (!turn || turn.userIndex !== messageIndex) {
-      showFeedback('SÃ³ a Ãºltima pergunta pode ser editada agora');
+      showFeedback('Só a última pergunta pode ser editada agora');
       return;
     }
 
@@ -1365,7 +1439,7 @@
       }
       return !error;
     } catch (err) {
-      console.error('Erro ao salvar histÃ³rico da IA:', err);
+      console.error('Erro ao salvar histórico da IA:', err);
       return false;
     }
   }
@@ -1401,7 +1475,7 @@
 
       return error ? null : (data || null);
     } catch (err) {
-      console.error('Erro ao salvar histÃ³rico detalhado da IA:', err);
+      console.error('Erro ao salvar histórico detalhado da IA:', err);
       return null;
     }
   }
@@ -1433,7 +1507,7 @@
   }
 
   function buildAIThreadHistoryTitle(prompt) {
-    return 'Open AnIme - ' + String(prompt || '').slice(0, 60);
+    return historySummary(prompt, 220) || 'Conversa com a ZenkAI';
   }
 
   async function syncAIThreadHistoryCard(prompt, assistantText) {
@@ -1443,8 +1517,8 @@
       contentId: currentChatThreadId,
       contentType: 'ai_chat',
       title: buildAIThreadHistoryTitle(prompt),
-      subtitle: String(assistantText || '').slice(0, 120),
-      route: 'open-anime.html',
+      subtitle: historySummary(assistantText, 160),
+      route: 'zenkai.html',
       payload: {
         mediaType: 'ai_chat',
         tab: 'chat',
@@ -1455,17 +1529,16 @@
   }
 
   async function requestAIText(requestMessages, options = {}) {
-    let target = options.target || 'openrouter';
+    const target = 'openrouter';
     const context = options.context || 'chat';
     const model = options.model || DEFAULT_GROQ_MODEL;
+    // As respostas da ZenkAI são entregues completas. O streaming fica
+    // bloqueado neste fluxo para não exibir Markdown/tabelas pela metade.
+
     const modelQueue = context === 'compare'
       ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
       : [model];
     const maxRetriesPerModel = 1;
-
-    if (window.ENV && window.ENV.GEMINI_KEY_SET && target === 'openrouter') {
-      target = 'gemini';
-    }
 
     let aiResponse = '';
     let lastError = null;
@@ -1473,66 +1546,30 @@
     for (let modelIndex = 0; modelIndex < modelQueue.length; modelIndex += 1) {
       const selectedModel = modelQueue[modelIndex];
       for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
-        const streamRequest = options.stream === true;
+        const selectedProviderModel = selectedModel;
         const res = await fetch('/api/ai/proxy', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             target,
             body: {
-              model: selectedModel,
+              model: selectedProviderModel,
               messages: requestMessages,
               temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
               max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
-              stream: streamRequest
+              stream: false
             }
           })
         });
 
         if (res.ok) {
-          if (streamRequest && typeof options.onChunk === 'function') {
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let done = false;
-            let fullText = '';
-            let buffer = '';
-            
-            while (!done) {
-              const { value, done: doneReading } = await reader.read();
-              done = doneReading;
-              if (value) {
-                buffer += decoder.decode(value, { stream: true });
-                let eolIndex;
-                while ((eolIndex = buffer.indexOf('\n')) >= 0) {
-                  const line = buffer.slice(0, eolIndex).trim();
-                  buffer = buffer.slice(eolIndex + 1);
-                  
-                  if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                    try {
-                      const data = JSON.parse(line.slice(6));
-                      const textChunk = data.choices?.[0]?.delta?.content || '';
-                      if (textChunk) {
-                        fullText += textChunk;
-                        options.onChunk(textChunk, fullText);
-                      }
-                    } catch (e) {
-                      // Ignora erros de parse e continua
-                    }
-                  }
-                }
-              }
-            }
-            aiResponse = fullText || 'Sem resposta da IA.';
-            break;
-          } else {
-            const data = await res.json();
-            aiResponse = normalizeBrokenEncoding(
-              data.candidates?.[0]?.content?.parts?.[0]?.text
-              || data.choices?.[0]?.message?.content
-              || 'Sem resposta da IA.'
-            );
-            break;
+          const data = await res.json().catch(() => ({}));
+          aiResponse = sanitizeAIResponseText(extractAIText(data));
+          if (!aiResponse) {
+            lastError = new Error(AI_EMPTY_RESPONSE_MESSAGE);
+            continue;
           }
+          break;
         }
 
         const errData = await res.json().catch(() => ({}));
@@ -1570,6 +1607,19 @@
 
     if (!aiResponse) {
       throw (lastError || new Error('Sem resposta da IA.'));
+    }
+
+    if (options.enforcePortuguese !== false && responseNeedsPortugueseRetry(aiResponse)) {
+      return requestAIText([
+        ...requestMessages,
+        { role: 'assistant', content: aiResponse },
+        { role: 'user', content: buildPortugueseCorrectionMessage() }
+      ], {
+        ...options,
+        stream: false,
+        allowStreaming: false,
+        enforcePortuguese: false
+      });
     }
 
     return aiResponse;
@@ -1664,7 +1714,7 @@
         ))
       ));
     } catch (err) {
-      console.error('Erro ao carregar histÃ³rico da IA:', err);
+      console.error('Erro ao carregar histórico da IA:', err);
       return [];
     }
   }
@@ -1793,7 +1843,7 @@
         size: Number(selectedAnalysis.metadata?.fileSize || 0)
       },
       {
-        fileInfo: 'Resultado restaurado do histÃ³rico',
+        fileInfo: 'Resultado restaurado do histórico',
         previewUrl: selectedAnalysis?.metadata?.imageDataUrl || selectedUpload?.metadata?.imageDataUrl || ''
       }
     );
@@ -1969,7 +2019,15 @@
       }
 
       let requestMessages = useChatContext
-        ? chatHistory.map(({ role, content }) => ({ role, content }))
+        ? chatHistory
+          // A saudação é renderizada localmente e não deve virar uma fala do
+          // modelo no primeiro turno, pois isso desloca a pergunta do usuário.
+          .filter((message) => !(
+            message?.role === 'assistant'
+            && !message?.id
+            && String(message.content || '') === GREETING_MESSAGE
+          ))
+          .map(({ role, content }) => ({ role, content }))
         : [{ role: 'system', content: enrichedSystemPrompt }, { role: 'user', content: prompt }];
 
       if (useChatContext && context === 'chat' && currentChatThreadId) {
@@ -1977,7 +2035,7 @@
           const persisted = await loadAIHistoryMessages({
             context: 'chat',
             metadataContains: { threadId: currentChatThreadId },
-            limit: 500
+            limit: 18
           });
 
           if (Array.isArray(persisted) && persisted.length > 0) {
@@ -1986,25 +2044,35 @@
               content: normalizeBrokenEncoding(msg.content)
             }));
 
-            const merged = [];
-            const seen = new Set();
-            for (const message of [...persistedMessages, ...requestMessages]) {
+            const localKeys = new Set(requestMessages.map((message) => (
+              `${message.role}:${String(message.content || '')}`
+            )));
+            const persistedOnly = persistedMessages.filter((message) => {
               const key = `${message.role}:${String(message.content || '')}`;
-              if (!seen.has(key)) {
-                seen.add(key);
-                merged.push(message);
-              }
-            }
-            requestMessages = merged;
+              if (localKeys.has(key)) return false;
+              localKeys.add(key);
+              return true;
+            });
+
+            // O histórico remoto entra apenas com mensagens ausentes, antes
+            // do contexto local. Assim a pergunta atual permanece por último.
+            requestMessages = [...persistedOnly, ...requestMessages];
           }
         } catch (historyError) {
-          console.warn('Falha ao carregar histÃ³rico completo do chat:', historyError);
+          console.warn('Falha ao carregar histórico completo do chat:', historyError);
         }
       }
 
+      // O histórico salvo não inclui mensagens de sistema. Recoloque as
+      // instruções em toda requisição para que a primeira resposta não perca
+      // idioma, personalidade ou regras da ZenkAI.
+      if (!requestMessages.some((message) => message.role === 'system')) {
+        requestMessages.unshift({ role: 'system', content: enrichedSystemPrompt });
+      }
+
       if (requestMessages.length) {
-        requestMessages = requestMessages.map((message, index) => {
-          if (index === 0 && message.role === 'system') {
+        requestMessages = requestMessages.map((message) => {
+          if (message.role === 'system') {
             return { role: 'system', content: enrichedSystemPrompt };
           }
           return {
@@ -2014,7 +2082,7 @@
         });
       }
 
-      requestMessages = trimAIRequestMessages(requestMessages, useChatContext ? 18 : 8);
+      requestMessages = trimAIRequestMessages(requestMessages, useChatContext ? 12 : 6);
 
       chatAssistantEntry = null;
       lastMsgElement = null;
@@ -2036,26 +2104,12 @@
         context,
         temperature: options.temperature,
         max_tokens: options.max_tokens,
-        stream: options.stream === true,
-        onChunk: (chunk, fullText) => {
-          if (chatAssistantEntry && lastMsgElement && lastMsgElement.classList.contains('bot')) {
-            const sanitizedText = sanitizeAIResponseText(fullText);
-            chatAssistantEntry.content = sanitizedText;
-            const contentDiv = lastMsgElement.querySelector('.msg-content');
-            if (contentDiv) {
-              contentDiv.innerHTML = formatAIResponse(sanitizedText);
-              const copyBtn = lastMsgElement.querySelector('.msg-copy-btn');
-              if (copyBtn) copyBtn.dataset.rawText = sanitizedText;
-              if (chatWindow) {
-                const isNearBottom = chatWindow.scrollHeight - chatWindow.scrollTop - chatWindow.clientHeight < 150;
-                if (isNearBottom) chatWindow.scrollTo({ top: chatWindow.scrollHeight });
-              }
-            }
-          }
-        }
+        stream: false,
+        allowStreaming: false,
+        enforcePortuguese: true
       });
 
-      if (context === 'compare') {
+      if (context === 'compare' && options.ensureComplete === true) {
         aiResponse = await completeComparisonAnalysisIfNeeded(aiResponse, requestMessages, {
           target,
           model,
@@ -2100,10 +2154,10 @@
             contentId: isCompare ? metadata.historyContentId : currentChatThreadId,
             contentType: isCompare ? 'ai_compare' : 'ai_chat',
             title: isCompare
-              ? `ComparaÃ§Ã£o IA - ${metadata.char1 || ''} vs ${metadata.char2 || ''}`
+              ? [metadata.char1, metadata.char2].filter(Boolean).join(' vs ') || 'Comparação sem título'
               : buildAIThreadHistoryTitle(prompt),
-            subtitle: aiResponse.slice(0, 120),
-            route: 'open-anime.html',
+            subtitle: historySummary(aiResponse, 160),
+            route: 'zenkai.html',
             payload: {
               mediaType: isCompare ? 'ai_compare' : 'ai_chat',
               tab: isCompare ? 'compare' : 'chat',
@@ -2389,26 +2443,17 @@
     };
     metadata.historyContentId = metadata.historyContentId || buildVisionHistoryContentId(metadata);
 
-    const base64Image = await readFileAsDataUrl(file);
+    const base64Image = await optimizeVisionImage(file);
     const metadataWithPreview = { ...metadata, imageDataUrl: base64Image };
-    const requestedModel = options.model || DEFAULT_VISION_MODEL;
     const maxRetriesPerModel = 1;
     const visionRequestPlan = [
       {
         target: 'openrouter',
-        models: ['google/gemini-2.0-flash-exp:free', 'openrouter/auto', 'meta-llama/llama-3.2-11b-vision-instruct:free']
-      },
-      {
-        target: 'gemini',
-        models: Array.from(new Set([
-          ...GEMINI_VISION_MODEL_FALLBACKS,
-          DEFAULT_GEMINI_VISION_MODEL,
-          DEFAULT_GEMINI_MODEL
-        ].filter(Boolean)))
+        models: ['openrouter/free']
       }
     ];
 
-    async function requestVisionText(promptText) {
+    async function requestVisionText(promptText, requestOptions = {}) {
       let lastError = null;
 
       for (let providerIndex = 0; providerIndex < visionRequestPlan.length; providerIndex += 1) {
@@ -2419,36 +2464,19 @@
           const selectedModel = models[modelIndex];
 
           for (let attempt = 0; attempt < maxRetriesPerModel; attempt += 1) {
-            let requestBody;
-            if (target === 'gemini') {
-              requestBody = {
-                model: selectedModel,
-                messages: [{ role: 'user', content: promptText }],
-                image: base64Image,
-                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
-              };
-            } else if (target === 'openrouter') {
-              requestBody = {
-                model: selectedModel,
-                messages: [
-                  {
-                    role: 'user',
-                    content: [
-                      { type: 'text', text: promptText },
-                      { type: 'image_url', image_url: { url: base64Image } }
-                    ]
-                  }
-                ],
-                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
-              };
-            } else {
-              requestBody = {
-                model: selectedModel,
-                prompt: promptText,
-                image: base64Image,
-                max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
-              };
-            }
+            const requestBody = {
+              model: selectedModel,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: promptText },
+                    { type: 'image_url', image_url: { url: base64Image } }
+                  ]
+                }
+              ],
+              max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+            };
 
             const res = await fetch('/api/ai/proxy', {
               method: 'POST',
@@ -2463,8 +2491,14 @@
             if (res.ok) {
               const text = sanitizeAIResponseText(extractVisionText(result));
               if (!text) {
-                lastError = new Error('A IA nÃ£o retornou uma descriÃ§Ã£o utilizÃ¡vel para esta imagem.');
+                lastError = new Error('A IA não retornou uma descrição utilizável para esta imagem.');
               } else {
+                if (!requestOptions.languageRetry && responseNeedsPortugueseRetry(text)) {
+                  return requestVisionText(
+                    `${promptText}\n\n${buildPortugueseCorrectionMessage()}`,
+                    { languageRetry: true }
+                  );
+                }
                 return text;
               }
             } else {
@@ -2477,7 +2511,7 @@
             }
 
             if (!isTemporaryModelOverload(res.status, lastError?.message || '')) {
-              console.error(`[Vision AI] O provedor '${target}' retornou um erro e nÃ£o pÃ´de concluir:`, lastError);
+              console.error(`[Vision AI] O provedor '${target}' retornou um erro e não pôde concluir:`, lastError);
               break;
             }
 
@@ -2511,7 +2545,7 @@
 
       let finalPrompt = `${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       if (options.customPrompt && options.customPrompt.trim()) {
-        finalPrompt = `[PERGUNTA DO USUÃRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
+        finalPrompt = `[PERGUNTA DO USUÁRIO SOBRE A IMAGEM]:\n"${options.customPrompt.trim()}"\n\n[DIRETRIZES DO SISTEMA E DETETIVE VISUAL]:\n${VISION_PROMPT}\n\n${AI_RESPONSE_GUIDE}`;
       }
 
       let aiResponse = await requestVisionText(finalPrompt);
@@ -2522,14 +2556,14 @@
             finalPrompt,
             '',
             'A resposta anterior ficou curta.',
-            'RefaÃ§a com mais profundidade, cobrindo todos os tÃ³picos com mais detalhes e sem resumir demais.'
+            'Refaça com mais profundidade, cobrindo todos os tópicos com mais detalhes e sem resumir demais.'
           ].join('\n');
           const refined = await requestVisionText(refinementPrompt);
           if (refined && refined.length > aiResponse.length) {
             aiResponse = refined;
           }
         } catch (refinementError) {
-          console.warn('Refinamento de visÃ£o nÃ£o aplicado:', refinementError?.message || refinementError);
+          console.warn('Refinamento de visão não aplicado:', refinementError?.message || refinementError);
         }
       }
 
@@ -2540,9 +2574,9 @@
           HistoryTracker.track({
             contentId: metadata.historyContentId,
             contentType: 'ai_vision',
-            title: `IA - Imagem ${metadata.fileName}`,
-            subtitle: aiResponse.slice(0, 220),
-            route: 'open-anime.html',
+            title: metadata.fileName || 'Imagem analisada pela ZenkAI',
+            subtitle: historySummary(aiResponse, 180),
+            route: 'zenkai.html',
             payload: {
               mediaType: 'ai_vision',
               tab: 'vision',
@@ -2550,7 +2584,7 @@
               fileName: metadata.fileName,
               fileType: metadata.fileType || '',
               fileSize: metadata.fileSize || 0,
-              description: aiResponse
+              description: historySummary(aiResponse, 180)
             }
           });
         }
@@ -2591,7 +2625,7 @@
       const currentDisplay = window.getComputedStyle(infoCard).display;
       if (currentDisplay === 'none') {
         infoCard.style.display = 'block';
-        // Scroll suave para mostrar o conteÃºdo expandido se necessÃ¡rio
+        // Scroll suave para mostrar o conteúdo expandido se necessário
         infoCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       } else {
         infoCard.style.display = 'none';
@@ -2605,21 +2639,21 @@
 
   window.addEventListener('storage', updateThemeInfo);
   
-  // Listener direto para clique em opÃ§Ãµes de tema
+  // Listener direto para clique em opções de tema
   document.addEventListener('click', (event) => {
     if (event.target.closest('.theme-opt-btn')) {
       updateThemeInfo();
     }
   });
 
-  // Listener para mudanÃ§a de tema via data attribute ou outras formas
+  // Listener para mudança de tema via data attribute ou outras formas
   document.addEventListener('change', (event) => {
     if (event.target.closest('[data-theme]') || event.target.classList.contains('theme-opt-btn')) {
       updateThemeInfo();
     }
   });
 
-  // Monitorar mudanÃ§as de classe no document para capturar mudanÃ§as de tema em tempo real
+  // Monitorar mudanças de classe no document para capturar mudanças de tema em tempo real
   if (typeof MutationObserver !== 'undefined') {
     const themeObserver = new MutationObserver(() => {
       updateThemeInfo();
@@ -2684,7 +2718,10 @@
         persistToAIHistory: true,
         context: 'chat',
         existingUserEntry: optimisticUserEntry,
-        stream: false
+        // Entrega somente a resposta final, sem efeito de digitação ou
+        // Markdown sendo renderizado enquanto ainda está incompleto.
+        stream: false,
+        max_tokens: CHAT_MAX_TOKENS
       });
     } finally {
       isSendingChat = false;
@@ -2728,7 +2765,7 @@
       previewUrl,
       fileInfo: `${file.type || 'image/*'} - ${formatFileSize(file.size)}`
     });
-    renderVisionResult('Imagem pronta para anÃ¡lise. Clique em "Analisar imagem".');
+    renderVisionResult('Imagem pronta para análise. Clique em "Analisar imagem".');
   }
 
   if (visionUpload) {
@@ -2869,43 +2906,30 @@
     isComparing = true;
     compareBtn.disabled = true;
 
-    const compareSystemPrompt = 'VocÃª Ã© um analista especialista em batalhas entre personagens de animes, desenhos, filmes, mangÃ¡s e HQs. Responda exclusivamente em portuguÃªs do Brasil. FaÃ§a uma anÃ¡lise justa, tÃ©cnica e precisa, respeitando lÃ³gica, lore, feitos e limitaÃ§Ãµes de cada universo. Use Markdown de forma clara e organizada, com tÃ­tulos, listas, negrito e tabela quando ajudar. Cubra todas as seÃ§Ãµes exigidas sem pular nenhuma. Se o espaÃ§o ficar apertado, seja mais conciso em cada seÃ§Ã£o, mas nÃ£o omita blocos inteiros. Evite enrolaÃ§Ã£o, repetiÃ§Ãµes e textos longos desnecessÃ¡rios.';
+    const compareSystemPrompt = 'Você é um analista de batalhas fictícias. Responda exclusivamente em português brasileiro, com fatos canônicos quando disponíveis, Markdown objetivo e um veredito claro. Seja detalhado sem repetir ideias e não omita nenhuma seção pedida.';
     const compareCompletionRules = [
-      'Regra de conclusao obrigatoria:',
-      '- Prioridade absoluta: concluir a secao "## Veredito final".',
-      '- Se precisar economizar espaco, reduza detalhes nas secoes anteriores, mas nunca corte o final.',
-      '- A ultima linha da resposta deve ser exatamente: Fim da analise.'
+      'A resposta deve terminar com a seção "## Veredito final", uma conclusão objetiva e, na última linha, exatamente: Fim da análise.'
     ].join('\n');
     const prompt = [
       compareCompletionRules,
-      `FaÃ§a uma anÃ¡lise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
-      'Formato obrigatÃ³rio da resposta em Markdown:',
-      '## Resumo rÃ¡pido',
-      '- Apresente os dois personagens em 1-2 linhas cada.',
-      '- Diga em poucas linhas quem tem vantagem inicial e por quÃª.',
+      `Faça uma análise de batalha completa e aprofundada: ${c1} vs ${c2}.`,
+      'Formato em Markdown:',
+      '## Resumo rápido',
+      '- Apresente os dois personagens e a vantagem inicial em até 4 linhas.',
       '## Tabela comparativa',
       '- Use uma tabela Markdown com as colunas: `Atributo`, `Personagem 1`, `Personagem 2`, `Vantagem`.',
-      '- Compare, no mÃ­nimo, forÃ§a, velocidade, resistÃªncia, tÃ¡tica, habilidades especiais e controle emocional.',
-      '## AnÃ¡lise detalhada',
-      '- **ForÃ§a fÃ­sica**: cite 1-2 feitos canÃ´nicos.',
-      '- **Velocidade e reflexos**: cite 1-2 feitos ou reaÃ§Ãµes.',
-      '- **InteligÃªncia tÃ¡tica**: como cada um age sob pressÃ£o.',
-      '- **ResistÃªncia e durabilidade**: como absorvem dano e seguem lutando.',
-      '- **Habilidades especiais e tÃ©cnicas Ãºnicas**: liste as principais de forma breve.',
-      '- **Controle emocional**: como as emoÃ§Ãµes afetam o combate.',
-      '## CenÃ¡rios de batalha',
-      '1. **Duelo direto sem preparo** - quem leva vantagem?',
-      '2. **Duelo com 24h de preparo** - o que muda?',
-      '3. **Campo neutro com civis ao redor** - como isso afeta o resultado?',
+      '- Compare força, velocidade, resistência, tática e habilidades especiais.',
+      '## Análise detalhada',
+      '- Explique os dois ou três fatores que decidem a luta.',
+      '## Cenários de batalha',
+      '1. **Duelo direto** - quem leva vantagem?',
+      '2. **Com preparo** - o que muda?',
       '## Pontos fracos e vulnerabilidades',
-      '- Liste os principais pontos fracos de cada personagem.',
+      '- Cite as vulnerabilidades mais relevantes.',
       '## Veredito final',
-      '- **Vencedor mais provÃ¡vel** com argumentaÃ§Ã£o sÃ³lida.',
-      '- **CondiÃ§Ãµes em que o azarÃ£o pode virar o jogo**.',
-      '- **NÃ­vel de confianÃ§a no veredito (%)**.',
-      '- **Curiosidade bÃ´nus**: algo interessante sobre a rivalidade ou universo dos dois.',
-      'Regra: se faltar dado canÃ´nico, diga "informaÃ§Ã£o insuficiente" e continue a anÃ¡lise. Nunca deixe uma seÃ§Ã£o em branco.',
-      'Prioridade mÃ¡xima: entregar a resposta completa, mesmo que isso signifique reduzir um pouco o tamanho de cada item.'
+      '- **Vencedor mais provável** com argumentação sólida.',
+      '- **Condições em que o azarão pode virar o jogo** e confiança estimada.',
+      'Se faltar dado canônico, diga "informação insuficiente".'
     ].join('\n');
 
     try {
@@ -2917,6 +2941,10 @@
         temperature: COMPARE_TEMPERATURE,
         max_tokens: COMPARE_MAX_TOKENS,
         systemPrompt: compareSystemPrompt,
+        // A análise só é exibida depois de completa e já formatada. Assim não
+        // há Markdown bruto nem tabela quebrada aparecendo durante a geração.
+        stream: false,
+        ensureComplete: true,
         metadata: { char1: c1, char2: c2, historyContentId: compareHistoryId }
       });
 

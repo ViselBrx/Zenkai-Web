@@ -1,4 +1,4 @@
--- Permanent IA chat history per user (Open AnIme)
+-- Permanent IA chat history per user (ZenkAI)
 -- Execute this in Supabase SQL Editor
 
 create table if not exists public.ai_chat_messages (

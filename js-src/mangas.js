@@ -52,7 +52,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderVolumes();
 
     showUndoToast(`Excluindo coleção "${mangaName}"...`,
-      async () => {`r`n        await DB.deleteManga(idToHide);
+      async () => {
+        await DB.deleteManga(idToHide);
         window.clearPendingDeletion?.(idToHide);
         renderMangaPills();
         renderVolumes();
@@ -621,6 +622,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   /* READER MODAL (TELA CHEIA PARA LER PDF) */
   async function openReader(url, titulo) {
+    if (typeof window.requireContentAccess === 'function' && !window.requireContentAccess()) return;
     if (window.supabaseClient) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) {

@@ -1,6 +1,6 @@
 /**
  * ..
- * server.js — Servidor local AnimeHouse
+ * server.js — Servidor local Zenkai
  * =======================================
  * Suporta upload real de arquivos de capa (salvos em /uploads) e JSON brutos.
  * Proxy para API Consumet (elimina necessidade de servidor separado)
@@ -339,7 +339,7 @@ const server = http.createServer(async (req, res) => {
         ]);
         headers = headers || {};
         if (!headers.Referer && !headers['referer']) headers.Referer = 'http://localhost:3000';
-        if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse Local';
+        if (!headers['X-Title']) headers['X-Title'] = 'Zenkai Local';
       } else if (target === 'groq') {
         apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
         credentialCandidates = buildCredentialCandidates([
@@ -434,6 +434,18 @@ const server = http.createServer(async (req, res) => {
           { source: 'data.json -> aiConfig.magichourKey', value: config.magichourKey }
         ]);
       }
+
+      // A ZenkAI entrega respostas completas para manter a formatação estável.
+      // Impede que clientes antigos ou cacheados reativem streaming por engano.
+      if (requestPayload && typeof requestPayload === 'object') {
+        requestPayload = { ...requestPayload };
+        if (target === 'gemini') {
+          delete requestPayload.stream;
+        } else {
+          requestPayload.stream = false;
+        }
+      }
+
       console.log(`[AI Proxy] URL: ${apiUrl}`);
       console.log(`[AI Proxy] Chave do Frontend chegou? ${!!frontendApiKey} (Valor: ${frontendApiKey ? frontendApiKey.substring(0,6) + '...' : 'Vazio'})`);
       const configKeyPreview = target === 'gemini'
@@ -526,8 +538,8 @@ const server = http.createServer(async (req, res) => {
     } catch (e) { return sendJSON(res, 500, { error: e.message }); }
   }
 
-  if (req.method === 'GET' && pathname === '/opne-anime.html') {
-    res.writeHead(301, { Location: '/open-anime.html' });
+  if (req.method === 'GET' && ['/opne-anime.html', '/open-anime.html'].includes(normalizedPathname)) {
+    res.writeHead(301, { Location: '/zenkai.html' + (parsedUrl.search || '') });
     return res.end();
   }
 
@@ -578,7 +590,7 @@ server.listen(PORT, '0.0.0.0', () => {
   const gray = '\x1b[90m';
 
   const divider = `${gray}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}`;
-  const title = `${bold}${cyan}Anime House Local Server${reset}`;
+  const title = `${bold}${cyan}Zenkai Local Server${reset}`;
   const subtitle = `${blue}Media Platform • AI Tools • Local Runtime${reset}`;
   const statusOk = `${bold}${green}ONLINE${reset}`;
   const info = `${bold}${cyan}INFO${reset}`;

@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderEditions();
 
     showUndoToast(`Excluindo coleção "${hqName}"...`,
-      async () => {`r`n        await DB.deleteHQ(idToHide);
+      async () => {
+        await DB.deleteHQ(idToHide);
         window.clearPendingDeletion?.(idToHide);
         renderHQPills();
         renderEditions();
@@ -589,6 +590,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Leitor PDF ──────────────────────────────────────────
   async function openReader(url, titulo) {
+    if (typeof window.requireContentAccess === 'function' && !window.requireContentAccess()) return;
     if (window.supabaseClient) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) {

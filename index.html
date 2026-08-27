@@ -4,13 +4,56 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House - Bem-vindo(a) ao Portal</title>
+  <title>Zenkai - Bem-vindo(a) ao Portal</title>
   <meta name="description" content="Seu portal nipônico e mundo de animações!" />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js-ofuscado/themes.js"></script>
+  <script>document.documentElement.classList.add('index-scroll-root');</script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <style>
+    /* Mantém a rolagem vertical do início em um único elemento: o html. */
+    html.index-scroll-root {
+      overflow-x: hidden;
+      overflow-y: auto;
+      scrollbar-gutter: auto;
+      scrollbar-color: var(--primary) rgba(255, 255, 255, 0.045);
+      scrollbar-width: thin;
+    }
+
+    html.index-scroll-root::-webkit-scrollbar {
+      width: 9px;
+    }
+
+    html.index-scroll-root::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    html.index-scroll-root::-webkit-scrollbar-thumb {
+      border: 2px solid var(--bg-dark);
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--primary), rgba(var(--primary-rgb), 0.65));
+      box-shadow: 0 0 12px rgba(var(--primary-rgb), 0.6);
+    }
+
+    html.index-scroll-root body {
+      overflow: visible;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    html.index-scroll-root body::-webkit-scrollbar,
+    html.index-scroll-root .navbar-links::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    html.index-scroll-root .navbar-links {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
     /* SISTEMA DE FEEDBACK STYLES */
     .feedback-fab {
       position: fixed;
@@ -580,16 +623,525 @@
         justify-content: center;
       }
     }
+
+    /* ===== HOME / EXPERIÊNCIA EDITORIAL ===== */
+    body.home-page {
+      --home-bg: #08090b;
+      --home-bg-soft: #0e1014;
+      --home-surface: rgba(255, 255, 255, 0.045);
+      --home-surface-strong: rgba(255, 255, 255, 0.075);
+      --home-line: rgba(255, 255, 255, 0.115);
+      --home-line-soft: rgba(255, 255, 255, 0.065);
+      --home-text: #f4f5f1;
+      --home-muted: #9a9da6;
+      --home-dim: #646873;
+      --home-accent: var(--primary, #c9ff54);
+      --home-accent-rgb: var(--primary-rgb, 201, 255, 84);
+      min-height: 100vh;
+      color: var(--home-text);
+      background:
+        radial-gradient(circle at 82% 7%, rgba(var(--home-accent-rgb), 0.13), transparent 28rem),
+        radial-gradient(circle at 4% 49%, rgba(66, 103, 255, 0.08), transparent 25rem),
+        var(--home-bg);
+    }
+
+    body.home-page::before {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+      content: '';
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.82), transparent 76%);
+      pointer-events: none;
+    }
+
+    body.home-page::after {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 0%, transparent 0 24%, rgba(0, 0, 0, 0.34) 100%);
+      content: '';
+      pointer-events: none;
+    }
+
+    html.index-scroll-root body.home-page { overflow: visible; }
+
+    .home-main {
+      width: min(calc(100% - 48px), 1240px);
+      margin: 0 auto;
+      padding: 0 0 90px;
+    }
+
+    .index-scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1100;
+      width: 100%;
+      height: 2px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .index-scroll-progress span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--home-accent), #fff2b0 58%, #a982ff);
+      box-shadow: 0 0 18px rgba(var(--home-accent-rgb), 0.85);
+      transform: scaleX(0);
+      transform-origin: left center;
+      will-change: transform;
+    }
+
+    .home-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+      align-items: center;
+      gap: clamp(42px, 7vw, 115px);
+      min-height: min(820px, calc(100vh - 90px));
+      padding: 102px 0 90px;
+    }
+
+    .home-hero-copy {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+    }
+
+    .home-eyebrow,
+    .home-section-kicker,
+    .home-mini-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      color: var(--home-accent);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+
+    .home-eyebrow::before,
+    .home-section-kicker::before {
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+      content: '';
+      opacity: 0.8;
+    }
+
+    .home-title {
+      max-width: 770px;
+      margin: 24px 0 24px;
+      font-size: clamp(3.65rem, 7.2vw, 7.1rem);
+      font-weight: 700;
+      letter-spacing: -0.09em;
+      line-height: 0.91;
+    }
+
+    .home-title strong {
+      display: block;
+      color: transparent;
+      background: linear-gradient(110deg, #fff 4%, #b8c1c4 42%, var(--home-accent) 93%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .home-title em {
+      display: block;
+      color: var(--home-accent);
+      font-family: 'Bangers', cursive;
+      font-size: 0.72em;
+      font-style: normal;
+      letter-spacing: 0.045em;
+      line-height: 1.1;
+      text-shadow: 0 0 28px rgba(var(--home-accent-rgb), 0.25);
+    }
+
+    .home-lede {
+      max-width: 600px;
+      margin: 0;
+      color: var(--home-muted);
+      font-size: clamp(1rem, 1.55vw, 1.18rem);
+      line-height: 1.75;
+    }
+
+    .home-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .home-actions > a {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
+    }
+
+    .home-actions > a:first-child {
+      color: #10120d;
+      background: var(--home-accent);
+      box-shadow: 0 12px 30px rgba(var(--home-accent-rgb), 0.16);
+    }
+
+    .home-actions > a:last-child {
+      border: 1px solid var(--home-line);
+      color: var(--home-text);
+    }
+
+    .home-actions > a:hover,
+    .home-actions > a:focus-visible {
+      border-color: var(--home-accent);
+      box-shadow: 0 16px 36px rgba(var(--home-accent-rgb), 0.2);
+      transform: translateY(-3px);
+    }
+
+    .home-actions > a:first-child:hover,
+    .home-actions > a:first-child:focus-visible { background: #edffb1; }
+
+    .home-user-status {
+      display: none;
+      align-items: center;
+      gap: 13px;
+      min-height: 48px;
+      padding: 7px 17px;
+      border: 1px solid rgba(var(--home-accent-rgb), 0.44);
+      border-radius: 999px;
+      background: rgba(var(--home-accent-rgb), 0.1);
+      box-shadow: 0 0 22px rgba(var(--home-accent-rgb), 0.12);
+    }
+
+    .home-user-status .home-user-label { color: var(--home-accent); font-size: 0.7rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase; }
+    .home-user-status .home-user-level { padding: 5px 9px; border-radius: 999px; color: #111; background: var(--home-accent); font-size: 0.7rem; font-weight: 900; }
+    .home-user-status .home-user-rank { font-family: 'Bangers', cursive; font-size: 1.2rem; letter-spacing: 0.04em; }
+
+    .home-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 26px;
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--home-line-soft);
+    }
+
+    .home-proof-item { display: grid; gap: 3px; }
+    .home-proof-item strong { font-size: 1.13rem; letter-spacing: -0.04em; }
+    .home-proof-item span { color: var(--home-dim); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+
+    .home-hero-stage {
+      position: relative;
+      min-height: 560px;
+      isolation: isolate;
+    }
+
+    .home-hero-stage::before {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(34vw, 440px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--home-accent-rgb), 0.18), rgba(var(--home-accent-rgb), 0.04) 42%, transparent 70%);
+      content: '';
+      transform: translate(-50%, -50%);
+      filter: blur(3px);
+      pointer-events: none;
+    }
+
+    .home-orbit {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(39vw, 510px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(var(--home-accent-rgb), 0.28);
+      border-radius: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg) scaleY(0.44);
+      animation: home-orbit-spin 19s linear infinite;
+      will-change: transform;
+    }
+
+    .home-orbit::before,
+    .home-orbit::after {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--home-accent);
+      box-shadow: 0 0 18px 4px rgba(var(--home-accent-rgb), 0.7);
+      content: '';
+    }
+
+    .home-orbit::before { top: 14%; left: 8%; }
+    .home-orbit::after { right: 8%; bottom: 13%; width: 5px; height: 5px; opacity: 0.72; }
+
+    .home-orbit--inner {
+      width: min(29vw, 375px);
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translate(-50%, -50%) rotate(60deg) scaleY(0.54);
+      animation-duration: 26s;
+      animation-direction: reverse;
+    }
+
+    .home-mascot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      width: min(29vw, 355px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 255, 255, 0.17);
+      border-radius: 50%;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.025));
+      box-shadow: 0 35px 90px rgba(0, 0, 0, 0.52), inset 0 0 60px rgba(var(--home-accent-rgb), 0.08);
+      transform: translate(-50%, -50%) translate3d(var(--home-pointer-x, 0px), var(--home-pointer-y, 0px), 0);
+      transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: transform;
+    }
+
+    .home-mascot::before { position: absolute; inset: 12px; border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: inherit; content: ''; }
+    .home-mascot img { position: relative; z-index: 1; width: 72%; height: 72%; object-fit: contain; filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.35)); animation: home-mascot-breathe 5s ease-in-out infinite; }
+
+    .home-stage-chip {
+      position: absolute;
+      z-index: 3;
+      display: grid;
+      gap: 5px;
+      min-width: 145px;
+      padding: 14px 16px;
+      border: 1px solid var(--home-line);
+      border-radius: 14px;
+      background: rgba(17, 19, 23, 0.72);
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .home-stage-chip i { margin-bottom: 3px; color: var(--home-accent); }
+    .home-stage-chip strong { font-size: 0.86rem; }
+    .home-stage-chip span { color: var(--home-muted); font-size: 0.7rem; line-height: 1.35; }
+    .home-stage-chip--top { top: 12%; right: 0; animation: home-chip-float 6s ease-in-out infinite; }
+    .home-stage-chip--bottom { bottom: 13%; left: 0; animation: home-chip-float 7s 0.8s ease-in-out infinite; }
+
+    .home-section {
+      position: relative;
+      padding: 120px 0;
+      content-visibility: auto;
+      contain-intrinsic-size: 720px;
+    }
+
+    .home-section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 28px;
+      margin-bottom: 58px;
+    }
+
+    .home-section-heading > div { max-width: 720px; }
+    .home-section-title { margin: 17px 0 0; font-size: clamp(2.45rem, 5vw, 5.2rem); font-weight: 700; letter-spacing: -0.08em; line-height: 0.96; }
+    .home-section-title span { color: var(--home-muted); }
+    .home-section-note { max-width: 285px; margin: 0 0 3px; color: var(--home-muted); font-size: 0.9rem; line-height: 1.65; }
+
+    .home-catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+
+    .home-main .home-card {
+      position: relative;
+      display: flex;
+      min-height: 265px;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: space-between;
+      grid-column: span 4;
+      gap: 18px;
+      overflow: hidden;
+      padding: 26px;
+      border: 1px solid var(--home-line-soft);
+      border-radius: 26px;
+      color: var(--home-text);
+      text-align: left;
+      background: linear-gradient(145deg, var(--home-surface-strong), rgba(255, 255, 255, 0.018));
+      box-shadow: none;
+      text-decoration: none;
+      transform: translateZ(0);
+      transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), border-color 280ms ease, background-color 280ms ease, box-shadow 280ms ease;
+    }
+
+    .home-main .home-card:nth-child(1),
+    .home-main .home-card:nth-child(4) { grid-column: span 7; min-height: 310px; }
+    .home-main .home-card:nth-child(2),
+    .home-main .home-card:nth-child(3) { grid-column: span 5; }
+    .home-main .home-card:nth-child(11) { grid-column: span 6; }
+
+    .home-main .home-card::after {
+      position: absolute;
+      right: -90px;
+      bottom: -115px;
+      width: 245px;
+      height: 245px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--home-accent-rgb), 0.16), transparent 68%);
+      content: '';
+      transition: transform 450ms ease;
+      pointer-events: none;
+    }
+
+    .home-main .home-card:hover,
+    .home-main .home-card:focus-visible {
+      border-color: rgba(var(--home-accent-rgb), 0.5);
+      background: linear-gradient(145deg, rgba(var(--home-accent-rgb), 0.105), rgba(255, 255, 255, 0.028));
+      box-shadow: 0 22px 54px rgba(0, 0, 0, 0.24);
+      outline: none;
+      transform: translateY(-6px);
+    }
+
+    .home-main .home-card:hover::after { transform: scale(1.3); }
+    .home-card-head { display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+    .home-main .home-icon { display: grid; place-items: center; width: 48px; height: 48px; margin: 0; border: 1px solid rgba(var(--home-accent-rgb), 0.26); border-radius: 14px; color: var(--home-accent) !important; background: rgba(var(--home-accent-rgb), 0.08); font-size: 1.15rem; animation: none !important; }
+    .home-card-number { color: var(--home-dim); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; }
+    .home-main .home-card h3 { margin: 30px 0 10px; color: var(--home-text) !important; font-size: clamp(1.35rem, 2.25vw, 2rem); letter-spacing: -0.06em; line-height: 1; }
+    .home-main .home-card p { max-width: 470px; margin: 0; color: var(--home-muted) !important; font-size: 0.84rem; line-height: 1.65; }
+    .home-card-link { display: inline-flex; align-items: center; gap: 9px; margin-top: 22px; color: var(--home-text); font-size: 0.73rem; font-weight: 800; }
+    .home-card-link i { color: var(--home-accent); transition: transform 220ms ease; }
+    .home-main .home-card:hover .home-card-link i { transform: translateX(4px); }
+
+    .home-card-guide-trigger {
+      z-index: 4;
+      opacity: 0;
+      border-color: rgba(var(--home-accent-rgb), 0.26);
+      background: rgba(10, 12, 15, 0.74);
+      color: var(--home-accent);
+    }
+
+    .home-main .home-card:hover .home-card-guide-trigger,
+    .home-main .home-card:focus-within .home-card-guide-trigger { opacity: 1; }
+
+    .home-ritual {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .home-ritual-card { min-height: 230px; padding: 25px; border-top: 1px solid var(--home-line); background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent); }
+    .home-ritual-card span { color: var(--home-accent); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; }
+    .home-ritual-card h3 { margin: 35px 0 11px; font-size: 1.3rem; letter-spacing: -0.055em; }
+    .home-ritual-card p { max-width: 290px; margin: 0; color: var(--home-muted); font-size: 0.82rem; line-height: 1.65; }
+
+    .home-cta {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 30px;
+      margin-top: 22px;
+      padding: 58px clamp(24px, 5vw, 64px);
+      overflow: hidden;
+      border: 1px solid rgba(var(--home-accent-rgb), 0.32);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(var(--home-accent-rgb), 0.17), rgba(10, 12, 15, 0.9) 62%);
+      box-shadow: 0 26px 80px rgba(var(--home-accent-rgb), 0.07);
+    }
+
+    .home-cta::after { position: absolute; right: -90px; bottom: -130px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--home-accent-rgb), 0.18), transparent 68%); content: ''; pointer-events: none; }
+    .home-cta h2 { max-width: 650px; margin: 16px 0 0; font-size: clamp(2.3rem, 5vw, 5.2rem); letter-spacing: -0.085em; line-height: 0.92; }
+    .home-cta h2 span { color: var(--home-accent); }
+    .home-cta .home-cta-button { position: relative; z-index: 1; min-height: 48px; }
+
+    .index-motion-ready [data-home-reveal] { opacity: 0; transform: translate3d(0, 24px, 0); transition: opacity 700ms cubic-bezier(0.2, 0.7, 0.2, 1), transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1); transition-delay: var(--home-reveal-delay, 0ms); }
+    .index-motion-ready [data-home-reveal="left"] { transform: translate3d(-25px, 0, 0); }
+    .index-motion-ready [data-home-reveal="scale"] { transform: translate3d(0, 18px, 0) scale(0.975); }
+    .index-motion-ready [data-home-reveal].is-visible { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+
+    @keyframes home-orbit-spin {
+      from { transform: translate(-50%, -50%) rotate(-18deg) scaleY(0.44); }
+      to { transform: translate(-50%, -50%) rotate(342deg) scaleY(0.44); }
+    }
+
+    @keyframes home-mascot-breathe {
+      0%, 100% { transform: translateY(0) rotate(-2deg); }
+      50% { transform: translateY(-9px) rotate(2deg); }
+    }
+
+    @keyframes home-chip-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @media (max-width: 980px) {
+      .home-hero { grid-template-columns: 1fr; min-height: auto; padding-top: 90px; }
+      .home-hero-copy { max-width: 760px; }
+      .home-hero-stage { min-height: 530px; max-width: 650px; width: 100%; margin: 0 auto; }
+      .home-orbit { width: min(68vw, 500px); }
+      .home-orbit--inner { width: min(53vw, 375px); }
+      .home-mascot { width: min(52vw, 355px); }
+      .home-stage-chip--top { right: 7%; }
+      .home-cta { grid-template-columns: 1fr; align-items: start; }
+    }
+
+    @media (max-width: 720px) {
+      .home-main { width: min(calc(100% - 32px), 1240px); }
+      .home-hero { padding: 74px 0 68px; }
+      .home-title { font-size: clamp(3.4rem, 16vw, 6rem); }
+      .home-hero-stage { min-height: 420px; }
+      .home-stage-chip { min-width: 120px; padding: 11px 12px; }
+      .home-stage-chip--top { top: 6%; right: 0; }
+      .home-stage-chip--bottom { bottom: 3%; left: 0; }
+      .home-mascot { width: min(67vw, 305px); }
+      .home-orbit { width: min(85vw, 435px); }
+      .home-orbit--inner { width: min(67vw, 330px); }
+      .home-section { padding: 80px 0; }
+      .home-section-heading { display: block; margin-bottom: 38px; }
+      .home-section-note { margin-top: 20px; }
+      .home-catalog-grid { grid-template-columns: 1fr; }
+      .home-main .home-card,
+      .home-main .home-card:nth-child(1),
+      .home-main .home-card:nth-child(2),
+      .home-main .home-card:nth-child(3),
+      .home-main .home-card:nth-child(4),
+      .home-main .home-card:nth-child(11) { grid-column: auto; min-height: 245px; }
+      .home-card-guide-trigger { opacity: 0.82; transform: none; }
+      .home-ritual { grid-template-columns: 1fr; gap: 0; }
+      .home-ritual-card { min-height: auto; padding: 22px 0; }
+      .home-cta { margin-top: 0; padding: 40px 24px; }
+      .home-cta .home-cta-button { justify-self: start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.001ms !important; }
+      .index-motion-ready [data-home-reveal] { opacity: 1; transform: none; }
+    }
   </style>
 </head>
 
-<body>
+<body class="home-page">
 
   <!-- NAVBAR -->
   <nav class="navbar">
     <a href="index.html" class="navbar-brand">
       <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
-      <span>Anime</span>House
+      <span>Zen</span>kai
     </a>
     <ul class="navbar-links" id="navLinks">
     </ul>
@@ -599,10 +1151,130 @@
     </button>
   </nav>
 
-  <main class="container">
+  <div class="index-scroll-progress" aria-hidden="true"><span id="indexScrollProgress"></span></div>
+
+  <main class="container home-main">
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-hero-copy" data-home-reveal="left">
+        <p class="home-eyebrow">01 / A porta de entrada</p>
+        <h1 class="home-title" id="home-title">
+          <strong>Encontre seu próximo universo.</strong>
+          <em>Entre. Explore. Evolua.</em>
+        </h1>
+        <p class="home-lede">A Zenkai reúne animes, desenhos, filmes, mangás, HQs, jogos e inteligência artificial em uma experiência feita para quem nunca para de descobrir.</p>
+        <div id="homeBannerActions" class="home-actions">
+          <div id="homeUserStatus" class="home-user-status">
+            <span class="home-user-label">Seu patamar</span>
+            <span id="homeUserRank" class="home-user-rank">Novato</span>
+            <span id="homeUserLevel" class="home-user-level">LVL 1</span>
+          </div>
+          <a href="login.html">Fazer login <i class="fa-solid fa-arrow-right"></i></a>
+          <a href="registro.html">Criar conta <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>
+        <div class="home-proof" aria-label="Destaques da plataforma">
+          <div class="home-proof-item"><strong>10+</strong><span>portas de entrada</span></div>
+          <div class="home-proof-item"><strong>IA</strong><span>para ir além da tela</span></div>
+          <div class="home-proof-item"><strong>∞</strong><span>histórias pela frente</span></div>
+        </div>
+      </div>
+
+      <div class="home-hero-stage" data-home-reveal="scale" aria-label="Mascote da Zenkai em destaque">
+        <div class="home-orbit" aria-hidden="true"></div>
+        <div class="home-orbit home-orbit--inner" aria-hidden="true"></div>
+        <div class="home-mascot"><img src="assets/tryhard2.png" alt="Mascote futurista da Zenkai"></div>
+        <div class="home-stage-chip home-stage-chip--top"><i class="fa-solid fa-sparkles"></i><strong>Seu mapa começa aqui</strong><span>Atalhos claros para mundos enormes.</span></div>
+        <div class="home-stage-chip home-stage-chip--bottom"><i class="fa-solid fa-bolt"></i><strong>Modo descoberta</strong><span>Uma próxima história sempre perto.</span></div>
+      </div>
+    </section>
+
+    <section class="home-section" id="explore" aria-labelledby="explore-title">
+      <div class="home-section-heading" data-home-reveal>
+        <div><p class="home-section-kicker">02 / Escolha uma direção</p><h2 class="home-section-title" id="explore-title">Um portal.<br><span>Muitos jeitos de explorar.</span></h2></div>
+        <p class="home-section-note">Comece pelo que já conhece ou deixe a curiosidade escolher o próximo caminho.</p>
+      </div>
+
+      <div class="home-catalog-grid">
+        <a href="animes.html" class="home-card" data-home-reveal style="--home-reveal-delay: 40ms;">
+          <span class="home-card-guide-trigger" data-guide-step="1"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-torii-gate"></i></span><span class="home-card-number">/ 01</span></div>
+          <div><h3>Universo Animes</h3><p>Ação, fantasia, drama e toda a energia das histórias orientais em um catálogo para maratonar.</p><span class="home-card-link">Abrir catálogo <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="desenhos.html" class="home-card" data-home-reveal style="--home-reveal-delay: 90ms;">
+          <span class="home-card-guide-trigger" data-guide-step="1"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-tv"></i></span><span class="home-card-number">/ 02</span></div>
+          <div><h3>Desenhos clássicos</h3><p>Warner, Cartoon Network, Disney e outras memórias que continuam funcionando.</p><span class="home-card-link">Ver desenhos <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="filmes.html" class="home-card" data-home-reveal style="--home-reveal-delay: 140ms;">
+          <span class="home-card-guide-trigger" data-guide-step="2"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-film"></i></span><span class="home-card-number">/ 03</span></div>
+          <div><h3>Filmes</h3><p>Uma sessão para cada clima, com universos inteiros concentrados em uma boa história.</p><span class="home-card-link">Escolher filme <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="zenkai.html" class="home-card" data-home-reveal style="--home-reveal-delay: 190ms;">
+          <span class="home-card-guide-trigger" data-guide-step="4"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-brain"></i></span><span class="home-card-number">/ 04</span></div>
+          <div><h3>ZenkAI</h3><p>Converse, analise imagens e compare personagens com um cérebro digital para explorar ideias.</p><span class="home-card-link">Abrir o cérebro <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="mangas.html" class="home-card" data-home-reveal style="--home-reveal-delay: 40ms;">
+          <span class="home-card-guide-trigger" data-guide-step="3"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-book-open"></i></span><span class="home-card-number">/ 05</span></div>
+          <div><h3>Mangás</h3><p>Leitura e capítulos organizados para você continuar exatamente de onde parou.</p><span class="home-card-link">Começar leitura <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="hq.html" class="home-card" data-home-reveal style="--home-reveal-delay: 90ms;">
+          <span class="home-card-guide-trigger" data-guide-step="3"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-regular fa-comment-dots"></i></span><span class="home-card-number">/ 06</span></div>
+          <div><h3>HQs</h3><p>Grandes sagas, edições e personagens para acompanhar em outro tipo de quadro.</p><span class="home-card-link">Ver quadrinhos <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="youtube.html" class="home-card" data-home-reveal style="--home-reveal-delay: 140ms;">
+          <span class="home-card-guide-trigger" data-guide-step="3"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-brands fa-youtube"></i></span><span class="home-card-number">/ 07</span></div>
+          <div><h3>YouTube</h3><p>Playlists, vídeos e referências em uma área organizada para assistir sem dispersar.</p><span class="home-card-link">Abrir playlists <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="jogos.html" class="home-card" data-home-reveal style="--home-reveal-delay: 190ms;">
+          <span class="home-card-guide-trigger" data-guide-step="6"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-gamepad"></i></span><span class="home-card-number">/ 08</span></div>
+          <div><h3>Jogos</h3><p>Uma pausa ativa entre uma história e outra, com desafios rápidos e recompensa.</p><span class="home-card-link">Ir para o hub <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="loja.html" class="home-card" data-home-reveal style="--home-reveal-delay: 40ms;">
+          <span class="home-card-guide-trigger" data-guide-step="6"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-bag-shopping"></i></span><span class="home-card-number">/ 09</span></div>
+          <div><h3>SenseiMod Store</h3><p>Use seu progresso para desbloquear itens, visuais e detalhes com a sua cara.</p><span class="home-card-link">Visitar loja <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="usuarios.html" class="home-card" data-home-reveal style="--home-reveal-delay: 90ms;">
+          <span class="home-card-guide-trigger" data-guide-step="5"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-users"></i></span><span class="home-card-number">/ 10</span></div>
+          <div><h3>Comunidade</h3><p>Encontre outras pessoas, veja quem está online e faça parte da casa.</p><span class="home-card-link">Ver comunidade <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+        <a href="#" class="home-card" id="openMobileModal" data-home-reveal style="--home-reveal-delay: 140ms;">
+          <span class="home-card-guide-trigger" data-guide-step="8"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
+          <div class="home-card-head"><span class="home-icon"><i class="fa-solid fa-qrcode"></i></span><span class="home-card-number">/ 11</span></div>
+          <div><h3>App mobile</h3><p>Leve a sua próxima sessão com você e continue explorando no celular.</p><span class="home-card-link">Ver QR Code <i class="fa-solid fa-arrow-right"></i></span></div>
+        </a>
+      </div>
+    </section>
+
+    <section class="home-section" id="ritual" aria-labelledby="ritual-title">
+      <div class="home-section-heading" data-home-reveal>
+        <div><p class="home-section-kicker">03 / O ritual</p><h2 class="home-section-title" id="ritual-title">Do primeiro clique<br><span>ao próximo capítulo.</span></h2></div>
+        <p class="home-section-note">A experiência foi pensada para você entrar por qualquer porta e ainda saber para onde ir.</p>
+      </div>
+      <div class="home-ritual">
+        <article class="home-ritual-card" data-home-reveal style="--home-reveal-delay: 40ms;"><span>01 / Descobrir</span><h3>Siga o impulso.</h3><p>Use os catálogos e atalhos para encontrar um título que combine com o seu momento.</p></article>
+        <article class="home-ritual-card" data-home-reveal style="--home-reveal-delay: 100ms;"><span>02 / Acompanhar</span><h3>Deixe a casa lembrar.</h3><p>Organize sua jornada e retome episódios, capítulos e vídeos sem começar do zero.</p></article>
+        <article class="home-ritual-card" data-home-reveal style="--home-reveal-delay: 160ms;"><span>03 / Participar</span><h3>Transforme gosto em conversa.</h3><p>Compare personagens, jogue, evolua e descubra que toda história fica melhor compartilhada.</p></article>
+      </div>
+    </section>
+
+    <section class="home-section" aria-labelledby="home-cta-title">
+      <div class="home-cta" data-home-reveal="scale">
+        <div><p class="home-section-kicker">04 / Sua vez</p><h2 id="home-cta-title">A próxima história<br><span>pode começar agora.</span></h2></div>
+        <a class="btn btn-primary home-cta-button" href="sobre.html">Conheça a equipe <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+      </div>
+    </section>
+
+    <template id="legacy-home-markup">
 
     <div class="home-banner">
-      <h2 style="color:var(--primary)">Bem-vindo à Anime House</h2>
+      <h2 style="color:var(--primary)">Bem-vindo à Zenkai</h2>
       <p style="color:var(--text-muted)">Selecione um dos nossos catálogos para começar a explorar sua coleção nipônica
         e pop.</p>
 
@@ -630,7 +1302,7 @@
         <span class="home-card-guide-trigger" data-guide-step="4"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-users'></i></div>
         <h3 style="color:var(--primary)">Comunidade</h3>
-        <p style="color:var(--text-muted);font-size:0.9rem">Conheça outros participantes da Anime House e veja quem está
+        <p style="color:var(--text-muted);font-size:0.9rem">Conheça outros participantes da Zenkai e veja quem está
           online.</p>
         <span class="btn btn-primary" style="margin-top:auto">Ver Membros</span>
       </a>
@@ -719,10 +1391,11 @@
         <span class="home-card-guide-trigger" data-guide-step="7"><i class="fa-solid fa-wand-magic-sparkles"></i> Guia</span>
         <div class="home-icon" style="color:var(--primary)"><i class='fa-solid fa-qrcode'></i></div>
         <h3 style="color:var(--primary)">App Mobile</h3>
-        <p style="color:var(--text-muted);font-size:0.9rem">Baixe o app oficial da Anime House no seu celular.</p>
+        <p style="color:var(--text-muted);font-size:0.9rem">Baixe o app oficial da Zenkai no seu celular.</p>
         <span class="btn btn-primary" style="margin-top:auto">Ver QR Code</span>
       </a>
     </div>
+    </template>
 
   </main>
 
@@ -734,7 +1407,7 @@
         </div>
         <div>
           <p class="site-guide-kicker" id="siteGuideKicker">Guia Interativo</p>
-          <h3 class="site-guide-title" id="siteGuideTitle">Bem-vindo(a) à Anime House</h3>
+          <h3 class="site-guide-title" id="siteGuideTitle">Bem-vindo(a) à Zenkai</h3>
           <p class="site-guide-subtitle" id="siteGuideSubtitle">
             Eu vou te mostrar, passo a passo, como explorar o site, mudar de tema e encontrar cada área sem esforço.
           </p>
@@ -794,7 +1467,7 @@
         <button class="feedback-close-btn" id="feedbackCloseBtn">×</button>
       </div>
       <div class="feedback-modal-body">
-        <p class="feedback-desc">Ajude-nos a melhorar a Anime House! Envie sua sugestão, report de bug ou mensagem para
+        <p class="feedback-desc">Ajude-nos a melhorar a Zenkai! Envie sua sugestão, report de bug ou mensagem para
           a equipe.</p>
 
         <form id="feedbackForm" autocomplete="off">
@@ -844,6 +1517,65 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.classList.add('index-motion-ready');
+
+      const reduceHomeMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const indexProgress = document.getElementById('indexScrollProgress');
+      let indexScrollFrame = 0;
+
+      const paintIndexProgress = () => {
+        indexScrollFrame = 0;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0;
+        if (indexProgress) indexProgress.style.transform = `scaleX(${progress})`;
+      };
+
+      const requestIndexProgress = () => {
+        if (!indexScrollFrame) indexScrollFrame = window.requestAnimationFrame(paintIndexProgress);
+      };
+
+      window.addEventListener('scroll', requestIndexProgress, { passive: true });
+      window.addEventListener('resize', requestIndexProgress, { passive: true });
+      paintIndexProgress();
+
+      const homeRevealItems = document.querySelectorAll('[data-home-reveal]');
+      if (reduceHomeMotion || !('IntersectionObserver' in window)) {
+        homeRevealItems.forEach((item) => item.classList.add('is-visible'));
+      } else {
+        const homeRevealObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+        homeRevealItems.forEach((item) => homeRevealObserver.observe(item));
+      }
+
+      if (!reduceHomeMotion && window.matchMedia('(pointer: fine)').matches) {
+        const homeStage = document.querySelector('.home-hero-stage');
+        const homeMascot = document.querySelector('.home-mascot');
+        let homePointerFrame = 0;
+        let homePointerX = 0;
+        let homePointerY = 0;
+        const paintHomePointer = () => {
+          homePointerFrame = 0;
+          homeMascot?.style.setProperty('--home-pointer-x', `${homePointerX}px`);
+          homeMascot?.style.setProperty('--home-pointer-y', `${homePointerY}px`);
+        };
+        homeStage?.addEventListener('pointermove', (event) => {
+          const bounds = homeStage.getBoundingClientRect();
+          homePointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 16;
+          homePointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 16;
+          if (!homePointerFrame) homePointerFrame = window.requestAnimationFrame(paintHomePointer);
+        }, { passive: true });
+        homeStage?.addEventListener('pointerleave', () => {
+          homePointerX = 0;
+          homePointerY = 0;
+          if (!homePointerFrame) homePointerFrame = window.requestAnimationFrame(paintHomePointer);
+        }, { passive: true });
+      }
+
       const burger = document.getElementById('navBurger');
       const menu = document.getElementById('navLinks');
       if (burger && menu) burger.addEventListener('click', () => menu.classList.toggle('open'));
@@ -960,7 +1692,7 @@
             const data = await response.json().catch(() => ({}));
 
             if (response.ok && data.success) {
-              showToast("Mensagem recebida com sucesso! A equipe da Anime House agradece o contato.", "success");
+              showToast("Mensagem recebida com sucesso! A equipe da Zenkai agradece o contato.", "success");
               feedbackModal.classList.remove('active');
               feedbackForm.reset();
             } else {
@@ -998,7 +1730,7 @@
         {
           topic: 'Apresentação',
           title: 'Oi, eu sou o Levi',
-          subtitle: 'Eu vou ser seu guia pelas primeiras voltas na Anime House.',
+          subtitle: 'Eu vou ser seu guia pelas primeiras voltas na Zenkai.',
           lead: 'Prazer, eu sou o Levi. Fui chamado para te acompanhar pelo site, mostrar onde cada coisa fica e deixar esse começo mais direto, sem você precisar descobrir tudo no chute.',
           bullets: [
             'Eu vou explicar as etapas principais do site de um jeito simples e direto.',
@@ -1012,7 +1744,7 @@
         },
         {
           topic: 'Começo rápido',
-          title: 'Boas-vindas à Anime House',
+          title: 'Boas-vindas à Zenkai',
           subtitle: 'Você acabou de chegar, então eu vou mostrar o mapa da casa sem complicar nada.',
           lead: 'Esta é a porta de entrada do portal. Aqui você encontra os atalhos mais importantes, e o visual muda junto com o tema selecionado.',
           bullets: [
@@ -1061,9 +1793,9 @@
         },
         {
           topic: 'IA do portal',
-          title: 'Open AnIme',
+          title: 'ZenkAI',
           subtitle: 'O cérebro do site também entra no tour.',
-          lead: 'No Open AnIme você conversa com a IA, analisa imagens e compara personagens com respostas em Markdown.',
+          lead: 'No ZenkAI você conversa com a IA, analisa imagens e compara personagens com respostas em Markdown.',
           bullets: [
             'O chat responde em português e acompanha o contexto da conversa.',
             'A visão analisa imagens e tenta identificar pistas visuais e texto na tela.',
@@ -1071,14 +1803,14 @@
           ],
           preview: 'Em seguida eu te mostro comunidade, perfil e seu progresso.',
           actions: [
-            { label: 'Abrir Open AnIme', href: 'open-anime.html', target: '_self' }
+            { label: 'Abrir ZenkAI', href: 'zenkai.html', target: '_self' }
           ]
         },
         {
           topic: 'Perfil e comunidade',
           title: 'Comunidade, Perfil e Progresso',
           subtitle: 'Seu perfil e sua presença no site também fazem parte da experiência.',
-          lead: 'A Anime House tem comunidade, ranking, cosméticos e histórico para deixar a navegação com cara de conta viva.',
+          lead: 'A Zenkai tem comunidade, ranking, cosméticos e histórico para deixar a navegação com cara de conta viva.',
           bullets: [
             'Comunidade mostra outros usuários e quem está online.',
             'O perfil concentra nível, rank, avatar e cosméticos equipados.',
@@ -1098,7 +1830,7 @@
           bullets: [
             'Jogos dão um respiro entre um catálogo e outro, com recompensas de XP.',
             'A loja troca XP por itens, banners e outros cosméticos.',
-            'A página da equipe apresenta os responsáveis pela Anime House.'
+            'A página da equipe apresenta os responsáveis pela Zenkai.'
           ],
           preview: 'Se você for administrar conteúdo, o próximo passo é o manual de cadastro.',
           actions: [
@@ -1446,19 +2178,26 @@
       margin: 18px auto 0;
       padding-top: 16px;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
       font-size: 0.82rem;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.35;
       text-align: center;
     }
 
     .footer-bottom strong {
       color: var(--primary);
+    }
+
+    .footer-bottom .footer-copy {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .footer-bottom .footer-separator {
+      color: rgba(255, 255, 255, 0.28);
     }
 
     .footer-line {
@@ -1474,8 +2213,8 @@
     <div class="footer-shell">
       <div class="footer-top">
         <div class="footer-brand">
-          <div class="footer-kicker"><i class="fa-solid fa-sparkles"></i> Anime House</div>
-          <h2 class="footer-title"><span>Anime House</span> vive aqui</h2>
+          <div class="footer-kicker"><i class="fa-solid fa-sparkles"></i> Zenkai</div>
+          <h2 class="footer-title"><span>Zenkai</span> vive aqui</h2>
           <p class="footer-desc">
             Seu acervo online de animes, filmes, mangás, HQs e desenhos clássicos, com uma experiência
             mais viva, luminosa e fácil de explorar.
@@ -1486,7 +2225,12 @@
       <div class="footer-line"></div>
 
       <div class="footer-bottom">
-        &copy; 2026 <strong>Anime House</strong> · Animes, Filmes, Mangás, HQs e Desenhos Online
+        <span class="footer-copy">
+          <span>&copy; 2026</span>
+          <strong>Zenkai</strong>
+          <span class="footer-separator">·</span>
+          <span>Animes, Filmes, Mangás, HQs e Desenhos Online</span>
+        </span>
       </div>
     </div>
   </footer>

@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anime House — Cadastro de Usuário</title>
-  <meta name="description" content="Crie sua conta para administrar o AnimeHouse." />
+  <title>Zenkai — Cadastro de Usuário</title>
+  <meta name="description" content="Crie sua conta para administrar o Zenkai." />
   <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
   <link rel="stylesheet" href="css/style.css" />
   <script src="js-ofuscado/themes.js"></script>
@@ -137,7 +137,7 @@
       border: 1px solid var(--success);
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Seletor de mÃƒÂ©todo Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* Seletor de método */
     .auth-method-tabs {
       display: flex;
       flex-wrap: wrap;
@@ -210,7 +210,6 @@
     .github-btn,
     .google-btn,
     .discord-btn,
-    .facebook-btn,
     .twitch-btn {
       position: relative;
       overflow: hidden;
@@ -222,7 +221,6 @@
     .github-btn::before,
     .google-btn::before,
     .discord-btn::before,
-    .facebook-btn::before,
     .twitch-btn::before {
       content: "";
       position: absolute;
@@ -237,7 +235,6 @@
     .github-btn:hover,
     .google-btn:hover,
     .discord-btn:hover,
-    .facebook-btn:hover,
     .twitch-btn:hover {
       transform: translateY(-2px) scale(1.01);
     }
@@ -246,7 +243,6 @@
     .github-btn:hover::before,
     .google-btn:hover::before,
     .discord-btn:hover::before,
-    .facebook-btn:hover::before,
     .twitch-btn:hover::before {
       transform: translateX(0);
     }
@@ -336,39 +332,6 @@
       filter: saturate(1.08);
     }
 
-    .facebook-btn {
-      width: 100%;
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      background: #1877F2;
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: all 0.2s ease;
-      font-family: inherit;
-      margin-bottom: 0.5rem;
-      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.4);
-    }
-
-    .facebook-btn:hover {
-      background: #1a8cff !important;
-      box-shadow: 0 14px 28px rgba(24, 119, 242, 0.45), 0 0 18px rgba(24, 119, 242, 0.2);
-      border-color: rgba(255, 255, 255, 0.35);
-      filter: saturate(1.08);
-    }
-
-    .facebook-btn svg {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-
     .twitch-btn {
       width: 100%;
       padding: 14px;
@@ -401,7 +364,7 @@
       flex-shrink: 0;
     }
 
-    /* Ã¢â€â‚¬Ã¢â€â‚¬ Overlay de Carregamento Social Ã¢â€â‚¬Ã¢â€â‚¬ */
+    /* Overlay de Carregamento Social */
     #socialLoadingOverlay {
       position: fixed;
       top: 0;
@@ -528,7 +491,7 @@
   <nav class="navbar">
     <a href="index.html" class="navbar-brand">
       <img src="assets/tryhard.png" alt="Mascote" style="height:50px;width:auto;object-fit:contain;" />
-      <span>Anime</span>House
+      <span>Zen</span>kai
     </a>
     <ul class="navbar-links" id="navLinks">
     </ul>
@@ -548,7 +511,7 @@
       <h1 class="auth-title">Registrar</h1>
       <p class="auth-subtitle">Crie sua conta para administrar os conteúdos</p>
 
-      <!-- Seletor de mÃƒÂ©todo -->
+      <!-- Seletor de método -->
       <div class="auth-method-tabs">
         <button class="auth-method-tab active" id="tabRegEmail" onclick="switchRegTab('email')">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -589,12 +552,6 @@
           </svg>
           Discord
         </button>
-        <button class="auth-method-tab" id="tabRegFacebook" onclick="switchRegTab('facebook')">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z" />
-          </svg>Facebook
-        </button>
         <button class="auth-method-tab" id="tabRegTwitch" onclick="switchRegTab('twitch')">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -612,7 +569,7 @@
         -->
       </div>
 
-      <!-- SeÃƒÂ§ÃƒÂ£o e-mail -->
+      <!-- Seção e-mail -->
       <div id="registerEmailSection">
         <div id="registerError" class="auth-error">Erro ao registrar. Verifique os dados.</div>
         <div id="registerSuccess" class="auth-success" style="display:none; line-height:1.6;">
@@ -628,7 +585,7 @@
           <p style="margin: 0 0 10px; color: var(--text-main); font-size: 0.95rem; text-align:center;">
             <strong><i class='fa-solid fa-key'></i> Digite o código de 6 dígitos</strong>
           </p>
-          <input type="text" id="otpToken" placeholder="Digite o cÃƒÂ³digo" maxlength="12"
+          <input type="text" id="otpToken" placeholder="Digite o código" maxlength="12"
             style="width: 100%; padding: 12px; margin-bottom: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); text-align: center; font-size: 1.3rem; letter-spacing: 2px;" />
           <button type="button" id="verifyOtpBtn" class="btn btn-primary"
             style="width: 100%; padding: 12px; font-size: 1rem;"><i class='fa-solid fa-check'></i> Verificar e
@@ -639,7 +596,7 @@
           <div id="otpError" class="auth-error" style="margin-top: 10px; display:none;">Código inválido.</div>
         </div>
 
-        <!-- SeÃƒÂ§ÃƒÂ£o de Reenviar Email (oculta por padrÃƒÂ£o) -->
+        <!-- Seção de Reenviar Email (oculta por padrão) -->
         <div id="resendEmailSection"
           style="display: none; margin-bottom: 1.5rem; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3); text-align: center;">
           <p style="margin: 0 0 10px; color: var(--text-main); font-size: 0.9rem;">
@@ -650,7 +607,7 @@
             style="width: 100%; padding: 8px; margin-bottom: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main);" />
           <button type="button" id="resendBtn" class="btn btn-secondary"
             style="width: 100%; padding: 10px; font-size: 0.85rem;"><i class='fa-solid fa-envelope'></i> Reenviar
-            CÃƒÂ³digo</button>
+            Código</button>
         </div>
 
         <form class="auth-form" id="registerForm">
@@ -695,7 +652,7 @@
         </form>
       </div><!-- /#registerEmailSection -->
 
-      <!-- SeÃƒÂ§ÃƒÂ£o GitHub -->
+      <!-- Seção GitHub -->
       <div id="registerGithubSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Cadastre-se rapidamente usando sua conta do GitHub. Nenhuma senha necessária.
@@ -708,11 +665,11 @@
           Criar conta com GitHub
         </button>
         <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
-          VocÃƒÂª será redirecionado para autorizar o acesso e sua conta será¡ criada automaticamente.
+          Você será redirecionado para autorizar o acesso e sua conta será criada automaticamente.
         </p>
       </div>
 
-      <!-- SeÃƒÂ§ÃƒÂ£o Google -->
+      <!-- Seção Google -->
       <div id="registerGoogleSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Cadastre-se rapidamente usando sua conta do Google. Nenhuma senha necessária.
@@ -735,11 +692,11 @@
           Criar conta com Google
         </button>
         <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
-          Você será redirecionado para autorizar o acesso e sua conta serÃƒÂ¡ criada automaticamente.
+          Você será redirecionado para autorizar o acesso e sua conta será criada automaticamente.
         </p>
       </div>
 
-      <!-- SeÃƒÂ§ÃƒÂ£o Discord -->
+      <!-- Seção Discord -->
       <div id="registerDiscordSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Cadastre-se rapidamente usando sua conta do Discord.
@@ -757,24 +714,7 @@
         </p>
       </div>
 
-      <!-- SeÃƒÂ§ÃƒÂ£o Facebook -->
-      <div id="registerFacebookSection" style="display:none; padding: 8px 0 4px;">
-        <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
-          Cadastre-se rapidamente usando sua conta do Facebook.
-        </p>
-        <button class="facebook-btn" id="facebookRegBtn">
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.73 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z" />
-          </svg>
-          Criar conta com Facebook
-        </button>
-        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
-          Sua conta será criada e vinculada à sua conta do Facebook instantaneamente.
-        </p>
-      </div>
-
-      <!-- SeÃƒÂ§ÃƒÂ£o Twitch -->
+      <!-- Seção Twitch -->
       <div id="registerTwitchSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Cadastre-se rapidamente usando sua conta da Twitch.
@@ -791,7 +731,7 @@
         </p>
       </div>
 
-      <!-- SeÃƒÂ§ÃƒÂ£o Microsoft (Inativo)
+      <!-- Seção Microsoft (Inativo)
       <div id="registerMicrosoftSection" style="display:none; padding: 8px 0 4px;">
         <p style="text-align:center; color:var(--text-muted); font-size:0.9rem; margin-bottom:1.25rem;">
           Cadastre-se rapidamente usando sua conta da Microsoft.
@@ -803,7 +743,7 @@
           Criar conta com Microsoft
         </button>
         <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:0.75rem;">
-          Sua conta serÃƒÂ¡ criada e vinculada ÃƒÂ  sua conta Microsoft instantaneamente.
+          Sua conta será criada e vinculada à sua conta Microsoft instantaneamente.
         </p>
       </div>
       -->
@@ -829,14 +769,12 @@
       const githubSection = document.getElementById('registerGithubSection');
       const googleSection = document.getElementById('registerGoogleSection');
       const discordSection = document.getElementById('registerDiscordSection');
-      const facebookSection = document.getElementById('registerFacebookSection');
       const twitchSection = document.getElementById('registerTwitchSection');
       const microsoftSection = document.getElementById('registerMicrosoftSection');
       const tabEmail = document.getElementById('tabRegEmail');
       const tabGithub = document.getElementById('tabRegGithub');
       const tabGoogle = document.getElementById('tabRegGoogle');
       const tabDiscord = document.getElementById('tabRegDiscord');
-      const tabFacebook = document.getElementById('tabRegFacebook');
       const tabTwitch = document.getElementById('tabRegTwitch');
       const tabMicrosoft = document.getElementById('tabRegMicrosoft');
 
@@ -845,14 +783,12 @@
       githubSection.style.display = 'none';
       googleSection.style.display = 'none';
       discordSection.style.display = 'none';
-      if (facebookSection) facebookSection.style.display = 'none';
       if (twitchSection) twitchSection.style.display = 'none';
       if (microsoftSection) microsoftSection.style.display = 'none';
       tabEmail.classList.remove('active');
       tabGithub.classList.remove('active');
       tabGoogle.classList.remove('active');
       tabDiscord.classList.remove('active');
-      if (tabFacebook) tabFacebook.classList.remove('active');
       if (tabTwitch) tabTwitch.classList.remove('active');
       if (tabMicrosoft) tabMicrosoft.classList.remove('active');
 
@@ -868,9 +804,6 @@
       } else if (tab === 'discord') {
         discordSection.style.display = '';
         tabDiscord.classList.add('active');
-      } else if (tab === 'facebook' && facebookSection && tabFacebook) {
-        facebookSection.style.display = '';
-        tabFacebook.classList.add('active');
       } else if (tab === 'twitch' && twitchSection && tabTwitch) {
         twitchSection.style.display = '';
         tabTwitch.classList.add('active');
@@ -880,12 +813,11 @@
       }
     }
 
-    // Interceptar cliques nos botÃƒÂµes sociais para mostrar o loading
+    // Interceptar cliques nos botões sociais para mostrar o loading
     document.addEventListener('click', (e) => {
       if (e.target.closest('#githubRegBtn')) showSocialLoading('GitHub');
       if (e.target.closest('#googleRegBtn')) showSocialLoading('Google');
       if (e.target.closest('#discordRegBtn')) showSocialLoading('Discord');
-      if (e.target.closest('#facebookRegBtn')) showSocialLoading('Facebook');
       if (e.target.closest('#twitchRegBtn')) showSocialLoading('Twitch');
       if (e.target.closest('#microsoftRegBtn')) showSocialLoading('Microsoft');
     });

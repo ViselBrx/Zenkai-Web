@@ -267,6 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const watchFrame = document.getElementById('watchFrame');
 
   async function openWatchModal(f) {
+    if (typeof window.requireContentAccess === 'function' && !window.requireContentAccess()) return;
     if (window.supabaseClient) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) {

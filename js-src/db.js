@@ -1,5 +1,5 @@
-﻿/**
- * db.js — Cliente Supabase AnimeHouse
+/**
+ * db.js — Cliente Supabase Zenkai
  * =====================================
  * Modificado para usar Supabase no lugar de armazenamento local!
  */
@@ -588,7 +588,7 @@ const DB = {
                 }
                 return allRows;
             } catch (err) {
-                console.error(`âŒ [DB] Falha crítica na query ${label}:`, err);
+                console.error(`❌ [DB] Falha crítica na query ${label}:`, err);
                 return [];
             }
         };
@@ -680,7 +680,7 @@ const DB = {
                 localStorage.setItem(userStoreKey, JSON.stringify(mergedStore));
                 localStorage.setItem('animehouse_store', JSON.stringify(mergedStore));
 
-                // ðŸ”„ Sincronizar TODOS os cosméticos equipados para localStorage
+                // 🔄 Sincronizar TODOS os cosméticos equipados para localStorage
                 if (mergedStore.equipped && typeof mergedStore.equipped === 'object') {
                     // Sincronizar Aura
                     if (mergedStore.equipped.aura) {
@@ -788,7 +788,7 @@ const DB = {
                 }
             }
         } catch (err) {
-            console.error("âŒ [DB] Falha crítica ao tentar ler tabela 'profiles':", err);
+            console.error("❌ [DB] Falha crítica ao tentar ler tabela 'profiles':", err);
         }
 
         const { data: watchedItems, error: watchedError } = await supa
@@ -1777,7 +1777,7 @@ const DB = {
       if (star) {
         const label = isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
         star.classList.toggle('active', isFav);
-        star.innerHTML = isFav ? 'â˜…' : 'â˜†';
+        star.innerHTML = isFav ? '★' : '☆';
         star.title = label;
         star.setAttribute('aria-label', label);
         star.setAttribute('aria-pressed', String(isFav));
@@ -1838,7 +1838,7 @@ const DB = {
       
       const { data, error } = await query.maybeSingle();
       if (error) {
-        console.warn("ðŸ“Œ [isFavorite Check] Erro ou não encontrado:", error.message);
+        console.warn("📌 [isFavorite Check] Erro ou não encontrado:", error.message);
         return false;
       }
       return !!data;
@@ -1902,7 +1902,7 @@ const DB = {
     if (perkId === 'lista_destaque') {
       window.perkFavoritos = result; // Atalho para debug no console
       if (!result) {
-        console.warn(`ðŸ“Œ [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
+        console.warn(`📌 [Perk Debug] Motivo: Não comprado (${!hasPurchased}), Não equipado no banco (${!isStrictlyEquipped}), Não equipado localmente (${!isStampedEquipped})`);
       }
     }
 
@@ -1936,7 +1936,7 @@ const DB = {
         console.warn('[DB] Sem userId — não gravando animehouse_store (evita vazamento entre contas).');
       }
     } catch (err) {
-      console.error('âŒ [DB] Falha ao salvar no localStorage:', err);
+      console.error('❌ [DB] Falha ao salvar no localStorage:', err);
     }
 
     if (!userId) {

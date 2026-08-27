@@ -1298,7 +1298,7 @@ function populateNavbarLinks() {
     { name: "<i class='fa-regular fa-comment-dots'></i> HQs", url: "hq.html" },
     { name: "<i class='fa-solid fa-play'></i> YouTube", url: "youtube.html" },
     { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
-    { name: "<i class='fa-solid fa-robot'></i> Open AnIme", url: "open-anime.html" },
+    { name: "<i class='fa-solid fa-robot'></i> ZenkAI", url: "zenkai.html" },
     { name: "<i class='fa-solid fa-users'></i> Equipe", url: "sobre.html" },
     { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradeciment✅html" }
   ];

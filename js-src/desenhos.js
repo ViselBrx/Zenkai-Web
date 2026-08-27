@@ -648,6 +648,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   window.openWatchModal = (id, seasonOrMovie) => {
+    if (typeof window.requireContentAccess === 'function' && !window.requireContentAccess()) return;
     let item;
 
     if (seasonOrMovie === 'movie') {

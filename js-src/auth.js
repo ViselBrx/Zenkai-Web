@@ -123,6 +123,13 @@ function syncAuthContext(session) {
   };
   window.AH_SESSION_USER_ID = userId;
 
+  if (!session) {
+    window.AH_GUEST_PROFILE = { id: null, name: "Visitante", xp: 0, total_xp: 0, level: 0, rank: "" };
+    document.documentElement.classList.add("guest-session");
+  } else {
+    document.documentElement.classList.remove("guest-session");
+  }
+
   if (typeof window.updateNavbarCosmetics === "function") {
     window.updateNavbarCosmetics();
   }
@@ -496,7 +503,7 @@ function ensurePasskeyNameModal() {
         <div class="modal">
           <div class="modal-header">
             <h2><i class='fa-solid fa-fingerprint'></i> Passkey</h2>
-            <button type="button" class="modal-close" id="passkeyNameModalClose">âœ•</button>
+            <button type="button" class="modal-close" id="passkeyNameModalClose">✕</button>
           </div>
           <div class="form-group" style="margin-bottom:0;">
             <label id="passkeyNameLabel" for="passkeyNameInput">Nome da passkey</label>
@@ -608,7 +615,7 @@ function ensurePasskeyDeleteModal() {
         <div class="modal">
           <div class="modal-header">
             <h2><i class='fa-solid fa-triangle-exclamation'></i> Excluir passkey</h2>
-            <button type="button" class="modal-close" id="passkeyDeleteModalClose">âœ•</button>
+            <button type="button" class="modal-close" id="passkeyDeleteModalClose">✕</button>
           </div>
           <div class="delete-box">
             <strong id="passkeyDeleteTitle">Tem certeza que deseja excluir esta passkey?</strong>
@@ -720,7 +727,7 @@ async function renderPasskeyList() {
           </div>
           <div class="passkey-meta">
             <span><i class='fa-solid fa-calendar-plus'></i> Criada em ${formatPasskeyDate(item.created_at)}</span>
-            <span><i class='fa-solid fa-clock-rotate-left'></i> Ãšltimo uso: ${formatPasskeyDate(item.last_used_at)}</span>
+            <span><i class='fa-solid fa-clock-rotate-left'></i> Último uso: ${formatPasskeyDate(item.last_used_at)}</span>
           </div>
           <div class="passkey-id">${escapeHtml(item.id)}</div>
         </div>
@@ -1065,7 +1072,7 @@ function setupPasskeyUI() {
 }
 
 const initSupa = () => {
-  if (supaClient) return true; // JÃƒÂ¡ inicializado
+  if (supaClient) return true; // Já inicializado
   if (window.supabase) {
     try {
       supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1087,7 +1094,7 @@ const initSupa = () => {
   return false;
 };
 
-// Tentar inicializar imediatamente ou aguardar se necessÃƒÂ¡rio
+// Tentar inicializar imediatamente ou aguardar se necessário
 let isAuthLogicSetup = false;
 function tryInit() {
   if (initSupa()) {
@@ -1107,7 +1114,7 @@ if (!tryInit()) {
   setTimeout(() => clearInterval(checkSupa), 5000);
 }
 
-// ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ LÃƒÂ³gica de Redirecionamento e Auth State
+// 🚀 Lógica de Redirecionamento e Auth State
 async function setupAuthLogic() {
   if (!supaClient) return;
   try {
@@ -1116,14 +1123,6 @@ async function setupAuthLogic() {
   const currentPage = window.location.pathname.split('/').pop() || "index.html";
   const isRecovery = window.location.hash.includes("type=recovery");
   const guestBlockedPages = new Set([
-    "anime-episodios.html",
-    "episodios-desenhos.html",
-    "filmes.html",
-    "mangas.html",
-    "hq.html",
-    "youtube.html",
-    "youtube-videos.html",
-    "open-anime.html",
     "perfil.html",
     "usuarios.html",
     "compras.html",
@@ -1132,14 +1131,26 @@ async function setupAuthLogic() {
     "cadastro.html",
     "cadastro-animes.html",
     "cadastro-filmes.html",
-    "cadastro-youtube.html"
+    "cadastro-youtube.html",
+    "jogo-gartic.html",
+    "jogo-velha.html",
+    "lobby.html"
   ]);
 
   if (isRecovery) {
     sessionStorage.setItem('is_recovering_password', 'true');
   }
 
-    if (isAuthPage && !isRecovery) {
+  if (!isAuthPage) {
+    const { data: { session } } = await supaClient.auth.getSession();
+    syncAuthContext(session);
+    if (!session && guestBlockedPages.has(currentPage)) {
+      window.location.href = `login.html?redirect=${encodeURIComponent(currentPage + window.location.search)}`;
+      return;
+    }
+  }
+
+  if (isAuthPage && !isRecovery) {
     if (sessionStorage.getItem('is_recovering_password') === 'true') {
       sessionStorage.removeItem('is_recovering_password');
       sessionStorage.removeItem('theme');
@@ -1161,7 +1172,7 @@ async function setupAuthLogic() {
     const currentSessionId = session?.user?.id || null;
 
     if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-       // Opcional: sincronizar sessÃƒÂ£o
+       // Opcional: sincronizar sessão
     }
 
     if (event === 'PASSWORD_RECOVERY') {
@@ -1279,7 +1290,7 @@ async function setupAuthLogic() {
             btn.disabled = false;
           } else {
             sessionStorage.removeItem('is_recovering_password');
-            // Deslogar imediatamente para forÃ§ar o login manual e impedir que "entre na conta sozinho"
+            // Deslogar imediatamente para forçar o login manual e impedir que "entre na conta sozinho"
             sessionStorage.removeItem('theme');
             await supaClient.auth.signOut();
 
@@ -1320,7 +1331,7 @@ async function setupAuthLogic() {
 
       if (previousSessionId && currentSessionId && previousSessionId !== currentSessionId) {
         try {
-          // Limpar chaves genÃƒÂ©ricas para evitar vazamento
+          // Limpar chaves genéricas para evitar vazamento
           localStorage.removeItem("animehouse_store");
           localStorage.removeItem("animehouse_customAura");
           localStorage.removeItem("animehouse_customBanner");
@@ -1352,7 +1363,7 @@ async function setupAuthLogic() {
           keysToRemove.forEach((k) => localStorage.removeItem(k));
         } catch (e) { }
         
-        // Evita reload infinito se estivermos na pÃƒÂ¡gina de login/registro
+        // Evita reload infinito se estivermos na página de login/registro
         if (!isAuthPage) {
           window.location.reload();
         }
@@ -1364,7 +1375,7 @@ async function setupAuthLogic() {
   }
 }
 
-// 3. LÃƒÂ³gica de Login e Toggles de Senha
+// 3. Lógica de Login e Toggles de Senha
 function setupPasswordToggle(inputId, toggleId) {
   const input = document.getElementById(inputId);
   const toggle = document.getElementById(toggleId);
@@ -1425,7 +1436,7 @@ if (forgotPasswordLink) {
         errorDiv.style.display = "block";
       } else {
         if (successDiv) {
-          successDiv.innerHTML = "<i class='fa-solid fa-circle-check' style='color:var(--success);margin-right:6px;'></i><strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'><i class='fa-solid fa-triangle-exclamation'></i> <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>";
+          successDiv.innerHTML = "<i class='fa-solid fa-circle-check' style='color:var(--success);margin-right:6px;'></i><strong>E-mail de redefinição enviado!</strong><br/>Verifique sua caixa de entrada.<br/><br/><span style='color:var(--warning); font-size:0.85rem;'><i class='fa-solid fa-triangle-exclamation'></i> <strong>Atenção:</strong> Não encontrou? Verifique sua pasta de <strong>Spam ou Lixo Eletrônico</strong>.</span>";
           successDiv.style.display = "block";
         }
       }
@@ -1440,14 +1451,14 @@ const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    // Limpar qualquer flag de recuperaÃ§Ã£o de senha pendente
+    // Limpar qualquer flag de recuperação de senha pendente
     sessionStorage.removeItem('is_recovering_password');
 
     const email = (document.getElementById("email").value || "").trim().toLowerCase();
     const password = document.getElementById("password").value;
     const errorDiv = document.getElementById("loginError");
 
-    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
+    // Validação básica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       errorDiv.textContent = "E-mail inválido ou mal formatado.";
@@ -1498,7 +1509,7 @@ if (loginForm) {
         sessionStorage.setItem('freshLogin', 'true');
         window.location.href = "perfil.html";
       } else {
-        console.warn("âš ï¸ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
+        console.warn("⚠️ Sessão não encontrada após login. Tentando redirecionar mesmo assim...");
         window.location.href = "perfil.html";
       }
     } catch (err) {
@@ -1511,7 +1522,7 @@ if (loginForm) {
   });
 }
 
-// 4. LÃƒÂ³gica de Registro
+// 4. Lógica de Registro
 let lastEmailRegistered = sessionStorage.getItem("lastEmailRegistered") || "";
 
 const registerForm = document.getElementById("registerForm");
@@ -1525,7 +1536,7 @@ if (registerForm) {
     const successDiv = document.getElementById("registerSuccess");
     const submitBtn = registerForm.querySelector('button[type="submit"]');
 
-    // ValidaÃ§Ã£o bÃ¡sica de formato de e-mail
+    // Validação básica de formato de e-mail
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       errorDiv.textContent = "Digite um e-mail válido (ex: seu@email.com).";
@@ -1570,13 +1581,13 @@ if (registerForm) {
       let msg = error.message;
 
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many requests")) {
-        msg = "âÅ¡ Ã¯¸ Limite de tentativas atingido. Por favor, aguarde alguns minutos.";
+        msg = "⚠️ Limite de tentativas atingido. Por favor, aguarde alguns minutos.";
       } else if (msg.toLowerCase().includes("security purposes")) {
-          msg = "âš ï¸ Você já solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
+          msg = "⚠️ Você já solicitou um código para este e-mail. Aguarde 1 minuto para tentar novamente.";
       } else if (msg.toLowerCase().includes("confirmation email") || msg.toLowerCase().includes("email send failed")) {
-          msg = "âš ï¸ Erro no servidor de e-mail (SMTP). Por favor, verifique as configurações de SMTP no painel do Supabase.";
+          msg = "⚠️ Erro no servidor de e-mail (SMTP). Por favor, verifique as configurações de SMTP no painel do Supabase.";
       } else if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || error.status === 422) {
-          msg = "âŒ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
+          msg = "❌ Alguém já está usando essa conta. Tente fazer login ou use outro e-mail.";
       }
 
       errorDiv.textContent = msg;
@@ -1584,7 +1595,7 @@ if (registerForm) {
       submitBtn.disabled = false;
       submitBtn.textContent = "Criar Conta";
     } else {
-      // Registro realmente novo - Esconder form e mostrar container de verificaÃƒÂ§ÃƒÂ£o
+      // Registro realmente novo - Esconder form e mostrar container de verificação
       const otpSection = document.getElementById("otpSection");
       const resendSection = document.getElementById("resendEmailSection");
       if (otpSection) {
@@ -1592,7 +1603,7 @@ if (registerForm) {
         otpSection.style.display = "block";
         if (resendSection) {
           resendSection.style.display = "block";
-          // PrÃƒÂ©-preencher o campo de reenvio com o e-mail jÃƒÂ¡ usado
+          // Pré-preencher o campo de reenvio com o e-mail já usado
           const resendEmailInput = document.getElementById("resendEmail");
           if (resendEmailInput) resendEmailInput.value = email;
         }
@@ -1600,10 +1611,10 @@ if (registerForm) {
         // Atualizar texto do email na tela
         const emailDisplay = otpSection.querySelector("p");
         if (emailDisplay) {
-          emailDisplay.innerHTML = `Quase lá! Enviamos um código de segurança de 6 dígitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;"><strong>Atenção:</strong> O e-mail pode demorar 1 minuto para chegar. Se não encontrar, verifique sua caixa de <strong>Spam ou Lixo EletrÃ´nico</strong>.</span>`;
+          emailDisplay.innerHTML = `Quase lá! Enviamos um código de segurança de 6 dígitos para:<br/><strong style="color:var(--primary); font-size:1rem;">${email}</strong><br/><br/><span style="color:var(--warning); font-size:0.9rem;"><strong>Atenção:</strong> O e-mail pode demorar 1 minuto para chegar. Se não encontrar, verifique sua caixa de <strong>Spam ou Lixo Eletrônico</strong>.</span>`;
         }
       } else {
-    console.error("otpSection NÃƒO encontrado no DOM!");
+    console.error("otpSection NÃO encontrado no DOM!");
       }
 
       submitBtn.disabled = false;
@@ -1626,7 +1637,7 @@ if (cancelOtpBtn) {
   });
 }
 
-// LÃƒÂ³gica de reenvio de cÃƒÂ³digo
+// Lógica de reenvio de código
 const resendBtn = document.getElementById("resendBtn");
 if (resendBtn) {
   let resendCooldown = false;
@@ -1644,11 +1655,11 @@ if (resendBtn) {
         return;
       }
       resendBtn.disabled = true;
-      resendBtn.textContent = "ðŸ“¨ Enviando...";
+      resendBtn.textContent = "📨 Enviando...";
       const client = window.supabaseClient;
       if (!client) {
-        resendBtn.textContent = "âŒ Erro ao reenviar. Tente novamente.";
-        setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar Código"; resendBtn.disabled = false; }, 3000);
+        resendBtn.textContent = "❌ Erro ao reenviar. Tente novamente.";
+        setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 3000);
         return;
       }
       const { error } = await client.auth.resend({
@@ -1662,19 +1673,19 @@ if (resendBtn) {
         if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("security purposes") || msg.toLowerCase().includes("too many")) {
           msg = "Aguarde 1 minuto antes de reenviar.";
         }
-      resendBtn.textContent = "âŒ " + msg;
-      setTimeout(() => { resendBtn.textContent = "ðŸ“§ Reenviar Código"; resendBtn.disabled = false; }, 5000);
+      resendBtn.textContent = "❌ " + msg;
+      setTimeout(() => { resendBtn.textContent = "📧 Reenviar Código"; resendBtn.disabled = false; }, 5000);
     } else {
       resendCooldown = true;
       let seconds = 60;
-      resendBtn.textContent = `âœ… Código reenviado! Aguarde ${seconds}s`;
+      resendBtn.textContent = `✅ Código reenviado! Aguarde ${seconds}s`;
       const interval = setInterval(() => {
         seconds--;
         resendBtn.textContent = `<i class="fa-solid fa-hourglass-half"></i> Aguarde ${seconds}s para reenviar`;
         if (seconds <= 0) {
           clearInterval(interval);
           resendBtn.disabled = false;
-          resendBtn.textContent = "ðŸ“§ Reenviar Código";
+          resendBtn.textContent = "📧 Reenviar Código";
           resendCooldown = false;
         }
       }, 1000);
@@ -1684,10 +1695,10 @@ if (resendBtn) {
 
 const verifyOtpBtn = document.getElementById("verifyOtpBtn");
 if (verifyOtpBtn) {
-  // Se jÃƒÂ¡ temos um e-mail salvo, podemos mostrar a seÃƒÂ§ÃƒÂ£o de OTP direto
+  // Se já temos um e-mail salvo, podemos mostrar a seção de OTP direto
   if (lastEmailRegistered && document.getElementById("otpSection")) {
     // document.getElementById("otpSection").style.display = "block"; 
-    // (Opcional: descomente se quiser que apareÃƒÂ§a ao atualizar a pÃƒÂ¡gina)
+    // (Opcional: descomente se quiser que apareça ao atualizar a página)
   }
 
   verifyOtpBtn.addEventListener("click", async () => {
@@ -1708,7 +1719,7 @@ if (verifyOtpBtn) {
     }
 
     verifyOtpBtn.disabled = true;
-    verifyOtpBtn.textContent = "ðŸ” Verificando...";
+    verifyOtpBtn.textContent = "🔍 Verificando...";
     otpError.style.display = "none";
 
 
@@ -1717,13 +1728,13 @@ if (verifyOtpBtn) {
       let res = await supaClient.auth.verifyOtp({ email, token, type: 'signup' });
 
       if (res.error) {
-        console.warn("   âš ï¸ Falha 'signup':", res.error.message);
+        console.warn("   ⚠️ Falha 'signup':", res.error.message);
         // 2. Tenta tipo 'email'
         res = await supaClient.auth.verifyOtp({ email, token, type: 'email' });
       }
 
       if (res.error) {
-        console.warn("   âš ï¸ Falha 'email':", res.error.message);
+        console.warn("   ⚠️ Falha 'email':", res.error.message);
         // 3. Tenta tipo 'magiclink'
         res = await supaClient.auth.verifyOtp({ email, token, type: 'magiclink' });
       }
@@ -1743,7 +1754,7 @@ if (verifyOtpBtn) {
       } else {
         sessionStorage.removeItem("lastEmailRegistered");
         sessionStorage.setItem("freshSignup", "true");
-        // ForÃƒÂ§ar o Supabase a atualizar a sessÃƒÂ£o internamente antes do redirect
+        // Forçar o Supabase a atualizar a sessão internamente antes do redirect
         supaClient.auth.getSession().then(() => {
           setTimeout(() => {
             sessionStorage.setItem('freshLogin', 'true');
@@ -1768,7 +1779,7 @@ window.deleteUserAccount = async function () {
     const { data: { user } } = await supaClient.auth.getUser();
     if (!user) return { error: { message: 'Usuário não autenticado' } };
 
-    // Chama a funÃ§Ã£o de seguranÃ§a (Postgres RPC) no Supabase
+    // Chama a função de segurança (Postgres RPC) no Supabase
     const { error } = await supaClient.rpc('delete_user');
 
     if (error) {
@@ -1865,7 +1876,7 @@ window.loadBanners = async function () {
             if (cleanId.includes("ragnarok"))
               window.BANNER_MAP["banner_ragnarok"] = b.image_url;
 
-            // Se o usuÃƒÂ¡rio subir com extensÃƒÂ£o, mapeia tambÃƒÂ©m
+            // Se o usuário subir com extensão, mapeia também
             const idNoExt = cleanId.replace(/\.[^/.]+$/, "");
             window.BANNER_MAP[idNoExt] = b.image_url;
           }
@@ -1899,7 +1910,7 @@ window.updateNavbarCosmetics = function () {
   const burger = document.getElementById("navBurger");
   const isAuthenticated = !!window.AH_AUTH?.isAuthenticated;
 
-  // Ã°Å¸â€™Â¡ Cursor fixes
+  // 💡 Cursor fixes
   if (burger) burger.style.cursor = "pointer";
   document
     .querySelectorAll(".navbar-links a")
@@ -1976,7 +1987,7 @@ window.updateNavbarCosmetics = function () {
 
 
 
-  // Ã°Å¸â€™Â¡ Se BANNER_MAP estiver vazio, tenta carregar banners primeiro
+  // 💡 Se BANNER_MAP estiver vazio, tenta carregar banners primeiro
   if (!window.BANNER_MAP || Object.keys(window.BANNER_MAP).length === 0) {
     loadBanners().then(() => {
       // Recursively call after loading
@@ -1985,11 +1996,11 @@ window.updateNavbarCosmetics = function () {
     return;
   }
 
-  // Ã°Å¸â€™Â¡ Dados do Banco (Preferencial)
+  // 💡 Dados do Banco (Preferencial)
   let sData = null;
   let userId = null;
   if (window.supabaseClient) {
-    // Tenta pegar o user ID de forma sÃƒÂ­ncrona se possÃƒÂ­vel ou via cache
+    // Tenta pegar o user ID de forma síncrona se possível ou via cache
     userId = localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token") ?
       JSON.parse(localStorage.getItem("sb-bxifddhrbxbmimjkgwzr-auth-token")).user?.id : null;
   }
@@ -1997,14 +2008,14 @@ window.updateNavbarCosmetics = function () {
   if (window.DB && window.DB._store && window.DB._store.profile) {
     sData = window.DB._store.profile.store_data || {};
   } else if (userId) {
-    // Ã°Å¸â€™Â¡ Tenta carregar da chave ISOLADA do usuÃƒÂ¡rio
+    // 💡 Tenta carregar da chave ISOLADA do usuário
     try {
       const localStr = localStorage.getItem(`animehouse_store_${userId}`);
       if (localStr) sData = JSON.parse(localStr);
     } catch (e) { }
   }
 
-  // Chaves para cosmÃƒÂ©ticos - agora SEMPRE priorizando o banco ou o userId
+  // Chaves para cosméticos - agora SEMPRE priorizando o banco ou o userId
   const dbEquipped = sData?.equipped || {};
 
   const getCosmetic = (key, fallback = "none") => {
@@ -2021,7 +2032,7 @@ window.updateNavbarCosmetics = function () {
       frame_dourado: "animehouse_frame_dourado",
     };
 
-    // 1. LocalStorage isolado por usuÃƒÂ¡rio (estado mais recente apÃƒÂ³s equipar na loja/perfil)
+    // 1. LocalStorage isolado por usuário (estado mais recente após equipar na loja/perfil)
     if (userId) {
       const storageKey = storageMapping[key] || key;
       const userKey = `${storageKey}_${userId}`;
@@ -2032,7 +2043,7 @@ window.updateNavbarCosmetics = function () {
     // 2. Objeto do store (Supabase / cache)
     if (dbEquipped[key] !== undefined) return dbEquipped[key];
 
-    // 3. Fallback legado sem sufixo de usuÃƒÂ¡rio
+    // 3. Fallback legado sem sufixo de usuário
     if (userId) {
       const storageKey = storageMapping[key] || key;
       const val = localStorage.getItem(storageKey);
@@ -2046,7 +2057,7 @@ window.updateNavbarCosmetics = function () {
   const savedTitle = getCosmetic("titulo", "");
   const savedCrown = getCosmetic("crown", false) === true || getCosmetic("crown", false) === "true";
   const savedCrownId = String(getCosmetic("crownId", "") || "").trim();
-  const savedCrownIcon = String(getCosmetic("crownIcon", "Ã°Å¸â€˜â€˜") || "").trim();
+  const savedCrownIcon = String(getCosmetic("crownIcon", "👑") || "").trim();
   const hasFrame = getCosmetic("frame_dourado", false) === true || getCosmetic("frame_dourado", false) === "true";
   const hasTemaCromatico = getCosmetic("tema_cromatico", false) === true || getCosmetic("tema_cromatico", false) === "true";
   const hasTemaNatal = getCosmetic("tema_natal", false) === true || getCosmetic("tema_natal", false) === "true";
@@ -2059,7 +2070,7 @@ window.updateNavbarCosmetics = function () {
     const isChristmasHat =
       normalizedId === "coroa_gorro_natal" ||
       /gorrodenatal\.png/i.test(rawIcon) ||
-      rawIcon === "Ã°Å¸Å½â€¦" ||
+      rawIcon === "🎅" ||
       /fa-(?:solid\s+)?fa-hat|fa-santa-claus|fa-hat-cowboy/i.test(rawIcon);
 
     if (isChristmasHat) {
@@ -2072,17 +2083,17 @@ window.updateNavbarCosmetics = function () {
 
     const isSkull =
       normalizedId === "coroa_tryhard" ||
-      /fa-skull|Ã°Å¸â€™â‚¬/i.test(rawIcon);
+      /fa-skull|💀/i.test(rawIcon);
 
     if (isSkull) {
-      return `<span class="crown-badge crown-badge--skull" aria-hidden="true">ðŸ’€</span>`;
+      return `<span class="crown-badge crown-badge--skull" aria-hidden="true">💀</span>`;
     }
 
-    const fallbackIcon = rawIcon && rawIcon !== "??" ? rawIcon : "ðŸ‘‘";
+    const fallbackIcon = rawIcon && rawIcon !== "??" ? rawIcon : "👑";
     return `<span class="crown-badge crown-badge--crown" aria-hidden="true">${fallbackIcon}</span>`;
   };
 
-  // Temas especiais da loja Ã¢â‚¬â€ aplicar em tempo real ao equipar/desequipar
+  // Temas especiais da loja — aplicar em tempo real ao equipar/desequipar
   if (window.setTheme) {
     if (hasTemaNatal) {
       window.setTheme("theme-natal");
@@ -2093,7 +2104,7 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // Ã°Å¸â€œÂ¸ LÃƒâ€œGICA DE BANNER DA NAVBAR
+  // 📸 LÓGICA DE BANNER DA NAVBAR
   if (bannerBg) {
     if (savedBanner !== "none" && window.BANNER_MAP) {
       const url = window.BANNER_MAP[savedBanner];
@@ -2111,7 +2122,7 @@ window.updateNavbarCosmetics = function () {
       bannerBg.style.display = "none";
     }
   } else {
-    // SÃƒÂ³ tenta novamente em pÃƒÂ¡ginas que realmente tÃƒÂªm navbar de usuÃƒÂ¡rio (nÃƒÂ£o login/registro)
+    // Só tenta novamente em páginas que realmente têm navbar de usuário (não login/registro)
     const isAuthPage = window.location.pathname.includes("login.html") || window.location.pathname.includes("registro.html");
     if (!isAuthPage) {
       if (!window._navbarCosmeticsRetries) window._navbarCosmeticsRetries = 0;
@@ -2123,13 +2134,13 @@ window.updateNavbarCosmetics = function () {
   }
 
 
-  // Ã°Å¸Å½â€œ TÃƒÂTULO
+  // 🎓 TÍTULO
   if (titleEl) {
     titleEl.textContent = savedTitle;
     titleEl.style.display = savedTitle ? "block" : "none";
   }
 
-  // Ã¢Å“Â¨ AURA & FRAME
+  // ✨ AURA & FRAME
   const auraClasses = [
     "aura-common-chama",
     "aura_chama",
@@ -2165,7 +2176,7 @@ window.updateNavbarCosmetics = function () {
     "frame-dourado",
   ];
 
-  // Ã¢â‚¬â€ Navbar avatar Ã¢â‚¬â€
+  // — Navbar avatar —
   if (avatarBox) {
     avatarBox.classList.remove(...auraClasses);
     if (savedAura !== "none") {
@@ -2178,7 +2189,7 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // Ã¢â‚¬â€ Sidebar avatar (abaixo do histÃƒÂ³rico no perfil) Ã¢â‚¬â€
+  // — Sidebar avatar (abaixo do histórico no perfil) —
   const displayAvatarBox = document.getElementById("displayAvatarBox");
   if (displayAvatarBox) {
     displayAvatarBox.classList.remove(...auraClasses);
@@ -2204,15 +2215,15 @@ window.updateNavbarCosmetics = function () {
     navAvatar.style.outline = "none";
   }
 
-  // Ã°Å¸â€˜â€˜ COROA
+  // 👑 COROA
   if (avatarBox) {
     const existingCrown = avatarBox.querySelector(".crown-nav");
     if (existingCrown) existingCrown.remove();
     if (savedCrown) {
       const crown = document.createElement("div");
       crown.className = "crown-nav"; // Usar classe do style.css
-      let crownIcon = getCosmetic("crownIcon", "Ã°Å¸â€˜â€˜");
-      if (crownIcon.includes("gorrodenatal.png") || crownIcon === "Ã°Å¸Å½â€¦" || crownIcon.includes("??")) {
+      let crownIcon = getCosmetic("crownIcon", "👑");
+      if (crownIcon.includes("gorrodenatal.png") || crownIcon === "🎅" || crownIcon.includes("??")) {
         crownIcon = "<img src='assets/gorrodenatal.png' class='gorro-img-cosmetic'>";
       }
       crown.innerHTML = crownIcon;
@@ -2220,7 +2231,7 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // Ã°Å¸ÂÂ  APLICAR EM PÃƒÂGINAS ESPECÃƒÂFICAS (PERFIL / HISTÃƒâ€œRICO)
+  // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
   if (avatarBox && savedCrown) {
     const crown = avatarBox.querySelector(".crown-nav");
     if (crown) {
@@ -2229,7 +2240,7 @@ window.updateNavbarCosmetics = function () {
     }
   }
 
-  // Ã°Å¸ÂÂ  APLICAR EM PÃƒÂGINAS ESPECÃƒÂFICAS (PERFIL / HISTÃƒâ€œRICO)
+  // 🏠 APLICAR EM PÁGINAS ESPECÍFICAS (PERFIL / HISTÓRICO)
   const isProfilePage = window.location.href.includes("perfil.html") || window.location.pathname.endsWith("/perfil") || window.location.pathname === "/perfil/";
   if (isProfilePage) {
     const sidebar =
@@ -2239,7 +2250,7 @@ window.updateNavbarCosmetics = function () {
     if (sidebar) {
       const bannerUrl = (savedBanner !== "none" && window.BANNER_MAP) ? window.BANNER_MAP[savedBanner] : null;
 
-      // Remover overlay antigo se existir (abordagem antiga com z-index:-1 que nÃƒÂ£o funcionava)
+      // Remover overlay antigo se existir (abordagem antiga com z-index:-1 que não funcionava)
       const oldOverlay = sidebar.querySelector(".sidebar-banner-overlay");
       if (oldOverlay) oldOverlay.remove();
 
@@ -2254,10 +2265,10 @@ window.updateNavbarCosmetics = function () {
         sidebar.style.backgroundPosition = "";
         sidebar.style.backgroundRepeat = "";
         
-        // Define a variÃƒÂ¡vel CSS que serÃƒÂ¡ usada pelo pseudo-elemento ::before (que tem inset: -12px para preencher as bordas)
+        // Define a variável CSS que será usada pelo pseudo-elemento ::before (que tem inset: -12px para preencher as bordas)
         sidebar.style.setProperty("--history-sidebar-banner", `url('${bannerUrl}')`);
       } else {
-        // Sem banner: restaurar background padrÃƒÂ£o do CSS
+        // Sem banner: restaurar background padrão do CSS
         const hideStyle = document.getElementById("hide-history-before");
         if (hideStyle) hideStyle.remove();
         
@@ -2295,7 +2306,7 @@ window.addEventListener("storage", (e) => {
   }
 });
 
-// Ã°Å¸Å¡â‚¬ Rastreamento de PresenÃƒÂ§a (Online Status)
+// 🚀 Rastreamento de Presença (Online Status)
 window.startPresenceHeartbeat = async function() {
   if (!supaClient || window.presenceStarted) return;
   window.presenceStarted = true;
@@ -2306,7 +2317,7 @@ window.startPresenceHeartbeat = async function() {
     const { data: { session } } = await supaClient.auth.getSession();
     if (!session) return;
     
-    // AtualizaÃƒÂ§ÃƒÂ£o de fallback no banco
+    // Atualização de fallback no banco
     const updateStatus = async () => {
       try {
         await supaClient.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', session.user.id);
@@ -2315,7 +2326,7 @@ window.startPresenceHeartbeat = async function() {
     updateStatus();
     setInterval(updateStatus, 120000);
 
-    // Canal global de presenÃƒÂ§a em tempo real
+    // Canal global de presença em tempo real
     const globalPresenceChannel = supaClient.channel('global_presence', {
       config: { presence: { key: session.user.id } }
     });
@@ -2337,7 +2348,7 @@ window.startPresenceHeartbeat = async function() {
       
     window.globalPresenceChannel = globalPresenceChannel;
 
-    // Ã°Å¸Å¡Å¡ Marcar mensagens pendentes como entregues (Funciona em todas as pÃƒÂ¡ginas)
+    // 🚚 Marcar mensagens pendentes como entregues (Funciona em todas as páginas)
     const markAsDelivered = async () => {
       try {
         await supaClient
@@ -2348,7 +2359,7 @@ window.startPresenceHeartbeat = async function() {
       } catch (err) {}
     };
     
-    // Executa ao carregar qualquer pÃƒÂ¡gina
+    // Executa ao carregar qualquer página
     markAsDelivered();
     
     // Escuta novas mensagens para marcar como entregue em tempo real (mesmo fora da aba de chat)
@@ -2367,7 +2378,7 @@ window.startPresenceHeartbeat = async function() {
   }
 };
 
-// Ã°Å¸Å¡â‚¬ Carregar banners automaticamente quando DOM estiver pronto
+// 🚀 Carregar banners automaticamente quando DOM estiver pronto
 document.addEventListener("DOMContentLoaded", () => {
 
   const tryLoadBanners = (attempt = 1) => {
@@ -2382,13 +2393,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   tryLoadBanners();
 
-  // Mostrar email no OTP section se jÃƒÂ¡ estivermos no meio de um registro
+  // Mostrar email no OTP section se já estivermos no meio de um registro
   if (lastEmailRegistered) {
     const otpSection = document.getElementById("otpSection");
     if (otpSection) {
       const emailMsg = otpSection.querySelector("p");
       if (emailMsg) {
-        emailMsg.innerHTML = `<strong>ðŸ”‘ Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
+        emailMsg.innerHTML = `<strong>🔑 Digite o código de 6 dígitos</strong><br/><small style="color:var(--primary); opacity:0.8;">Enviado para: ${lastEmailRegistered}</small>`;
       }
     }
   }
@@ -2416,7 +2427,7 @@ window.checkAuthStatus = async function () {
   const currentPage = window.location.pathname.split("/").pop();
   const nav = document.querySelector(".navbar");
 
-  // Ocultar botÃƒÂµes de login na home se estiver logado
+  // Ocultar botões de login na home se estiver logado
   if ((currentPage === "index.html" || currentPage === "") && session) {
     const bannerActions =
       document.querySelector(".hero-buttons") ||
@@ -2476,10 +2487,10 @@ window.checkAuthStatus = async function () {
             `;
       nav.appendChild(authContainer);
 
-      // Iniciar Hub de NotificaÃ§Ãµes
+      // Iniciar Hub de Notificações
       initializeNotificationHub(session.user.id);
 
-      // Se estamos no perfil e nÃƒÂ£o temos perfil no banco, nÃƒÂ£o expulsar imediatamente
+      // Se estamos no perfil e não temos perfil no banco, não expulsar imediatamente
       if (!profile && currentPage === "perfil.html") {
         console.warn("Perfil ainda não criado no bancAguardando sincronizaçã..");
       }
@@ -2487,7 +2498,7 @@ window.checkAuthStatus = async function () {
       if (!window.BANNER_MAP) await loadBanners();
       else updateNavbarCosmetics();
 
-      // Iniciar batimento cardÃƒÂ­aco de presenÃƒÂ§a
+      // Iniciar batimento cardíaco de presença
       if (typeof window.startPresenceHeartbeat === "function") {
         window.startPresenceHeartbeat();
       }
@@ -2497,7 +2508,7 @@ window.checkAuthStatus = async function () {
     }
   }
 
-  // ProteÃƒÂ§ÃƒÂ£o de rotas
+  // Proteção de rotas
   const protectedRoutes = [
     "cadastrhtml",
     "cadastro-animes.html",
@@ -2509,12 +2520,12 @@ window.checkAuthStatus = async function () {
     window.location.href = "login.html";
 };
 
-// Ã°Å¸Å¡â‚¬ Preencher links da Navbar automaticamente
+// 🚀 Preencher links da Navbar automaticamente
 function populateNavbarLinks() {
   const navLinks = document.getElementById("navLinks");
   if (!navLinks) return;
 
-  // Define os links padrÃƒÂ£o do site
+  // Define os links padrão do site
   const links = [
     { name: "<i class='fa-solid fa-house'></i> Início", url: "index.html" },
     { name: "<i class='fa-solid fa-torii-gate'></i> Animes", url: "animes.html" },
@@ -2525,7 +2536,7 @@ function populateNavbarLinks() {
     { name: "<i class='fa-regular fa-comment-dots'></i> HQs", url: "hq.html" },
     { name: "<i class='fa-solid fa-play'></i> YouTube", url: "youtube.html" },
     { name: "<i class='fa-solid fa-flag'></i> SenseiMod Store", url: "loja.html" },
-    { name: "<i class='fa-solid fa-robot'></i> Open AnIme", url: "open-anime.html" },
+    { name: "<i class='fa-solid fa-robot'></i> ZenkAI", url: "zenkai.html" },
     { name: "<i class='fa-solid fa-users'></i> Equipe", url: "sobre.html" },
     { name: "<i class='fa-solid fa-heart'></i> Agradecimento", url: "agradecimento.html" }
   ];
@@ -2556,6 +2567,8 @@ async function ensureOAuthClientReady() {
 function showOAuthError(providerName, error) {
   const providerLabel = providerName || "provedor social";
   const message = error?.message || "Falha ao autenticar.";
+  const socialOverlay = document.getElementById("socialLoadingOverlay");
+  if (socialOverlay) socialOverlay.style.display = "none";
   console.error(`Erro ${providerLabel}:`, message);
   if (typeof showToast === "function") {
     showToast(`Erro ao entrar com ${providerLabel}: ${message}`, "danger");
@@ -2624,32 +2637,32 @@ async function signInWithDiscord() {
   if (error) showOAuthError("Discord", error);
 }
 
-// --- LOGIN COM FACEBOOK ---
-async function signInWithFacebook() {
+// --- LOGIN COM TWITCH ---
+async function signInWithTwitch() {
   try {
     await ensureOAuthClientReady();
   } catch (error) {
-    showOAuthError("Facebook", error);
+    showOAuthError("Twitch", error);
     return;
   }
 
-  const { data, error } = await supaClient.auth.signInWithOAuth({
-    provider: 'facebook',
+  const { error } = await supaClient.auth.signInWithOAuth({
+    provider: 'twitch',
     options: {
       redirectTo: window.location.origin + '/perfil.html'
     }
   });
 
-  if (error) showOAuthError("Facebook", error);
+  if (error) showOAuthError("Twitch", error);
 }
 
 // Expor para o HTML
 window.signInWithGithub = signInWithGithub;
 window.signInWithGoogle = signInWithGoogle;
 window.signInWithDiscord = signInWithDiscord;
-window.signInWithFacebook = signInWithFacebook;
+window.signInWithTwitch = signInWithTwitch;
 
-// Adicionar listeners para os botÃƒÂµes social se existirem
+// Adicionar listeners para os botões social se existirem
 document.addEventListener("click", (e) => {
   if (e.target.closest("#githubLoginBtn") || e.target.closest("#githubRegBtn")) {
     signInWithGithub();
@@ -2660,14 +2673,14 @@ document.addEventListener("click", (e) => {
   if (e.target.closest("#discordLoginBtn") || e.target.closest("#discordRegBtn")) {
     signInWithDiscord();
   }
-  if (e.target.closest("#facebookLoginBtn") || e.target.closest("#facebookRegBtn")) {
-    signInWithFacebook();
+  if (e.target.closest("#twitchLoginBtn") || e.target.closest("#twitchRegBtn")) {
+    signInWithTwitch();
   }
 });
 
-// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Enter global para inputs ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
-// Permite concluir qualquer aÃƒÂ§ÃƒÂ£o do site pressionando Enter em um campo de texto,
-// exceto no campo de exclusÃƒÂ£o de conta (para evitar acidentes).
+// ─── Enter global para inputs ────────────────────────────────────────────────
+// Permite concluir qualquer ação do site pressionando Enter em um campo de texto,
+// exceto no campo de exclusão de conta (para evitar acidentes).
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
 
@@ -2677,11 +2690,11 @@ document.addEventListener("keydown", (e) => {
   // Permitir Shift+Enter livremente em Textareas para quebra de linha
   if (e.shiftKey && el.tagName === "TEXTAREA") return;
 
-  // Nunca ativar Enter em campos de exclusÃƒÂ£o de conta
+  // Nunca ativar Enter em campos de exclusão de conta
   const dangerIds = ["deleteConfirmEmail", "deleteConfirmPassword"];
   if (dangerIds.includes(el.id)) return;
 
-  // 1. Se jÃƒÂ¡ estÃƒÂ¡ dentro de um <form> com botÃƒÂ£o submit, deixar o comportamento nativo
+  // 1. Se já está dentro de um <form> com botão submit, deixar o comportamento nativo
   const parentForm = el.closest("form");
   if (parentForm) {
     const submitBtn = parentForm.querySelector('button[type="submit"]:not([disabled])');
@@ -2693,10 +2706,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   // 2. Para inputs fora de forms (OTP, modal de senha, etc.):
-  //    Procura o botÃƒÂ£o de aÃƒÂ§ÃƒÂ£o primÃƒÂ¡rio mais prÃƒÂ³ximo na mesma seÃƒÂ§ÃƒÂ£o/container
+  //    Procura o botão de ação primário mais próximo na mesma seção/container
   const EXCLUDED_BTN_IDS = ["deleteAccountBtn", "confirmDeleteBtn"];
 
-  // Mapa de input ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ botÃƒÂ£o de aÃƒÂ§ÃƒÂ£o
+  // Mapa de input → botão de ação
   // op
   const inputToBtnMap = {
     "otpToken": "verifyOtpBtn",
@@ -2716,7 +2729,7 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // 3. Fallback: procura o primeiro botÃƒÂ£o primÃƒÂ¡rio visÃƒÂ­vel no mesmo container pai
+  // 3. Fallback: procura o primeiro botão primário visível no mesmo container pai
   const container = el.closest("section, .auth-card, .modal, [id$='Section'], [id$='Container'], [id$='Card'], form") || el.parentElement;
   if (container) {
     const btn = container.querySelector('button.btn-primary:not([disabled]), button[type="submit"]:not([disabled])');
@@ -3184,7 +3197,7 @@ function setupNotificationRealtime() {
       }
 
       if (payload.eventType === 'INSERT' && payload.new && window.showToast) {
-        showToast(`ðŸ”” ${payload.new.title}`, "info");
+        showToast(`🔔 ${payload.new.title}`, "info");
         const bell = document.getElementById('navbarBellTrigger');
         if (bell) {
           bell.classList.remove('ringing');
@@ -3330,12 +3343,12 @@ async function handleNotificationClick(id, link) {
 
 function getNotifIcon(type) {
   const icons = {
-    'system': 'âÅ¡â„¢Ã¯¸',
-    'social': 'Ã°Å¸â€˜¥',
-    'loja': 'Ã°Å¸Å½¬',
-    'xp': 'âÅ“¨',
-    'medalha': 'Ã°Å¸â€¦',
-    'chat': 'Ã°Å¸â€™¬'
+    'system': '⚙️',
+    'social': '👥',
+    'loja': '🎬',
+    'xp': '✨',
+    'medalha': '🏅',
+    'chat': '💬'
   };
   return icons[type] || '<i class="fa-solid fa-bell"></i>';
 }
@@ -3402,7 +3415,7 @@ async function markAsRead(id) {
 }
 
 async function markAllAsRead() {
-  // Mantendo para compatibilidade se necessÃ¡rio, mas agora usamos handleBatchAction
+  // Mantendo para compatibilidade se necessário, mas agora usamos handleBatchAction
   const allIds = Array.from(document.querySelectorAll('.notification-item')).map(el => el.dataset.id);
   if (allIds.length > 0) await markNotificationsRead(allIds);
 }
@@ -3415,7 +3428,7 @@ function setupNotificationRealtimeLegacy() {
     notificationState.realtimeChannel = null;
   }
 
-  // Canal para mudanÃ§as nas notificaÃ§Ãµes do usuÃ¡rio
+  // Canal para mudanças nas notificações do usuário
   notificationState.realtimeChannel = supaClient.channel(`realtime_notifications_${notificationState.userId}`)
     .on('postgres_changes', {
       event: '*', // Ouvir TUDO (INSERT, UPDATE, DELETE)
@@ -3427,15 +3440,15 @@ function setupNotificationRealtimeLegacy() {
       // Atualizar contagem do badge sempre
       fetchNotificationCount();
 
-      // Se o painel estiver aberto, recarregar a lista para refletir a mudanÃ§a
+      // Se o painel estiver aberto, recarregar a lista para refletir a mudança
       if (notificationState.isOpen) {
         const activeTab = document.querySelector('.notif-tab.active')?.dataset.tab || 'all';
         loadNotificationsList(activeTab);
       }
       
-      // Se for uma inserÃƒÂ§ÃƒÂ£o, mostrar um Toast
+      // Se for uma inserção, mostrar um Toast
       if (payload.eventType === 'INSERT' && window.showToast) {
-        showToast(`ðŸ”” ${payload.new.title}`, "info");
+        showToast(`🔔 ${payload.new.title}`, "info");
       }
     })
     .subscribe((status) => {
@@ -3472,7 +3485,7 @@ window.updatePasswordStrength = function(password, fillId, textId) {
 };
 window.generateMD5Password = function(pwdId, confirmId) {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para forÃ§a mÃ¡xima
+  let hash = "A" + "a" + "1" + "@"; // Garante pelo menos um de cada tipo para força máxima
   const array = new Uint32Array(28);
   window.crypto.getRandomValues(array);
   for (let i = 0; i < 28; i++) {

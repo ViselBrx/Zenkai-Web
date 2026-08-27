@@ -1,5 +1,5 @@
 @echo off
-title AnimeHouse Server
+title Zenkai Server
 color 0D
 echo =========================================================
 echo.

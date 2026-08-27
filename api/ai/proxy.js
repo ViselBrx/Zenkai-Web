@@ -1,4 +1,4 @@
-const fs = require('fs');
+﻿const fs = require('fs');
 const path = require('path');
 
 function tryParseJSON(value) {
@@ -23,7 +23,7 @@ function readDataFile() {
         return JSON.parse(fs.readFileSync(dataPath, 'utf8')) || {};
       }
     } catch {
-      // Tenta o próximo caminho
+      // Tenta o prÃ³ximo caminho
     }
   }
 
@@ -130,7 +130,7 @@ async function handler(req, res) {
       ]);
       headers = headers || {};
       if (!headers.Referer && !headers['referer']) headers.Referer = 'https://animehouse-zeta.vercel.app';
-      if (!headers['X-Title']) headers['X-Title'] = 'AnimeHouse';
+      if (!headers['X-Title']) headers['X-Title'] = 'Zenkai';
     } else if (target === 'groq') {
       apiUrl = 'https://api.groq.com/openai/v1/chat/completions';
       credentialCandidates = buildCredentialCandidates([
@@ -202,7 +202,7 @@ async function handler(req, res) {
       if (body?.image && typeof body.image === 'string' && body.image.startsWith('data:image')) {
         const imageBytes = dataUrlToByteArray(body.image);
         if (!imageBytes) {
-          return res.status(400).json({ error: 'Imagem inválida para Cloudflare Vision.' });
+          return res.status(400).json({ error: 'Imagem invÃ¡lida para Cloudflare Vision.' });
         }
 
         requestPayload = {
@@ -212,8 +212,19 @@ async function handler(req, res) {
       }
     }
 
+    // A ZenkAI entrega respostas completas para manter a formatação estável.
+    // Impede que clientes antigos ou cacheados reativem streaming por engano.
+    if (requestPayload && typeof requestPayload === 'object') {
+      requestPayload = { ...requestPayload };
+      if (target === 'gemini') {
+        delete requestPayload.stream;
+      } else {
+        requestPayload.stream = false;
+      }
+    }
+
     if (!apiUrl || credentialCandidates.length === 0) {
-      return res.status(400).json({ error: `Configuração da IA '${target}' ausente no Vercel. Defina nas Environment Variables do projeto.` });
+      return res.status(400).json({ error: `ConfiguraÃ§Ã£o da IA '${target}' ausente no Vercel. Defina nas Environment Variables do projeto.` });
     }
 
     const requestBody = requestPayload ? JSON.stringify(requestPayload) : null;
@@ -267,7 +278,7 @@ async function handler(req, res) {
           && shouldRetryWithNextCredential(attempt.status, responseText)
           && index < (credentialCandidates.length - 1)
         ) {
-          continue; // Tentará a próxima
+          continue; // TentarÃ¡ a prÃ³xima
         }
 
         if (attempt.status >= 400) {

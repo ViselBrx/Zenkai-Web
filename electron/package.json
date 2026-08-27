@@ -1,9 +1,9 @@
 {
-  "name": "anime-house-desktop",
+  "name": "zenkai-desktop",
   "version": "1.0.0",
-  "description": "Anime House — App Desktop",
+  "description": "Zenkai — App Desktop",
   "main": "main.js",
-  "author": "Anime House",
+  "author": "Zenkai",
   "private": true,
   "scripts": {
     "start": "electron .",
@@ -16,8 +16,8 @@
     "electron-builder": "^24.13.3"
   },
   "build": {
-    "appId": "com.animehouse.desktop",
-    "productName": "Anime House",
+    "appId": "com.zenkai.desktop",
+    "productName": "Zenkai",
     "forceCodeSigning": false,
     "directories": {
       "output": "dist"

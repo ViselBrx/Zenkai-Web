@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Anime House - Meu Perfil</title>
+    <title>Zenkai - Meu Perfil</title>
     <link rel="icon" type="image/jpeg" href="assets/tryhard.png" />
     <link rel="stylesheet" href="css/style.css" />
     <script src="js-ofuscado/themes.js"></script>
@@ -183,7 +183,7 @@
       .history-item {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         background: linear-gradient(
           160deg,
           rgba(var(--primary-rgb), 0.16),
@@ -191,7 +191,7 @@
         );
         border: 1px solid rgba(var(--primary-rgb), 0.32);
         border-radius: 11px;
-        padding: 10px;
+        padding: 12px;
         transition:
           border-color var(--transition),
           transform var(--transition),
@@ -218,9 +218,10 @@
 
       .history-open strong {
         display: block;
-        font-size: 0.89rem;
-        line-height: 1.3;
-        margin-bottom: 4px;
+        font-size: 0.92rem;
+        line-height: 1.35;
+        margin: 0;
+        overflow-wrap: anywhere;
       }
 
       .history-title-row {
@@ -228,7 +229,7 @@
         align-items: flex-start;
         justify-content: space-between;
         gap: 8px;
-        margin-bottom: 4px;
+        margin-bottom: 7px;
       }
 
       .history-title-row strong {
@@ -255,8 +256,8 @@
 
       .history-open span {
         display: block;
-        font-size: 0.77rem;
-        line-height: 1.35;
+        font-size: 0.78rem;
+        line-height: 1.45;
         color: var(--text-muted);
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -267,14 +268,42 @@
       }
 
       .history-meta {
-        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 8px;
         font-size: 0.7rem;
         color: rgba(168, 194, 223, 0.88);
       }
 
+      .history-kind {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        max-width: 100%;
+        padding: 3px 7px;
+        border: 1px solid rgba(var(--primary-rgb), 0.28);
+        border-radius: 999px;
+        color: rgba(225, 237, 250, 0.95);
+        background: rgba(var(--primary-rgb), 0.1);
+        font-size: 0.63rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .history-kind i {
+        font-size: 0.68rem;
+      }
+
+      .history-time {
+        white-space: nowrap;
+      }
+
       .history-item-actions {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: 34px repeat(3, minmax(0, 1fr));
         gap: 8px;
         margin-top: 10px;
       }
@@ -284,6 +313,7 @@
         justify-content: flex-start;
         margin-top: 10px;
       }
+
 
       .history-action-symbol {
         display: inline-block;
@@ -2233,7 +2263,7 @@
           alt="Mascote"
           style="height: 50px; width: auto"
         />
-        <span>Anime</span>House
+        <span>Zen</span>kai
       </a>
       <ul class="navbar-links" id="navLinks"></ul>
       <button class="navbar-burger" id="navBurger">
@@ -3536,8 +3566,8 @@
             anime_movie: "Anime - Filme",
             anime_episode: "Anime - Episódio",
             filme: "Filme",
-            ai_chat: "IA - Chat",
-            ai_vision: "IA - Imagem",
+            ai_chat: "Chat ZenkAI",
+            ai_vision: "Imagem IA",
             ai_compare: "IA - Comparação",
           };
           return map[type] || type || "Conteúdo";
@@ -3739,15 +3769,71 @@
           `;
         }
 
+        function cleanHistoryText(value, maxLen = 160) {
+          let text = String(value || "");
+          if (/[\u00c3\u00c2]/.test(text)) {
+            try {
+              text = decodeURIComponent(escape(text));
+            } catch (_) {}
+          }
+
+          text = text
+            .replace(/```[\s\S]*?```/g, " ")
+            .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+            .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+            .replace(/`([^`]+)`/g, "$1")
+            .replace(/(^|\s)#{1,6}\s*/g, "$1")
+            .replace(/(\*\*|__|\*|_|~~)/g, "")
+            .replace(/\s+/g, " ")
+            .trim();
+
+          return shortenText(text, maxLen);
+        }
+
+        function getHistoryPresentation(item) {
+          const payload = getHistoryPayload(item);
+          const type = String(item?.content_type || "");
+          const rawTitle = cleanHistoryText(item?.title, 220);
+          const customTitle = cleanHistoryText(payload.customTitle, 220);
+          const sourceDescription =
+            payload.description || item?.subtitle || formatTypeLabel(type);
+          let title = customTitle || rawTitle || "Conte\u00fado sem t\u00edtulo";
+          let kind = formatTypeLabel(type);
+          let icon = "fa-solid fa-clock-rotate-left";
+
+          if (type === "ai_chat") {
+            kind = "Chat ZenkAI";
+            icon = "fa-solid fa-comment-dots";
+            if (!customTitle) title = title.replace(/^zenkai\s*[-:\u00b7]\s*/i, "");
+          } else if (type === "ai_compare") {
+            kind = "Compara\u00e7\u00e3o IA";
+            icon = "fa-solid fa-code-compare";
+            const first = cleanHistoryText(payload.char1, 90);
+            const second = cleanHistoryText(payload.char2, 90);
+            if (!customTitle && first && second) title = `${first} vs ${second}`;
+            else if (!customTitle) title = title.replace(/^compara(?:\u00e7|c)(?:\u00e3|a)o\s+ia\s*[-:\u00b7]\s*/i, "");
+          } else if (type === "ai_vision") {
+            kind = "Imagem IA";
+            icon = "fa-solid fa-image";
+            const fileName = cleanHistoryText(payload.fileName, 220);
+            if (!customTitle && fileName) title = fileName;
+            else if (!customTitle) title = title.replace(/^ia\s*[-:\u00b7]\s*imagem\s*/i, "");
+          }
+
+          return {
+            title: title || "Conte\u00fado sem t\u00edtulo",
+            preview: cleanHistoryText(sourceDescription, 150) || kind,
+            kind,
+            icon,
+          };
+        }
+
         function buildHistoryItemCard(item) {
           const itemId = escapeHtml(item.id || "");
-          const title = escapeHtml(
-            item.title || "Conte\u00FAdo sem t\u00EDtulo",
-          );
-          const subtitle = escapeHtml(getHistoryPreview(item));
-          const stamp =
-            item.last_watched_at || item.created_at || item.updated_at;
-          const meta = getHistoryMeta(item, stamp);
+          const presentation = getHistoryPresentation(item);
+          const title = escapeHtml(presentation.title);
+          const subtitle = escapeHtml(presentation.preview);
+          const stamp = item.last_watched_at || item.created_at || item.updated_at;
           const favorite = isHistoryFavorite(item);
 
           return `
@@ -3755,44 +3841,19 @@
               <button type="button" class="history-open" data-open-id="${itemId}">
                 <div class="history-title-row">
                   <strong>${title}</strong>
+                  ${favorite ? '<span class="history-favorite-badge"><i class="fa-solid fa-star" aria-hidden="true"></i> Favorito</span>' : ""}
                 </div>
                 <span class="history-preview">${subtitle}</span>
-                <div class="history-meta">${escapeHtml(meta)}</div>
+                <div class="history-meta">
+                  <span class="history-kind"><i class="${presentation.icon}" aria-hidden="true"></i>${escapeHtml(presentation.kind)}</span>
+                  <span class="history-time">${escapeHtml(formatHour(stamp))}</span>
+                </div>
               </button>
-              <div class="history-favorite-row">
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-sm history-favorite-btn ${favorite ? "active" : ""}"
-                  data-favorite-id="${itemId}"
-                  aria-pressed="${favorite ? "true" : "false"}"
-                  aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
-                  title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"
-                >
-                  <span class="history-action-symbol" aria-hidden="true">&#9733;</span>
-                </button>
-              </div>
               <div class="history-item-actions">
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-sm history-action-btn"
-                  data-open-id="${itemId}"
-                >
-                  Abrir
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-ghost btn-sm history-action-btn"
-                  data-rename-id="${itemId}"
-                >
-                  Renomear
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-danger btn-sm history-action-btn"
-                  data-delete-id="${itemId}"
-                >
-                  Excluir
-                </button>
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn history-favorite-btn ${favorite ? "active" : ""}" data-favorite-id="${itemId}" aria-pressed="${favorite ? "true" : "false"}" aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}" title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"><span class="history-action-symbol" aria-hidden="true">&#9733;</span></button>
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn" data-open-id="${itemId}">Abrir</button>
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn" data-rename-id="${itemId}">Renomear</button>
+                <button type="button" class="btn btn-danger btn-sm history-action-btn" data-delete-id="${itemId}">Excluir</button>
               </div>
             </div>
           `;
@@ -4552,6 +4613,39 @@
                 >
                   Excluir
                 </button>
+              </div>
+            </div>
+          `;
+        }
+
+        // Keep this final definition close to the event handlers: older profile
+        // revisions above contain legacy renderers, and JavaScript uses the last one.
+        function buildHistoryItemCard(item) {
+          const itemId = escapeHtml(item.id || "");
+          const presentation = getHistoryPresentation(item);
+          const title = escapeHtml(presentation.title);
+          const subtitle = escapeHtml(presentation.preview);
+          const stamp = item.last_watched_at || item.created_at || item.updated_at;
+          const favorite = isHistoryFavorite(item);
+
+          return `
+            <div class="history-item">
+              <button type="button" class="history-open" data-open-id="${itemId}">
+                <div class="history-title-row">
+                  <strong>${title}</strong>
+                  ${favorite ? '<span class="history-favorite-badge"><i class="fa-solid fa-star" aria-hidden="true"></i> Favorito</span>' : ""}
+                </div>
+                <span class="history-preview">${subtitle}</span>
+                <div class="history-meta">
+                  <span class="history-kind"><i class="${presentation.icon}" aria-hidden="true"></i>${escapeHtml(presentation.kind)}</span>
+                  <span class="history-time">${escapeHtml(formatHour(stamp))}</span>
+                </div>
+              </button>
+              <div class="history-item-actions">
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn history-favorite-btn ${favorite ? "active" : ""}" data-favorite-id="${itemId}" aria-pressed="${favorite ? "true" : "false"}" aria-label="${favorite ? "Remover dos favoritos" : "Favoritar item"}" title="${favorite ? "Remover dos favoritos" : "Favoritar item"}"><span class="history-action-symbol" aria-hidden="true">&#9733;</span></button>
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn" data-open-id="${itemId}">Abrir</button>
+                <button type="button" class="btn btn-ghost btn-sm history-action-btn" data-rename-id="${itemId}">Renomear</button>
+                <button type="button" class="btn btn-danger btn-sm history-action-btn" data-delete-id="${itemId}">Excluir</button>
               </div>
             </div>
           `;
