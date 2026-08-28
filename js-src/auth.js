@@ -2533,6 +2533,7 @@ function populateNavbarLinks() {
   // Define os links padrão do site
   const links = [
     { name: "<i class='fa-solid fa-house'></i> Início", url: "index.html" },
+    { name: "<i class='fa-solid fa-users'></i> Comunidade", url: "usuarios.html" },
     { name: "<i class='fa-solid fa-torii-gate'></i> Animes", url: "animes.html" },
     { name: "<i class='fa-solid fa-tv'></i> Desenhos", url: "desenhos.html" },
     { name: "<i class='fa-solid fa-clapperboard'></i> Filmes", url: "filmes.html" },

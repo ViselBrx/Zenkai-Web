@@ -1074,6 +1074,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
+      align-items: start;
     }
 
     .home-video-card {
@@ -1304,6 +1305,135 @@
       background: var(--home-accent);
       outline: none;
       transform: translateY(-1px);
+    }
+
+    .home-extension-section { padding-top: 28px; }
+
+    .home-extension-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .home-extension-card {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid var(--home-line-soft);
+      border-radius: 20px;
+      background: linear-gradient(145deg, var(--home-surface-strong), rgba(255, 255, 255, 0.018));
+    }
+
+    .home-extension-card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 17px;
+    }
+
+    .home-extension-icon {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(var(--home-accent-rgb), 0.3);
+      border-radius: 12px;
+      color: var(--home-accent);
+      background: rgba(var(--home-accent-rgb), 0.08);
+      font-size: 1.05rem;
+    }
+
+    .home-extension-card h3 {
+      margin: 0;
+      color: var(--home-text);
+      font-size: 1rem;
+      letter-spacing: -0.04em;
+    }
+
+    .home-extension-card p {
+      min-height: 42px;
+      margin: 0 0 13px;
+      color: var(--home-muted);
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+
+    .home-extension-command { min-height: 65px; }
+
+    .home-ide-stage {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 22px;
+      padding: clamp(22px, 4vw, 42px);
+      overflow: hidden;
+      border: 1px solid rgba(var(--home-accent-rgb), .24);
+      border-radius: 28px;
+      background: radial-gradient(circle at 12% 0%, rgba(var(--home-accent-rgb), .2), transparent 30%), linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+      box-shadow: 0 0 45px rgba(var(--home-accent-rgb), .1), inset 0 0 45px rgba(255,255,255,.025);
+      isolation: isolate;
+    }
+
+    .home-ide-stage::before,
+    .home-ide-stage::after {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border: 1px solid rgba(var(--home-accent-rgb), .22);
+      border-radius: 50%;
+      content: '';
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .home-ide-stage::before { top: -105px; right: 15%; background: conic-gradient(from 90deg, transparent, rgba(var(--home-accent-rgb), .2), transparent 30%); filter: blur(1px); animation: homeIdeFloat 7s ease-in-out infinite, homeIdeSpin 18s linear infinite; }
+    .home-ide-stage::after { bottom: -120px; left: 26%; animation: homeIdeFloat 9s ease-in-out infinite reverse; }
+    .home-ide-copy { position: relative; z-index: 1; }
+    .home-ide-copy h3 { margin: 10px 0; color: var(--home-text); font-size: clamp(1.6rem, 3vw, 2.5rem); }
+    .home-ide-copy > p:not(.home-section-kicker) { max-width: 54ch; color: var(--home-muted); line-height: 1.65; }
+    .home-ide-install { margin-top: 22px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.1); color: var(--home-text); }
+    .home-ide-terminal { margin-top: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); border-radius: 12px; background: rgba(5, 5, 5, .82); box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 10px 28px rgba(0,0,0,.18); }
+    .home-ide-terminal-head { display: flex; align-items: center; gap: 9px; min-height: 40px; padding: 7px 9px 7px 12px; border-bottom: 1px solid rgba(255,255,255,.12); color: #e5e5e5; background: rgba(255,255,255,.06); font-size: .72rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .home-cmd-icon { display: grid; place-items: center; width: 23px; height: 23px; border-radius: 5px; color: #fff; background: #050505; box-shadow: 0 0 0 1px rgba(255,255,255,.4), 0 0 12px rgba(0,0,0,.5); }
+    .home-cmd-icon svg { width: 16px; height: 16px; fill: currentColor; }
+    .home-ide-copy-button { display: grid; place-items: center; width: 30px; height: 30px; margin-left: auto; border: 1px solid rgba(255,255,255,.28); border-radius: 8px; color: #e5e5e5; background: rgba(255,255,255,.08); cursor: pointer; transition: color 180ms ease, background 180ms ease, transform 180ms ease; }
+    .home-ide-copy-button:hover, .home-ide-copy-button:focus-visible, .home-ide-copy-button.is-copied { color: #050505; background: #fff; outline: none; transform: translateY(-1px); }
+    .home-ide-terminal code { display: block; max-width: 100%; padding: 13px 15px; overflow-x: auto; color: #f1f1f1; background: rgba(0,0,0,.25); font-size: .86rem; white-space: nowrap; }
+    .home-ide-links { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-content: center; perspective: 900px; }
+    .home-ide-card { position: relative; display: flex; align-items: center; gap: 12px; min-height: 112px; padding: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; color: var(--home-text); background: linear-gradient(145deg, rgba(19,25,34,.82), rgba(4,6,10,.7)); text-decoration: none; transform: translateY(14px) rotateX(3deg); opacity: 0; animation: homeIdeCardIn .7s cubic-bezier(.2,.8,.2,1) forwards; transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease, background 260ms ease; }
+    .home-ide-card:nth-child(1) { animation-delay: 100ms; }
+    .home-ide-card:nth-child(2) { animation-delay: 180ms; }
+    .home-ide-card:nth-child(3) { animation-delay: 260ms; }
+    .home-ide-card:nth-child(4) { animation-delay: 340ms; }
+    .home-ide-card:nth-child(5) { animation-delay: 420ms; }
+    .home-ide-card::before { position: absolute; inset: -70% 35% auto -30%; height: 150%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.16), transparent); content: ''; transform: rotate(18deg); transition: transform 500ms ease; }
+    .home-ide-card:hover, .home-ide-card:focus-visible { z-index: 2; border-color: var(--home-accent); background: linear-gradient(145deg, rgba(22,40,50,.92), rgba(4,8,14,.82)); box-shadow: 0 16px 34px rgba(0,0,0,.35), 0 0 25px rgba(var(--home-accent-rgb), .2); outline: none; transform: translateY(-8px) rotate(-2deg) scale(1.025); }
+    .home-ide-card:hover::before, .home-ide-card:focus-visible::before { transform: translateX(170%) rotate(18deg); }
+    .home-ide-card img { position: relative; z-index: 1; width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(var(--home-accent-rgb), .3)); animation: homeIdeIconFloat 3.4s ease-in-out infinite; }
+    .home-ide-card:nth-child(even) img { animation-delay: -1.3s; }
+    .home-ide-card strong { position: relative; z-index: 1; display: block; font-size: .96rem; }
+    .home-ide-card span { position: relative; z-index: 1; display: block; margin-top: 5px; color: var(--home-muted); font-size: .72rem; }
+    .home-ide-card span::after { margin-left: 5px; color: var(--home-accent); content: '↗'; }
+
+    @keyframes homeIdeFloat { 0%, 100% { transform: translate3d(0,0,0) rotate(0deg); } 50% { transform: translate3d(0,16px,0) rotate(18deg); } }
+    @keyframes homeIdeSpin { to { rotate: 360deg; } }
+    @keyframes homeIdeCardIn { to { opacity: 1; transform: translateY(0) rotateX(0); } }
+    @keyframes homeIdeIconFloat { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-5px) rotate(3deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .home-ide-stage::before, .home-ide-stage::after, .home-ide-card, .home-ide-card img { animation: none; }
+      .home-ide-card { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 980px) {
+      .home-extension-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .home-ide-stage { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .home-extension-grid { grid-template-columns: 1fr; }
+      .home-extension-card p { min-height: 0; }
+      .home-ide-links { grid-template-columns: 1fr; }
     }
 
     .home-sr-only {
@@ -1659,22 +1789,6 @@
               <p class="vjs-no-js">Ative o JavaScript para assistir à apresentação da extensão Zenkai.</p>
             </video>
           </div>
-          <div class="home-video-extension-install" aria-label="Instalação da extensão Zenkai no VS Code">
-            <!-- Troque o endereço abaixo pelo repositório oficial quando a extensão for publicada. -->
-            <a class="home-video-extension-repository" href="https://github.com/ViselBrx/Zenkai-VSCode-Extension" target="_blank" rel="noopener noreferrer" aria-label="Abrir diretório da extensão no GitHub">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
-              <span>Diretório da extensão</span>
-              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
-            </a>
-            <span class="home-video-command-label">CMD da IDE · instalar extensão</span>
-            <div class="home-video-command">
-              <code id="zenkaiExtensionInstallCommand">code --install-extension zenkai.zenkai-vscode-extension</code>
-              <button class="home-video-copy" type="button" data-copy-command="code --install-extension zenkai.zenkai-vscode-extension" aria-label="Copiar comando de instalação" title="Copiar comando">
-                <i class="fa-regular fa-copy" aria-hidden="true"></i>
-                <span class="home-sr-only">Copiar comando</span>
-              </button>
-            </div>
-          </div>
           <h3>Seu espaço de criação</h3>
           <p>Descubra a extensão própria da Zenkai para o VS Code e como ela acompanha seu fluxo de desenvolvimento.</p>
           <p class="home-video-note" data-video-note>Slot pronto: adicione <code>videos/zenkai-vscode-extension.mp4</code> para publicar este vídeo.</p>
@@ -1682,9 +1796,47 @@
       </div>
     </section>
 
+    <section class="home-section home-extension-section" id="extensao" aria-labelledby="extension-title">
+      <div class="home-section-heading" data-home-reveal>
+        <div>
+          <p class="home-section-kicker">04 / Leve a Zenkai com você</p>
+          <h2 class="home-section-title" id="extension-title">Seu editor.<br><span>Seu universo.</span></h2>
+        </div>
+        <p class="home-section-note">Baixe sua IDE e leve a extensão Zenkai para o editor que já faz parte do seu fluxo.</p>
+      </div>
+
+      <div class="home-ide-stage" data-home-reveal="scale">
+        <div class="home-ide-copy">
+          <p class="home-section-kicker">Compatibilidade expandida</p>
+          <h3>Funciona nas variedades mecânicas do VS Code.</h3>
+          <p>O Zenkai Theme funciona nas variedades mecânicas e derivadas do VS Code: Visual Studio Code, VSCodium, Cursor e Antigravity IDE.</p>
+          <div class="home-ide-install">
+            <strong>Instalação manual do VSIX pelo terminal</strong><br>
+            <div class="home-ide-terminal" aria-label="Comando CMD para instalar o VSIX">
+              <div class="home-ide-terminal-head">
+                <span class="home-cmd-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" role="img"><path d="M3 4.5A2.5 2.5 0 0 1 5.5 2h13A2.5 2.5 0 0 1 21 4.5v15a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 19.5v-15Zm4.2 3.1a.85.85 0 0 0-1.2 1.2l3.2 3.2-3.2 3.2a.85.85 0 0 0 1.2 1.2l3.8-3.8a.85.85 0 0 0 0-1.2L7.2 7.6ZM12 15.5a.85.85 0 1 0 0 1.7h4.1a.85.85 0 1 0 0-1.7H12Z"/></svg>
+                </span>
+                <span>CMD</span>
+                <button class="home-ide-copy-button" type="button" data-copy-command="code --install-extension zenkai.zenkai-vscode-extension" aria-label="Copiar comando do CMD" title="Copiar comando"><i class="fa-regular fa-copy" aria-hidden="true"></i><span class="home-sr-only">Copiar comando</span></button>
+              </div>
+              <code>code --install-extension zenkai.zenkai-vscode-extension</code>
+            </div>
+          </div>
+        </div>
+        <div class="home-ide-links" aria-label="Links para baixar as IDEs">
+          <a class="home-ide-card" href="https://code.visualstudio.com/download" target="_blank" rel="noopener noreferrer"><img src="assets/vscode_icon.png" alt="Ícone do Visual Studio Code"><span><strong>Visual Studio Code</strong>Baixar oficialmente</span></a>
+          <a class="home-ide-card" href="https://vscodium.com/#install" target="_blank" rel="noopener noreferrer"><img src="assets/vscodium_icon.png" alt="Ícone do VSCodium"><span><strong>VSCodium</strong>Baixar open source</span></a>
+          <a class="home-ide-card" href="https://www.cursor.com/en/downloads" target="_blank" rel="noopener noreferrer"><img src="assets/cursor_icon.png" alt="Ícone do Cursor"><span><strong>Cursor</strong>Baixar o editor com IA</span></a>
+          <a class="home-ide-card" href="https://antigravity.google/download?app=antigravity-ide" target="_blank" rel="noopener noreferrer"><img src="assets/antigravity_icon.png" alt="Ícone do Antigravity IDE"><span><strong>Antigravity IDE</strong>Baixar oficialmente</span></a>
+          <a class="home-ide-card" href="https://windsurf.com/download" target="_blank" rel="noopener noreferrer"><img src="assets/windsurf_icon.png" alt="Ícone do Windsurf"><span><strong>Windsurf</strong>Baixar o editor com IA</span></a>
+        </div>
+      </div>
+    </section>
+
     <section class="home-section" id="ritual" aria-labelledby="ritual-title">
       <div class="home-section-heading" data-home-reveal>
-        <div><p class="home-section-kicker">04 / O ritual</p><h2 class="home-section-title" id="ritual-title">Do primeiro clique<br><span>ao próximo capítulo.</span></h2></div>
+        <div><p class="home-section-kicker">05 / O ritual</p><h2 class="home-section-title" id="ritual-title">Do primeiro clique<br><span>ao próximo capítulo.</span></h2></div>
         <p class="home-section-note">A experiência foi pensada para você entrar por qualquer porta e ainda saber para onde ir.</p>
       </div>
       <div class="home-ritual">
@@ -1696,7 +1848,7 @@
 
     <section class="home-section" aria-labelledby="home-cta-title">
       <div class="home-cta" data-home-reveal="scale">
-        <div><p class="home-section-kicker">05 / Sua vez</p><h2 id="home-cta-title">A próxima história<br><span>pode começar agora.</span></h2></div>
+        <div><p class="home-section-kicker">06 / Sua vez</p><h2 id="home-cta-title">A próxima história<br><span>pode começar agora.</span></h2></div>
         <a class="btn btn-primary home-cta-button" href="sobre.html">Conheça a equipe <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
       </div>
     </section>

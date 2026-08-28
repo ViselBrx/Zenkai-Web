@@ -411,6 +411,7 @@
 
     const pages = [
       { href: "index.html", label: " Início", icon: "<i class='fa-solid fa-house'></i>" },
+      { href: "usuarios.html", label: " Comunidade", icon: "<i class='fa-solid fa-users'></i>" },
       { href: "animes.html", label: " Animes", icon: "<i class='fa-solid fa-torii-gate'></i>" },
       { href: "desenhos.html", label: " Desenhos", icon: "<i class='fa-solid fa-tv'></i>" },
       { href: "filmes.html", label: " Filmes", icon: "<i class='fa-solid fa-clapperboard'></i>" },

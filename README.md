@@ -70,34 +70,9 @@ Visitantes podem explorar as vitrines e os catálogos, mas precisam entrar para 
 - Um projeto Supabase configurado, caso queira usar autenticação e dados remotos.
 - Chaves de IA, caso queira habilitar todos os recursos da ZenkAI.
 
-### Instalação
+### Downloads das IDEs
 
-```bash
-npm install
-```
-
-Crie ou atualize o arquivo `.env` na raiz do projeto:
-
-```env
-SUPABASE_URL=...
-SUPABASE_ANON_KEY=...
-GROQ_API_KEY=...
-GEMINI_API_KEY=...
-```
-
-### Executar localmente
-
-```bash
-npm start
-```
-
-No Windows, também é possível iniciar com:
-
-```bat
-iniciar.bat
-```
-
-Abra [http://localhost:3000](http://localhost:3000).
+Use os links oficiais na seção **Zenkai Theme para IDEs** abaixo para baixar a IDE compatível com sua plataforma.
 
 ## <i class="fa-solid fa-window-maximize"></i> Páginas principais
 
@@ -156,18 +131,6 @@ O servidor em `server.js` disponibiliza os endpoints abaixo.
 
 O diretório `electron/` contém o empacotamento do cliente Windows.
 
-```bash
-cd electron
-npm install
-npm start
-```
-
-Para gerar uma versão portátil para Windows x64:
-
-```bash
-npm run build
-```
-
 ## <i class="fa-solid fa-database"></i> Dados e segurança
 
 - Dados de perfil e cosméticos são associados ao usuário autenticado no Supabase.
@@ -176,5 +139,52 @@ npm run build
 - Mantenha o terminal/servidor em execução enquanto usar a versão local.
 
 ## <i class="fa-solid fa-scale-balanced"></i> Aviso legal
+
+---
+
+## <i class="fa-solid fa-swatchbook"></i> Zenkai Theme para IDEs
+
+O **Zenkai Theme** leva a identidade neon do universo Zenkai para editores baseados no Visual Studio Code. Ele funciona nas diferentes variações compatíveis com VS Code, incluindo VS Code, VSCodium, Cursor e Antigravity IDE.
+
+<div align="center">
+  <a href="https://code.visualstudio.com/download"><img src="assets/vscode_icon.png" width="104" alt="Visual Studio Code" /></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://vscodium.com/"><img src="assets/vscodium_icon.png" width="104" alt="VSCodium" /></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.cursor.com/en/downloads"><img src="assets/cursor_icon.png" width="104" alt="Cursor" /></a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://antigravity.google/download?app=antigravity-ide"><img src="assets/antigravity_icon.png" width="104" alt="Antigravity IDE" /></a>
+</div>
+
+<div align="center">
+  <a href="https://code.visualstudio.com/download"><strong>VS Code</strong></a>
+  &nbsp;A—&nbsp;
+  <a href="https://vscodium.com/"><strong>VSCodium</strong></a>
+  &nbsp;A—&nbsp;
+  <a href="https://www.cursor.com/en/downloads"><strong>Cursor</strong></a>
+  &nbsp;A—&nbsp;
+  <a href="https://antigravity.google/download?app=antigravity-ide"><strong>Antigravity IDE</strong></a>
+</div>
+
+### Downloads
+
+Escolha sua IDE e baixe diretamente do site oficial:
+
+- [**Baixar Visual Studio Code**](https://code.visualstudio.com/download)
+- [**Baixar VSCodium**](https://vscodium.com/)
+- [**Baixar Cursor**](https://www.cursor.com/en/downloads)
+- [**Baixar Antigravity IDE**](https://antigravity.google/download?app=antigravity-ide)
+
+Depois de instalar uma das IDEs, procure por **Zenkai Theme** na extensão correspondente. O tema também está disponível no [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Zenkai.zenkai-vscode-extension) e no [Open VSX Registry](https://open-vsx.org/extension/zenkai/zenkai-vscode-extension).
+
+### Instalação manual do VSIX
+
+Se você baixou o arquivo `.vsix`, use somente o comando abaixo no terminal da IDE:
+
+```bash
+code --install-extension zenkai-vscode-extension-0.0.5.vsix
+```
+
+Em forks que usam outro executável de terminal, abra a paleta de comandos da IDE e execute **Extensions: Install from VSIX...**.
 
 Este projeto é destinado a estudo e uso pessoal em ambiente local. Cada pessoa responsável pela execução deve respeitar os termos dos serviços integrados e a legislação aplicável ao conteúdo acessado.
