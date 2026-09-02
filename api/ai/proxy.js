@@ -216,6 +216,10 @@ async function handler(req, res) {
     // Impede que clientes antigos ou cacheados reativem streaming por engano.
     if (requestPayload && typeof requestPayload === 'object') {
       requestPayload = { ...requestPayload };
+      if (target === 'openrouter') {
+        // O projeto usa exclusivamente o roteador gratuito do OpenRouter.
+        requestPayload.model = 'google/gemma-4-31b-it:free';
+      }
       if (target === 'gemini') {
         delete requestPayload.stream;
       } else {

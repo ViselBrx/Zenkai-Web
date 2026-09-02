@@ -439,6 +439,10 @@ const server = http.createServer(async (req, res) => {
       // Impede que clientes antigos ou cacheados reativem streaming por engano.
       if (requestPayload && typeof requestPayload === 'object') {
         requestPayload = { ...requestPayload };
+        if (target === 'openrouter') {
+          // O projeto usa exclusivamente o roteador gratuito do OpenRouter.
+          requestPayload.model = 'openrouter/free';
+        }
         if (target === 'gemini') {
           delete requestPayload.stream;
         } else {

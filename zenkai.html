@@ -303,6 +303,18 @@
 
       </div>
 
+      <div class="ai-card ai-readme-card" id="readmeCard" style="display:none;">
+        <div class="ai-readme-heading">
+          <span class="ai-readme-badge"><i class="fa-solid fa-triangle-exclamation"></i> Aviso importante</span>
+          <div class="ai-readme-title-row">
+            <h3><span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span> LEIA-ME</h3>
+            <button id="closeReadme" class="ai-readme-close" type="button" title="Fechar o LEIA-ME" aria-label="Fechar o LEIA-ME"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+        <p>O ZenkAI ainda está em desenvolvimento. Esta IA é disponibilizada gratuitamente e, por isso, usa modelos e recursos gratuitos que podem mudar, ficar indisponíveis ou apresentar limites.</p>
+        <p>Não espere recursos muito avançados por enquanto: as respostas podem ser simples, variar de qualidade e conter erros. Use a ferramenta como apoio para explorar ideias e confira informações importantes em fontes confiáveis.</p>
+      </div>
+
       <div class="ai-tool-box">
         <div class="ai-tabs-vertical">
           <div class="ai-tab-v" data-tab="vision">Imagem IA</div>
@@ -316,10 +328,14 @@
         <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4;">
           Pressione <strong>Enter</strong> para enviar no chat. Explore as abas acima para usar as ferramentas.
         </p>
-        <!-- Botão discreto para config -->
-        <button id="toggleInfoCard" title="Saiba mais" style="margin-top:10px;background:none;border:none;cursor:pointer;opacity:0.4;font-size:0.85rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.9'" onmouseleave="this.style.opacity='0.4'">
-          <span><i class='fa-solid fa-book-open'></i></span> Saiba mais
-        </button>
+        <div class="ai-info-actions">
+          <button id="toggleInfoCard" title="Saiba mais" type="button">
+            <span><i class='fa-solid fa-book-open'></i></span> Saiba mais
+          </button>
+          <button id="toggleReadme" class="ai-readme-toggle" title="Abrir o LEIA-ME" type="button" aria-expanded="false" aria-controls="readmeCard">
+            <span><i class="fa-solid fa-triangle-exclamation"></i></span> LEIA-ME
+          </button>
+        </div>
       </div>
     </aside>
 
@@ -1129,6 +1145,66 @@
     background: rgba(var(--bg-card), 0.5) !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
   }
+
+  .ai-info-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .ai-info-actions button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.78rem;
+    transition: 0.2s ease;
+  }
+
+  .ai-info-actions button:hover,
+  .ai-info-actions button:focus-visible {
+    border-color: var(--primary);
+    color: var(--text-main);
+    outline: none;
+  }
+
+  .ai-info-actions .ai-readme-toggle {
+    border-color: rgba(251, 191, 36, 0.65);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(239, 68, 68, 0.14));
+    color: #fcd34d;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.16);
+  }
+
+  .ai-info-actions .ai-readme-toggle:hover,
+  .ai-info-actions .ai-readme-toggle:focus-visible {
+    color: #fff7ed;
+    border-color: #fbbf24;
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.28);
+  }
+
+  .ai-readme-card {
+    border-color: rgba(251, 191, 36, 0.38) !important;
+    background: linear-gradient(145deg, rgba(120, 74, 0, 0.22), rgba(var(--bg-card), 0.72)) !important;
+  }
+
+  .ai-readme-heading h3 { margin-bottom: 8px; }
+  .ai-readme-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ai-readme-title-row h3 { margin: 8px 0 0; }
+  .ai-readme-close { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 8px; background: rgba(0, 0, 0, 0.14); color: #fcd34d; cursor: pointer; transition: 0.2s ease; }
+  .ai-readme-close:hover, .ai-readme-close:focus-visible { border-color: #fbbf24; background: rgba(251, 191, 36, 0.16); color: #fff7ed; outline: none; }
+  .ai-readme-card p { margin: 10px 0 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.55; }
+  .ai-readme-badge { display: inline-flex; align-items: center; gap: 6px; color: #fcd34d; font-size: 0.68rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
 </style>
 
 <div id="toast"></div>
@@ -1140,6 +1216,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js-ofuscado/auth.js"></script>
+<script>
+  (() => {
+    const button = document.getElementById('toggleReadme');
+    const card = document.getElementById('readmeCard');
+    const closeButton = document.getElementById('closeReadme');
+    if (!button || !card) return;
+    const setReadmeVisibility = (visible) => {
+      card.style.display = visible ? 'block' : 'none';
+      button.setAttribute('aria-expanded', String(visible));
+      if (visible) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    button.addEventListener('click', () => {
+      setReadmeVisibility(window.getComputedStyle(card).display === 'none');
+    });
+    closeButton?.addEventListener('click', () => setReadmeVisibility(false));
+  })();
+</script>
 <div class="watermark">&copy; ViselBrx & DaviMoraes07&trade;</div>
 <script src="js-ofuscado/guard.js"></script>
 </body>

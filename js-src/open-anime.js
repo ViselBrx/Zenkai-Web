@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
   if (!document.getElementById('ai-typing-styles')) {
     const style = document.createElement('style');
     style.id = 'ai-typing-styles';
@@ -138,6 +138,9 @@
   const cancelChatEditBtn = document.getElementById('cancelChatEdit');
   const toggleInfoCardBtn = document.getElementById('toggleInfoCard');
   const infoCard = document.getElementById('infoCard');
+  const toggleReadmeBtn = document.getElementById('toggleReadme');
+  const readmeCard = document.getElementById('readmeCard');
+  const closeReadmeBtn = document.getElementById('closeReadme');
   const themeName = document.getElementById('themeName');
   const themeColorPreview = document.getElementById('themeColorPreview');
   const chatScrollFill = document.getElementById('chatScrollFill');
@@ -211,9 +214,10 @@
   const GREETING_MESSAGE = 'Olá! Eu sou o **ZenkAI** 🎬 — seu assistente especialista da Zenkai! Eu conheço tudo sobre entretenimento global: de animes e mangás japoneses a cartoons, HQs e filmes de todo o mundo. Posso recomendar títulos com explicações detalhadas, discutir lore e desenvolvimento de personagens, comparar poderes incríveis ou analisar cenas e quadros. Qual universo vamos explorar hoje?';
   const AI_HISTORY_TABLE = 'ai_chat_messages';
   const AI_HISTORY_LIMIT = 120;
-  const DEFAULT_GROQ_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free';
-  const COMPARE_GROQ_MODEL = 'openrouter/free';
-  const COMPARE_FALLBACK_GROQ_MODEL = DEFAULT_GROQ_MODEL;
+  const OPENROUTER_FREE_MODEL = 'openrouter/free';
+  const DEFAULT_AI_MODEL = OPENROUTER_FREE_MODEL;
+  const COMPARE_AI_MODEL = OPENROUTER_FREE_MODEL;
+  const COMPARE_FALLBACK_AI_MODEL = OPENROUTER_FREE_MODEL;
   const CHAT_MAX_TOKENS = 2400;
   const COMPARE_MAX_TOKENS = 3600;
   const COMPARE_CONTINUATION_MAX_TOKENS = 1600;
@@ -994,7 +998,7 @@
 
   async function optimizeVisionImage(file) {
     const originalDataUrl = await readFileAsDataUrl(file);
-    if (!String(file?.type || '').startsWith('image/') || Number(file?.size || 0) <= 900 * 1024) {
+    if (!String(file?.type || '').startsWith('image/')) {
       return originalDataUrl;
     }
 
@@ -1531,12 +1535,12 @@
   async function requestAIText(requestMessages, options = {}) {
     const target = 'openrouter';
     const context = options.context || 'chat';
-    const model = options.model || DEFAULT_GROQ_MODEL;
+    const model = OPENROUTER_FREE_MODEL;
     // As respostas da ZenkAI são entregues completas. O streaming fica
     // bloqueado neste fluxo para não exibir Markdown/tabelas pela metade.
 
     const modelQueue = context === 'compare'
-      ? Array.from(new Set([model, COMPARE_FALLBACK_GROQ_MODEL, DEFAULT_GROQ_MODEL].filter(Boolean)))
+      ? Array.from(new Set([model, COMPARE_FALLBACK_AI_MODEL, DEFAULT_AI_MODEL].filter(Boolean)))
       : [model];
     const maxRetriesPerModel = 1;
 
@@ -1557,7 +1561,8 @@
               messages: requestMessages,
               temperature: Number.isFinite(options.temperature) ? options.temperature : undefined,
               max_tokens: Number.isFinite(options.max_tokens) ? options.max_tokens : undefined,
-              stream: false
+              stream: false,
+              provider: { sort: 'throughput' }
             }
           })
         });
@@ -1974,7 +1979,7 @@
 
   async function callAI(prompt, options = {}) {
     const target = 'openrouter';
-    const model = options.model || DEFAULT_GROQ_MODEL;
+    const model = OPENROUTER_FREE_MODEL;
     const useChatContext = options.useChatContext !== false;
     const persistToAIHistory = options.persistToAIHistory !== false;
     const context = options.context || 'chat';
@@ -2256,7 +2261,7 @@
       const requestMessages = chatHistory.filter(m => m !== nextAssistantEntry).map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
         target: 'openrouter',
-        model: DEFAULT_GROQ_MODEL,
+        model: DEFAULT_AI_MODEL,
         context: 'chat',
         stream: false
       });
@@ -2295,6 +2300,11 @@
       }
 
       clearAIChatEditState();
+      // A edição foi concluída; não deixe a pergunta antiga presa no campo.
+      if (chatInput) {
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+      }
       persistAIChatSessionState();
       await syncAIThreadHistoryCard(updatedPrompt, aiResponse);
       showFeedback('Pergunta atualizada');
@@ -2372,7 +2382,7 @@
       const requestMessages = chatHistory.filter(m => m !== nextAssistantEntry).map(({ role, content }) => ({ role, content }));
       const aiResponse = await requestAIText(requestMessages, {
         target: 'openrouter',
-        model: DEFAULT_GROQ_MODEL,
+        model: DEFAULT_AI_MODEL,
         context: 'chat',
         stream: false
       });
@@ -2449,7 +2459,7 @@
     const visionRequestPlan = [
       {
         target: 'openrouter',
-        models: ['openrouter/free']
+        models: [OPENROUTER_FREE_MODEL]
       }
     ];
 
@@ -2471,11 +2481,12 @@
                   role: 'user',
                   content: [
                     { type: 'text', text: promptText },
-                    { type: 'image_url', image_url: { url: base64Image } }
+                    { type: 'image_url', image_url: { url: base64Image, detail: 'low' } }
                   ]
                 }
               ],
-              max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS
+              max_tokens: Number(options.max_tokens) || VISION_MAX_TOKENS,
+              provider: { require_parameters: true, sort: 'throughput' }
             };
 
             const res = await fetch('/api/ai/proxy', {
@@ -2631,6 +2642,18 @@
         infoCard.style.display = 'none';
       }
     });
+  }
+
+  if (toggleReadmeBtn && readmeCard) {
+    const setReadmeVisibility = (visible) => {
+      readmeCard.style.display = visible ? 'block' : 'none';
+      toggleReadmeBtn.setAttribute('aria-expanded', String(visible));
+      if (visible) readmeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    };
+    toggleReadmeBtn.addEventListener('click', () => {
+      setReadmeVisibility(window.getComputedStyle(readmeCard).display === 'none');
+    });
+    closeReadmeBtn?.addEventListener('click', () => setReadmeVisibility(false));
   }
 
   if (chatWindow) {
@@ -2876,6 +2899,8 @@
         });
 
         renderVisionResult(aiResponse);
+        // O prompt auxiliar já foi consumido pela análise.
+        if (visionPromptInput) visionPromptInput.value = '';
       } catch (error) {
         renderVisionResult(`Falha: ${error.message}. Verifique o terminal do servidor para mais detalhes.`);
       } finally {
@@ -2937,7 +2962,7 @@
         useChatContext: false,
         persistToAIHistory: true,
         context: 'compare',
-        model: COMPARE_GROQ_MODEL,
+        model: COMPARE_AI_MODEL,
         temperature: COMPARE_TEMPERATURE,
         max_tokens: COMPARE_MAX_TOKENS,
         systemPrompt: compareSystemPrompt,

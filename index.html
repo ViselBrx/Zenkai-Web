@@ -142,17 +142,30 @@
     }
 
     .feedback-close-btn {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 1.4rem;
+      width: 36px;
+      height: 36px;
+      flex: 0 0 36px;
+      padding: 0;
+      border-radius: 8px;
+      background: rgba(8, 16, 30, 0.86);
+      border: 1px solid rgba(var(--primary-rgb), 0.3);
+      color: var(--primary);
+      font-size: 1.25rem;
+      line-height: 1;
       cursor: pointer;
-      transition: color 0.2s, transform 0.2s;
+      transition: border-color 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
     }
 
     .feedback-close-btn:hover {
       color: var(--primary);
-      transform: rotate(90deg);
+      background: rgba(8, 16, 30, 0.96);
+      border-color: rgba(var(--primary-rgb), 0.55);
+      box-shadow: 0 0 18px rgba(var(--primary-rgb), 0.24);
+    }
+
+    .feedback-close-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     .feedback-modal-body {
@@ -774,6 +787,14 @@
       line-height: 1.75;
     }
 
+    .home-about-link { display: inline-flex; align-items: center; gap: 12px; max-width: 380px; margin-top: 22px; padding: 11px 14px; border: 1px solid rgba(var(--home-accent-rgb), 0.22); border-radius: 14px; color: var(--home-text); background: rgba(255, 255, 255, 0.025); text-decoration: none; transition: border-color 220ms ease, background 220ms ease, transform 220ms ease; }
+    .home-about-link > i:first-child { color: var(--home-accent); font-size: 1rem; }
+    .home-about-link > i:last-child { margin-left: auto; color: var(--home-muted); font-size: 0.72rem; }
+    .home-about-link span { display: grid; gap: 3px; }
+    .home-about-link strong { font-size: 0.78rem; letter-spacing: -0.02em; }
+    .home-about-link small { color: var(--home-muted); font-size: 0.7rem; line-height: 1.35; }
+    .home-about-link:hover, .home-about-link:focus-visible { border-color: rgba(var(--home-accent-rgb), 0.55); background: rgba(var(--home-accent-rgb), 0.08); outline: none; transform: translateY(-2px); }
+
     .home-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1049,6 +1070,38 @@
     .home-ritual-card span { color: var(--home-accent); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; }
     .home-ritual-card h3 { margin: 35px 0 11px; font-size: 1.3rem; letter-spacing: -0.055em; }
     .home-ritual-card p { max-width: 290px; margin: 0; color: var(--home-muted); font-size: 0.82rem; line-height: 1.65; }
+
+    .home-transparency-section {
+      margin-top: 22px;
+      padding: 86px clamp(22px, 4vw, 58px);
+      border: 1px solid rgba(var(--home-accent-rgb), 0.34);
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(var(--home-accent-rgb), 0.13), rgba(9, 11, 14, 0.92) 68%);
+      box-shadow: 0 28px 90px rgba(var(--home-accent-rgb), 0.08);
+      overflow: hidden;
+    }
+
+    .home-transparency-section::after {
+      position: absolute;
+      right: -90px;
+      top: -120px;
+      width: 330px;
+      height: 330px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(var(--home-accent-rgb), 0.2), transparent 68%);
+      content: '';
+      pointer-events: none;
+    }
+
+    .home-transparency-section .home-section-heading,
+    .home-transparency-grid { position: relative; z-index: 1; }
+    .home-transparency-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; }
+    .home-transparency-card { min-height: 285px; padding: 25px; border: 1px solid var(--home-line-soft); border-radius: 20px; background: rgba(255, 255, 255, 0.035); }
+    .home-transparency-card--featured { border-color: rgba(var(--home-accent-rgb), 0.45); background: linear-gradient(155deg, rgba(var(--home-accent-rgb), 0.14), rgba(255, 255, 255, 0.035)); }
+    .home-transparency-index { display: block; color: var(--home-accent); font-size: 0.66rem; font-weight: 900; letter-spacing: 0.1em; }
+    .home-transparency-icon { display: grid; place-items: center; width: 42px; height: 42px; margin: 34px 0 18px; border: 1px solid rgba(var(--home-accent-rgb), 0.28); border-radius: 12px; color: var(--home-accent); background: rgba(var(--home-accent-rgb), 0.09); }
+    .home-transparency-card h3 { max-width: 290px; margin: 0 0 12px; font-size: 1.28rem; letter-spacing: -0.05em; line-height: 1.05; }
+    .home-transparency-card p { max-width: 42ch; margin: 0; color: var(--home-muted); font-size: 0.82rem; line-height: 1.65; }
 
     .home-cta {
       position: relative;
@@ -1428,6 +1481,8 @@
     @media (max-width: 980px) {
       .home-extension-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .home-ide-stage { grid-template-columns: 1fr; }
+      .home-transparency-grid { grid-template-columns: 1fr 1fr; }
+      .home-transparency-card--featured { grid-column: 1 / -1; }
     }
 
     @media (max-width: 720px) {
@@ -1621,6 +1676,9 @@
       .home-ritual-card { min-height: auto; padding: 22px 0; }
       .home-cta { margin-top: 0; padding: 40px 24px; }
       .home-cta .home-cta-button { justify-self: start; }
+      .home-transparency-section { padding: 66px 20px; }
+      .home-transparency-grid { grid-template-columns: 1fr; }
+      .home-transparency-card--featured { grid-column: auto; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1658,6 +1716,7 @@
           <em>Entre. Explore. Evolua.</em>
         </h1>
         <p class="home-lede">A Zenkai reúne animes, desenhos, filmes, mangás, HQs, jogos e inteligência artificial em uma experiência feita para quem nunca para de descobrir.</p>
+        <a class="home-about-link" href="informacoes.html"><i class="fa-solid fa-compass"></i><span><strong>Entenda a proposta</strong><small>O que a Zenkai é — e por que ela tem limites.</small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
         <div id="homeBannerActions" class="home-actions">
           <div id="homeUserStatus" class="home-user-status">
             <span class="home-user-label">Seu patamar</span>
@@ -1834,9 +1893,40 @@
       </div>
     </section>
 
+    <section class="home-section home-transparency-section" id="transparencia" aria-labelledby="transparency-title">
+      <div class="home-section-heading" data-home-reveal>
+        <div>
+          <p class="home-section-kicker">05 / A história por trás</p>
+          <h2 class="home-section-title" id="transparency-title">Feito com vontade.<br><span>Sem cobrar por isso.</span></h2>
+        </div>
+        <p class="home-section-note">A Zenkai é construída de forma gratuita, com tempo, estudo e recursos que nem sempre estão sob nosso controle.</p>
+      </div>
+
+      <div class="home-transparency-grid">
+        <article class="home-transparency-card home-transparency-card--featured" data-home-reveal style="--home-reveal-delay: 40ms;">
+          <span class="home-transparency-index">/ 01 — PRINCÍPIO</span>
+          <i class="fa-solid fa-heart home-transparency-icon" aria-hidden="true"></i>
+          <h3>Gratuita em todos os aspectos possíveis</h3>
+          <p>O projeto nasce de forma independente e gratuita. Não há uma grande estrutura comercial por trás: existe vontade de criar, manter e compartilhar uma experiência legal com a comunidade.</p>
+        </article>
+        <article class="home-transparency-card" data-home-reveal style="--home-reveal-delay: 100ms;">
+          <span class="home-transparency-index">/ 02 — LIMITES</span>
+          <i class="fa-solid fa-gauge-high home-transparency-icon" aria-hidden="true"></i>
+          <h3>Algumas coisas podem ser limitadas</h3>
+          <p>Servidores, tempo, ferramentas gratuitas e manutenção têm limites. Por isso, certas funcionalidades podem ser mais simples, instáveis ou evoluir aos poucos.</p>
+        </article>
+        <article class="home-transparency-card" data-home-reveal style="--home-reveal-delay: 160ms;">
+          <span class="home-transparency-index">/ 03 — DEPENDÊNCIAS</span>
+          <i class="fa-solid fa-link home-transparency-icon" aria-hidden="true"></i>
+          <h3>A casa também depende do lado de fora</h3>
+          <p>Alguns recursos dependem de serviços e fontes externas. Embeds de conteúdo, por exemplo, podem usar plataformas como o Redecanais; mudanças ou quedas nesses serviços afetam a experiência aqui.</p>
+        </article>
+      </div>
+    </section>
+
     <section class="home-section" id="ritual" aria-labelledby="ritual-title">
       <div class="home-section-heading" data-home-reveal>
-        <div><p class="home-section-kicker">05 / O ritual</p><h2 class="home-section-title" id="ritual-title">Do primeiro clique<br><span>ao próximo capítulo.</span></h2></div>
+        <div><p class="home-section-kicker">06 / O ritual</p><h2 class="home-section-title" id="ritual-title">Do primeiro clique<br><span>ao próximo capítulo.</span></h2></div>
         <p class="home-section-note">A experiência foi pensada para você entrar por qualquer porta e ainda saber para onde ir.</p>
       </div>
       <div class="home-ritual">
@@ -1848,7 +1938,7 @@
 
     <section class="home-section" aria-labelledby="home-cta-title">
       <div class="home-cta" data-home-reveal="scale">
-        <div><p class="home-section-kicker">06 / Sua vez</p><h2 id="home-cta-title">A próxima história<br><span>pode começar agora.</span></h2></div>
+        <div><p class="home-section-kicker">07 / Sua vez</p><h2 id="home-cta-title">A próxima história<br><span>pode começar agora.</span></h2></div>
         <a class="btn btn-primary home-cta-button" href="sobre.html">Conheça a equipe <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
       </div>
     </section>
@@ -2046,7 +2136,7 @@
     <div class="feedback-modal-card">
       <div class="feedback-modal-header">
         <h3><i class="fas fa-paper-plane"></i> Central de Mensagens</h3>
-        <button class="feedback-close-btn" id="feedbackCloseBtn">×</button>
+        <button class="feedback-close-btn" id="feedbackCloseBtn" type="button" aria-label="Fechar Central de Mensagens">×</button>
       </div>
       <div class="feedback-modal-body">
         <p class="feedback-desc">Ajude-nos a melhorar a Zenkai! Envie sua sugestão, report de bug ou mensagem para
