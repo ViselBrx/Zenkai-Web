@@ -1,0 +1,10 @@
+{
+  "description": "Explore, track, and engage with anime, manga, and videos while managing your profile and in-app purchases seamlessly across web and mobile platforms.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
